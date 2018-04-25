@@ -1,0 +1,40 @@
+{Formatted-Text
+ formats:
+ ({Format Base}
+  {Format Heading1}
+  {Format Base left-margin: 16 bulleted?: #t}
+  {Format Base left-margin: 48 bulleted?: #t}
+  {Format Heading2}
+  {Format Base left-margin: 0 bulleted?: #f}
+  {Format Heading2 left-margin: 16 bulleted?: #t}
+  {Format Heading2 left-margin: 48 bulleted?: #t}
+  {Format Heading2 left-margin: 80 bulleted?: #t}
+  {Format Heading2 left-margin: 112 bulleted?: #t}
+  {Format Heading2 left-margin: 0 bulleted?: #f}
+  {Format Heading1 left-margin: 16 bulleted?: #t}
+  {Format Heading1 left-margin: 48 bulleted?: #t}
+  {Format Heading3}
+  {Format Heading1 left-margin: 0 bulleted?: #f}
+  {Format Base left-margin: 80 bulleted?: #t}
+  {Format Base left-margin: 64 bulleted?: #f}
+  {Format Base left-margin: 112 bulleted?: #t}
+  {Format Base left-margin: 32 bulleted?: #f}
+  {Format Heading3 left-margin: 16 bulleted?: #t}
+  {Format Heading3 left-margin: 0 bulleted?: #f})
+
+ styles:
+ ({Text-Style Base}
+  {Text-Style Heading1}
+  {Text-Style Heading2}
+  {Text-Style Heading3}
+  {Text-Style Base frame: {Color Dark-Red}}
+  {Text-Style Base frame: #f}
+  {Text-Style Base color: {Color Dark-Red} frame: #f}
+  {Text-Style Base color: #f}
+  {Text-Style Base color: #f frame: #f})
+
+ paragraphs:
+ ((1 ("Roadmap" 1))
+  (1)
+  (1 ("Here is a rough roadmap of planned features." 0))
+  (1))}

@@ -1,0 +1,121 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Together Settings
+;;;
+
+
+;;;
+;;;; World
+;;;
+
+
+;; Rating
+world.young-child?               default ;; #f
+
+;; Role
+world.role                       default ;; designer / creator
+world.start-user?                default ;; #f
+
+;; Game
+world.free-aim?                  default ;; #f
+
+;; Window
+world.fullscreen?                default ;; #f
+world.borderless?                default ;; #f
+world.position                   default ;; {Point 50 50}
+world.size                       default ;; {Dimension 1200 800}
+
+;; Video
+world.view-distance              default ;; 9
+world.dynamic-lights             default ;; 4
+world.texture-arrays?            default ;; <system dependent>
+world.arb-multisample?           default ;; <system dependent>
+world.post-processing?           default ;; #t
+world.multisampling              default ;; 4
+world.perspective-fov            default ;; 45.
+world.perspective-near           default ;; 0.1
+world.perspective-far            default ;; 10000.0
+world.ambient-color              default ;; #f
+world.sun-color                  default ;; #f
+world.sun-cycle?                 default ;; #t
+world.start-time                 default ;; dawn dusk day night
+world.day-duration               default ;; 1200.
+world.cache-images?              default ;; #t
+world.mesh-categories?           default ;; #t
+world.skybox                     default ;; #f
+world.fog?                       default ;; #t
+world.earth?                     default ;; #t
+
+;; Audio
+world.music?                     default ;; #t
+world.music-style                default ;; #f "piano" "minecraft" "warcraft"
+world.music-volume               default ;; 1.
+world.ambience?                  default ;; #t
+world.ambience-volume            default ;; .5
+world.game-volume                default ;; #f
+world.interface-volume           default ;; #f
+world.sounds?                    default ;; #t
+world.selection-sounds?          default ;; #t
+world.gc-sound?                  default ;; #f
+
+;; Generation
+world.tile-resolution            default ;; 128
+world.generate-mipmap?           default ;; >= 32
+
+;; Interface
+world.start-interface?           default ;; #t
+world.interface-target?          default ;; #f
+world.interface-script?          default ;; #f
+world.axes?                      default ;; #f
+world.axes-graduation?           default ;; #f
+world.track-sensitivity          default ;; 200.
+world.wheel-zoom?                default ;; #f
+world.seed                       default ;; #f
+
+;; Inventory
+world.show-belt?                 default ;; #t
+
+;; History
+world.history-size               default ;; 1000
+world.evaluate-future?           default ;; #t
+world.inhibit-slicing?           default ;; #f
+
+;; Debug
+world.validate-shaders?          default ;; #t
+world.gc-report?                 default ;; #f
+world.debug-w3d?                 default ;; #f
+world.debug-ms3d?                default ;; #f
+world.debug-meshes?              default ;; #f
+world.debug-lightmap?            default ;; #f
+world.debug-textures?            default ;; #f
+world.debug-animations?          default ;; #f
+world.debug-throttle?            default ;; #f
+world.info-display               default ;; #f
+world.profiler-show              default ;; #f
+world.profiler-hide              default ;; #f
+
+;; Collision
+world.debug-collisions?          default ;; #f
+
+;; Camera
+world.independent-camera?        default ;; #t
+world.camera-smoothing?          default ;; #t
+world.camera-move-speed          default ;; .5
+world.camera-blink-speed         default ;; 2.
+world.camera-warp-speed          default ;; 4.
+world.camera-strafe-speed        default ;; .1
+world.camera-rotate-speed        default ;; .035
+
+;; Test
+world.test1                      default ;; "test/test1"
+world.test2                      default ;; "test/test2"
+world.test3                      default ;; "test/test3"
+world.test4                      default ;; "test/test4"
+world.test5                      default ;; "test/test5"
+world.test6                      default ;; "test/test6"
+world.test7                      default ;; "test/test7"
+world.test8                      default ;; "test/test8"
+world.test9                      default ;; "test/test9"
+world.test0                      default ;; "test/test0"

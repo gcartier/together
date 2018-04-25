@@ -1,0 +1,31 @@
+{Formatted-Text
+ formats:
+ ({Format Base}
+  {Format Heading3}
+  {Format Heading1}
+  {Format Heading3 left-margin: 16 bulleted?: #t}
+  {Format Heading3 left-margin: 48 bulleted?: #t}
+  {Format Heading3 left-margin: 32}
+  {Format Heading3 left-margin: 32 bulleted?: #f}
+  {Format Heading3 left-margin: 64 bulleted?: #f}
+  {Format Heading3 left-margin: 0 bulleted?: #f}
+  {Format Heading1 left-margin: 16 bulleted?: #t}
+  {Format Heading1 left-margin: 48 bulleted?: #t}
+  {Format Heading1 left-margin: 0 bulleted?: #f}
+  {Format Base left-margin: 16 bulleted?: #t}
+  {Format Base left-margin: 48 bulleted?: #t}
+  {Format Base left-margin: 0 bulleted?: #f}
+  {Format Heading3 left-margin: 80 bulleted?: #t}
+  {Format Heading3 left-margin: -16 bulleted?: #t}
+  {Format Heading3 left-margin: -32 bulleted?: #f})
+
+ styles:
+ ({Text-Style Base}
+  {Text-Style Heading3}
+  {Text-Style Heading1})
+
+ paragraphs:
+ ((2 ("News" 2))
+  (2)
+  (2 ("Welcome to Together!" 0))
+  (2))}
