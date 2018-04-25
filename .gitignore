@@ -1,0 +1,10 @@
+/bin
+/binaries
+/build
+/cache
+/jazz
+/jiri
+/world
+.configuration
+.jazzini
+.DS_Store

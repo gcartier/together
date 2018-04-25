@@ -1,0 +1,3 @@
+(repository Together
+
+  (library "lib"))
