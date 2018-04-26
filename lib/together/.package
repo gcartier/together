@@ -1,0 +1,67 @@
+(package together
+  
+  (title "Together")
+  (description "Together")
+  (authors "Guillaume Cartier" "Barbara Samson")
+  (stage alpha)
+  (root "src")
+  (products (together-circle (alias circle)
+                             (title "Together-Circle")
+                             (prefix "Circle")
+                             (run together.run-circle)
+                             (product together.product-circle)
+                             (build (together-circle executable: "Together-Circle" minimum-heap: 200000 bundle: "together-circle" resources: "resources/together-circle"))
+                             (dependencies world
+                                           world.client
+                                           world.server))
+            (together-sphere (alias sphere)
+                             (title "Together-Sphere")
+                             (prefix "Sphere")
+                             (run together.run-sphere)
+                             (product together.product-sphere)
+                             (build (together-sphere executable: "Together-Sphere" minimum-heap: 500000 bundle: "together-sphere" resources: "resources/together-sphere"))
+                             (update together
+                                     together.boot-circle
+                                     together.boot-sphere
+                                     together.boot-worker
+                                     together.circle.appl
+                                     together.circle.tier
+                                     together.circle.view
+                                     together.debugger
+                                     together.devel
+                                     together.product-circle
+                                     together.product-sphere
+                                     together.run-circle
+                                     together.run-sphere
+                                     together.settings
+                                     together.sphere.appl
+                                     together.window
+                                     together.windows
+                                     together.zone)
+                             (dependencies gambit.walk
+                                           jazz.editor.jazz
+                                           jazz.fonts
+                                           jazz.git
+                                           (cond
+                                             ((or mac windows) jiri))
+                                           jazz.platform
+                                           world
+                                           world.client
+                                           world.server))
+            (together-worker (title "Together-Worker")
+                             (prefix "Worker")
+                             (run together.run-worker)
+                             (product together.product-worker)
+                             (build (together-worker executable: "Together-Worker" minimum-heap: 500000 bundle: "together-worker" resources: "resources/together-worker" include-compiler?: #t))
+                             (update together.product-worker
+                                     together.run-worker
+                                     together.worker-application
+                                     together.worker-process
+                                     together.worker-settings)
+                             (dependencies world.worker))
+            (together-world (product together.product-world))
+            (together-all (dependencies together-circle
+                                        together-sphere
+                                        together-worker))
+            (together-script (run together.script)))
+  (project ".project"))

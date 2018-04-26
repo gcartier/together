@@ -1,0 +1,29 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Worker Process
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.worker-process jazz
+
+
+(import (world.worker.process))
+
+
+;;;
+;;;; Process
+;;;
+
+
+(class Together-Worker-Process extends Worker-Process
+  
+  
+  (method override (process-name self)
+    "Together")))

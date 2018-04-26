@@ -1,0 +1,95 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together jazz
+
+
+(import (jazz.io)
+        (jazz.version)
+        (world))
+
+
+;;;
+;;;; Version
+;;;
+
+
+(definition public together-version
+  {Version 1 0 0 0 closed-alpha})
+
+
+(definition public together-release
+  "Apr 25 2018")
+
+
+;;;
+;;;; Aliases
+;;;
+
+
+(definition public (setup-aliases)
+  (register-alias 'Application
+                  (if (is-alias? 'Together)
+                      (list 'Together)
+                    (cond-expand
+                      (mac (get-list (get-parent (get-parent {Directory Build}))))
+                      (else (list 'Build)))))
+  (register-resources-alias 'Together 'together))
+
+
+;;;
+;;;; Server
+;;;
+
+
+(definition public (determine-server-filename)
+  (cond-expand (mac "together-server.app/Contents/MacOS/Together-Server")
+               (else "Together-Server")))
+
+
+;;;
+;;;; Processor
+;;;
+
+
+(definition public (determine-processor-filename)
+  (cond-expand (mac "together-processor.app/Contents/MacOS/Together-Processor")
+               (else "Together-Processor")))
+
+
+;;;
+;;;; Worker
+;;;
+
+
+(definition public (determine-worker-filename)
+  (cond-expand (mac "together-worker.app/Contents/MacOS/Together-Worker")
+               (else "Together-Worker")))
+
+
+;;;
+;;;; Devel
+;;;
+
+
+(when (command-argument "devel")
+  (set-window? #t)
+  (set-tier-title "Together")
+  (set-tier-kind 'client)
+  (set-process-kind 'application)
+  (set-settings-root {Directory Home ".together"})
+  (set-settings-alias 'Resources)
+  (set-aliases-setup setup-aliases)
+  (set-valid-roles '(user creator designer programmer admin))
+  (set-server-filename (determine-server-filename))
+  (set-worker-filename (determine-worker-filename))))

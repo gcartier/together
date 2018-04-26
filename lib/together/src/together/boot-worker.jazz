@@ -1,0 +1,28 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Boot Worker
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.boot-worker jazz
+
+
+(import (jazz.process)
+        (jazz.settings)
+        (world)
+        (together.worker-application)
+        (together.worker-process))
+
+
+(set-boot-process
+  (lambda ()
+    (boot-environment (new (if (boolean-argument "window" #f)
+                               Together-Worker-Application
+                             Together-Worker-Process))))))

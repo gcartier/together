@@ -1,0 +1,48 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Debugger
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.debugger jazz
+
+
+(import (jazz.debugger.jazz))
+
+
+(class Together-Debugger extends Jazz-Debugger
+  
+  
+  ;;;
+  ;;;; Console
+  ;;;
+  
+  
+  ;; Until Together internal consoles
+  
+  
+  (method override (register-console-text self debugged-process debugged-thread select?)
+    #f)
+  
+  
+  (method override (unregister-console-text self text)
+    )
+  
+  
+  (method override (select-console self resource)
+    )
+  
+  
+  (method override (console-output self resource str)
+    (display str (terminal-port)))
+  
+  
+  (method override (clear-console self resource)
+    (clear-terminal))))

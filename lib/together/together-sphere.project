@@ -1,0 +1,27 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Jazz-Project
+;;;
+
+
+(data jazz.debugger.jazz.data.project
+
+
+(form
+  (<Jazz-Project>  name: Together-Sphere   default-traits: (Safety.Devel) directory: {Directory :context "../../cache"} working: {Directory :context "../.."} product: together-sphere
+    (<Trait>       name: Safety
+      (<install>)
+      (<Trait>     name: Finite
+        (<install>               configuration: "finite"))
+      (<Trait>     name: Devel
+        (<install>               configuration: "devel")))
+    (<Trait>       name: Client
+      (<install>)
+      (<Trait>     name: None
+        (<install>))
+      (<Trait>     name: Guillaume
+        (<install> arguments: ("-client" "Guillaume")))
+      (<Trait>     name: Joel
+        (<install> arguments: ("-client" "Joel")))))))

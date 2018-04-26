@@ -1,0 +1,90 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Scripts
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.script jazz
+
+
+(import (jazz.io)
+        (jazz.runtime))
+
+
+;;;
+;;;; Run
+;;;
+
+
+(definition public (together-run)
+  (cond ((member? "analyse" (command-line))
+         (together-analyse))
+        (else
+         (together-walk))))
+
+
+;;;
+;;;; Analyse
+;;;
+
+
+(definition (together-analyse)
+  (initialize-aliases)
+  (save-unreferenced-imports))
+
+
+(definition (save-unreferenced-imports)
+  (define (collect-unreferenced-imports unit-name)
+    (let ((declaration (parameterize ((analysis-mode? #t))
+                         (walk-unit unit-name))))
+      (when (is? declaration Module-Declaration)
+        (collect (lambda (import)
+                   (when (not (get-hit? import))
+                     (get-name import)))
+                 (get-imports declaration)))))
+  
+  (let ((all '()))
+    (iterate-units
+      (lambda (unit-name)
+        (feedback "Walking {a}..." unit-name)
+        (let ((unreferenced (collect-unreferenced-imports unit-name)))
+          (when (and unreferenced (not (null? unreferenced)))
+            (set! all (cons (cons unit-name unreferenced) all)))))
+      repositories: (list (jazz:find-repository 'World)
+                          (jazz:find-repository 'Together)))
+    (call-with-output-file (path-settings {File Home "unreferenced.jazz"} eol-encoding: (get-eol-encoding))
+      (lambda (port)
+        (pretty-print (sort string<? all key: (lambda (info) (symbol->string (car info))))
+                      port)))
+    (feedback "Done")))
+
+
+;;;
+;;;; Walk
+;;;
+
+
+(definition (together-walk)
+  ;; we need to use generate-unit as warnings are reported in the generate phase
+  (iterate-units generate-unit
+    repositories: (list (jazz:find-repository 'World)
+                        (jazz:find-repository 'Together))
+    feedback: (lambda (unit-name)
+                (terminal 'walking unit-name))))
+
+
+;;;
+;;;; Product
+;;;
+
+
+(register-product-run 'together-script
+  (lambda (descriptor)
+    (together-run))))

@@ -1,0 +1,75 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together-Worker Product
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.product-worker jazz
+
+
+(import (jazz.io))
+
+
+;;;
+;;;; Build
+;;;
+
+
+;; as the worker gets copied inside together's bundle
+;; so shares its resources this is mostly for tests
+
+(definition (build descriptor (unit: unit #f) (force?: force? #f))
+  (define (resources-dir)
+    (let ((bundle (product-descriptor-build-bundle descriptor)))
+      (if bundle
+          (new-directory {Directory Build} (format "{a}.app/Contents/Resources" bundle))
+        {Directory Build})))
+  
+  (define (macos-dir)
+    (let ((bundle (product-descriptor-build-bundle descriptor)))
+      (if bundle
+          (new-directory {Directory Build} (format "{a}.app/Contents/MacOS" bundle))
+        #f)))
+  
+  (let ((project-dir {Directory Together})
+        (resources-dir (resources-dir))
+        (macos-dir (macos-dir)))
+    (define (install-filename path)
+      (let ((src (new-file project-dir path))
+            (dst (new-file resources-dir path)))
+        (install-file src dst
+          feedback: (lambda (action pathname)
+                      (build-feedback "; {a} {a}..." action (get-name pathname))))))
+    
+    (define (install-dirname path (src #f) (dst #f))
+      (let ((src (new-directory project-dir (or src path)))
+            (dst (new-directory resources-dir (or dst path))))
+        (install-directory src dst
+          feedback: (let ((first? #t))
+                      (lambda (action pathname)
+                        (when first?
+                          (build-feedback "; {a} {a}..." action (get-name pathname))
+                          (set! first? #f)))))))
+    
+    (define (copy-assets)
+      (install-dirname '("lib" "together" "assets")))
+    
+    (build-product-descriptor descriptor unit: unit force?: force?)
+    (initialize-aliases)
+    (copy-assets)))
+
+
+;;;
+;;;; Register
+;;;
+
+
+(register-product 'together-worker
+  build: build))

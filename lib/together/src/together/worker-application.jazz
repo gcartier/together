@@ -1,0 +1,45 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Worker Application
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.worker-application jazz
+
+
+(import (world.worker.appl))
+
+
+;;;
+;;;; Application
+;;;
+
+
+(class Together-Worker-Application extends Worker-Application
+  
+  
+  (method override (process-name self)
+    "Together")
+  
+  
+  (method override (new-toplevel self)
+    (new Together-Worker-Toplevel)))
+
+
+;;;
+;;;; Toplevel
+;;;
+
+
+(class Together-Worker-Toplevel extends Worker-Toplevel
+  
+  
+  (method override (effective-title self)
+    "Together")))

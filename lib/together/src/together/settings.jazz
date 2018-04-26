@@ -1,0 +1,59 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Settings
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.settings jazz
+
+
+(import (jazz.io)
+        (jazz.platform)
+        (world.io))
+
+
+(definition protected (find-world)
+  (define (determine-world)
+    (let ((worlds (determine-worlds)))
+      (and worlds
+           (let ((world (new-directory worlds "together")))
+             (and (exists? world)
+                  world)))))
+  
+  (define (determine-worlds)
+    (and (exists? {Directory Application})
+         (let ((parent (get-parent {Directory Application})))
+           (and (and parent (exists? parent) (not (meta-root? parent)))
+                (let ((parent (get-parent parent)))
+                  (and (and parent (exists? parent) (not (meta-root? parent)))
+                       (let ((worlds (new-directory parent "worlds")))
+                         (if (exists? worlds)
+                             worlds
+                           (let ((worlds (new-directory parent "Worlds")))
+                             (if (exists? worlds)
+                                 worlds
+                               #f))))))))))
+  
+  (let ((world (determine-world)))
+    (cond ((not world)
+           (system-message "Unable to find Together's world"
+                           type: 'problem
+                           title: "Together")
+           (exit 1))
+          ((not (exists? world))
+           (system-message (format "Unable to find Together's world: {a}" (parse world))
+                           type: 'problem
+                           title: "Together")
+           (exit 1))
+          (else
+           world))))
+  
+  
+(set-world-finder find-world))

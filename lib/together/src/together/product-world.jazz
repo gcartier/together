@@ -1,0 +1,73 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together World Product
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.product-world jazz
+
+
+(import (jazz.io)
+        (jazz.product))
+
+
+;;;
+;;;; Install
+;;;
+
+
+(cond-expand
+  (windows
+    (definition install-dir
+      {Directory Home "together" "install"})
+    
+    (definition together-world
+      "together-world"))
+  (else
+    (definition install-dir
+      {Directory Home "Devel" "together" "install"})
+    
+    (definition together-world
+      "Together-World")))
+
+
+(definition (install descriptor)
+  (initialize-aliases)
+  (let ((root-dir (get-parent (get-parent {Directory Together}))))
+    (let ((world-dir (new-directory root-dir '("worlds" "together")))
+          (installation-dir (new-directory install-dir together-world)))
+      (install-directory world-dir installation-dir
+        filter: (lambda (action pathname)
+                  (if (filename=? (get-name pathname) ".git")
+                      #f
+                    #t))
+        feedback: (lambda (action pathname)
+                    (build-feedback "; {a} {a}..." action (get-name pathname)))))))
+
+
+;;;
+;;;; Deploy
+;;;
+
+
+(definition (deploy descriptor)
+  (install descriptor)
+  (initialize-aliases)
+  (deploy-directory 'world (new-directory install-dir together-world)))
+
+
+;;;
+;;;; Register
+;;;
+
+
+(register-product 'together-world
+  install: install
+  deploy: deploy))

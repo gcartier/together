@@ -1,0 +1,46 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Run Circle
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.run-circle jazz
+
+
+(import (jazz.io)
+        (world)
+        (together))
+
+
+(definition protected (prepare-circle)
+  (set-window? #t)
+  (set-tier-title "Together")
+  (set-tier-kind 'together)
+  (set-process-kind 'application)
+  (set-settings-root {Directory Home ".together"})
+  (set-settings-alias 'Resources)
+  (set-aliases-setup setup-aliases)
+  (set-valid-roles '(user creator designer programmer admin))
+  (set-worker-filename (determine-worker-filename)))
+
+
+(definition protected (prepare-settings)
+  (load-unit 'world.settings))
+
+
+(definition (run-circle descriptor)
+  (prepare-circle)
+  (prepare-settings)
+  (load-unit 'together.boot-circle)
+  (boot-process))
+
+
+(register-product-run 'together-circle
+  run-circle))
