@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Together Sphere Application
+;;;; Together Application
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module together.sphere.appl jazz
+(module together.appl jazz
 
 
 (import (jazz.action)
@@ -48,7 +48,7 @@
         (together.window))
 
 
-(class Together-Sphere extends World-Application
+(class Together extends World-Application
   
   
   @wait-debugger!?

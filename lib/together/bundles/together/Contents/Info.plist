@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>together-circle</string>
+	<string>together</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Together-Circle</string>
+	<string>Together</string>
 	<key>CFBundleIconFile</key>
-	<string>together-circle.icns</string>
+	<string>together.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>Together-Circle</string>
+	<string>Together</string>
 	<key>CFBundleName</key>
-	<string>Together-Circle</string>
+	<string>Together</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 </dict>

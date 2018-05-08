@@ -42,7 +42,7 @@
  paragraphs:
  ((8 ("Together closed-alpha 1.0" 1))
   (3)
-  (5 ("Welcome to Together!" 20))
+  (5 ("Welcome to Together, an exploration in conscious community." 20))
   (5)
   (5 ("Copyright 2012-2018 Guillaume Cartier and Barbara Samson" 0))
   (5)
@@ -58,9 +58,4 @@
   (7 ("JazzScheme : jazzscheme.org" 0))
   (7 ("Gambit : gambitscheme.org" 0))
   (5)
-  (5 ("By using this program you agree to not redistribute it in whole or in part, including screenshots and videos as Together closed-alpha currently contains copyrighted data from the following programs" 22))
-  (5)
-  (7 ("Warcraft" 22))
-  (7 ("Minecraft" 22))
-  (5)
-  (5 ("Send comments, suggestions, bugs,... to: gucartier@gmail.com" 21)))}
+  (5 ("Send comments, suggestions, bugs,... to: gucartier@gmail.com or barbarasamson@gmail.com" 21)))}

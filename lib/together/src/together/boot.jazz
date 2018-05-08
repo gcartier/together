@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Together Boot Together
+;;;; Together Boot
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,16 +11,15 @@
 ;;;  Contributor(s):
 
 
-(module together.boot-circle jazz
+(module together.boot jazz
 
 
-(import (jazz.process)
-        (jazz.settings)
-        (world)
-        (together.circle.appl)
+(import (world)
+        (world.client.boot)
+        (together.appl)
         (together.settings))
 
 
 (set-boot-process
   (lambda ()
-    (boot-environment (new Together-Circle)))))
+    (boot-client Together #f context: 'together.devel))))

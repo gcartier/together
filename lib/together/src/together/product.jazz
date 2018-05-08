@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Together-Sphere Product
+;;;; Together Product
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module together.product-sphere jazz
+(module together.product jazz
 
 
 (import (jazz.io)
@@ -108,23 +108,15 @@
     git?: #t
     gstreamer?: #t
     files: (cond-expand
-             (windows '("README" "together-server.exe" "together-processor.exe" "together-worker.exe"))
-             (unix '("README" "Together-Server" "Together-Processor" "Together-Worker"))
+             (windows '("README" "together-worker.exe"))
+             (unix '("README" "Together-Worker"))
              (else '("README")))
     directories: '("devel")
-    ignored-macosx: '("together-server.app"
-                      "together-processor.app"
-                      "together-worker.app"))
+    ignored-macosx: '("together-worker.app"))
   ;; apps
   (cond-expand
     (mac
      (let ((app-dir (new-directory install-dir install-name)))
-       (install-directory {Directory Build "together-server.app"} (new-directory app-dir '("Contents" "MacOS" "together-server.app"))
-         feedback: (lambda (action pathname)
-                     (build-feedback "; {a} {a}..." action (get-name pathname))))
-       (install-directory {Directory Build "together-processor.app"} (new-directory app-dir '("Contents" "MacOS" "together-processor.app"))
-         feedback: (lambda (action pathname)
-                     (build-feedback "; {a} {a}..." action (get-name pathname))))
        (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "MacOS" "together-worker.app"))
          feedback: (lambda (action pathname)
                      (build-feedback "; {a} {a}..." action (get-name pathname))))))
@@ -150,7 +142,7 @@
 ;;;
 
 
-(register-product 'together-sphere
+(register-product 'together
   build: build
   install: install
   deploy: deploy))

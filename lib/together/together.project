@@ -10,7 +10,7 @@
 
 
 (form
-  (<Jazz-Project>  name: Together-Sphere   default-traits: (Safety.Devel) directory: {Directory :context "../../cache"} working: {Directory :context "../.."} product: together-sphere
+  (<Jazz-Project>  name: Together   default-traits: (Safety.Devel) directory: {Directory :context "../../cache"} working: {Directory :context "../.."} product: together
     (<Trait>       name: Safety
       (<install>)
       (<Trait>     name: Finite
