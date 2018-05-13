@@ -48,7 +48,7 @@
         (together.window))
 
 
-(class Together extends World-Application
+(class Together-Application extends World-Application
   
   
   @wait-debugger!?
@@ -76,8 +76,8 @@
     (if (not (window?))
         (new Together-Window visible?: #f)
     (let ((fullscreen? window-fullscreen?)
-          (pos (world-setting 'world.position {Point 250 100}))
-          (size (world-setting 'world.size {Dimension 1200 800})))
+          (pos (world-setting 'world.position {Point 150 50}))
+          (size (world-setting 'world.size {Dimension 1150 750})))
       (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size render?: #f visible?: #f))))
   
   
@@ -411,7 +411,7 @@
           (<!>           name: restore-gaia/world      visible?: #f))
         (<world-tutorial!>)
         (<world-debug!>                                visible?: #f)
-        (<together!>                                      visible?: #f))))
+        (<together!>                                   visible?: #f))))
   
   (define-trait user-main World-Actionbar
     (<Role-Trait>
@@ -617,6 +617,7 @@
           (<!>           name: garbage-collect         visible?: #f)
           (<!>           name: explore-interface       visible?: #f)
           (<!>           name: propagation-debugger    visible?: #f)
+          (<!>           name: test                    visible?: #f)
           (<!>           name: test1                   visible?: #f)
           (<!>           name: test2                   visible?: #f)
           (<!>           name: test3                   visible?: #f)
@@ -627,7 +628,7 @@
           (<!>           name: test8                   visible?: #f)
           (<!>           name: test9                   visible?: #f)
           (<!>           name: test0                   visible?: #f))
-        (<together!>                                      visible?: #f))))
+        (<together!>                                   visible?: #f))))
   
   (define-trait creator-main World-Actionbar
     (<Role-Trait>
@@ -809,6 +810,7 @@
           (<!>           name: clear-terminal          visible?: #f)
           (<!>           name: garbage-collect         visible?: #f)
           (<!>           name: explore-interface       visible?: #f)
+          (<!>           name: test                    visible?: #f)
           (<!>           name: test1                   visible?: #f)
           (<!>           name: test2                   visible?: #f)
           (<!>           name: test3                   visible?: #f)
@@ -819,7 +821,7 @@
           (<!>           name: test8                   visible?: #f)
           (<!>           name: test9                   visible?: #f)
           (<!>           name: test0                   visible?: #f))
-        (<together!>                                      visible?: #f))))
+        (<together!>                                   visible?: #f))))
   
   (define-trait designer-main World-Actionbar
     (<Role-Trait>
@@ -927,7 +929,7 @@
   (define-trait programmer-bindings Bindings
     (<Role-Trait> name: programmer
       (<install>
-        (<together!>                  visible?: #f))))
+        (<together!> visible?: #f))))
   
   (define-trait programmer-main World-Actionbar
     (<Role-Trait>

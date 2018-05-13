@@ -1,0 +1,76 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Process
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.process jazz
+
+
+(import (jazz.markup)
+        (world.io)
+        (world.process)
+        (together)
+        (together.settings))
+
+
+(class Together-Process extends World-Process
+
+  
+  (method override (process-name self)
+    "Together-Server")
+  
+  
+  (method override (process-icon self)
+    "WebServer")
+  
+  
+  (method override (process-version self)
+    together-version)
+  
+  
+  (method override (process-release self)
+    together-release)
+  
+  
+  (method override (process-debugger self)
+    ;; already installed in settings
+    #f)
+  
+  
+  (method override (initialize-settings self)
+    (nextmethod self)
+    (register-world))
+  
+  
+  (method override (default-preferences self)
+    (new Together-Process-Preferences)))
+
+
+;;;
+;;;; Preferences
+;;;
+
+
+;; quicky to rethink after sejour
+(import (jazz.command)
+        (jazz.document)
+        (jazz.editor.jazz)
+        (jazz.process))
+
+(class Together-Process-Preferences extends Process-Preferences
+  
+  
+  (form
+    (<install>
+      (<Documents-Preferences>      name: documents
+        ;; Scripting
+        (<Jazz-Text-Preferences>    name: jazz-text)
+        (<Command-Text-Preferences> name: command-text))))))

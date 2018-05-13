@@ -22,6 +22,7 @@
 
 
 (definition (prepare-worker)
+  (set-together? #t)
   (set-window? #f)
   (set-tier-title "Together")
   (set-tier-kind 'worker)

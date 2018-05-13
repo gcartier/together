@@ -1,0 +1,56 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Sphere Zone
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.sphere jazz
+
+
+(import (jazz.component)
+        (jazz.event)
+        (jazz.figure)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.io)
+        (jazz.markup)
+        (jazz.network)
+        (jazz.opengl.window)
+        (jazz.outline)
+        (jazz.process)
+        (jazz.text)
+        (jazz.tree)
+        (jazz.ui)
+        (jazz.view)
+        (world)
+        (world.audio)
+        (world.autoload)
+        (world.context)
+        (world.geometry)
+        (world.interface.clients)
+        (world.interface.dialogs)
+        (world.interface.documents)
+        (world.interface.frame)
+        (world.interface.panel)
+        (world.interface.servers)
+        (world.interface.text)
+        (world.interface.templates)
+        (world.interface.tiers)
+        (world.io)
+        (world.music)
+        (world.settings)
+        (world.skybox)
+        (world.task)
+        (world.video)
+        (world.window)
+        (together.zone))
+
+
+(class Sphere-Zone extends Together-Zone))

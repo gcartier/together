@@ -1,0 +1,64 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Run Server
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.run-server jazz
+
+
+(import (jazz.io)
+        (world)
+        (together))
+
+
+(definition protected (prepare-server)
+  (set-together? #t)
+  (set-window? #f)
+  (set-tier-title "Together")
+  (set-tier-kind 'server)
+  (set-process-kind 'process)
+  (set-settings-root {Directory Home ".together"})
+  (set-settings-alias 'Resources)
+  (set-settings-override override-settings)
+  (set-aliases-setup setup-aliases)
+  (set-valid-roles '(admin))
+  (set-default-server "Together")
+  (set-processor-filename (determine-processor-filename))
+  (set-worker-filename (determine-worker-filename)))
+
+
+(definition protected (prepare-settings)
+  (load-unit 'world.settings)
+  (when start-tier-listener
+    (start-tier-listener))
+  (when connect-slave-to-master
+    (connect-slave-to-master)))
+
+
+(definition (override-settings settings)
+  (for-each-property (lambda (property value)
+                       (set-setting settings property value))
+                     '(;; role
+                       world.role user
+                       ;; worker
+                       world.worker? #f)))
+
+
+(definition (run-server descriptor)
+  (prepare-server)
+  (prepare-settings)
+  (load-unit 'world.work)
+  (load-unit 'together.boot-server)
+  (boot-process))
+
+
+(register-product-run 'together-server
+  run-server))

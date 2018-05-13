@@ -101,6 +101,8 @@
         (world.generation.base)
         (world.generation.block)
         (world.generation.building)
+        (world.generation.model)
+        (world.generation.rendering)
         (world.geometry)
         (world.gravity)
         (world.history)

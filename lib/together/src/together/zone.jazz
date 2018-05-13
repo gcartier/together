@@ -1,6 +1,6 @@
-;;;===============
-;;;  WorldScheme
-;;;===============
+;;;============
+;;;  Together
+;;;============
 ;;;
 ;;;; Together Zone
 ;;;
@@ -16,11 +16,13 @@
 
 (import (jazz.component)
         (jazz.event)
+        (jazz.figure)
         (jazz.graphic)
         (jazz.handler)
         (jazz.io)
         (jazz.markup)
         (jazz.network)
+        (jazz.opengl.window)
         (jazz.outline)
         (jazz.process)
         (jazz.text)
@@ -28,6 +30,7 @@
         (jazz.ui)
         (jazz.view)
         (world)
+        (world.audio)
         (world.autoload)
         (world.context)
         (world.geometry)
@@ -45,6 +48,7 @@
         (world.settings)
         (world.skybox)
         (world.task)
+        (world.video)
         (world.window))
 
 
@@ -61,46 +65,43 @@
   
   
   (form
-    (<install> sun-cycle?: #f))
-  
-  
-  (method override (welcome? self)
-    #t)
-  
-  (method override (together? self)
-    #t)
+    (<install> sun-cycle?: #f draw-grid?: #f))
   
   
   (method override (finish self rest)
     (nextmethod self rest)
-    (let ((world (current-world)))
-      (setup-stage self)
-      (check-copyright self)
-      (install-welcome self)
-      (goto-new-no-tiers self)
-      (set-escape-hook world (~ close-frame self))
-      (set-draw-me? self #f)))
+    (when (window?)
+      (let ((window (current-window))
+            (world (current-world)))
+        (setup-stage self)
+        (install-stage self)
+        (set-draw-me? self #f)
+        ;; remove tearing in the camera pathing
+        (enable-vsync window))))
   
   
   (method override (destroy self)
-    (let ((world (current-world)))
-      (uninstall-welcome self)
-      (no-showcase world)
-      (set-escape-hook world #f)
-      (set-draw-me? self #t)
-      (uninstall-camera))
+    (when (window?)
+      (let ((window (current-window))
+            (world (current-world)))
+        (uninstall-stage self)
+        (no-showcase world)
+        (set-draw-me? self #t)
+        (uninstall-camera)
+        (disable-vsync window)))
     (nextmethod self))
   
   
   (method (setup-stage self)
-    (set! stage (cond ((memq? stage '(#f copyright local new-local)) 'local)
-                      ((memq? stage '(remote new-remote)) 'remote)
+    (set! stage (cond ((memq? stage '(#f welcome new-circle)) 'welcome)
+                      ((memq? stage '(remote customize)) 'remote)
                       ((memq? stage '(server new-server)) 'server))))
   
   
   (method override (setup-camera self)
     (nextmethod self)
-    (install-camera))
+    (when (window?)
+      (install-camera)))
   
   
   (method override (show-belt? self)
@@ -115,98 +116,89 @@
     #f)
   
   
-  (method (check-copyright self)
-    (when (and (window?) (process-copyright-changed? (current-process)))
-      (set! stage 'copyright)))
+  (method override (show-chat? self)
+    #f)
+  
+  
+  (method (install-stage self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (for-each (lambda (child)
+                  (set-visible? child #f))
+                (get-children interface)))
+    (case stage
+      ((welcome)
+       (install-welcome self))
+      ((new-circle)
+       (install-new-circle self))
+      ((circle)
+       (install-circle self))))
   
   
   (method (install-welcome self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (for-each (lambda (child)
-                  (set-visible? child #f))
-                (get-children interface))
-      (unless (eq? stage 'copyright)
-        (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})))
-    (case stage
-      ((copyright)
-       (install-copyright self))
-      ((local)
-       (install-local self))
-      ((new-local)
-       (install-new-local self))))
-  
-  
-  (method (install-copyright self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (let ((new? (process-copyright-new? (current-process))))
-        (show-about self title: "Copyright Agreement" closable?: #f)
-        (let ((about (child interface 'about&copyright)))
-          (let ((size (nu+ (get-size about) (new Dimension 0 (+ (if new? 0 (+ 16 15)) (+ 20 22)))))
-                (insets (new Rect 0 (if new? 0 15) 0 20)))
-            (let ((copyright-agreement (new Layout-View name: 'copyright-agreement parent: interface size: size layout-type: 'border layout-insets: insets location: 'center)))
-              (unless new?
-                (let ((north (new Layout-View parent: copyright-agreement size: {Dimension 220 16} layout-type: 'center location: 'north)))
-                  (new Label-View title: "Copyright Agreement has changed" parent: north size: {Dimension 300 16} location: 'center justification: 'center)))
-              (set-location about 'center)
-              (set-parent about copyright-agreement)
-              (let ((south (new Layout-View parent: copyright-agreement size: {Dimension 220 22} layout-type: 'center location: 'south)))
-                (let ((accept/decline (new Layout-View name: 'accept/decline parent: south size: {Dimension 220 22} layout-type: 'border)))
-                  (new Push-Button name: 'accept parent: accept/decline title: "Accept" location: 'west action-handler: (~ on-accept self))
-                  (new Push-Button name: 'decline parent: accept/decline title: "Decline" location: 'east action-handler: (~ on-decline self))
-                  (layout-view accept/decline)))
-              (layout-view copyright-agreement))
-            (layout-view interface))))))
-  
-  
-  (method (install-local self)
-    (let ((interface (current-interface))
-          (world (current-world)))
       (let ((version (process-version (current-process)))
             (release (process-release (current-process))))
-        (push-panel (new Locals-Panel name: 'tiers parent: interface size: {Dimension 266 465} location: 'center layout-type: 'border))
-        (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(40 -100) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Version-Label name: 'release parent: interface title: release location: '(40 -80) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Push-Button name: 'about parent: interface title: "About & Copyright" location: '(-40 -110) size: {Dimension 160 22} action-handler: (~ on-about self))
-        @tutorial (new Push-Button name: 'tutorial parent: interface title: "Tutorial" location: '(-40 40) action-handler: on-tutorial)
-        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(40 -40) action-handler: (~ on-quit self))
-        (new Kind-Label name: 'kind parent: interface title: "Circle" @welcome "Local" location: '(center -106) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15 shadow: thin} justification: 'center)
-        (new Push-Button name: 'open parent: interface title: "Enter" location: '(center -90) action-handler: (~ on-open self))
-        (new Push-Button name: 'multi parent: interface title: "Switch Circle" @welcome "Switch to Remote" size: {Dimension 180 22} location: '(center -40) action-handler: (~ on-remote self))
-        (new Push-Button name: 'rename parent: interface title: "Rename" location: '(-280 -40) action-handler: (~ on-rename self))
-        (new Push-Button name: 'delete parent: interface title: "Delete" location: '(-160 -40) action-handler: (~ on-delete self))
-        (new Push-Button name: 'new parent: interface title: "New" location: '(-40 -40) action-handler: (~ on-new-local self))
+        (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
+@w        (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(10 -250) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
+@w        (new Version-Label name: 'release parent: interface title: release location: '(10 -230) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
+        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(10 -200) action-handler: (~ on-quit self))
+        (new Push-Button name: 'toggle-chat parent: interface title: "Chat" location: '(150 -200) action-handler: (~ on-chat self))
+        (new Kind-Label name: 'kind parent: interface title: "Circles" location: '(center -130) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+@w        (new Push-Button name: 'open parent: interface title: "Join" location: '(center -140) size: {Dimension 130 22} action-handler: (~ on-join self))
+        (new Push-Button name: 'new parent: interface title: "Create" location: '(-10 -140) action-handler: (~ on-new-circle self))
+@w        (new Push-Button name: 'rename parent: interface title: "Edit" location: '(-10 -140) action-handler: (~ on-edit self))
+        (new Circles-Panel name: 'circles parent: interface location: '(10 -10) proportion: '((bounds -20) 120) layout-type: 'border)
+        (new Kind-Label name: 'foo parent: interface title: "People" location: '(-1 10) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new People-Panel name: 'people parent: interface location: '(-10 50) proportion: '(180 (bounds -260)) layout-type: 'border)
+@w        (new Kind-Label name: 'kind parent: interface title: "Chat" location: '(center (center -250)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (let ((chat (child interface 'chat)))
+          (set-border-type (child chat 'border) 'solid)
+          (set-border-color (child chat 'border) {Color Dark-Gray})
+          (set-location chat '(center (center -30)))
+          (set-proportion chat '(640 360)))
         (add-exception-view self)
         (layout-view interface)
         (no-showcase world)
-        (tiers-update self)
+        @w
         (delay-event
           (lambda ()
             (acquire-focus (tiers-tree self)))))))
   
   
-  (method (install-new-local self)
+  (method (install-new-circle self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (new Templates-Panel name: 'templates parent: interface size: {Dimension 266 488} location: '(-40 center) layout-type: 'border)
+      (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
+      ;(new Templates-Panel name: 'templates parent: interface size: {Dimension 266 488} location: '(-40 center) layout-type: 'border)
       (new Push-Button name: 'back parent: interface title: "Back" location: '(40 -40) action-handler: (~ on-back self))
-      (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) action-handler: (~ on-create-local self))
-      (set-create (locate (child interface 'templates) 'templates) (~ local-create self))
+      (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) action-handler: (~ on-create-circle self))
+      (set-create (locate (child interface 'templates) 'templates) (~ circle-create self))
       (add-exception-view self)
       (layout-view interface)
       (goto-showcase world 'avatars)
       (templates-update self)
+      @w
       (delay-event
         (lambda ()
           (acquire-focus (templates-tree self))))))
   
   
-  (method (uninstall-welcome self)
+  (method (install-circle self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (when (eq? stage 'local)
-        (pop-panel (tiers-panel self)))
+      (new Push-Button name: 'leave parent: interface title: "Leave" location: '(40 -40) action-handler: (~ on-leave self))
+      (new Push-Button name: 'audio parent: interface title: "Toggle Audio" location: '(240 -40) size: {Dimension 150 22} action-handler: (~ on-audio self))
+      (new Push-Button name: 'video parent: interface title: "Toggle Video" location: '(400 -40) size: {Dimension 150 22} action-handler: (~ on-video self))
+      (add-exception-view self)
+      (layout-view interface)
+      (no-showcase world)))
+  
+  
+  (method (uninstall-stage self)
+    (let ((interface (current-interface))
+          (world (current-world)))
       (setup-interface world)))
   
   
@@ -230,18 +222,6 @@
     (let ((view (find-exception-view self)))
       (set-title view "")
       (set-exception view #f)))
-  
-  
-  (method (goto-new-no-tiers self)
-    (when (and (memq? stage '(local remote server))
-               (not arc-en-ciel?)
-               (not open-test?)
-               (= (get-visible-count (get-tree (tiers-view self))) 0))
-      (set! stage (case stage
-                    ((local) 'new-local)
-                    ((remote) 'new-remote)
-                    ((server) 'new-server)))
-      (install-welcome self)))
   
   
   (method (close-frame self)
@@ -283,7 +263,7 @@
   
   
   (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox (or (world-setting 'world.welcome-skybox #f) (random-element '("calm_sea" "dark_sea" "nebula"))))))
+    (set! skybox (let ((skybox (find-skybox "nebula")))
                    (prepare skybox)
                    skybox)))
   
@@ -294,22 +274,30 @@
         (task-sleep task +infinity 0. exit))))
   
   
+  (method (on-audio self evt)
+    (toggle-audio (current-audio)))
+  
+  
+  (method (on-video self evt)
+    (toggle-video (current-video)))
+  
+  
   ;;;
   ;;;; Access
   ;;;
   
   
-  (method (tiers-panel self)
+  (method (circles-panel self)
     (let ((interface (current-interface)))
-      (child interface 'tiers)))
+      (child interface 'circles)))
   
   
-  (method (tiers-view self)
-    (locate (tiers-panel self) 'tiers))
+  (method (circles-view self)
+    (locate (circles-panel self) 'circles))
   
   
-  (method (tiers-tree self)
-    (get-tree (tiers-view self)))
+  (method (circles-tree self)
+    (get-tree (circles-view self)))
   
   
   (method (templates-panel self)
@@ -327,7 +315,7 @@
   
   (method (determine-kind self)
     (case stage
-      ((local) 'local)
+      ((welcome) 'circle)
       ((remote) 'remote)
       ((server) 'server)))
   
@@ -337,20 +325,22 @@
   ;;;
   
   
-  (method package (tiers-update self)
+  (method package (circles-update self)
+    @w
     (let ((interface (current-interface)))
-      (let ((panel (find-component interface 'tiers)))
+      (let ((panel (find-component interface 'circles)))
         (when panel
-          (let ((tree (get-tree (locate panel 'tiers))))
+          (let ((tree (get-tree (locate panel 'circles))))
             (let ((all-data (get-selected-data tree)))
               (let ((data (remove-false all-data)))
                 (let ((count (length data)))
-                  (set-enabled? (child interface 'open) (= count 1))
+                  (set-enabled? (child interface 'open) #t @wait (= count 1))
                   (set-enabled? (child interface 'rename) (= count 1))
                   (set-enabled? (child interface 'delete) (> count 0))))))))))
   
   
   (method package (templates-update self)
+    @w
     (let ((interface (current-interface)))
       (let ((panel (find-component interface 'templates)))
         (when panel
@@ -371,7 +361,7 @@
   
   
   (method override (mouse-track self elapse dx dy)
-    (when (memq? stage '(new-local new-remote))
+    (when (memq? stage '(new-circle customize))
       (let ((world (current-world)))
         (let ((entity (get-selection-entity (get-showcase world))))
           (let ((angle (/ dx 200.))
@@ -388,129 +378,92 @@
   
   
   (method (on-accept self evt)
-    (process-copyright-update (current-process))
     (if post-accept
         (post-accept)
-      (goto-stage self 'local)
-      (goto-new-no-tiers self)))
+      (goto-stage self 'login)))
   
   
   (method (on-decline self evt)
     (quit-process (current-process)))
   
   
-  (method package (on-open self evt)
-    (open-selected (tiers-view self)))
+  (method (on-enter self evt)
+    (let ((file (together-file self)))
+      (if (exists? file)
+          (remote-open self file)
+        (goto-stage self 'customize)
+        (text-content-set self (info-text self 'client-name) "Together")
+        (text-content-set self (info-text self 'server-port) "50000"))))
   
   
-  (method (on-about self evt)
-    (let ((frame (top-frame)))
-      (if (is? frame World-Document)
-          (close frame)
-        (show-about self))))
+  (method (on-customize self evt)
+    (change-remote self (together-file self) "Together" "50000"))
   
   
-  (method (show-about self (title: title #f) (closable?: closable? #t))
+  (method (together-file self)
+    {File Settings "clients" "Together" ".client"})
+  
+  
+  (method (change-remote self file client-name server-port)
     (let ((world (current-world)))
-      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
+      (when (exists? file)
+        (let ((client (new-brother file ".client")))
+          (let ((configuration (instantiate (read-form client))))
+            (let ((name (get-character-name configuration))
+                  (avatar (get-character-avatar configuration)))
+              (goto-stage self 'customize)
+              (text-content-set self (info-text self 'client-name) client-name)
+              (text-content-set self (info-text self 'server-port) server-port)
+              (text-content-set self (info-text self 'name) name)
+              (let ((showcase (get-showcase world)))
+                (let ((avatar (find-avatar showcase avatar)))
+                  (when avatar
+                    (set-selection showcase avatar)
+                    (selection-update showcase avatar))))
+              (delay-event
+                (lambda ()
+                  (acquire-focus (info-text self 'name))))))))))
   
   
-  (method package (on-delete self evt)
-    (let ((world (current-world)))
-      (let ((tiername (tier-username self))
-            (tiers (tiers-view self)))
-        (let ((files (get-selected-data (get-tree tiers))))
-          (when (not-null? files)
-            (push-panel
-              (open-message (format "Delete {a}{a} and lose changes?" (downcase tiername) (format-plural (length files)))
-                            caption: "Delete"
-                            type: 'question
-                            yes: "Yes"
-                            no: "No"
-                            execute: (lambda (evt)
-                                       (let ((dialog (find-ascendant (get-sender evt) World-Dialog))
-                                             (button (get-property evt button:)))
-                                         (close dialog)
-                                         (case button
-                                           ((yes)
-                                            (for-each (lambda (file)
-                                                        (delete (get-parent file)))
-                                                      files)
-                                            (view-tiers tiers)
-                                            (tiers-update self)
-                                            (change-update self))))))))))))
+  (method package (on-join self evt)
+    (goto-stage self 'circle))
   
   
-  (method (on-rename self evt)
-    (let ((world (current-world)))
-      (let ((tiername (tier-username self))
-            (tiers (tiers-view self)))
-        (let ((tree (get-tree tiers)))
-          (let ((from (get-single-selected-data tree)))
-            (when from
-              (let (iter)
-                (push-panel
-                  (choose-new world (format "Rename {a}" tiername) (format "{a}:" tiername) (tier-name from)
-                    (lambda (base)
-                      (let ((to (new-zone-file base 'local)))
-                        (let ((from-dir (get-parent from))
-                              (to-dir (get-parent to))
-                              (from-name (get-name from))
-                              (to-name (get-name to)))
-                          (rename from-dir to-dir)
-                          (rename (new-file to-dir from-name) (new-file to-dir to-name))
-                          (let ((row (get-selected-row tree)))
-                            (set-user-data row to)
-                            (let ((cell (new Cell (row->line tree row) 0)))
-                              (set-cell-title tree cell (tier-name to))
-                              (invalidate-cell tree cell))))
-                        (change-update self)))
-                    kind: (determine-kind self)
-                    exists: (lambda (base proc)
-                              (push-panel
-                                (open-message (format "{a} {a} already exists. Please choose another name" tiername base)
-                                              caption: "Rename"
-                                              type: 'message
-                                              execute: (lambda (evt)
-                                                         (let ((dialog (find-ascendant (get-sender evt) World-Dialog))
-                                                               (button (get-property evt button:)))
-                                                           (close dialog)
-                                                           (iter)))))))))))))))
+  (method (on-edit self evt)
+    )
   
   
-  (method (tier-username self)
-    (case stage
-      ((local) "Zone")
-      ((remote) "Remote")
-      ((server) "Server")))
-  
-  
-  (method (on-new-local self evt)
-    (goto-stage self 'new-local))
+  (method (on-new-circle self evt)
+    (goto-stage self 'new-circle))
   
   
   (method (on-back self evt)
     (goto-stage self (case stage
-                  ((new-local) 'local)
-                  ((new-remote) 'remote)
-                  ((new-server) 'server))))
+                       ((new-circle circle) 'welcome)
+                       ((customize) 'login)
+                       ((new-server) 'server))))
+  
+  
+  (method (on-leave self evt)
+    (let ((world (current-world)))
+      (open-welcome world)))
   
   
   (method (goto-stage self what)
-    (uninstall-welcome self)
+    (uninstall-stage self)
     (set! stage what)
-    (install-welcome self))
+    (install-stage self))
   
   
-  (method (on-create-local self evt)
-    (create-local self))
+  (method (on-create-circle self evt)
+    (create-circle self))
   
   
-  (method (local-create self from base)
+  (method (circle-create self from base)
     (create-new-zone from base
       replace?: #t
       open: (lambda (file)
-              (let ((zone (open-local file)))
+              (let ((zone (open-circle file)))
                 ;; get the current-me after opening the zone
                 (let ((me (current-me))
                       (avatar (selected-avatar self)))
@@ -528,12 +481,35 @@
     (quit-process (current-process)))
   
   
-  (method (on-local self evt)
-    (goto-stage self 'local))
+  (method (on-chat self evt)
+    (let ((interface (current-interface)))
+      (let ((chat (child interface 'chat)))
+        (set-visible? chat (not (get-visible? chat))))))
   
   
-  (method (create-local self)
+  (method (create-circle self)
     (create-selected (templates-view self)))
+  
+  
+  (method package (create-remote self)
+    (let ((fields (remote-fields self)))
+      (let ((contents (map (lambda (field)
+                             (bind (label view) field
+                               (text-content self (info-text self view))))
+                           fields)))
+        (bind (client-name server-address server-port name) contents
+          (remote-open self (create-client-file client-name server-address server-port name (selected-avatar self)))))))
+  
+  
+  (method (remote-fields self)
+    '((client-name-label client-name #t)
+      (server-address-label server-address #t)
+      (server-port-label server-port #f)
+      (name-label name #t)))
+  
+  
+  (method (remote-stops self)
+    (map (~ info-text self) (map second (remote-fields self))))
   
   
   (method (info-text self view)
@@ -557,13 +533,17 @@
   ;;;
   
   
-  (method (local-open self file)
+  (method (circle-open self file)
     (with-window-cursor :wait
       (lambda ()
         (let ((world (current-world)))
-          (let ((zone (open-local file @start-script?: start-script?)))
+          (let ((zone (open-circle file @start-script?: start-script?)))
             (display-message world (get-title zone))
-            zone))))))
+            zone)))))
+  
+  
+  (method (open-circle self file . rest)
+    ))
 
 
 ;;;
@@ -669,45 +649,103 @@
 
 
 ;;;
-;;;; Locals-Panel
+;;;; People-Panel
 ;;;
 
 
-(class Locals-Panel extends World-Panel
+(class People-Panel extends World-Panel
   
   
   (form
     (<install>
-      (<Border-View>  name: content location: center border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
-        (<Tiers-View> name: tiers   location: center
-          (<tiers~>                 selection-handler: {Event-Handler :form on-selection-change} backspace-press-handler: {Event-Handler :form on-backspace-press})))))
-  
-  
-  (method package (on-selection-change self evt)
-    (let ((zone (current-zone)))
-      (tiers-update zone)))
-  
-  
-  (method override (on-backspace-press self evt)
-    (let ((zone (current-zone)))
-      (on-delete zone evt))))
+      (<Border-View>   name: content location: center border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
+        (<People-View> name: people  location: center
+          (<people~>                 selection-handler: {Event-Handler :form on-selection-change} backspace-press-handler: {Event-Handler :form on-backspace-press}))))))
 
 
 ;;;
-;;;; Templates-Panel
+;;;; People-View
 ;;;
 
 
-(class Templates-Panel extends World-Panel
+(class People-View extends Scroller-View
+  
+  
+  (form
+    (<install>                                 style: document hscroll?: #t vscroll?: #t
+      (<content~>                              layout-type: fill
+        (<Tree-Header>                         style: document shown?: #f
+          (<content~>
+            (<Tree-View>          name: people portfolio: :images filled-column: person multiple-selection?: #t background: #f double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press}
+              (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f))))))))
+
+
+;;;
+;;;; Circles-Panel
+;;;
+
+
+(class Circles-Panel extends World-Panel
   
   
   (form
     (<install>
-      (<Border-View>      name: content   location: center border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
-        (<Templates-View> name: templates location: center
-          (<templates~>                   selection-handler: {Event-Handler :form on-selection-change})))))
+      (<Border-View>    name: content location: center border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
+        (<Circles-View> name: circles location: center
+          (<circles~>                 selection-handler: {Event-Handler :form on-selection-change} backspace-press-handler: {Event-Handler :form on-backspace-press}))))))
+
+
+;;;
+;;;; Circles-View
+;;;
+
+
+(class Circles-View extends Scroller-View
   
   
-  (method package (on-selection-change self evt)
+  (form
+    (<install>                                  style: document hscroll?: #t vscroll?: #t
+      (<content~>                               layout-type: fill
+        (<Tree-Header>                          style: document shown?: #f
+          (<content~>
+            (<Tree-View>          name: circles portfolio: :images filled-column: circle multiple-selection?: #t background: #f double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press}
+              (<Tree-Node-Column> name: circle  title: "Circle" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f))))))))
+
+
+;;;
+;;;; Info-Label
+;;;
+
+
+(class Info-Label extends Label-View
+  
+  
+  (form
+    (<install> size: {Dimension 150 16} color: {Color red: .892 green: .773 blue: .290})))
+
+
+;;;
+;;;; Info-View
+;;;
+
+
+(class Info-View extends Border-View
+  
+  
+  (form
+    (<install>                          size: {Dimension 150 19} border-type: edge style: entry
+      (<Scroller-View>                  hscroll?: #f vscroll?: #f
+        (<content~>                     layout-type: fill
+          (<World-Text-View> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t return-press-handler: {Event-Handler :form on-return})))))
+  
+  
+  (method override (get-tab-stops self)
     (let ((zone (current-zone)))
-      (templates-update zone)))))
+      (tab-stops zone)))
+  
+  
+  (method (on-return self evt)
+    (let ((zone (current-zone)))
+      (case stage
+        ((new-remote) (create-remote zone))
+        ((new-server) (create-server zone)))))))

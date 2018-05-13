@@ -16,6 +16,8 @@
 (form
   (<Project>               name: together           description-file: {File :context ".package"}
     (<*>                                            tag-reference: {File :context "together.project"})
+    (<*>                                            tag-reference: {File :context "together-server.project"})
+    (<*>                                            tag-reference: {File :context "together-processor.project"})
     (<*>                                            tag-reference: {File :context "together-worker.project"})
     (<Project-Directory>                            directory: {Directory :context "src"}
       (<Project-Directory>                          directory: {Directory :context "src" "together"}
@@ -33,11 +35,21 @@
         (<Jazz-File>       name: worker-application source: {File :context "src" "together" "worker-application.jazz"})
         (<Jazz-File>       name: worker-process     source: {File :context "src" "together" "worker-process.jazz"})
         (<Jazz-File>       name: worker-settings    source: {File :context "src" "together" "worker-settings.jazz"})
-        (<Jazz-File>       name: zone               source: {File :context "src" "together" "zone.jazz"})
         (<Jazz-File>       name: product            source: {File :context "src" "together" "product.jazz"})
         (<Jazz-File>       name: appl               source: {File :context "src" "together" "appl.jazz"})
         (<Jazz-File>       name: boot               source: {File :context "src" "together" "boot.jazz"})
         (<Jazz-File>       name: run                source: {File :context "src" "together" "run.jazz"})
-        (<Jazz-File>       name: tier               source: {File :context "src" "together" "tier.jazz"}))
+        (<Jazz-File>       name: tier               source: {File :context "src" "together" "tier.jazz"})
+        (<Jazz-File>       name: circle             source: {File :context "src" "together" "circle.jazz"})
+        (<Jazz-File>       name: login              source: {File :context "src" "together" "login.jazz"})
+        (<Jazz-File>       name: boot-processor     source: {File :context "src" "together" "boot-processor.jazz"})
+        (<Jazz-File>       name: boot-server        source: {File :context "src" "together" "boot-server.jazz"})
+        (<Jazz-File>       name: product-processor  source: {File :context "src" "together" "product-processor.jazz"})
+        (<Jazz-File>       name: product-server     source: {File :context "src" "together" "product-server.jazz"})
+        (<Jazz-File>       name: run-processor      source: {File :context "src" "together" "run-processor.jazz"})
+        (<Jazz-File>       name: run-server         source: {File :context "src" "together" "run-server.jazz"})
+        (<Jazz-File>       name: process            source: {File :context "src" "together" "process.jazz"})
+        (<Jazz-File>       name: sphere             source: {File :context "src" "together" "sphere.jazz"})
+        (<Jazz-File>       name: zone               source: {File :context "src" "together" "zone.jazz"}))
       (<Jazz-File>         name: t                  source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun               source: {File :context "src" "trun.jazz"})))))

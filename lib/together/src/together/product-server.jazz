@@ -1,0 +1,131 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together-Server Product
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.product-server jazz
+
+
+(import (jazz.io)
+        (jazz.product))
+
+
+;;;
+;;;; Build
+;;;
+
+
+(definition (build descriptor (unit: unit #f) (force?: force? #f))
+  (define (resources-dir)
+    (let ((bundle (product-descriptor-build-bundle descriptor)))
+      (if bundle
+          (new-directory {Directory Build} (format "{a}.app/Contents/Resources" bundle))
+        {Directory Build})))
+  
+  (let ((project-dir {Directory Together})
+        (resources-dir (resources-dir)))
+    (define (install-filename path)
+      (let ((src (new-file project-dir path))
+            (dst (new-file resources-dir path)))
+        (install-file src dst
+          feedback: (lambda (action pathname)
+                      (build-feedback "; {a} {a}..." action (get-name pathname))))))
+    
+    (define (install-dirname path (src #f) (dst #f))
+      (let ((src (new-directory project-dir (or src path)))
+            (dst (new-directory resources-dir (or dst path))))
+        (install-directory src dst
+          feedback: (let ((first? #t))
+                      (lambda (action pathname)
+                        (when first?
+                          (build-feedback "; {a} {a}..." action (get-name pathname))
+                          (set! first? #f)))))))
+    
+    (define (copy-info)
+      (install-filename '("README"))
+      (install-filename '("devel" "together" "About.ftx"))
+      (install-filename '("devel" "together" "Help.ftx"))
+      (install-filename '("devel" "together" "News.ftx") )
+      (install-filename '("devel" "together" "Roadmap.ftx")))
+    
+    (define (copy-assets)
+      (install-dirname '("world" "lib" "world.client" "assets"))
+      (install-dirname '("lib" "together" "assets")))
+    
+    (define (copy-templates)
+      (install-dirname '("devel" "templates")))
+    
+    (build-product-descriptor descriptor unit: unit force?: force?)
+    (initialize-aliases)
+    (copy-info)
+    (copy-assets)
+    (copy-templates)))
+
+
+;;;
+;;;; Install
+;;;
+
+
+(definition install-dir
+  (cond-expand
+    (windows
+     {Directory Home "together-server" "install"})
+    (else
+     {Directory Home "Devel" "together-server" "install"})))
+
+
+(definition install-name
+  (cond-expand
+    (mac
+     "together-server.app")
+    (else
+     "together-server")))
+
+
+(definition (install descriptor)
+  (initialize-aliases)
+  ;; appl
+  (install-application descriptor install-dir
+    scriptable?: #t
+    platform?: #t
+    opengl?: #t
+    git?: #t
+    gstreamer?: #t
+    files: (cond-expand
+             (windows '("README" "together-worker.exe"))
+             (else '("README")))
+    directories: '("devel")))
+
+
+;;;
+;;;; Deploy
+;;;
+
+
+(definition (deploy descriptor)
+  (initialize-aliases)
+  ;; appl
+  (deploy-application descriptor
+                      (new-directory install-dir install-name)
+                      make: 'together-all
+                      install: 'together))
+
+
+;;;
+;;;; Register
+;;;
+
+
+(register-product 'together-server
+  build: build
+  install: install
+  deploy: deploy))

@@ -1,0 +1,21 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Jazz-Project
+;;;
+
+
+(data jazz.debugger.jazz.data.project
+
+
+(form
+  (<Jazz-Project>  name: Together-Server default-traits: (Safety.Devel) directory: {Directory :context "../../cache"} working: {Directory :context "../.."} product: together-server
+    (<Trait>       name: Safety
+      (<install>)
+      (<Trait>     name: Devel
+        (<install>               configuration: "devel")))
+    (<Trait>       name: Server
+      (<install>)
+      (<Trait>     name: Local
+        (<install>               arguments: ()))))))

@@ -20,6 +20,7 @@
 
 
 (definition protected (prepare-together)
+  (set-together? #t)
   (set-window? #t)
   (set-tier-title "Together")
   (set-tier-kind 'client)
@@ -29,6 +30,7 @@
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user creator designer programmer admin))
+  (set-default-server "Together")
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename)))
 
@@ -44,12 +46,21 @@
 (definition (override-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; welcome
+                     '(;; role
+                       world.role             programmer ; user
+                       ;; welcome
                        world.welcome-skybox   "nebula"
+                       ;; interface
+                       world.show-belt?       #f
+                       ;; media
+                       world.video-layout     gallery
                        ;; audio
                        world.music?           #f
                        world.ambience?        #f
                        world.sounds?          #f
+                       ;; video
+                       world.sun-cycle?       #f
+                       world.start-time       day
                        ;; generation
                        world.tile-pack        "minecraft"
                        world.tile-resolution  16
