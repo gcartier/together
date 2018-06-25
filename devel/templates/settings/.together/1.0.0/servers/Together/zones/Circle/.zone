@@ -1,0 +1,18 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Circle-Zone
+;;;
+
+
+(data jazz
+
+
+(version 1 4)
+(import world.data
+        together.circle)
+
+
+(form
+  (<Circle-Zone> start-mode: free-camera start-grid?: #t start-distance: 3.5 seed: 7311317077975474655 first-time?: #f)))
