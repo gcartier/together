@@ -158,8 +158,8 @@
         (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(40 -100) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(40 -80) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Push-Button name: 'about parent: interface title: "About & Copyright" location: '(-40 -40) size: {Dimension 160 24} action-handler: (~ on-about self))
-        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(40 -40) size: {Dimension 100 24} action-handler: (~ on-quit self))
+        (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-40 -40) size: {Dimension 160 24} action-handler: (~ on-about self))
+        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(40 -40) size: {Dimension 100 24} @wait-action-handler: (~ on-quit self))
         (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Push-Button name: 'enter parent: interface title: (if name "Enter" "Customize & Enter") location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
         (when name
