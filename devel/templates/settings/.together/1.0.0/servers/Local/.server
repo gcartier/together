@@ -1,0 +1,17 @@
+;;;=========
+;;;  Yownu
+;;;=========
+;;;
+;;;; Server
+;;;
+
+
+(data jazz
+
+
+(version 1 4)
+(import world.server)
+
+
+(form
+  (<Server> host: "localhost" service: 50000)))

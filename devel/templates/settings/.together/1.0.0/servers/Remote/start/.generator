@@ -1,0 +1,17 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Generator
+;;;
+
+
+(data jazz
+
+
+(version 1 4)
+(import world.data)
+
+
+(form
+  (<Flat-Generator>)))
