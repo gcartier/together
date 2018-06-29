@@ -47,28 +47,31 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role             programmer ; user
+                       world.role                 programmer ; user
                        ;; welcome
-                       world.welcome-skybox   "nebula"
+                       world.welcome-skybox       "nebula"
                        ;; interface
-                       world.show-belt?       #f
+                       world.show-belt?           #f
                        ;; media
-                       world.video-layout     gallery
+                       world.video-layout         gallery
                        ;; audio
-                       world.music?           #f
-                       world.ambience?        #f
-                       world.sounds?          #f
+                       world.music?               #f
+                       world.ambience?            #f
+                       world.sounds?              #f
                        ;; video
-                       world.sun-cycle?       #f
-                       world.start-time       day
+                       world.sun-cycle?           #f
+                       world.start-time           day
+                       ;; configure
+                       world.render-rate          60.
+                       world.render-rate-inactive 60.
                        ;; generation
-                       world.tile-pack        "minecraft"
-                       world.tile-resolution  16
-                       world.generate-mipmap? #t
-                       world.min-filter       linear
-                       world.mag-filter       nearest
+                       world.tile-pack            "minecraft"
+                       world.tile-resolution      16
+                       world.generate-mipmap?     #t
+                       world.min-filter           linear
+                       world.mag-filter           nearest
                        ;; worker
-                       world.worker?          #f)))
+                       world.worker?              #f)))
 
 
 (definition (run-together descriptor)

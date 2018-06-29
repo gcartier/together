@@ -59,9 +59,13 @@
 (class Together-Zone extends Zone
   
   
-  (slot preserved-music    initialize #f getter generate)
-  (slot preserved-ambience initialize #f getter generate)
-  (slot post-accept        initialize #f accessors generate)
+  (slot preserved-music    initialize #f                 getter generate)
+  (slot preserved-ambience initialize #f                 getter generate)
+  (slot configuration      initialize #f                 getter generate)
+  (slot hide-time          initialize #f                 getter generate)
+  (slot hide-mutex         initialize (make-mutex 'hide) getter generate)
+  (slot hide-thread        initialize #f                 getter generate)
+  (slot post-accept        initialize #f                 accessors generate)
   
   
   (form
@@ -74,6 +78,7 @@
       (let ((window (current-window))
             (world (current-world)))
         (setup-stage self)
+        (setup-configuration self)
         (install-stage self)
         (set-draw-me? self #f)
         ;; remove tearing in the camera pathing
@@ -98,10 +103,19 @@
                       ((memq? stage '(server new-server)) 'server))))
   
   
+  (method (setup-configuration self)
+    (let ((file (together-file self)))
+      (set! configuration (instantiate (read-form file)))))
+  
+  
   (method override (setup-camera self)
     (nextmethod self)
     (when (window?)
       (install-camera)))
+  
+  
+  (method override (main-menu? self)
+    #f)
   
   
   (method override (show-belt? self)
@@ -140,16 +154,16 @@
           (world (current-world)))
       (let ((version (process-version (current-process)))
             (release (process-release (current-process)))
-            (name "Guillaume" @w (and configuration (get-character-name configuration))))
+            (name (get-character-name configuration)))
         (new Label-View name: 'welcome parent: interface title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) action-handler: (~ on-quit self))
+        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
         (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'tail)
-        (new Push-Button name: 'open parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
-        (new Kind-Label parent: interface title: "People" location: '(20 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Push-Button name: 'join parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
+        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(20 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 90) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'kind parent: interface title: "Chat" location: '(-10 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
@@ -159,8 +173,8 @@
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         @circles (
         (new Kind-Label name: 'kind parent: interface title: "Circles" location: '(center -130) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new Push-Button name: 'new parent: interface title: "Create" location: '(-250 -140) action-handler: (~ on-new-circle self))
-        (new Push-Button name: 'rename parent: interface title: "Edit" location: '(-460 -140) action-handler: (~ on-edit self))
+        (new Push-Button name: 'new parent: interface title: "Create" location: '(-250 -140) size: {Dimension 100 24} action-handler: (~ on-new-circle self))
+        (new Push-Button name: 'rename parent: interface title: "Edit" location: '(-460 -140) size: {Dimension 100 24} action-handler: (~ on-edit self))
         (new Circles-Panel name: 'circles parent: interface location: '(200 -10) proportion: '((bounds -450) 120) layout-type: 'border))
         (add-exception-view self)
         (layout-view interface)
@@ -176,8 +190,8 @@
           (world (current-world)))
       (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
       ;(new Templates-Panel name: 'templates parent: interface size: {Dimension 266 488} location: '(-40 center) layout-type: 'border)
-      (new Push-Button name: 'back parent: interface title: "Back" location: '(40 -40) action-handler: (~ on-back self))
-      (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) action-handler: (~ on-create-circle self))
+      (new Push-Button name: 'back parent: interface title: "Back" location: '(40 -40) size: {Dimension 100 24} action-handler: (~ on-back self))
+      (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-circle self))
       (set-create (locate (child interface 'templates) 'templates) (~ circle-create self))
       (add-exception-view self)
       (layout-view interface)
@@ -192,9 +206,9 @@
   (method (install-circle self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (new Push-Button name: 'leave parent: interface title: "Leave" location: '(40 -40) visible?: #f action-handler: (~ on-leave self))
-      (new Push-Button name: 'audio parent: interface title: "Toggle Audio" location: '(240 -40) size: {Dimension 150 22} visible?: #f action-handler: (~ on-audio self))
-      (new Push-Button name: 'video parent: interface title: "Toggle Video" location: '(400 -40) size: {Dimension 150 22} visible?: #f action-handler: (~ on-video self))
+      (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} visible?: #f action-handler: (~ on-leave self))
+      (new Push-Button name: 'audio parent: interface title: "Toggle Audio" location: '(240 -30) size: {Dimension 150 24} visible?: #f action-handler: (~ on-audio self))
+      (new Push-Button name: 'video parent: interface title: "Toggle Video" location: '(400 -30) size: {Dimension 150 24} visible?: #f action-handler: (~ on-video self))
       (add-exception-view self)
       (layout-view interface)
       (no-showcase world)))
@@ -233,6 +247,33 @@
       (when frame
         (close frame)))
     #t)
+  
+  
+  (method (on-about self evt)
+    (let ((interface (current-interface)))
+      (let ((frame (top-frame)))
+        (if (is? frame World-Document)
+            (begin
+              (close frame)
+              (set-visible? (child interface 'name) #t)
+              (set-visible? (child interface 'join) #t)
+              (set-visible? (child interface 'people-label) #t)
+              (set-visible? (child interface 'people) #t)
+              (set-visible? (child interface 'chat-label) #t)
+              (set-visible? (child interface 'chat) #t))
+          (show-about self)))))
+  
+  
+  (method (show-about self (title: title #f) (closable?: closable? #t))
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (set-visible? (child interface 'name) #f)
+      (set-visible? (child interface 'join) #f)
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (set-visible? (child interface 'chat) #f)
+      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
   
   
   (method override (start-music self)
@@ -366,10 +407,54 @@
   
   (method override (mouse-moved self x y)
     (when (eq? stage 'circle)
-      (let ((interface (current-interface)))
-        (set-visible? (child interface 'leave) #t)
-        (set-visible? (child interface 'audio) #t)
-        (set-visible? (child interface 'video) #t))))
+      (show-interface self)))
+  
+  
+  (method override (mouse-action self h v)
+    (when (eq? stage 'circle)
+      (show-interface self)))
+  
+  
+  (method (show-interface self)
+    (let ((interface (current-interface)))
+      ;; we probably need a tolerance so moving
+      ;; only 1 pixel doesn't show the interface
+      (set-visible? (child interface 'leave) #t)
+      (set-visible? (child interface 'audio) #t)
+      (set-visible? (child interface 'video) #t)
+      ;; quick try that really needs to be revisited
+      ;; would love to have a clean no mutex solution
+      (let ((now (current-seconds)))
+        (let ((time (+ now 1.25)))
+          (mutex-lock! hide-mutex)
+          (set! hide-time time)
+          (unless hide-thread
+            (let ((thread
+                    (new-thread
+                      (lambda ()
+                        (declare (proper-tail-calls))
+                        (let (loop)
+                          (let ((wait (- hide-time (current-seconds))))
+                            (sleep wait)
+                            (let ((new-wait (- hide-time (current-seconds))))
+                              (if (<= new-wait 0.)
+                                  (with-task-mutex
+                                    (lambda ()
+                                      (mutex-lock! hide-mutex)
+                                      ;; maybe we left circle
+                                      (when (eq? stage 'circle)
+                                        (set-visible? (child interface 'leave) #f)
+                                        (set-visible? (child interface 'audio) #f)
+                                        (set-visible? (child interface 'video) #f))
+                                      ;; this is probably not safe
+                                      (set! hide-thread #f)
+                                      (set! hide-time #f)
+                                      (mutex-unlock! hide-mutex)))
+                                (loop))))))
+                      'hide)))
+              (thread-start! thread)
+              (set! hide-thread thread)))
+          (mutex-unlock! hide-mutex)))))
   
   
   (method override (mouse-track self elapse dx dy)

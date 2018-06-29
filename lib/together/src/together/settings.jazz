@@ -16,7 +16,42 @@
 
 (import (jazz.io)
         (jazz.platform)
+        (jazz.settings)
+        (world)
+        (world.autoload)
         (world.io))
+
+
+;;;
+;;;; Welcome
+;;;
+
+
+(definition protected (open-welcome/circle-zone)
+  (define (open-welcome)
+    (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
+  
+  (define (open-circle remote-file)
+    (let ((obj (open-client remote-file)))
+      (if (is? obj Zone)
+          obj
+        (let ((title (if (string? obj) obj "Unable to connect to server"))
+              (zone (open-welcome)))
+          (report-exception zone title obj)))))
+  
+  (let ((client (if (boolean-argument "devel" #f) "Devel" "Together")))
+    (let ((file (new-file {Directory Settings} (list "clients" client ".client"))))
+      (if (exists? file)
+          (open-circle file)
+        (open-welcome)))))
+
+
+(welcome-zone-open-set! open-welcome/circle-zone)
+
+
+;;;
+;;;; World
+;;;
 
 
 (definition protected (find-world)

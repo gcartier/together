@@ -68,6 +68,7 @@
   (slot preserved-ambience initialize #f getter generate)
   (slot configuration      initialize #f getter generate)
   (slot use-sphere?        initialize #f getter generate)
+  (slot name-focused?      initialize #f getter generate)
   (slot post-accept        initialize #f accessors generate)
   
   
@@ -155,18 +156,24 @@
       (let ((version (process-version (current-process)))
             (release (process-release (current-process)))
             (name (and configuration (get-character-name configuration))))
-        (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
-        (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(40 -100) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Version-Label name: 'release parent: interface title: release location: '(40 -80) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-40 -40) size: {Dimension 160 24} action-handler: (~ on-about self))
-        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(40 -40) size: {Dimension 100 24} @wait-action-handler: (~ on-quit self))
-        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        (new Push-Button name: 'enter parent: interface title: (if name "Enter" "Customize & Enter") location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
-        (when name
+        (new Label-View name: 'welcome parent: interface title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+        (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
+        (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
+        (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
+        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
+        (new Name-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+        (new Name-View name: 'name parent: interface location: '(center (center -60)))
+        (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
+        @w (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+        @w (new Push-Button name: 'enter parent: interface title: (if name "Enter" "Customize & Enter") location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
+        @w (when name
           (new Push-Button name: 'customize parent: interface title: "Customize" location: '(center -40) size: {Dimension 140 24} action-handler: (~ on-customize self)))
         (add-exception-view self)
         (layout-view interface)
-        (no-showcase world))))
+        (no-showcase world)
+        (delay-event
+          (lambda ()
+            (acquire-focus (locate (child interface 'name) 'text)))))))
   
   
   (method (install-customize self)
@@ -200,7 +207,7 @@
   
   (method (add-exception-view self)
     (let ((interface (current-interface)))
-      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 67) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
+      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 107) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
   
   
   (method (find-exception-view self)
@@ -319,7 +326,7 @@
       (if configuration (get-server-service configuration) together-service)))
   
   
-  (method (together-file self)
+  (method package (together-file self)
     {File Settings "clients" "Together" ".client"})
   
   
@@ -345,15 +352,24 @@
   
   
   (method (on-about self evt)
-    (let ((frame (top-frame)))
-      (if (is? frame World-Document)
-          (close frame)
-        (show-about self))))
+    (let ((interface (current-interface)))
+      (let ((frame (top-frame)))
+        (if (is? frame World-Document)
+            (begin
+              (close frame)
+              (set-visible? (child interface 'name-label) #t)
+              (set-visible? (child interface 'name) #t)
+              (set-visible? (child interface 'enter) #t)
+              (when name-focused?
+                (acquire-focus (locate (child interface 'name) 'text))))
+          (show-about self)))))
   
   
   (method (show-about self (title: title #f) (closable?: closable? #t))
     (let ((interface (current-interface))
           (world (current-world)))
+      (set! name-focused? (eq? (active-focus) (locate (child interface 'name) 'text)))
+      (set-visible? (child interface 'name-label) #f)
       (set-visible? (child interface 'name) #f)
       (set-visible? (child interface 'enter) #f)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
@@ -401,6 +417,18 @@
             (remote-open self file))))))
   
   
+  (method package (create-default-remote self name)
+    (let ((client-name "Together")
+          (server-address "togethersphere.com")
+          (server-port "50000")
+          (avatar #f)
+          (script #f)
+          (zone '(zone "Circle")))
+      (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
+        (setup-configuration self)
+        (remote-open self file))))
+  
+  
   (method (remote-fields self)
     '((server-address-label server-address #t)
       (server-port-label server-port #f)
@@ -414,15 +442,12 @@
   (method (remote-open self remote-file)
     (with-window-cursor :wait
       (lambda ()
-        (let ((world (current-world)))
-          (clear-exception self)
-          (let ((obj (open-client remote-file)))
-            (if (is? obj Zone)
-                (begin
-                  (display-message world (get-title obj))
-                  obj)
-              (let ((title (if (string? obj) obj "Unable to connect to server")))
-                (report-exception self title obj))))))))
+        (clear-exception self)
+        (let ((obj (open-client remote-file)))
+          (if (is? obj Zone)
+              obj
+            (let ((title (if (string? obj) obj "Unable to connect to server")))
+              (report-exception self title obj)))))))
   
   
   (method (info-text self view)
@@ -584,4 +609,43 @@
   (method (on-return self evt)
     (let ((zone (current-zone)))
       (case stage
-        ((customize) (create-remote zone)))))))
+        ((customize) (create-remote zone))))))
+
+
+;;;
+;;;; Name-Text
+;;;
+
+
+(class Name-Text extends World-Text-View
+  
+  
+  (method override (new-model self)
+    (new Text-Model default-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 12)))
+
+
+;;;
+;;;; Name-View
+;;;
+
+
+(class Name-View extends Border-View
+  
+  
+  (form
+    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
+      (<Scroller-View>            hscroll?: #f vscroll?: #f
+        (<content~>               layout-type: fill
+          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return})))))
+  
+  
+  (method (on-content-change self evt)
+    (let ((interface (current-interface)))
+      (let ((text (locate self 'text)))
+        (set-enabled? (child interface 'enter) (not (empty-string? (get-string-content text)))))))
+  
+  
+  (method (on-return self evt)
+    (let ((zone (current-zone)))
+      (let ((text (locate self 'text)))
+        (create-default-remote zone (get-string-content text)))))))
