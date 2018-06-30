@@ -22,6 +22,11 @@
         (world.io))
 
 
+(definition protected (together-file)
+  (let ((user (string-argument "user" "Together")))
+    (new-file {Directory Settings} (list "clients" user ".client"))))
+
+
 ;;;
 ;;;; Welcome
 ;;;
@@ -39,11 +44,10 @@
               (zone (open-welcome)))
           (report-exception zone title obj)))))
   
-  (let ((client (if (boolean-argument "devel" #f) "Devel" "Together")))
-    (let ((file (new-file {Directory Settings} (list "clients" client ".client"))))
-      (if (exists? file)
-          (open-circle file)
-        (open-welcome)))))
+  (let ((file (together-file)))
+    (if (exists? file)
+        (open-circle file)
+      (open-welcome))))
 
 
 (welcome-zone-open-set! open-welcome/circle-zone)

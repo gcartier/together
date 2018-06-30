@@ -47,7 +47,8 @@
         (world.settings)
         (world.skybox)
         (world.task)
-        (world.window))
+        (world.window)
+        (together.settings))
 
 
 (definition together-host
@@ -80,8 +81,8 @@
     #t)
   
   
-  (method override (finish self rest)
-    (nextmethod self rest)
+  (method override (zone-ready self)
+    (nextmethod self)
     (let ((window (current-window))
           (world (current-world)))
       (setup-stage self)
@@ -112,7 +113,7 @@
   
   
   (method (setup-configuration self)
-    (let ((file (together-file self)))
+    (let ((file (together-file)))
       (set! configuration (and (exists? file) (instantiate (read-form file))))))
   
   
@@ -311,7 +312,7 @@
   
   
   (method (on-enter self evt)
-    (let ((file (together-file self)))
+    (let ((file (together-file)))
       (if (exists? file)
           (remote-open self file)
         (set! use-sphere? (shift-down?))
@@ -321,13 +322,9 @@
   
   (method (on-customize self evt)
     (set! use-sphere? (shift-down?))
-    (change-remote self (together-file self)
+    (change-remote self (together-file)
       (if configuration (get-server-host configuration) together-host)
       (if configuration (get-server-service configuration) together-service)))
-  
-  
-  (method package (together-file self)
-    {File Settings "clients" "Together" ".client"})
   
   
   (method (change-remote self file server-address server-port)
