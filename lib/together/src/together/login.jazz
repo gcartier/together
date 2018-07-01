@@ -122,7 +122,7 @@
       (set! configuration (and (exists? file) (instantiate (read-form file))))))
   
   
-  (method override (setup-camera self)
+  (method override (camera-update self)
     (nextmethod self)
     (install-camera))
   

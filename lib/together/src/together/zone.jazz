@@ -114,7 +114,7 @@
       (set! configuration (instantiate (read-form file)))))
   
   
-  (method override (setup-camera self)
+  (method override (camera-update self)
     (nextmethod self)
     (when (window?)
       (install-camera)))
