@@ -124,6 +124,10 @@
     #f)
   
   
+  (method override (mute-audio? self)
+    (neq? stage 'circle))
+  
+  
   (method override (show-belt? self)
     #f)
   

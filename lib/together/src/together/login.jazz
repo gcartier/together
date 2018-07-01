@@ -81,6 +81,10 @@
     #t)
   
   
+  (method override (mute-audio? self)
+    #t)
+  
+  
   (method override (zone-ready self)
     (nextmethod self)
     (let ((window (current-window))
