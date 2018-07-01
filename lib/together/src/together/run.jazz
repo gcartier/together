@@ -27,6 +27,7 @@
   (set-process-kind 'application)
   (set-settings-root {Directory Home ".together"})
   (set-settings-alias 'Resources)
+  (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user creator designer programmer admin))
@@ -43,13 +44,30 @@
     (connect-slave-to-master)))
 
 
+(definition (setup-settings settings)
+  (for-each-property (lambda (property value)
+                       (set-setting settings property value))
+                     '(;; welcome
+                       world.welcome-skybox       "nebula"
+                       ;; test
+                       world.test                 #f
+                       world.test1                #f
+                       world.test2                #f
+                       world.test3                #f
+                       world.test4                #f
+                       world.test5                #f
+                       world.test6                #f
+                       world.test7                #f
+                       world.test8                #f
+                       world.test9                #f
+                       world.test0                #f)))
+
+
 (definition (override-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
                        world.role                 programmer ; user
-                       ;; welcome
-                       world.welcome-skybox       "nebula"
                        ;; interface
                        world.show-belt?           #f
                        ;; media
