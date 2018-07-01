@@ -166,19 +166,21 @@
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (new Name-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
-        (new Name-View name: 'name parent: interface location: '(center (center -60)))
-        (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
-        @w (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        @w (new Push-Button name: 'enter parent: interface title: (if name "Enter" "Customize & Enter") location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
+        (cond ((not name)
+               (new Name-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+               (new Name-View name: 'name parent: interface location: '(center (center -60)))
+               (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))
+               (delay-event
+                 (lambda ()
+                   (acquire-focus (locate (child interface 'name) 'text)))))
+              (else
+               (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+               (new Push-Button name: 'enter parent: interface title: "Enter" location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter self))))
         @w (when name
           (new Push-Button name: 'customize parent: interface title: "Customize" location: '(center -40) size: {Dimension 140 24} action-handler: (~ on-customize self)))
         (add-exception-view self)
         (layout-view interface)
-        (no-showcase world)
-        (delay-event
-          (lambda ()
-            (acquire-focus (locate (child interface 'name) 'text)))))))
+        (no-showcase world))))
   
   
   (method (install-customize self)
