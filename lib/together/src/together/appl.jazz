@@ -350,7 +350,6 @@
           (<!>           name: toggle-ride             visible?: #f)
           (<!>           name: toggle-fly              visible?: #f)
           (<!>           name: toggle-vehicle          visible?: #f))
-        (<world-user!>                                 visible?: #t)
         (<world-spell!>
           ;; for now as it enables jumping over kingdom bridge
           (<!>           name: sprint                  visible?: #f)
@@ -410,8 +409,7 @@
           (<!>           name: design-gaia/world       visible?: #f)
           (<!>           name: restore-gaia/world      visible?: #f))
         (<world-tutorial!>)
-        (<world-debug!>                                visible?: #f)
-        (<together!>                                   visible?: #f))))
+        (<world-debug!>                                visible?: #f))))
   
   (define-trait user-main World-Actionbar
     (<Role-Trait>
@@ -627,8 +625,7 @@
           (<!>           name: test7                   visible?: #f)
           (<!>           name: test8                   visible?: #f)
           (<!>           name: test9                   visible?: #f)
-          (<!>           name: test0                   visible?: #f))
-        (<together!>                                   visible?: #f))))
+          (<!>           name: test0                   visible?: #f)))))
   
   (define-trait creator-main World-Actionbar
     (<Role-Trait>
@@ -820,8 +817,7 @@
           (<!>           name: test7                   visible?: #f)
           (<!>           name: test8                   visible?: #f)
           (<!>           name: test9                   visible?: #f)
-          (<!>           name: test0                   visible?: #f))
-        (<together!>                                   visible?: #f))))
+          (<!>           name: test0                   visible?: #f)))))
   
   (define-trait designer-main World-Actionbar
     (<Role-Trait>
@@ -928,8 +924,7 @@
 
   (define-trait programmer-bindings Bindings
     (<Role-Trait> name: programmer
-      (<install>
-        (<together!> visible?: #f))))
+      (<install>)))
   
   (define-trait programmer-main World-Actionbar
     (<Role-Trait>
@@ -1192,26 +1187,26 @@
       @wait-and-need-to-split-ide-package (<Chapters-Browser-Actions>    name: chapters-browser)
       @wait-and-need-to-split-ide-package (<Summary-View-Actions>        name: summary-view)
       ;; World
-      (<World-Menu-Actions>          name: world-menu)
-      (<World-Interface-Actions>     name: world-interface)
-      (<World-Graphics-Actions>      name: world-graphics)
-      (<World-Sound-Actions>         name: world-sound)
-      (<World-Media-Actions>         name: world-media)
-      (<World-Client-Actions>        name: world-client)
-      (<World-World-Actions>         name: world-world)
-      (<World-Zone-Actions>          name: world-zone)
-      (<World-Movement-Actions>      name: world-movement)
-      (<World-Camera-Actions>        name: world-camera)
-      (<World-Universe-Actions>      name: world-universe)
-      (<World-Spell-Actions>         name: world-spell)
-      (<World-Edition-Actions>       name: world-edition)
-      (<World-History-Actions>       name: world-history)
-      (<World-Window-Actions>        name: world-window)
-      (<World-Debug-Actions>         name: world-debug)
-      (<World-Tutorial-Actions>      name: world-tutorial)
-      (<World-Objective-Actions>     name: world-objective)
-      (<World-Collision-Actions>     name: world-collision)
-      (<World-Anonymous-Actions>     name: world-anonymous)
+      (<World-Menu-Actions>          name: world-menu visible?: #f)
+      (<World-Interface-Actions>     name: world-interface visible?: #f)
+      (<World-Graphics-Actions>      name: world-graphics visible?: #f)
+      (<World-Sound-Actions>         name: world-sound visible?: #f)
+      (<World-Media-Actions>         name: world-media visible?: #f)
+      (<World-Client-Actions>        name: world-client visible?: #f)
+      (<World-World-Actions>         name: world-world visible?: #f)
+      (<World-Zone-Actions>          name: world-zone visible?: #f)
+      (<World-Movement-Actions>      name: world-movement visible?: #f)
+      (<World-Camera-Actions>        name: world-camera visible?: #f)
+      (<World-Universe-Actions>      name: world-universe visible?: #f)
+      (<World-Spell-Actions>         name: world-spell visible?: #f)
+      (<World-Edition-Actions>       name: world-edition visible?: #f)
+      (<World-History-Actions>       name: world-history visible?: #f)
+      (<World-Window-Actions>        name: world-window visible?: #f)
+      (<World-Debug-Actions>         name: world-debug visible?: #f)
+      (<World-Tutorial-Actions>      name: world-tutorial visible?: #f)
+      (<World-Objective-Actions>     name: world-objective visible?: #f)
+      (<World-Collision-Actions>     name: world-collision visible?: #f)
+      (<World-Anonymous-Actions>     name: world-anonymous visible?: #f)
       (<World-User-Actions>          name: world-user visible?: #f)
       ;; Together
       (<Together-Actions>            name: together))))
@@ -1226,8 +1221,24 @@
   
   
   (form
-    (<install>                             title: "Together"
-      (<Action-Item> name: teleport-player title: "Teleport Player" action-handler: {Event-Handler :application on-teleport-player} shortcut: {Shortcut :alt #\P}))))
+    (<install>                                        title: "Together"
+      ;; media
+      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :zone on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
+      (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :zone on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
+      ;; window
+      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")
+      ;; debug
+      (<World-Action-Item> name: test                 title: "Run test" action-handler: {Event-Handler :world on-test-script} shortcut: {Shortcut :control :alt #\T} description: "Run test.")
+      (<World-Action-Item> name: test1                title: "Run test #1" action-handler: {Event-Handler :world on-test-script1} shortcut: {Shortcut :control :alt #\1} description: "Run test #1.")
+      (<World-Action-Item> name: test2                title: "Run test #2" action-handler: {Event-Handler :world on-test-script2} shortcut: {Shortcut :control :alt #\2} description: "Run test #2.")
+      (<World-Action-Item> name: test3                title: "Run test #3" action-handler: {Event-Handler :world on-test-script3} shortcut: {Shortcut :control :alt #\3} description: "Run test #3.")
+      (<World-Action-Item> name: test4                title: "Run test #4" action-handler: {Event-Handler :world on-test-script4} shortcut: {Shortcut :control :alt #\4} description: "Run test #4.")
+      (<World-Action-Item> name: test5                title: "Run test #5" action-handler: {Event-Handler :world on-test-script5} shortcut: {Shortcut :control :alt #\5} description: "Run test #5.")
+      (<World-Action-Item> name: test6                title: "Run test #6" action-handler: {Event-Handler :world on-test-script6} shortcut: {Shortcut :control :alt #\6} description: "Run test #6.")
+      (<World-Action-Item> name: test7                title: "Run test #7" action-handler: {Event-Handler :world on-test-script7} shortcut: {Shortcut :control :alt #\7} description: "Run test #7.")
+      (<World-Action-Item> name: test8                title: "Run test #8" action-handler: {Event-Handler :world on-test-script8} shortcut: {Shortcut :control :alt #\8} description: "Run test #8.")
+      (<World-Action-Item> name: test9                title: "Run test #9" action-handler: {Event-Handler :world on-test-script9} shortcut: {Shortcut :control :alt #\9} description: "Run test #9.")
+      (<World-Action-Item> name: test0                title: "Run test #0" action-handler: {Event-Handler :world on-test-script0} shortcut: {Shortcut :control :alt #\0} description: "Run test #0."))))
 
 
 ;;;
