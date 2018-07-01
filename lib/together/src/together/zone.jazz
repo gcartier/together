@@ -185,8 +185,8 @@
         (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-circle self))
         ;; circle
         (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
-        (new Push-Button name: 'audio parent: interface title: "Toggle Audio" location: '(240 -30) size: {Dimension 150 24} action-handler: (~ on-audio self))
-        (new Push-Button name: 'video parent: interface title: "Toggle Video" location: '(400 -30) size: {Dimension 150 24} action-handler: (~ on-video self))
+        (new Push-Button name: 'audio parent: interface title: "Start Audio" location: '(240 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
+        (new Push-Button name: 'video parent: interface title: "Start Video" location: '(400 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
         ;; hide
         (hide-all self))))
   
@@ -203,10 +203,14 @@
   
   (method (install-welcome self)
     (let ((interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (audio (current-audio))
+          (video (current-video)))
       (define (show name)
         (set-visible? (child interface name) #t))
       
+      (stop-audio audio feedback?: #f)
+      (stop-video video feedback?: #f)
       (show 'welcome)
       (show 'version)
       (show 'release)
@@ -223,6 +227,7 @@
                 (show 'rename)
                 (show 'circles))
       (add-exception-view self)
+      (mute-all self)
       (view-people self)
       (layout-view interface)
       (no-showcase world)))
@@ -230,16 +235,21 @@
   
   (method (install-new-circle self)
     (let ((interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (audio (current-audio))
+          (video (current-video)))
       (define (show name)
         (set-visible? (child interface name) #t))
       
+      (stop-audio audio feedback?: #f)
+      (stop-video video feedback?: #f)
       (show 'welcome)
       @w (show 'templates)
       (show 'back)
       (show 'create)
       (set-create (locate (child interface 'templates) 'templates) (~ circle-create self))
       (add-exception-view self)
+      (mute-all self)
       (layout-view interface)
       (goto-showcase world 'avatars)
       (templates-update self)))
@@ -247,7 +257,9 @@
   
   (method (install-circle self)
     (let ((interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (audio (current-audio))
+          (video (current-video)))
       (define (show name)
         (set-visible? (child interface name) #t))
       
@@ -256,8 +268,13 @@
       (show 'video)
       (hide-interface self)
       (add-exception-view self)
+      (unmute-all self)
       (layout-view interface)
-      (no-showcase world)))
+      (no-showcase world)
+      (start-audio audio)
+      (start-video video)
+      (update-audio self)
+      (update-video self)))
   
   
   (method (uninstall-stage self)
@@ -361,14 +378,6 @@
     (with-task task
       (lambda (exit)
         (task-sleep task +infinity 0. exit))))
-  
-  
-  (method (on-audio self evt)
-    (toggle-audio (current-audio)))
-  
-  
-  (method (on-video self evt)
-    (toggle-video (current-video)))
   
   
   ;;;
@@ -527,6 +536,36 @@
   ;;;
   
   
+  (method (on-toggle-audio self evt)
+    (let ((audio (current-audio)))
+      (when (eq? stage 'circle)
+        (toggle-audio audio)
+        (update-audio self))))
+  
+  
+  (method (update-audio self)
+    (let ((interface (current-interface))
+          (audio (current-audio)))
+      (set-title (child interface 'audio) (if (audio-playing? audio)
+                                              "Stop Audio"
+                                            "Start Audio"))))
+  
+  
+  (method (on-toggle-video self evt)
+    (let ((video (current-video)))
+      (when (eq? stage 'circle)
+        (toggle-video video)
+        (update-video self))))
+  
+  
+  (method (update-video self)
+    (let ((interface (current-interface))
+          (video (current-video)))
+      (set-title (child interface 'video) (if (video-playing? video)
+                                              "Stop Video"
+                                            "Start Video"))))
+  
+  
   (method (on-accept self evt)
     (if post-accept
         (post-accept)
@@ -680,27 +719,71 @@
   
   (method (install-hooks self)
     (let ((tier (current-client))
-          (world (current-world)))
-      (define (processor-entered character-name)
-        (display-message world (format "{a} entered" character-name))
-        (update-people self))
-      
-      (define (processor-exited character-name)
-        (display-message world (format "{a} exited" character-name))
-        (update-people self))
-      
-      (define (update-people self)
-        (when (eq? stage 'welcome)
-          (view-people self)))
-      
-      (set-processor-entered-hook tier processor-entered)
-      (set-processor-exited-hook tier processor-exited)))
+          (audio (current-audio))
+          (video (current-video)))
+      ;; processor
+      (set-processor-entered-hook tier (~ processor-entered self))
+      (set-processor-exited-hook tier (~ processor-exited self))
+      ;; media
+      (set-receive-hook audio (~ receive-audio self))
+      (set-receive-hook video (~ receive-video self))
+      (set-render-hook video (~ render-video self))))
   
   
   (method (uninstall-hooks self)
-    (let ((tier (current-client)))
+    (let ((tier (current-client))
+          (audio (current-audio))
+          (video (current-video)))
+      ;; processor
       (set-processor-entered-hook tier #f)
-      (set-processor-exited-hook tier #f)))
+      (set-processor-exited-hook tier #f)
+      ;; media
+      (set-receive-hook audio #f)
+      (set-receive-hook video #f)
+      (set-render-hook video #f)))
+  
+  
+  (method (processor-entered self character-name)
+    (let ((world (current-world)))
+      (display-message world (format "{a} entered" character-name))
+      (update-people self)))
+  
+  (method (processor-exited self character-name)
+    (let ((world (current-world)))
+      (display-message world (format "{a} exited" character-name))
+      (update-people self)))
+  
+  (method (update-people self)
+    (when (eq? stage 'welcome)
+      (view-people self)))
+  
+  
+  (method (receive-audio self audio id buffer timestamp duration)
+    #f
+    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
+    (neq? stage 'circle))
+  
+  (method (receive-video self video id buffer timestamp duration)
+    #f
+    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
+    (neq? stage 'circle))
+  
+  (method (render-video self video)
+    (neq? stage 'circle))
+  
+  
+  (method (mute-all self)
+    (let ((audio (current-audio)))
+      (iterate-table (get-outputs audio)
+        (lambda (id output)
+          (mute output)))))
+  
+  
+  (method (unmute-all self)
+    (let ((audio (current-audio)))
+      (iterate-table (get-outputs audio)
+        (lambda (id output)
+          (unmute output)))))
   
   
   ;;;
