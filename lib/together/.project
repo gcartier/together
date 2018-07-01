@@ -39,7 +39,6 @@
         (<Jazz-File>       name: appl               source: {File :context "src" "together" "appl.jazz"})
         (<Jazz-File>       name: boot               source: {File :context "src" "together" "boot.jazz"})
         (<Jazz-File>       name: run                source: {File :context "src" "together" "run.jazz"})
-        (<Jazz-File>       name: tier               source: {File :context "src" "together" "tier.jazz"})
         (<Jazz-File>       name: circle             source: {File :context "src" "together" "circle.jazz"})
         (<Jazz-File>       name: login              source: {File :context "src" "together" "login.jazz"})
         (<Jazz-File>       name: boot-processor     source: {File :context "src" "together" "boot-processor.jazz"})
