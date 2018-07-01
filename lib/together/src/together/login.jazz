@@ -29,6 +29,7 @@
         (jazz.tree)
         (jazz.ui)
         (jazz.view)
+        (jazz.window)
         (world)
         (world.autoload)
         (world.context)
@@ -124,6 +125,12 @@
   (method override (setup-camera self)
     (nextmethod self)
     (install-camera))
+  
+  
+  (method override (title-update self)
+    (when (window?)
+      (let ((window (current-window)))
+        (set-caption window "Together"))))
   
   
   (method override (show-belt? self)

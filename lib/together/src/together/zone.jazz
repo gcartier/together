@@ -120,6 +120,12 @@
       (install-camera)))
   
   
+  (method override (title-update self)
+    (when (window?)
+      (let ((window (current-window)))
+        (set-caption window "Together"))))
+  
+  
   (method override (main-menu? self)
     #f)
   
