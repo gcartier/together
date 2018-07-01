@@ -45,7 +45,8 @@
         (world.window)
         (together)
         (together.settings)
-        (together.window))
+        (together.window)
+        (together.zone))
 
 
 (class Together-Application extends World-Application
@@ -155,6 +156,35 @@
   (method override (class-actions self)
     (append (list (find-actions 'together))
             (nextmethod self)))
+
+  
+  ;;;
+  ;;;; Events
+  ;;;
+  
+  
+  (method (on-toggle-people self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Together-Zone)
+        (on-toggle-people zone evt))))
+  
+  
+  (method (on-toggle-chat self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Together-Zone)
+        (on-toggle-chat zone evt))))
+  
+  
+  (method (on-toggle-audio self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Together-Zone)
+        (on-toggle-audio zone evt))))
+  
+  
+  (method (on-toggle-video self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Together-Zone)
+        (on-toggle-video zone evt))))
   
   
   ;;;
@@ -1222,9 +1252,12 @@
   
   (form
     (<install>                                        title: "Together"
+      ;; circle
+      (<World-Action-Item> name: toggle-people        title: "Toggle people" action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
       ;; media
-      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :zone on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
-      (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :zone on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
+      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
+      (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
       ;; window
       (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")
       ;; debug

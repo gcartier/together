@@ -542,6 +542,20 @@
   ;;;
   
   
+  (method (on-toggle-people self evt)
+    (let ((interface (current-interface)))
+      (when (eq? stage 'circle)
+        (toggle-visible? (child interface 'people-label))
+        (toggle-visible? (child interface 'people)))))
+  
+  
+  (method (on-toggle-chat self evt)
+    (let ((interface (current-interface)))
+      (when (eq? stage 'circle)
+        (toggle-visible? (child interface 'chat-label))
+        (toggle-visible? (child interface 'chat)))))
+  
+  
   (method (on-toggle-audio self evt)
     (let ((audio (current-audio)))
       (when (eq? stage 'circle)
