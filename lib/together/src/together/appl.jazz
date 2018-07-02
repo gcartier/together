@@ -163,6 +163,11 @@
   ;;;
   
   
+  (method (on-enter-press self evt)
+    (let ((zone (current-zone)))
+      (enter-press zone)))
+  
+  
   (method (on-toggle-people self evt)
     (let ((zone (current-zone)))
       (when (is? zone Together-Zone)
@@ -1252,7 +1257,8 @@
   
   (form
     (<install>                                        title: "Together"
-      ;; circle
+      ;; application
+      (<World-Action-Item> name: enter-press          title: "Enter" action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
       ;; media

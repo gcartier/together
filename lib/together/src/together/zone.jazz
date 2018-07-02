@@ -85,6 +85,7 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
+        (set-escape-hook world (lambda () (close-frame self)))
         (set-draw-me? self #f)
         ;; remove tearing in the camera pathing
         (enable-vsync window))))
@@ -318,20 +319,23 @@
   
   (method (on-about self evt)
     (let ((interface (current-interface)))
+      (define (closer frame)
+        (set-visible? (child interface 'name) #t)
+        (set-visible? (child interface 'join) #t)
+        (set-visible? (child interface 'people-label) #t)
+        (set-visible? (child interface 'people) #t)
+        (set-visible? (child interface 'chat-label) #t)
+        (set-visible? (child interface 'chat) #t))
+      
       (let ((frame (top-frame)))
         (if (is? frame World-Document)
             (begin
               (close frame)
-              (set-visible? (child interface 'name) #t)
-              (set-visible? (child interface 'join) #t)
-              (set-visible? (child interface 'people-label) #t)
-              (set-visible? (child interface 'people) #t)
-              (set-visible? (child interface 'chat-label) #t)
-              (set-visible? (child interface 'chat) #t))
-          (show-about self)))))
+              (closer frame))
+          (show-about self closer: closer)))))
   
   
-  (method (show-about self (title: title #f) (closable?: closable? #t))
+  (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
     (let ((interface (current-interface))
           (world (current-world)))
       (set-visible? (child interface 'name) #f)
@@ -340,7 +344,7 @@
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'chat-label) #f)
       (set-visible? (child interface 'chat) #f)
-      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
+      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
   
   
   (method override (start-music self)
@@ -596,7 +600,17 @@
     (quit-process (current-process)))
   
   
-  (method (on-enter self evt)
+  (method (on-enter-press self evt)
+    (enter-press self))
+  
+  
+  (method override (enter-press self)
+    (when (eq? stage 'welcome)
+      (goto-stage self 'circle)))
+  
+  
+  @old
+  (method (on-enter-press self evt)
     (let ((file (together-file)))
       (if (exists? file)
           (remote-open self file)
