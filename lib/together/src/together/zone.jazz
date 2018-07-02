@@ -151,6 +151,10 @@
     #f)
   
   
+  (method override (about-size self)
+    {Dimension 715 370})
+  
+  
   (method (hide-all self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -192,8 +196,9 @@
         (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-circle self))
         ;; circle
         (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
-        (new Push-Button name: 'audio parent: interface title: "Start Audio" location: '(240 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
-        (new Push-Button name: 'video parent: interface title: "Start Video" location: '(400 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
+        (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
+        (new Push-Button name: 'video parent: interface location: '(360 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
+        (new Push-Button name: 'layouts parent: interface location: '(580 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
         ;; hide
         (hide-all self))))
   
@@ -273,15 +278,19 @@
       (show 'leave)
       (show 'audio)
       (show 'video)
+      (show 'layouts)
       (hide-interface self)
       (add-exception-view self)
       (unmute-all self)
       (layout-view interface)
       (no-showcase world)
-      (start-audio audio)
-      (start-video video)
+      (when (world-setting 'together.auto-audio? #t)
+        (start-audio audio))
+      (when (world-setting 'together.auto-video? #t)
+        (start-video video))
       (update-audio self)
-      (update-video self)))
+      (update-video self)
+      (update-layouts self)))
   
   
   (method (uninstall-stage self)
@@ -487,46 +496,49 @@
       (set-visible? (child interface 'leave) #t)
       (set-visible? (child interface 'audio) #t)
       (set-visible? (child interface 'video) #t)
+      (set-visible? (child interface 'layouts) #t)
       (hide-interface self)))
   
   
   ;; quick try that really needs to be revisited
   ;; would love to have a clean no mutex solution
   (method (hide-interface self)
-    (let ((window (current-window)))
-      (let ((now (current-seconds)))
-        (let ((time (+ now 1.25)))
-          (mutex-lock! hide-mutex)
-          (set! hide-time time)
-          (unless hide-thread
-            (let ((thread
-                    (new-thread
-                      (lambda ()
-                        (declare (proper-tail-calls))
-                        (let (loop)
-                          (let ((wait (- hide-time (current-seconds))))
-                            (sleep wait)
-                            (let ((new-wait (- hide-time (current-seconds))))
-                              (if (<= new-wait 0.)
-                                  (with-task-mutex
-                                    (lambda ()
-                                      (mutex-lock! hide-mutex)
-                                      ;; maybe we left circle
-                                      (when (eq? stage 'circle)
-                                        (let ((interface (current-interface)))
-                                          (hide-cursor window)
-                                          (set-visible? (child interface 'leave) #f)
-                                          (set-visible? (child interface 'audio) #f)
-                                          (set-visible? (child interface 'video) #f)))
-                                      ;; this is probably not safe
-                                      (set! hide-thread #f)
-                                      (set! hide-time #f)
-                                      (mutex-unlock! hide-mutex)))
-                                (loop))))))
-                      'hide)))
-              (thread-start! thread)
-              (set! hide-thread thread)))
-          (mutex-unlock! hide-mutex)))))
+    (when (world-setting 'together.auto-hide? #t)
+      (let ((window (current-window)))
+        (let ((now (current-seconds)))
+          (let ((time (+ now 1.25)))
+            (mutex-lock! hide-mutex)
+            (set! hide-time time)
+            (unless hide-thread
+              (let ((thread
+                      (new-thread
+                        (lambda ()
+                          (declare (proper-tail-calls))
+                          (let (loop)
+                            (let ((wait (- hide-time (current-seconds))))
+                              (sleep wait)
+                              (let ((new-wait (- hide-time (current-seconds))))
+                                (if (<= new-wait 0.)
+                                    (with-task-mutex
+                                      (lambda ()
+                                        (mutex-lock! hide-mutex)
+                                        ;; maybe we left circle
+                                        (when (eq? stage 'circle)
+                                          (let ((interface (current-interface)))
+                                            (hide-cursor window)
+                                            (set-visible? (child interface 'leave) #f)
+                                            (set-visible? (child interface 'audio) #f)
+                                            (set-visible? (child interface 'video) #f)
+                                            (set-visible? (child interface 'layouts) #f)))
+                                        ;; this is probably not safe
+                                        (set! hide-thread #f)
+                                        (set! hide-time #f)
+                                        (mutex-unlock! hide-mutex)))
+                                  (loop))))))
+                        'hide)))
+                (thread-start! thread)
+                (set! hide-thread thread)))
+            (mutex-unlock! hide-mutex))))))
   
   
   (method override (mouse-track self elapse dx dy)
@@ -607,6 +619,10 @@
   (method override (enter-press self)
     (when (eq? stage 'welcome)
       (goto-stage self 'circle)))
+  
+  
+  (method override (tab-press self)
+    )
   
   
   @old
@@ -859,7 +875,38 @@
   
   
   (method (open-circle self file . rest)
-    ))
+    )
+  
+  
+  ;;;
+  ;;;; Layouts
+  ;;;
+
+
+  (method (on-cycle-layouts self evt)
+    (let ((world (current-world)))
+      (cycle-layouts self)
+      (update-layouts self)
+      (display-message world (capitalize (symbol->string (get-video-layout))))))
+  
+  
+  (method (cycle-layouts self)
+    (let ((video (current-video)))
+      (case (get-video-layout)
+        ((gallery)
+         (set-video-layout 'fullscreen)
+         (layout-outputs video))
+        ((fullscreen)
+         (set-video-layout 'gallery)
+         (layout-outputs video)))))
+  
+  
+  (method (update-layouts self)
+    (let ((interface (current-interface)))
+      (set-title (child interface 'layouts)
+                 (case (get-video-layout)
+                   ((gallery) "Fullscreen")
+                   (else "Gallery"))))))
 
 
 ;;;

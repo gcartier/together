@@ -168,6 +168,11 @@
       (enter-press zone)))
   
   
+  (method (on-tab-press self evt)
+    (let ((zone (current-zone)))
+      (tab-press zone)))
+  
+  
   (method (on-toggle-people self evt)
     (let ((zone (current-zone)))
       (when (is? zone Together-Zone)
@@ -190,6 +195,12 @@
     (let ((zone (current-zone)))
       (when (is? zone Together-Zone)
         (on-toggle-video zone evt))))
+  
+  
+  (method (on-cycle-layouts self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Together-Zone)
+        (on-cycle-layouts zone evt))))
   
   
   ;;;
@@ -1259,11 +1270,13 @@
     (<install>                                        title: "Together"
       ;; application
       (<World-Action-Item> name: enter-press          title: "Enter" action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
+      (<World-Action-Item> name: tab-press            title: "Tab" action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
       ;; media
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
+      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\C} description: "Cycle layouts.")
       ;; window
       (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")
       ;; debug

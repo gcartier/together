@@ -49,6 +49,8 @@
                        (set-setting settings property value))
                      '(;; welcome
                        world.welcome-skybox       "nebula"
+                       ;; media
+                       world.video-layout         gallery
                        ;; test
                        world.test                 #f
                        world.test1                #f
@@ -67,11 +69,9 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role                 programmer ; user
+                       world.role                 user
                        ;; interface
                        world.show-belt?           #f
-                       ;; media
-                       world.video-layout         gallery
                        ;; audio
                        world.music?               #f
                        world.ambience?            #f

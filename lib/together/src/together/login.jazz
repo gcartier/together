@@ -144,6 +144,10 @@
     #f)
   
   
+  (method override (show-chat? self)
+    #f)
+  
+  
   (method override (about-size self)
     {Dimension 715 370})
   
@@ -342,6 +346,10 @@
                (set! use-sphere? (shift-down?))
                (goto-stage self 'customize)
                (text-content-set self (info-text self 'server-port) (port->string together-service)))))))
+  
+  
+  (method override (tab-press self)
+    )
   
   
   (method (on-customize self evt)
