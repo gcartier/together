@@ -25,6 +25,7 @@
         (jazz.opengl.window)
         (jazz.outline)
         (jazz.process)
+        (jazz.resource)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -173,7 +174,7 @@
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'tail)
+        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Push-Button name: 'join parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(20 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 90) proportion: '(220 (bounds -300)) layout-type: 'border)
@@ -977,8 +978,37 @@
 (class Name-Label extends Label-View
   
   
+  (slot image initialize #f getter generate)
+  
+  
+  (method (cache-image self)
+    (or image
+        (let ((img (new Image resource: {Image-Resource "Modified"} portfolio: (resolve-nickname :images))))
+          (set! image img)
+          img)))
+  
+  
+  (method override (preferred-size self)
+    (let ((size (nextmethod self)))
+      (new Dimension (+ (get-width size) 42) (get-height size))))
+  
+  
+  (method override (mouse-enter self)
+    (invalidate-view self))
+  
+  (method override (mouse-leave self)
+    (invalidate-view self))
+  
+  
   (method override (text-color self)
-    {Color World-Ochre}))
+    {Color World-Ochre})
+  
+  
+  (method override (draw self surface context)
+    (nextmethod self surface context)
+    (when (eq? (get-mouse-in) self)
+      (let ((size (preferred-size self)))
+        (draw-at (cache-image self) surface context (- (get-width size) 16) 4)))))
 
 
 ;;;
