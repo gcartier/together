@@ -894,11 +894,9 @@
     (let ((video (current-video)))
       (case (get-video-layout)
         ((gallery)
-         (set-video-layout 'fullscreen)
-         (layout-outputs video))
+         (fullscreen-layout video))
         ((fullscreen)
-         (set-video-layout 'gallery)
-         (layout-outputs video)))))
+         (gallery-layout video)))))
   
   
   (method (update-layouts self)
