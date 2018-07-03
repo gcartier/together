@@ -1276,7 +1276,7 @@
       ;; media
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
-      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\C} description: "Cycle layouts.")
+      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\L} description: "Cycle layouts.")
       ;; window
       (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")
       ;; debug
