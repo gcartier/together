@@ -804,8 +804,7 @@
       (update-people self)))
   
   (method (update-people self)
-    (when (eq? stage 'welcome)
-      (view-people self)))
+    (view-people self))
   
   
   (method (receive-audio self audio id buffer timestamp duration)
