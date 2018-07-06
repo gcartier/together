@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Communal Zone
+;;;; Community Zone
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module together.communal jazz
+(module together.community jazz
 
 
 (import (jazz.component)
@@ -54,7 +54,7 @@
         (together.zone))
 
 
-(class Communal-Zone extends Together-Zone
+(class Community-Zone extends Together-Zone
   
   
   (slot stage         initialize #f                 getter generate)

@@ -50,6 +50,6 @@
         (<Jazz-File>       name: process            source: {File :context "src" "together" "process.jazz"})
         (<Jazz-File>       name: sphere             source: {File :context "src" "together" "sphere.jazz"})
         (<Jazz-File>       name: zone               source: {File :context "src" "together" "zone.jazz"})
-        (<Jazz-File>       name: communal           source: {File :context "src" "together" "communal.jazz"}))
+        (<Jazz-File>       name: community          source: {File :context "src" "together" "community.jazz"}))
       (<Jazz-File>         name: t                  source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun               source: {File :context "src" "trun.jazz"})))))
