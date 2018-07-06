@@ -56,64 +56,11 @@
         (together.settings))
 
 
-(definition protected stage
-  #f)
-
-
 (class Together-Zone extends Zone
-  
-  
-  (slot preserved-music    initialize #f                 getter generate)
-  (slot preserved-ambience initialize #f                 getter generate)
-  (slot configuration      initialize #f                 getter generate)
-  (slot hide-time          initialize #f                 getter generate)
-  (slot hide-mutex         initialize (make-mutex 'hide) getter generate)
-  (slot hide-thread        initialize #f                 getter generate)
-  (slot post-accept        initialize #f                 accessors generate)
   
   
   (form
     (<install> sun-cycle?: #f draw-grid?: #f))
-  
-  
-  (method override (zone-ready self)
-    (nextmethod self)
-    (when (window?)
-      (let ((window (current-window))
-            (world (current-world)))
-        (setup-stage self)
-        (setup-configuration self)
-        (install-zone self)
-        (install-stage self)
-        (install-hooks self)
-        (set-escape-hook world (lambda () (close-frame self)))
-        (set-draw-me? self #f)
-        ;; remove tearing in the camera pathing
-        (enable-vsync window))))
-  
-  
-  (method override (destroy self)
-    (when (window?)
-      (let ((window (current-window))
-            (world (current-world)))
-        (uninstall-hooks self)
-        (uninstall-stage self)
-        (no-showcase world)
-        (set-draw-me? self #t)
-        (uninstall-camera)
-        (disable-vsync window)))
-    (nextmethod self))
-  
-  
-  (method (setup-stage self)
-    (set! stage (cond ((memq? stage '(#f welcome new-circle)) 'welcome)
-                      ((memq? stage '(remote customize)) 'remote)
-                      ((memq? stage '(server new-server)) 'server))))
-  
-  
-  (method (setup-configuration self)
-    (let ((file (together-file)))
-      (set! configuration (instantiate (read-form file)))))
   
   
   (method override (camera-update self)
@@ -130,11 +77,7 @@
   
   (method override (main-menu? self)
     #f)
-  
-  
-  (method override (mute-audio? self)
-    (neq? stage 'circle))
-  
+
   
   (method override (show-belt? self)
     #f)
@@ -154,153 +97,44 @@
   
   (method override (about-size self)
     {Dimension 715 370})
+    
+  
+  (method override (prepare-skybox self)
+    (set! skybox (let ((skybox (find-skybox "nebula")))
+                   (prepare skybox)
+                   skybox)))
   
   
-  (method (hide-all self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (for-each (lambda (child)
-                  (set-visible? child #f))
-                (get-children interface))))
+  (method override (player-task self task <Task>)
+    (with-task task
+      (lambda (exit)
+        (task-sleep task +infinity 0. exit))))
   
   
-  (method (install-zone self)
-    (let ((interface (current-interface)))
-      (let ((version (process-version (current-process)))
-            (release (process-release (current-process)))
-            (name (get-character-name configuration)))
-        ;; welcome
-        (new Label-View name: 'welcome parent: interface title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
-        (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
-        (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        (new Push-Button name: 'join parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
-        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(20 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new People-Panel name: 'people parent: interface location: '(10 90) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (let ((chat (child interface 'chat)))
-          (set-border-type (child chat 'border) 'solid)
-          (set-border-color (child chat 'border) {Color Dark-Gray})
-          (set-location chat '(-10 90))
-          (set-proportion chat '(200 (bounds -300))))
-        (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
-        @circles (
-        (new Kind-Label name: 'kind parent: interface title: "Circles" location: '(center -130) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new Push-Button name: 'new parent: interface title: "Create" location: '(-250 -140) size: {Dimension 100 24} action-handler: (~ on-new-circle self))
-        (new Push-Button name: 'rename parent: interface title: "Edit" location: '(-460 -140) size: {Dimension 100 24} action-handler: (~ on-edit self))
-        (new Circles-Panel name: 'circles parent: interface location: '(200 -10) proportion: '((bounds -450) 120) layout-type: 'border))
-        ;; new-circle
-        (new Label-View name: 'welcome parent: interface title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
-        @w (new Templates-Panel name: 'templates parent: interface size: {Dimension 266 488} location: '(-40 center) layout-type: 'border)
-        (new Push-Button name: 'back parent: interface title: "Back" location: '(40 -40) size: {Dimension 100 24} action-handler: (~ on-back self))
-        (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-circle self))
-        ;; circle
-        (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
-        (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
-        (new Push-Button name: 'video parent: interface location: '(360 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
-        (new Push-Button name: 'layouts parent: interface location: '(580 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
-        ;; hide
-        (hide-all self))))
+  (method (close-frame self)
+    (let ((frame (top-frame)))
+      (when frame
+        (close frame)))
+    #t)
+
+  
+  ;;;
+  ;;;; Events
+  ;;;
   
   
-  (method (install-stage self)
-    (case stage
-      ((welcome)
-       (install-welcome self))
-      ((new-circle)
-       (install-new-circle self))
-      ((circle)
-       (install-circle self))))
+  (method protected virtual (name-return self content)
+    )
   
   
-  (method (install-welcome self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (audio (current-audio))
-          (video (current-video)))
-      (define (show name)
-        (set-visible? (child interface name) #t))
-      
-      (stop-audio audio feedback?: #f)
-      (stop-video video feedback?: #f)
-      (show 'welcome)
-      (show 'version)
-      (show 'release)
-      (show 'quit)
-      (show 'name)
-      (show 'join)
-      (show 'people-label)
-      (show 'people)
-      (show 'chat-label)
-      (show 'chat)
-      (show 'about)
-      @circles ((show 'kind)
-                (show 'new)
-                (show 'rename)
-                (show 'circles))
-      (add-exception-view self)
-      (mute-all self)
-      (view-people self)
-      (layout-view interface)
-      (no-showcase world)))
-  
-  
-  (method (install-new-circle self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (audio (current-audio))
-          (video (current-video)))
-      (define (show name)
-        (set-visible? (child interface name) #t))
-      
-      (stop-audio audio feedback?: #f)
-      (stop-video video feedback?: #f)
-      (show 'welcome)
-      @w (show 'templates)
-      (show 'back)
-      (show 'create)
-      (set-create (locate (child interface 'templates) 'templates) (~ circle-create self))
-      (add-exception-view self)
-      (mute-all self)
-      (layout-view interface)
-      (goto-showcase world 'avatars)
-      (templates-update self)))
-  
-  
-  (method (install-circle self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (audio (current-audio))
-          (video (current-video)))
-      (define (show name)
-        (set-visible? (child interface name) #t))
-      
-      (show 'leave)
-      (show 'audio)
-      (show 'video)
-      (show 'layouts)
-      (hide-interface self)
-      (add-exception-view self)
-      (unmute-all self)
-      (layout-view interface)
-      (no-showcase world)
-      (when (world-setting 'together.auto-audio? #t)
-        (start-audio audio))
-      (when (world-setting 'together.auto-video? #t)
-        (start-video video))
-      (update-audio self)
-      (update-video self)
-      (update-layouts self)))
-  
-  
-  (method (uninstall-stage self)
-    (hide-all self))
+  ;;;
+  ;;;; Exception
+  ;;;
   
   
   (method (add-exception-view self)
     (let ((interface (current-interface)))
-      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 67) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
+      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 107) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
   
   
   (method (find-exception-view self)
@@ -317,645 +151,19 @@
   (method (clear-exception self)
     (let ((view (find-exception-view self)))
       (set-title view "")
-      (set-exception view #f)))
-  
-  
-  (method (close-frame self)
-    (let ((frame (top-frame)))
-      (when frame
-        (close frame)))
-    #t)
-  
-  
-  (method (on-about self evt)
-    (let ((interface (current-interface)))
-      (define (closer frame)
-        (set-visible? (child interface 'name) #t)
-        (set-visible? (child interface 'join) #t)
-        (set-visible? (child interface 'people-label) #t)
-        (set-visible? (child interface 'people) #t)
-        (set-visible? (child interface 'chat-label) #t)
-        (set-visible? (child interface 'chat) #t))
-      
-      (let ((frame (top-frame)))
-        (if (is? frame World-Document)
-            (begin
-              (close frame)
-              (closer frame))
-          (show-about self closer: closer)))))
-  
-  
-  (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (set-visible? (child interface 'name) #f)
-      (set-visible? (child interface 'join) #f)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-visible? (child interface 'chat) #f)
-      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
-  
-  
-  (method override (start-music self)
-    (let ((music (current-music)))
-      (when (get-music? music)
-        (set! preserved-music (list (get-music-style music) (get-music-volume music)))
-        (set-music-style music "minecraft/music/menu")
-        (set-music-volume music .5)
-        (change-music music))))
-  
-  
-  (method override (start-ambience self)
-    (let ((ambience (current-ambience)))
-      (set! preserved-ambience (list (get-ambience? ambience)))
-      (set-ambience? ambience #f)))
-  
-  
-  (method override (stop-music self)
-    (nextmethod self)
-    (let ((music (current-music)))
-      (when (get-music? music)
-        (bind (music-style music-volume) preserved-music
-          (set-music-style music music-style)
-          (set-music-volume music music-volume)))))
-  
-  
-  (method override (stop-ambience self)
-    (nextmethod self)
-    (let ((ambience (current-ambience)))
-      (bind (ambience?) preserved-ambience
-        (set-ambience? ambience ambience?))))
-  
-  
-  (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox "nebula")))
-                   (prepare skybox)
-                   skybox)))
-  
-  
-  (method override (player-task self task <Task>)
-    (with-task task
-      (lambda (exit)
-        (task-sleep task +infinity 0. exit))))
-  
-  
-  ;;;
-  ;;;; Access
-  ;;;
-  
-  
-  (method (circles-panel self)
-    (let ((interface (current-interface)))
-      (child interface 'circles)))
-  
-  
-  (method (circles-view self)
-    (locate (circles-panel self) 'circles))
-  
-  
-  (method (circles-tree self)
-    (get-tree (circles-view self)))
-  
-  
-  (method (templates-panel self)
-    (let ((interface (current-interface)))
-      (child interface 'templates)))
-  
-  
-  (method (templates-view self)
-    (locate (templates-panel self) 'templates))
-  
-  
-  (method (templates-tree self)
-    (get-tree (templates-view self)))
-  
-  
-  (method (determine-kind self)
-    (case stage
-      ((welcome) 'circle)
-      ((remote) 'remote)
-      ((server) 'server)))
-  
-  
-  ;;;
-  ;;;; Update
-  ;;;
-  
-  
-  (method package (circles-update self)
-    @w
-    (let ((interface (current-interface)))
-      (let ((panel (find-component interface 'circles)))
-        (when panel
-          (let ((tree (get-tree (locate panel 'circles))))
-            (let ((all-data (get-selected-data tree)))
-              (let ((data (remove-false all-data)))
-                (let ((count (length data)))
-                  (set-enabled? (child interface 'open) #t @wait (= count 1))
-                  (set-enabled? (child interface 'rename) (= count 1))
-                  (set-enabled? (child interface 'delete) (> count 0))))))))))
-  
-  
-  (method package (templates-update self)
-    @w
-    (let ((interface (current-interface)))
-      (let ((panel (find-component interface 'templates)))
-        (when panel
-          (let ((tree (get-tree (locate panel 'templates))))
-            (let ((all-data (get-selected-data tree)))
-              (let ((data (remove-false all-data)))
-                (let ((count (length data)))
-                  (set-enabled? (child interface 'create) (= count 1))))))))))
-  
-  
-  (method (change-update self)
-    )
-  
-  
-  ;;;
-  ;;;; Mouse
-  ;;;
-  
-  
-  (method override (mouse-moved self x y)
-    (when (eq? stage 'circle)
-      (show-interface self)))
-  
-  
-  (method override (mouse-action self h v)
-    (when (eq? stage 'circle)
-      (show-interface self)))
-  
-  
-  ;; we probably need a tolerance so moving
-  ;; only 1 pixel doesn't show the interface
-  (method (show-interface self)
-    (let ((window (current-window))
-          (interface (current-interface)))
-      (show-cursor window)
-      (set-visible? (child interface 'leave) #t)
-      (set-visible? (child interface 'audio) #t)
-      (set-visible? (child interface 'video) #t)
-      (set-visible? (child interface 'layouts) #t)
-      (hide-interface self)))
-  
-  
-  ;; quick try that really needs to be revisited
-  ;; would love to have a clean no mutex solution
-  (method (hide-interface self)
-    (when (world-setting 'together.auto-hide? #t)
-      (let ((window (current-window)))
-        (let ((now (current-seconds)))
-          (let ((time (+ now 1.25)))
-            (mutex-lock! hide-mutex)
-            (set! hide-time time)
-            (unless hide-thread
-              (let ((thread
-                      (new-thread
-                        (lambda ()
-                          (declare (proper-tail-calls))
-                          (let (loop)
-                            (let ((wait (- hide-time (current-seconds))))
-                              (sleep wait)
-                              (let ((new-wait (- hide-time (current-seconds))))
-                                (if (<= new-wait 0.)
-                                    (with-task-mutex
-                                      (lambda ()
-                                        (mutex-lock! hide-mutex)
-                                        ;; maybe we left circle
-                                        (when (eq? stage 'circle)
-                                          (let ((interface (current-interface)))
-                                            (hide-cursor window)
-                                            (set-visible? (child interface 'leave) #f)
-                                            (set-visible? (child interface 'audio) #f)
-                                            (set-visible? (child interface 'video) #f)
-                                            (set-visible? (child interface 'layouts) #f)))
-                                        ;; this is probably not safe
-                                        (set! hide-thread #f)
-                                        (set! hide-time #f)
-                                        (mutex-unlock! hide-mutex)))
-                                  (loop))))))
-                        'hide)))
-                (thread-start! thread)
-                (set! hide-thread thread)))
-            (mutex-unlock! hide-mutex))))))
-  
-  
-  (method override (mouse-track self elapse dx dy)
-    (when (memq? stage '(new-circle customize))
-      (let ((world (current-world)))
-        (let ((entity (get-selection-entity (get-showcase world))))
-          (let ((angle (/ dx 200.))
-                (lookat (get-lookat entity))
-                (up (get-world-up world)))
-            (set-lookat entity (rotate-lookat& lookat angle up))
-            (update-matrix entity)))))
-    #t)
-  
-  
-  ;;;
-  ;;;; Events
-  ;;;
-  
-  
-  (method (on-toggle-people self evt)
-    (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
-        (toggle-visible? (child interface 'people-label))
-        (toggle-visible? (child interface 'people)))))
-  
-  
-  (method (on-toggle-chat self evt)
-    (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
-        (toggle-visible? (child interface 'chat-label))
-        (toggle-visible? (child interface 'chat)))))
-  
-  
-  (method (on-toggle-audio self evt)
-    (let ((audio (current-audio)))
-      (when (eq? stage 'circle)
-        (toggle-audio audio)
-        (update-audio self))))
-  
-  
-  (method (update-audio self)
-    (let ((interface (current-interface))
-          (audio (current-audio)))
-      (set-title (child interface 'audio) (if (audio-playing? audio)
-                                              "Stop Audio"
-                                            "Start Audio"))))
-  
-  
-  (method (on-toggle-video self evt)
-    (let ((video (current-video)))
-      (when (eq? stage 'circle)
-        (toggle-video video)
-        (update-video self))))
-  
-  
-  (method (update-video self)
-    (let ((interface (current-interface))
-          (video (current-video)))
-      (set-title (child interface 'video) (if (video-playing? video)
-                                              "Stop Video"
-                                            "Start Video"))))
-  
-  
-  (method (on-accept self evt)
-    (if post-accept
-        (post-accept)
-      (goto-stage self 'login)))
-  
-  
-  (method (on-decline self evt)
-    (quit-process (current-process)))
-  
-  
-  (method (on-enter-press self evt)
-    (enter-press self))
-  
-  
-  (method override (enter-press self)
-    (when (eq? stage 'welcome)
-      (goto-stage self 'circle)))
-  
-  
-  (method override (tab-press self)
-    )
-  
-  
-  @old
-  (method (on-enter-press self evt)
-    (let ((file (together-file)))
-      (if (exists? file)
-          (remote-open self file)
-        (goto-stage self 'customize)
-        (text-content-set self (info-text self 'client-name) "Together")
-        (text-content-set self (info-text self 'server-port) "50000"))))
-  
-  
-  (method (on-customize self evt)
-    (change-remote self (together-file) "Together" "50000"))
-  
-  
-  (method (change-remote self file client-name server-port)
-    (let ((world (current-world)))
-      (when (exists? file)
-        (let ((client (new-brother file ".client")))
-          (let ((configuration (instantiate (read-form client))))
-            (let ((name (get-character-name configuration))
-                  (avatar (get-character-avatar configuration)))
-              (goto-stage self 'customize)
-              (text-content-set self (info-text self 'client-name) client-name)
-              (text-content-set self (info-text self 'server-port) server-port)
-              (text-content-set self (info-text self 'name) name)
-              (let ((showcase (get-showcase world)))
-                (let ((avatar (find-avatar showcase avatar)))
-                  (when avatar
-                    (set-selection showcase avatar)
-                    (selection-update showcase avatar))))
-              (delay-event
-                (lambda ()
-                  (acquire-focus (info-text self 'name))))))))))
-  
-  
-  (method package (on-join self evt)
-    (goto-stage self 'circle))
-  
-  
-  (method (on-edit self evt)
-    )
-  
-  
-  (method (on-new-circle self evt)
-    (goto-stage self 'new-circle))
-  
-  
-  (method (on-back self evt)
-    (goto-stage self (case stage
-                       ((new-circle circle) 'welcome)
-                       ((customize) 'login)
-                       ((new-server) 'server))))
-  
-  
-  (method (on-leave self evt)
-    (goto-stage self 'welcome))
-  
-  
-  (method (goto-stage self what)
-    (uninstall-stage self)
-    (set! stage what)
-    (install-stage self))
-  
-  
-  (method (on-create-circle self evt)
-    (create-circle self))
-  
-  
-  (method (circle-create self from base)
-    (create-new-zone from base
-      replace?: #t
-      open: (lambda (file)
-              (let ((zone (open-circle file)))
-                ;; get the current-me after opening the zone
-                (let ((me (current-me))
-                      (avatar (selected-avatar self)))
-                  (set-avatar me avatar)
-                  (update-model me)
-                  zone)))))
-  
-  
-  (method (selected-avatar self)
-    (let ((world (current-world)))
-      (get-model (get-selection-entity (find-showcase world 'avatars)))))
-  
-  
-  (method (on-quit self evt)
-    (quit-process (current-process)))
-  
-  
-  (method (on-chat self evt)
-    (let ((interface (current-interface)))
-      (let ((chat (child interface 'chat)))
-        (set-visible? chat (not (get-visible? chat))))))
-  
-  
-  (method (create-circle self)
-    (create-selected (templates-view self)))
-  
-  
-  (method package (create-remote self)
-    (let ((fields (remote-fields self)))
-      (let ((contents (map (lambda (field)
-                             (bind (label view) field
-                               (text-content self (info-text self view))))
-                           fields)))
-        (bind (client-name server-address server-port name) contents
-          (remote-open self (create-client-file client-name server-address server-port name (selected-avatar self)))))))
-  
-  
-  (method (remote-fields self)
-    '((client-name-label client-name #t)
-      (server-address-label server-address #t)
-      (server-port-label server-port #f)
-      (name-label name #t)))
-  
-  
-  (method (remote-stops self)
-    (map (~ info-text self) (map second (remote-fields self))))
-  
-  
-  (method (info-text self view)
-    (let ((interface (current-interface)))
-      (locate (child interface view) 'text)))
-  
-  
-  (method (text-content self text)
-    (let ((content (get-string-content text)))
-      (if (empty-string? content)
-          #f
-        content)))
-  
-  
-  (method (text-content-set self text content)
-    (set-string-content text (->string content)))
-  
-  
-  ;;;
-  ;;;; Hooks
-  ;;;
-  
-  
-  (method (install-hooks self)
-    (let ((tier (current-client))
-          (audio (current-audio))
-          (video (current-video)))
-      ;; processor
-      (set-processor-entered-hook tier (~ processor-entered self))
-      (set-processor-exited-hook tier (~ processor-exited self))
-      ;; media
-      (set-receive-hook audio (~ receive-audio self))
-      (set-receive-hook video (~ receive-video self))
-      (set-render-hook video (~ render-video self))))
-  
-  
-  (method (uninstall-hooks self)
-    (let ((tier (current-client))
-          (audio (current-audio))
-          (video (current-video)))
-      ;; processor
-      (set-processor-entered-hook tier #f)
-      (set-processor-exited-hook tier #f)
-      ;; media
-      (set-receive-hook audio #f)
-      (set-receive-hook video #f)
-      (set-render-hook video #f)))
-  
-  
-  (method (processor-entered self character-name)
-    (let ((world (current-world)))
-      (display-message world (format "{a} entered" character-name))
-      (update-people self)))
-  
-  (method (processor-exited self character-name)
-    (let ((world (current-world)))
-      (display-message world (format "{a} exited" character-name))
-      (update-people self)))
-  
-  (method (update-people self)
-    (view-people self))
-  
-  
-  (method (receive-audio self audio id buffer timestamp duration)
-    #f
-    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
-    (neq? stage 'circle))
-  
-  (method (receive-video self video id buffer timestamp duration)
-    #f
-    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
-    (neq? stage 'circle))
-  
-  (method (render-video self video)
-    (neq? stage 'circle))
-  
-  
-  (method (mute-all self)
-    (let ((audio (current-audio)))
-      (iterate-table (get-outputs audio)
-        (lambda (id output)
-          (mute output)))))
-  
-  
-  (method (unmute-all self)
-    (let ((audio (current-audio)))
-      (iterate-table (get-outputs audio)
-        (lambda (id output)
-          (unmute output)))))
-  
-  
-  ;;;
-  ;;;; People
-  ;;;
-  
-  
-  (method (view-people self)
-    (let ((interface (current-interface))
-          (zone (current-zone))
-          (me (current-me)))
-      (let ((players (connected-players (current-tier)))
-            (tree (locate (child interface 'people) '(people people))))
-        (remove-every-row tree)
-        (with-update-locked tree
-          (lambda ()
-            (for-each (lambda (player)
-                        (bind (name zone presentation) player
-                          (unless (equal? name (get-name me))
-                            (let ((title (format "{a}" name)))
-                              (add-row tree
-                                children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Blue}))
-                                user-data: player)))))
-                      (sort nu<? players key: first)))))))
-  
-  
-  ;;;
-  ;;;; Open
-  ;;;
-  
-  
-  (method (circle-open self file)
-    (with-window-cursor :wait
-      (lambda ()
-        (let ((world (current-world)))
-          (let ((zone (open-circle file @start-script?: start-script?)))
-            (display-message world (get-title zone))
-            zone)))))
-  
-  
-  (method (open-circle self file . rest)
-    )
-  
-  
-  ;;;
-  ;;;; Layouts
-  ;;;
-
-
-  (method (on-cycle-layouts self evt)
-    (let ((world (current-world)))
-      (cycle-layouts self)
-      (update-layouts self)
-      (display-message world (capitalize (symbol->string (get-video-layout))))))
-  
-  
-  (method (cycle-layouts self)
-    (let ((video (current-video)))
-      (case (get-video-layout)
-        ((gallery)
-         (fullscreen-layout video))
-        ((fullscreen)
-         (gallery-layout video)))))
-  
-  
-  (method (update-layouts self)
-    (let ((interface (current-interface)))
-      (set-title (child interface 'layouts)
-                 (case (get-video-layout)
-                   ((gallery) "Fullscreen")
-                   (else "Gallery"))))))
+      (set-exception view #f))))
 
 
 ;;;
-;;;; Camera
+;;;; Kind-Label
 ;;;
 
 
-(definition camera-tick
-  #f)
-
-(definition camera-angle
-  2.0)
-
-
-(definition (install-camera)
-  (let ((zone (current-zone)))
-    (set! camera-tick path-camera)
-    (register-tick zone camera-tick))
-  (path-camera 0.))
-
-
-(definition (uninstall-camera)
-  (let ((zone (current-zone)))
-    (unregister-tick zone camera-tick)
-    (set! camera-tick #f)))
-
-
-(definition (path-camera elapse)
-  (let ((world (current-world)))
-    (increase! camera-angle (/ elapse 10.))
-    (let ((target (vertex -11.500 8.500 -32.500))
-          (angle camera-angle)
-          (radius 75.)
-          (elevation 20.))
-      (let ((x (cos angle))
-            (z (sin angle)))
-        (let ((flat (vertex+ target (vertex-scalar*& (vertex x 0. z) radius))))
-          (let ((pos (vertex+ flat (vertex 0. elevation 0.))))
-            (let ((dir (vertex-normalize (vertex-& target pos)))
-                  (dir-flat (vertex-normalize (vertex-& target flat))))
-              (let ((vert-angle (vector-angle dir dir-flat)))
-                (let ((sight dir-flat)
-                      (eye (get-eye world))
-                      (up (get-world-up world)))
-                  (let ((right (cross-product sight up)))
-                    (let ((lookat (lookat sight up right)))
-                      (free-motion world feedback?: #f)
-                      (set-lookat eye (rotate-lookat-vertical& lookat (- vert-angle)))
-                      (set-position eye pos)
-                      (derive-target eye)
-                      (camera-update eye))))))))))))
+(class Kind-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre}))
 
 
 ;;;
@@ -975,6 +183,14 @@
 ;;;
 
 
+(class Name-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre}))
+
+
+@change-display-alias
 (class Name-Label extends Label-View
   
   
@@ -1012,15 +228,44 @@
 
 
 ;;;
-;;;; Kind-Label
+;;;; Name-Text
 ;;;
 
 
-(class Kind-Label extends Label-View
+(class Name-Text extends World-Text-View
   
   
-  (method override (text-color self)
-    {Color World-Ochre}))
+  (method override (new-model self)
+    (new Text-Model default-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 12)))
+
+
+;;;
+;;;; Name-View
+;;;
+
+
+(class Name-View extends Border-View
+  
+  
+  (form
+    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
+      (<Scroller-View>            hscroll?: #f vscroll?: #f
+        (<content~>               layout-type: fill
+          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return})))))
+  
+  
+  (method (on-content-change self evt)
+    (let ((interface (current-interface)))
+      (let ((text (locate self 'text)))
+        (set-enabled? (child interface 'enter) (not (empty-string? (get-string-content text)))))))
+  
+  
+  (method (on-return self evt)
+    (let ((zone (current-zone)))
+      (let ((text (locate self 'text)))
+        (let ((content (get-string-content text)))
+          (unless (empty-string? content)
+            (name-return zone content)))))))
 
 
 ;;;
@@ -1051,118 +296,56 @@
 
 
 ;;;
-;;;; People-Panel
+;;;; Camera
 ;;;
 
 
-(class People-Panel extends World-Panel
-  
-  
-  (form
-    (<install>
-      (<Border-View>   name: content location: center border-type: solid border-color: {Color Dark-Gray} style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
-        (<People-View> name: people  location: center)))))
+(definition camera-tick
+  #f)
+
+(definition camera-angle
+  2.0)
 
 
-;;;
-;;;; People-View
-;;;
+(definition package (install-camera)
+  (let ((window (current-window))
+        (zone (current-zone)))
+    (set! camera-tick path-camera)
+    (register-tick zone camera-tick)
+    ;; removes tearing in the pathing
+    (enable-vsync window)
+    (path-camera 0.)))
 
 
-(class People-View extends Scroller-View
-  
-  
-  (form
-    (<install>                                 style: document hscroll?: #t vscroll?: #t
-      (<content~>                              layout-type: fill
-        (<Tree-Header>                         style: document shown?: #f
-          (<content~>
-            (<Tree-View>          name: people portfolio: :images filled-column: person multiple-selection?: #t background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
-              (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
-  
-  
-  (method package (on-selection-change self evt)
-    )
-  
-  
-  (method package (on-double-click self evt)
-    )
-  
-  
-  (method override (on-return-press self evt)
-    ))
+(definition package (uninstall-camera)
+  (let ((window (current-window))
+        (zone (current-zone)))
+    (unregister-tick zone camera-tick)
+    (disable-vsync window)
+    (set! camera-tick #f)))
 
 
-;;;
-;;;; Circles-Panel
-;;;
-
-
-(class Circles-Panel extends World-Panel
-  
-  
-  (form
-    (<install>
-      (<Border-View>    name: content location: center border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
-        (<Circles-View> name: circles location: center
-          (<circles~>                 selection-handler: {Event-Handler :form on-selection-change} backspace-press-handler: {Event-Handler :form on-backspace-press})))))
-  
-  
-  (method package (on-selection-change self evt)
-    ))
-
-
-;;;
-;;;; Circles-View
-;;;
-
-
-(class Circles-View extends Scroller-View
-  
-  
-  (form
-    (<install>                                  style: document hscroll?: #t vscroll?: #t
-      (<content~>                               layout-type: fill
-        (<Tree-Header>                          style: document shown?: #f
-          (<content~>
-            (<Tree-View>          name: circles portfolio: :images filled-column: circle multiple-selection?: #t background: #f double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press} escape-press-handler: {Event-Handler :form on-escape-press}
-              (<Tree-Node-Column> name: circle  title: "Circle" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f))))))))
-
-
-;;;
-;;;; Info-Label
-;;;
-
-
-(class Info-Label extends Label-View
-  
-  
-  (form
-    (<install> size: {Dimension 150 16} color: {Color red: .892 green: .773 blue: .290})))
-
-
-;;;
-;;;; Info-View
-;;;
-
-
-(class Info-View extends Border-View
-  
-  
-  (form
-    (<install>                          size: {Dimension 150 19} border-type: edge style: entry
-      (<Scroller-View>                  hscroll?: #f vscroll?: #f
-        (<content~>                     layout-type: fill
-          (<World-Text-View> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t return-press-handler: {Event-Handler :form on-return})))))
-  
-  
-  (method override (get-tab-stops self)
-    (let ((zone (current-zone)))
-      (tab-stops zone)))
-  
-  
-  (method (on-return self evt)
-    (let ((zone (current-zone)))
-      (case stage
-        ((new-remote) (create-remote zone))
-        ((new-server) (create-server zone)))))))
+(definition package (path-camera elapse)
+  (let ((world (current-world)))
+    (increase! camera-angle (/ elapse 10.))
+    (let ((target (vertex -11.500 8.500 -32.500))
+          (angle camera-angle)
+          (radius 75.)
+          (elevation 20.))
+      (let ((x (cos angle))
+            (z (sin angle)))
+        (let ((flat (vertex+ target (vertex-scalar*& (vertex x 0. z) radius))))
+          (let ((pos (vertex+ flat (vertex 0. elevation 0.))))
+            (let ((dir (vertex-normalize (vertex-& target pos)))
+                  (dir-flat (vertex-normalize (vertex-& target flat))))
+              (let ((vert-angle (vector-angle dir dir-flat)))
+                (let ((sight dir-flat)
+                      (eye (get-eye world))
+                      (up (get-world-up world)))
+                  (let ((right (cross-product sight up)))
+                    (let ((lookat (lookat sight up right)))
+                      (free-motion world feedback?: #f)
+                      (set-lookat eye (rotate-lookat-vertical& lookat (- vert-angle)))
+                      (set-position eye pos)
+                      (derive-target eye)
+                      (camera-update eye)))))))))))))

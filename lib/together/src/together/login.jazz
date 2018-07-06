@@ -41,74 +41,53 @@
         (world.interface.panel)
         (world.interface.servers)
         (world.interface.text)
-        (world.interface.templates)
         (world.interface.tiers)
         (world.io)
-        (world.music)
         (world.settings)
         (world.skybox)
         (world.task)
         (world.window)
-        (together.settings))
+        (together.settings)
+        (together.zone))
 
 
 (definition together-host
-  "together.circlingottawa.ca")
+  (world-setting 'together.default-host "togethersphere.com"))
 
-(definition together-service
-  50000)
-
-
-(definition protected stage
-  #f)
+(definition together-port
+  (world-setting 'together.default-port 50000))
 
 
-(class Login-Zone extends Zone
+(definition use-sphere?
+  (world-setting 'together.use-sphere? #f))
+
+
+(class Login-Zone extends Together-Zone
   
   
-  (slot preserved-music    initialize #f getter generate)
-  (slot preserved-ambience initialize #f getter generate)
-  (slot configuration      initialize #f getter generate)
-  (slot use-sphere?        initialize #f getter generate)
-  (slot name-focused?      initialize #f getter generate)
-  (slot post-accept        initialize #f accessors generate)
-  
-  
-  (form
-    (<install> sun-cycle?: #f))
-  
-  
-  (method override (welcome? self)
-    #t)
-  
-  
-  (method override (mute-audio? self)
-    #t)
+  (slot stage         initialize #f getter generate)
+  (slot configuration initialize #f getter generate)
+  (slot name-focused? initialize #f getter generate)
   
   
   (method override (zone-ready self)
     (nextmethod self)
-    (let ((window (current-window))
-          (world (current-world)))
+    (let ((world (current-world)))
       (setup-stage self)
       (setup-configuration self)
       (install-stage self)
       (set-escape-hook world (lambda () (close-frame self)))
-      (set-draw-me? self #f)
-      ;; remove tearing in the camera pathing
-      (enable-vsync window)))
+      (set-draw-me? self #f)))
   
   
   (method override (destroy self)
-    (let ((window (current-window))
-          (world (current-world)))
+    (let ((world (current-world)))
       (uninstall-stage self)
       (no-showcase world)
       (set-enter-hook world #f)
       (set-escape-hook world #f)
       (set-draw-me? self #t)
-      (uninstall-camera)
-      (disable-vsync window))
+      (uninstall-camera))
     (nextmethod self))
   
   
@@ -119,37 +98,14 @@
   (method (setup-configuration self)
     (let ((file (together-file)))
       (set! configuration (and (exists? file) (instantiate (read-form file))))))
+    
+  
+  (method override (welcome? self)
+    #t)
   
   
-  (method override (camera-update self)
-    (nextmethod self)
-    (install-camera))
-  
-  
-  (method override (title-update self)
-    (when (window?)
-      (let ((window (current-window)))
-        (set-caption window "Together"))))
-  
-  
-  (method override (show-belt? self)
-    #f)
-  
-  
-  (method override (show-compass? self)
-    #f)
-  
-  
-  (method override (show-combat? self)
-    #f)
-  
-  
-  (method override (show-chat? self)
-    #f)
-  
-  
-  (method override (about-size self)
-    {Dimension 715 370})
+  (method override (mute-audio? self)
+    #t)
   
   
   (method (install-stage self)
@@ -161,6 +117,7 @@
     (case stage
       ((login)
        (install-login self))
+      @customize
       ((customize)
        (install-customize self))))
   
@@ -177,22 +134,24 @@
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
         (cond ((not name)
-               (new Name-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+               (new Kind-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
                (new Name-View name: 'name parent: interface location: '(center (center -60)))
                (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
                (delay-event
                  (lambda ()
                    (acquire-focus (locate (child interface 'name) 'text)))))
               (else
-               (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+               (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
                (new Push-Button name: 'enter parent: interface title: "Enter" location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))))
-        @w (when name
+        @customize
+        (when name
           (new Push-Button name: 'customize parent: interface title: "Customize" location: '(center -40) size: {Dimension 140 24} action-handler: (~ on-customize self)))
         (add-exception-view self)
         (layout-view interface)
         (no-showcase world))))
   
   
+  @customize
   (method (install-customize self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -206,7 +165,7 @@
       (new Push-Button name: 'back parent: interface title: "Back" location: '(40 -40) size: {Dimension 100 24} action-handler: (~ on-back self))
       (new Push-Button name: 'create parent: interface title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-remote self))
       (text-content-set self (info-text self 'server-address) (host->string together-host))
-      (text-content-set self (info-text self 'server-port) (port->string together-service))
+      (text-content-set self (info-text self 'server-port) (port->string together-port))
       (add-exception-view self)
       (layout-view interface)
       (when use-sphere?
@@ -222,83 +181,12 @@
       (setup-interface world)))
   
   
-  (method (add-exception-view self)
-    (let ((interface (current-interface)))
-      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 107) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
-  
-  
-  (method (find-exception-view self)
-    (let ((interface (current-interface)))
-      (child interface 'exception)))
-  
-  
-  (method package (report-exception self title exc)
-    (let ((view (find-exception-view self)))
-      (set-title view title)
-      (set-exception view exc)))
-  
-  
-  (method (clear-exception self)
-    (let ((view (find-exception-view self)))
-      (set-title view "")
-      (set-exception view #f)))
-  
-  
-  (method (close-frame self)
-    (let ((frame (top-frame)))
-      (when frame
-        (close frame)))
-    #t)
-  
-  
-  (method override (start-music self)
-    (let ((music (current-music)))
-      (when (get-music? music)
-        (set! preserved-music (list (get-music-style music) (get-music-volume music)))
-        (set-music-style music "minecraft/music/menu")
-        (set-music-volume music .5)
-        (change-music music))))
-  
-  
-  (method override (start-ambience self)
-    (let ((ambience (current-ambience)))
-      (set! preserved-ambience (list (get-ambience? ambience)))
-      (set-ambience? ambience #f)))
-  
-  
-  (method override (stop-music self)
-    (nextmethod self)
-    (let ((music (current-music)))
-      (when (get-music? music)
-        (bind (music-style music-volume) preserved-music
-          (set-music-style music music-style)
-          (set-music-volume music music-volume)))))
-  
-  
-  (method override (stop-ambience self)
-    (nextmethod self)
-    (let ((ambience (current-ambience)))
-      (bind (ambience?) preserved-ambience
-        (set-ambience? ambience ambience?))))
-  
-  
-  (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox "nebula")))
-                   (prepare skybox)
-                   skybox)))
-  
-  
-  (method override (player-task self task <Task>)
-    (with-task task
-      (lambda (exit)
-        (task-sleep task +infinity 0. exit))))
-  
-  
   ;;;
   ;;;; Mouse
   ;;;
   
   
+  @customize
   (method override (mouse-track self elapse dx dy)
     (when (memq? stage '(customize))
       (let ((world (current-world)))
@@ -316,17 +204,6 @@
   ;;;
   
   
-  (method (on-accept self evt)
-    (process-copyright-update (current-process))
-    (if post-accept
-        (post-accept)
-      (goto-stage self 'login)))
-  
-  
-  (method (on-decline self evt)
-    (quit-process (current-process)))
-  
-  
   (method (on-enter-press self evt)
     (enter-press self))
   
@@ -340,25 +217,27 @@
                    (unless (empty-string? content)
                      (create-default-remote self content)))))))
           (else
+           (remote-open self (together-file))
+           @customize
            (let ((file (together-file)))
              (if (exists? file)
                  (remote-open self file)
-               (set! use-sphere? (shift-down?))
                (goto-stage self 'customize)
-               (text-content-set self (info-text self 'server-port) (port->string together-service)))))))
+               (text-content-set self (info-text self 'server-port) (port->string together-port)))))))
   
   
   (method override (tab-press self)
     )
   
   
+  @customize
   (method (on-customize self evt)
-    (set! use-sphere? (shift-down?))
     (change-remote self (together-file)
       (if configuration (get-server-host configuration) together-host)
-      (if configuration (get-server-service configuration) together-service)))
+      (if configuration (get-server-service configuration) together-port)))
   
   
+  @customize
   (method (change-remote self file server-address server-port)
     (let ((world (current-world)))
       (when (exists? file)
@@ -415,6 +294,7 @@
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
   
   
+  @customize
   (method (on-back self evt)
     (goto-stage self (case stage
                        ((customize) 'login))))
@@ -426,6 +306,7 @@
     (install-stage self))
   
   
+  @customize
   (method (selected-avatar self)
     (let ((world (current-world)))
       (get-model (get-selection-entity (find-showcase world 'avatars)))))
@@ -435,10 +316,22 @@
     (quit-process (current-process)))
   
   
+  @customize
   (method (on-create-remote self evt)
     (create-remote self))
   
   
+  (method override (name-return self content)
+    (create-default-remote self content))
+  
+  
+  @customize
+  (method (info-return self)
+    (case stage
+      ((customize) (create-remote self))))
+  
+  
+  @customize
   (method package (create-remote self)
     (let ((fields (remote-fields self)))
       (let ((client-name "Together")
@@ -459,8 +352,8 @@
   
   (method package (create-default-remote self name)
     (let ((client-name "Together")
-          (server-address "togethersphere.com")
-          (server-port "50000")
+          (server-address (host->string together-host))
+          (server-port (port->string together-port))
           (avatar #f)
           (script #f)
           (zone '(zone "Circle")))
@@ -469,12 +362,14 @@
         (remote-open self file))))
   
   
+  @customize
   (method (remote-fields self)
     '((server-address-label server-address #t)
       (server-port-label server-port #f)
       (name-label name #t)))
   
   
+  @customize
   (method (remote-stops self)
     (map (~ info-text self) (map second (remote-fields self))))
   
@@ -490,11 +385,13 @@
               (report-exception self title obj)))))))
   
   
+  @customize
   (method (info-text self view)
     (let ((interface (current-interface)))
       (locate (child interface view) 'text)))
   
   
+  @customize
   (method (text-content self text)
     (let ((content (get-string-content text)))
       (if (empty-string? content)
@@ -502,10 +399,12 @@
         content)))
   
   
+  @customize
   (method (text-content-set self text content)
     (set-string-content text (->string content)))
   
   
+  @customize
   (method package (tab-stops self)
     (case stage
       ((customize) (remote-stops self))
@@ -513,117 +412,16 @@
 
 
 ;;;
-;;;; Camera
-;;;
-
-
-(definition camera-tick
-  #f)
-
-(definition camera-angle
-  2.0)
-
-
-(definition (install-camera)
-  (let ((zone (current-zone)))
-    (set! camera-tick path-camera)
-    (register-tick zone camera-tick))
-  (path-camera 0.))
-
-
-(definition (uninstall-camera)
-  (let ((zone (current-zone)))
-    (unregister-tick zone camera-tick)
-    (set! camera-tick #f)))
-
-
-(definition (path-camera elapse)
-  (let ((world (current-world)))
-    (increase! camera-angle (/ elapse 10.))
-    (let ((target (vertex -11.500 8.500 -32.500))
-          (angle camera-angle)
-          (radius 75.)
-          (elevation 20.))
-      (let ((x (cos angle))
-            (z (sin angle)))
-        (let ((flat (vertex+ target (vertex-scalar*& (vertex x 0. z) radius))))
-          (let ((pos (vertex+ flat (vertex 0. elevation 0.))))
-            (let ((dir (vertex-normalize (vertex-& target pos)))
-                  (dir-flat (vertex-normalize (vertex-& target flat))))
-              (let ((vert-angle (vector-angle dir dir-flat)))
-                (let ((sight dir-flat)
-                      (eye (get-eye world))
-                      (up (get-world-up world)))
-                  (let ((right (cross-product sight up)))
-                    (let ((lookat (lookat sight up right)))
-                      (free-motion world feedback?: #f)
-                      (set-lookat eye (rotate-lookat-vertical& lookat (- vert-angle)))
-                      (set-position eye pos)
-                      (derive-target eye)
-                      (camera-update eye))))))))))))
-
-
-;;;
-;;;; Version-Label
-;;;
-
-
-(class Version-Label extends Label-View
-  
-  
-  (method override (text-color self)
-    {Color World-Ochre}))
-
-
-;;;
-;;;; Name-Label
-;;;
-
-
-(class Name-Label extends Label-View
-  
-  
-  (method override (text-color self)
-    {Color World-Ochre}))
-
-
-;;;
-;;;; Exception-Label
-;;;
-
-
-(class Exception-Label extends Label-View
-  
-  
-  (property exception initialize #f accessors generate)
-  
-  
-  (method override (text-color self)
-    {Color World-Red})
-  
-  
-  (method override (get-tooltip? self)
-    #t)
-  
-  
-  (method override (get-tooltip-text self)
-    (typecase exception
-      ((Exception)
-       (exception-reason exception))
-      (else
-       #f))))
-
-
-;;;
 ;;;; Info-Label
 ;;;
 
 
+@customize
 (class Info-Label extends Label-View
   
   
   (form
-    (<install> size: {Dimension 160 16} color: {Color red: .892 green: .773 blue: .290})))
+    (<install> size: {Dimension 150 16} color: {Color red: .892 green: .773 blue: .290})))
 
 
 ;;;
@@ -631,11 +429,12 @@
 ;;;
 
 
+@customize
 (class Info-View extends Border-View
   
   
   (form
-    (<install>                          size: {Dimension 160 19} border-type: edge style: entry
+    (<install>                          size: {Dimension 150 19} border-type: edge style: entry
       (<Scroller-View>                  hscroll?: #f vscroll?: #f
         (<content~>                     layout-type: fill
           (<World-Text-View> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t return-press-handler: {Event-Handler :form on-return})))))
@@ -648,46 +447,4 @@
   
   (method (on-return self evt)
     (let ((zone (current-zone)))
-      (case stage
-        ((customize) (create-remote zone))))))
-
-
-;;;
-;;;; Name-Text
-;;;
-
-
-(class Name-Text extends World-Text-View
-  
-  
-  (method override (new-model self)
-    (new Text-Model default-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 12)))
-
-
-;;;
-;;;; Name-View
-;;;
-
-
-(class Name-View extends Border-View
-  
-  
-  (form
-    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
-      (<Scroller-View>            hscroll?: #f vscroll?: #f
-        (<content~>               layout-type: fill
-          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return})))))
-  
-  
-  (method (on-content-change self evt)
-    (let ((interface (current-interface)))
-      (let ((text (locate self 'text)))
-        (set-enabled? (child interface 'enter) (not (empty-string? (get-string-content text)))))))
-  
-  
-  (method (on-return self evt)
-    (let ((zone (current-zone)))
-      (let ((text (locate self 'text)))
-        (let ((content (get-string-content text)))
-          (unless (empty-string? content)
-            (create-default-remote zone content))))))))
+      (info-return zone)))))

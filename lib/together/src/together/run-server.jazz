@@ -31,6 +31,7 @@
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(admin))
   (set-default-server "Together")
+  (register-domain-name 'character "Name")
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename)))
 

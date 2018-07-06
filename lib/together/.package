@@ -16,6 +16,7 @@
                               together.boot-processor
                               together.boot-server
                               together.circle
+                              together.communal
                               together.debugger
                               together.devel
                               together.login
