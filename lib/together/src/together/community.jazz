@@ -262,7 +262,8 @@
                             (delay-event
                               (lambda ()
                                 (proc)))
-                            (loop))))))))
+                            (loop)))))
+                    'hider)))
       (set! hide-thread thread)
       (thread-start! thread)))
   
