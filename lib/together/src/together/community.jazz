@@ -45,6 +45,7 @@
         (world.interface.text)
         (world.interface.tiers)
         (world.io)
+        (world.ring)
         (world.settings)
         (world.skybox)
         (world.task)
@@ -59,8 +60,7 @@
   
   (slot stage         initialize #f                 getter generate)
   (slot configuration initialize #f                 getter generate)
-  (slot hide-time     initialize #f                 getter generate)
-  (slot hide-mutex    initialize (make-mutex 'hide) getter generate)
+  (slot hide-ring     initialize (new Time-Ring 1)  getter generate)
   (slot hide-thread   initialize #f                 getter generate)
   
   
@@ -73,6 +73,7 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
+        (install-hider self)
         (set-escape-hook world (lambda () (close-frame self)))
         (set-draw-me? self #f))))
   
@@ -80,6 +81,7 @@
   (method override (destroy self)
     (when (window?)
       (let ((world (current-world)))
+        (uninstall-hider self)
         (uninstall-hooks self)
         (uninstall-stage self)
         (no-showcase world)
@@ -187,7 +189,7 @@
       (show 'audio)
       (show 'video)
       (show 'layouts)
-      (hide-interface self)
+      (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
       (layout-view interface)
@@ -250,6 +252,26 @@
       (show-interface self)))
   
   
+  (method (install-hider self)
+    (let ((thread (new-thread
+                    (lambda ()
+                      (declare (proper-tail-calls))
+                      (let (loop)
+                        (let ((proc (wait hide-ring)))
+                          (when proc
+                            (delay-event
+                              (lambda ()
+                                (proc)))
+                            (loop))))))))
+      (set! hide-thread thread)
+      (thread-start! thread)))
+  
+  
+  (method (uninstall-hider self)
+    (empty hide-ring)
+    (insert hide-ring (current-seconds) #f))
+  
+  
   ;; we probably need a tolerance so moving
   ;; only 1 pixel doesn't show the interface
   (method (show-interface self)
@@ -260,48 +282,24 @@
       (set-visible? (child interface 'audio) #t)
       (set-visible? (child interface 'video) #t)
       (set-visible? (child interface 'layouts) #t)
-      (hide-interface self)))
+      (delay-hide-interface self)))
   
   
-  ;; quick try that really needs to be revisited
-  ;; would love to have a clean no mutex solution
-  (method (hide-interface self)
+  (method (delay-hide-interface self)
     (when (world-setting 'together.auto-hide? #t)
-      (let ((window (current-window)))
-        (let ((now (current-seconds)))
-          (let ((time (+ now 1.25)))
-            (mutex-lock! hide-mutex)
-            (set! hide-time time)
-            (unless hide-thread
-              (let ((thread
-                      (new-thread
-                        (lambda ()
-                          (declare (proper-tail-calls))
-                          (let (loop)
-                            (let ((wait (- hide-time (current-seconds))))
-                              (sleep wait)
-                              (let ((new-wait (- hide-time (current-seconds))))
-                                (if (<= new-wait 0.)
-                                    (with-task-mutex
-                                      (lambda ()
-                                        (mutex-lock! hide-mutex)
-                                        ;; maybe we left circle
-                                        (when (eq? stage 'circle)
-                                          (let ((interface (current-interface)))
-                                            (hide-cursor window)
-                                            (set-visible? (child interface 'leave) #f)
-                                            (set-visible? (child interface 'audio) #f)
-                                            (set-visible? (child interface 'video) #f)
-                                            (set-visible? (child interface 'layouts) #f)))
-                                        ;; this is probably not safe
-                                        (set! hide-thread #f)
-                                        (set! hide-time #f)
-                                        (mutex-unlock! hide-mutex)))
-                                  (loop))))))
-                        'hide)))
-                (thread-start! thread)
-                (set! hide-thread thread)))
-            (mutex-unlock! hide-mutex))))))
+      (let ((hide-time (+ (current-seconds) 2.)))
+        (empty hide-ring)
+        (insert hide-ring hide-time (lambda ()
+                                      (with-task-mutex
+                                        (lambda ()
+                                          (when (eq? stage 'circle)
+                                            (let ((window (current-window))
+                                                  (interface (current-interface)))
+                                              (hide-cursor window)
+                                              (set-visible? (child interface 'leave) #f)
+                                              (set-visible? (child interface 'audio) #f)
+                                              (set-visible? (child interface 'video) #f)
+                                              (set-visible? (child interface 'layouts) #f))))))))))
   
   
   ;;;
