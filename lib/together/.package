@@ -29,7 +29,6 @@
                               together.run-server
                               together.settings
                               together.sphere
-                              together.tier
                               together.window
                               together.windows
                               together.zone)
