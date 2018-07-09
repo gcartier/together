@@ -52,6 +52,7 @@
                        ;; media
                        world.video-layout         gallery
                        ;; test
+                       world.init                 #f
                        world.test                 #f
                        world.test1                #f
                        world.test2                #f
