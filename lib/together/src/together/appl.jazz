@@ -23,11 +23,13 @@
         (jazz.editor.jazz)
         (jazz.editor.lisp)
         (jazz.event)
+        (jazz.graphic)
         (jazz.handler)
         (jazz.io)
         (jazz.markup)
         (jazz.opengl.window)
         (jazz.reference)
+        (jazz.resource)
         (jazz.search)
         (jazz.view)
         (world)
@@ -50,10 +52,6 @@
 
 
 (class Together-Application extends World-Application
-  
-  
-  @wait-debugger!?
-  (slot local-debugger initialize #f)
 
   
   (method override (process-name self)
@@ -74,12 +72,10 @@
   
   
   (method override (new-toplevel self)
-    (if (not (window?))
-        (new Together-Window visible?: #f)
     (let ((fullscreen? window-fullscreen?)
           (pos (world-setting 'world.position {Point 150 50}))
           (size (world-setting 'world.size {Dimension 1150 750})))
-      (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size render?: #f visible?: #f))))
+      (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size render?: #f visible?: #f)))
   
   
   (method override (initialize-settings self)
@@ -95,57 +91,9 @@
     (new Together-Bindings))
   
   
-  ;; copy-pasted from IDE
-  @wait-debugger!?
-  (method override (get-local-debugger)
-    local-debugger)
-  
-  
-  ;; copy-pasted from IDE
-  @wait-debugger!?
-  (method override (install-process)
-    (nextmethod)
-    (start-debuggers))
-  
-  
   (method override (finish-process self)
     (nextmethod self)
-    (setup-cataloguer self)
-    (preload-catalogs self)
-    (set-safe-explore-action 'ignore)
-    ;; a try
-    @wait-debugger!?
-    (set-debugger-manager (new Debugger-Manager)))
-  
-  
-  ;; copy-pasted from IDE
-  @wait-debugger!?
-  (method override (conclude-environment)
-    (nextmethod)
-    ;; do this at the last moment possible because any error beyond this point
-    ;; will be handled by the IDE itself which must thus be fully functional
-    (if (get-controller-debugger)
-        (attach-process local-debugger (get-local-process) #t)
-      (when (and kernel-source-access? (world-setting 'together.debugger? #f))
-        (attach-to-controller (get-local-register) #t)
-        (with-system-exception-debugger
-          (lambda ()
-            (ready-to-controller)
-            (transmit-runtime-information (get-local-process) 'all)
-            (current-input-port (console-input-port))
-            (current-output-port (console-output-port)))))))
-  
-  
-  ;;;
-  ;;;; Closing
-  ;;;
-  
-  
-  (method override (close-environment self)
-    (let ((cataloguer (get-cataloguer)))
-      (when cataloguer
-        (save-catalogs cataloguer)))
-    (nextmethod self))
+    (set-safe-explore-action 'ignore))
 
   
   ;;;
@@ -225,128 +173,30 @@
   
   
   ;;;
-  ;;;; Register
-  ;;;
-  
-  
-  ;; copy-pasted from IDE
-  @wait-debugger!?
-  (method override (register-base-objects)
-    (nextmethod)
-    (register-object (get-local-register) 'debugger (new Jazz-Debugger-Local-Proxy local-debugger)))
-  
-  
-  ;;;
-  ;;;; Runtime
-  ;;;
-  
-  
-  (method override (runtime-units self)
-    '(tutorial.objectives))
-  
-  
-  ;;;
-  ;;;; Debugger
-  ;;;
-  
-  
-  @wait-debugger!?
-  (method override (start-console)
-    (if (remote-proxy? (get-controller-debugger))
-        (nextmethod)
-      ;; no REPL until Together internal consoles
-      (select-console)))
-  
-  
-  ;; copy-pasted from IDE
-  @wait-debugger!?
-  (method (start-debuggers)
-    (when (not local-debugger)
-      (set! local-debugger (new Together-Debugger))
-      (start-debugger local-debugger)
-      (register-debugger local-debugger)
-      (set-current-debugger local-debugger)))
-  
-  
-  ;;;
-  ;;;; Catalog
-  ;;;
-  
-  
-  (method override (setup-cataloguer self)
-    (define (world-catalog)
-      (let ((output {File Settings "work" "catalogs" "world.jcat"})
-            (directories {Directory Together-World})
-            (extensions :jazz))
-        (new Filing-Catalog 'world output directories extensions #f #f #t)))
-    
-    (define (user-catalog)
-      (let ((output {File Settings "work" "catalogs" "user.jcat"})
-            (directories {Directory Settings})
-            (extensions :jazz))
-        (new Filing-Catalog 'user output directories extensions #f #f #t)))
-    
-    (let ((cataloguer (new Cataloguer)))
-      (add-catalog cataloguer (world-catalog))
-      (add-catalog cataloguer (user-catalog))
-      (set-cataloguer cataloguer)))
-  
-  
-  (method (preload-catalogs self)
-    ;; using delay-event to load the catalogs after the run loop is
-    ;; started ensures that the null? test on the load-stack passes
-    (delay-event
-      (lambda ()
-        (for-each-active-catalog (get-cataloguer) #f
-          (lambda (catalog)
-            (load-content catalog report?: #f))))))
-  
-  
-  ;;;
   ;;;; Interface
   ;;;
-  
+
   
   (method override (setup-application-interface self)
     (let ((interface (current-interface)))
-      (new History-Slider name: 'slider parent: interface size: {Dimension 400 40} location: '(center 220) visible?: #f)
+      (new History-Slider name: 'slider parent: interface visible?: #f)
       (install-bars
-        `(,(case current-role
-             ((user creator)
-              `(,World-Main-Bar      main      horizontal (-171 -10)))
-             (else
-              `(,World-Main-Bar      main      horizontal (center -10))))
-          ;(,World-Client-Bar    client    horizontal (-400 -10))
-          ,(case current-role
-             ((user creator)
-              `(,World-Universe-Bar universe horizontal (center -10)))
-             (else
-              `(,World-Universe-Bar universe horizontal (center -36))))
-          (,World-Window-Bar    window    horizontal (-10 -10))
-          (,World-Media-Bar     media     horizontal (-150 -10))
-          (,World-Camera-Bar    camera    horizontal (-10 -36))
-          ,(case current-role
-             ((creator)
-              `(,World-Debug-Bar     debug     horizontal (178 -10)))
-             (else
-              `(,World-Debug-Bar     debug     horizontal (10 -10))))
-          (,World-History-Bar   history   horizontal (10 -36))
+        `((,World-Main-Bar      main      horizontal none #f)
+          (,World-Universe-Bar  universe  horizontal none #f)
+          (,World-Window-Bar    window    horizontal none #f)
+          (,World-Media-Bar     media     horizontal none #f)
+          (,World-Camera-Bar    camera    horizontal none #f)
+          (,World-History-Bar   history   horizontal none #f)
           (,World-Models-Bar    models    horizontal none #f)
           (,World-Blocks-Bar    blocks    horizontal none #f)
-          (,World-Target-Bar    target    vertical (-10 75.))
+          (,World-Target-Bar    target    vertical   none #f)
+          (,World-Edition-Bar   edition   horizontal none #f)
+          (,World-Interface-Bar interface horizontal none #f)
           ,(case current-role
-             ((creator)
-              `(,World-Edition-Bar   edition   horizontal (-200 -10)))
+             ((developer)
+              `(,Together-Debug-Bar debug horizontal (center tail)))
              (else
-              `(,World-Edition-Bar   edition   vertical   (-36 center))))
-          ,(case current-role
-             ((user creator)
-              `(,World-Interface-Bar interface horizontal (10 -10)))
-             (else
-              `(,World-Interface-Bar interface vertical   (-10 center))))
-          (,World-Tutorial-Bar  tutorial  horizontal (10 10) #f)
-          (,World-Objective-Bar objective horizontal (114 10) #f)
-          (,World-Collision-Bar collision horizontal (-10 36) #f)))
+              `(,Together-Debug-Bar debug horizontal none #f)))))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -356,19 +206,10 @@
   ;;;
   
   
-  (method override (customize-roles self)
-    (when (neq? initial-role 'user)
-      (set-property (child (child (get-client-form user-bindings) 'world-world) 'toggle-user) 'visible? #t)
-      (set-property (child (get-client-form user-main) 'toggle-user) 'visible? #t)))
-  
-  
   (method override (role-traits self role)
     (case role
       ((user) user-role)
-      ((creator) creator-role)
-      ((designer) designer-role)
-      ((programmer) programmer-role)
-      ((admin) admin-role)
+      ((developer) developer-role)
       (else (nextmethod self role))))
 
 
@@ -379,798 +220,61 @@
 
   (define-trait user-bindings Bindings
     (<Role-Trait>        name: user
-      (<install>
-        (<world-menu!>
-          (<!>           name: view-help               visible?: #f))
-        (<world-world!>
-          (<!>           name: toggle-user             visible?: #f))
-        (<world-zone!>
-          (<!>           name: zone-new                visible?: #f)
-          (<!>           name: zone-open               visible?: #f)
-          (<!>           name: zone-open-content       visible?: #f)
-          (<!>           name: zone-reload             visible?: #f))
-        (<world-universe!>
-          (<!>           name: mind-control            visible?: #f)
-          (<!>           name: toggle-aim              visible?: #f)
-          (<!>           name: toggle-free-aim         visible?: #f)
-          (<!>           name: toggle-ride             visible?: #f)
-          (<!>           name: toggle-fly              visible?: #f)
-          (<!>           name: toggle-vehicle          visible?: #f))
-        (<world-spell!>
-          ;; for now as it enables jumping over kingdom bridge
-          (<!>           name: sprint                  visible?: #f)
-          (<!>           name: blink                   visible?: #f)
-          (<!>           name: warp                    visible?: #f)
-          (<!>           name: dash                    visible?: #f))
-        (<world-camera!>
-          (<!>           name: person-motion           visible?: #f)
-          (<!>           name: orbit-motion            visible?: #f)
-          (<!>           name: free-motion             visible?: #f)
-          (<!>           name: toggle-camera-smoothing visible?: #f)
-          (<!>           name: toggle-camera-follow    visible?: #f))
-        (<world-graphics!>
-          (<!>           name: toggle-glow             visible?: #f)
-          (<!>           name: toggle-lighting         visible?: #f)
-          (<!>           name: toggle-fog              visible?: #f)
-          (<!>           name: toggle-gadgets          visible?: #f)
-          (<!>           name: toggle-normals          visible?: #f)
-          (<!>           name: toggle-x-rays           visible?: #f)
-          (<!>           name: toggle-redstone-x-rays  visible?: #f)
-          (<!>           name: toggle-blocks           visible?: #f)
-          (<!>           name: toggle-post-processing  visible?: #f))
-        (<world-interface!>
-          (<!>           name: run-script              visible?: #f)
-          (<!>           name: run-last-script         visible?: #f)
-          (<!>           name: toggle-occlusion        visible?: #f)
-          (<!>           name: toggle-wireframe        visible?: #f))
-        (<world-edition!>                              visible?: #f
-          (<!>           name: select-target-mode      visible?: #f)
-          (<!>           name: move-target-mode        visible?: #f)
-          (<!>           name: rotate-target-mode      visible?: #f)
-          (<!>           name: scale-target-mode       visible?: #f)
-          (<!>           name: skeleton-target-mode    visible?: #f)
-          (<!>           name: no-showcase             visible?: #f)
-          (<!>           name: blocks-showcase         visible?: #f)
-          (<!>           name: models-showcase         visible?: #f)
-          (<!>           name: gadgets-showcase        visible?: #f)
-          (<!>           name: tiles-showcase          visible?: #f)
-          (<!>           name: shaders-showcase        visible?: #f)
-          (<!>           name: animations-showcase     visible?: #f)
-          (<!>           name: meshes-showcase         visible?: #f)
-          (<!>           name: textures-showcase       visible?: #f)
-          (<!>           name: skyboxes-showcase       visible?: #f)
-          (<!>           name: import-model            visible?: #f)
-          (<!>           name: toggle-grid             visible?: #f)
-          (<!>           name: toggle-grid-z           visible?: #f)
-          (<!>           name: toggle-grid-y           visible?: #f)
-          (<!>           name: toggle-grid-x           visible?: #f)
-          (<!>           name: move-grid               visible?: #f)
-          (<!>           name: decrease-grid           visible?: #f)
-          (<!>           name: increase-grid           visible?: #f)
-          (<!>           name: reload-textures         visible?: #f)
-          (<!>           name: change-editor-mode      visible?: #f))
-        (<world-history!>                              visible?: #f)
-        (<world-window!>
-          (<!>           name: live-gaia/world         visible?: #f)
-          (<!>           name: design-gaia/world       visible?: #f)
-          (<!>           name: restore-gaia/world      visible?: #f))
-        (<world-tutorial!>)
-        (<world-debug!>                                visible?: #f))))
-  
-  (define-trait user-main World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: zone-new                visible?: #f)
-        (<!>             name: zone-open               visible?: #f)
-        (<!>             name: toggle-user             visible?: #f))))
-  
-  (define-trait user-universe World-Actionbar
-    (<Role-Trait>
-      (<install>
-        ;; for now as it enables jumping over kingdom bridge
-        (<!>             name: sprint                  visible?: #f)
-        (<!>             name: blink                   visible?: #f)
-        (<!>             name: warp                    visible?: #f)
-        (<!>             name: dash                    visible?: #f)
-        (<!>             name: mind-control            visible?: #f)
-        (<!>             name: toggle-aim              visible?: #f)
-        (<!>             name: toggle-free-aim         visible?: #f)
-        (<!>             name: toggle-ride             visible?: #f)
-        (<!>             name: toggle-fly              visible?: #f))))
-  
-  (define-trait user-target World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
-  
-  (define-trait user-interface World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: run-script              visible?: #f)
-        (<!>             name: run-last-script         visible?: #f)
-        (<!>             name: toggle-glow             visible?: #f)
-        (<!>             name: toggle-occlusion        visible?: #f)
-        (<!>             name: toggle-wireframe        visible?: #f)
-        (<!>             name: toggle-lighting         visible?: #f)
-        (<!>             name: toggle-fog              visible?: #f)
-        (<!>             name: toggle-gadgets          visible?: #f)
-        (<!>             name: toggle-normals          visible?: #f)
-        (<!>             name: toggle-x-rays           visible?: #f)
-        (<!>             name: toggle-redstone-x-rays  visible?: #f)
-        (<!>             name: toggle-blocks           visible?: #f)
-        (<!>             name: toggle-post-processing  visible?: #f))))
-
-  (define-trait user-camera World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: person-motion           visible?: #f)
-        (<!>             name: orbit-motion            visible?: #f)
-        (<!>             name: free-motion             visible?: #f)
-        (<!>             name: toggle-camera-smoothing visible?: #f)
-        (<!>             name: toggle-camera-follow    visible?: #f))))
-
-  (define-trait user-edition World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f
-        (<!>             name: gadgets-showcase        visible?: #f)
-        (<!>             name: tiles-showcase          visible?: #f)
-        (<!>             name: shaders-showcase        visible?: #f)
-        (<!>             name: animations-showcase     visible?: #f)
-        (<!>             name: meshes-showcase         visible?: #f)
-        (<!>             name: textures-showcase       visible?: #f)
-        (<!>             name: skyboxes-showcase       visible?: #f)
-        (<!>             name: change-editor-mode      visible?: #f))))
-
-  (define-trait user-models World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: import-model            visible?: #f))))
-
-  (define-trait user-history World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
-  
-  (define-trait user-window World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: live-gaia/world         visible?: #f)
-        (<!>             name: design-gaia/world       visible?: #f)
-        (<!>             name: restore-gaia/world      visible?: #f))))
-  
-  (define-trait user-tutorial World-Actionbar
-    (<Role-Trait>
       (<install>)))
-  
-  (define-trait user-objective World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait user-debug World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
 
   (definition user-role
-    `((:bindings ,user-bindings)
-      (main ,user-main)
-      (universe ,user-universe)
-      (target ,user-target)
-      (interface ,user-interface)
-      (camera ,user-camera)
-      (edition ,user-edition)
-      (models ,user-models)
-      (history ,user-history)
-      (window ,user-window)
-      (tutorial ,user-tutorial)
-      (objective ,user-objective)
-      (debug ,user-debug)))
+    `((:bindings ,user-bindings)))
 
 
   ;;;
-  ;;;; Creator
+  ;;;; Developer
   ;;;
 
 
-  (define-trait creator-bindings Bindings
-    (<Role-Trait>        name: creator
+  (define-trait developer-bindings Bindings
+    (<Role-Trait>        name: developer
       (<install>
-        (<world-menu!>
-          (<!>           name: view-help               visible?: #f))
-        (<world-world!>
-          (<!>           name: toggle-user             visible?: #f))
-        (<world-zone!>
-          (<!>           name: zone-new                visible?: #f)
-          (<!>           name: zone-open               visible?: #f)
-          (<!>           name: zone-open-content       visible?: #f)
-          (<!>           name: zone-reload             visible?: #f))
-        (<world-universe!>
-          (<!>           name: mind-control            visible?: #f)
-          (<!>           name: toggle-aim              visible?: #f)
-          (<!>           name: toggle-free-aim         visible?: #f)
-          (<!>           name: toggle-ride             visible?: #f)
-          (<!>           name: toggle-fly              visible?: #f)
-          (<!>           name: toggle-vehicle          visible?: #f))
-        (<world-spell!>
-          (<!>           name: bullet                  visible?: #f)
-          (<!>           name: arrow                   visible?: #f)
-          ;; for now as it enables jumping over kingdom bridge
-          (<!>           name: sprint                  visible?: #f)
-          (<!>           name: blink                   visible?: #f)
-          (<!>           name: warp                    visible?: #f)
-          (<!>           name: dash                    visible?: #f))
-        (<world-camera!>
-          (<!>           name: toggle-camera-smoothing visible?: #f)
-          (<!>           name: toggle-camera-follow    visible?: #f))
-        (<world-graphics!>
-          (<!>           name: toggle-glow             visible?: #f)
-          (<!>           name: toggle-lighting         visible?: #f)
-          (<!>           name: toggle-fog              visible?: #f)
-          (<!>           name: toggle-gadgets          visible?: #f)
-          (<!>           name: toggle-normals          visible?: #f)
-          (<!>           name: toggle-x-rays           visible?: #f)
-          (<!>           name: toggle-redstone-x-rays  visible?: #f)
-          (<!>           name: toggle-blocks           visible?: #f)
-          (<!>           name: toggle-models           visible?: #f)
-          (<!>           name: toggle-post-processing  visible?: #f))
-        (<world-interface!>
-          (<!>           name: run-script              visible?: #f)
-          (<!>           name: run-last-script         visible?: #f)
-          (<!>           name: toggle-interface        visible?: #f)
-          (<!>           name: toggle-occlusion        visible?: #f)
-          (<!>           name: toggle-wireframe        visible?: #f))
-        (<world-edition!>
-          (<!>           name: select-target-mode      visible?: #f)
-          (<!>           name: move-target-mode        visible?: #f)
-          (<!>           name: rotate-target-mode      visible?: #f)
-          (<!>           name: scale-target-mode       visible?: #f)
-          (<!>           name: skeleton-target-mode    visible?: #f)
-          (<!>           name: tiles-showcase          visible?: #f)
-          (<!>           name: shaders-showcase        visible?: #f)
-          (<!>           name: animations-showcase     visible?: #f)
-          (<!>           name: meshes-showcase         visible?: #f)
-          (<!>           name: textures-showcase       visible?: #f)
-          (<!>           name: skyboxes-showcase       visible?: #f)
-          (<!>           name: import-model            visible?: #f)
-          (<!>           name: toggle-grid             visible?: #f)
-          (<!>           name: toggle-grid-z           visible?: #f)
-          (<!>           name: toggle-grid-y           visible?: #f)
-          (<!>           name: toggle-grid-x           visible?: #f)
-          (<!>           name: move-grid               visible?: #f)
-          (<!>           name: decrease-grid           visible?: #f)
-          (<!>           name: increase-grid           visible?: #f)
-          (<!>           name: reload-textures         visible?: #f)
-          (<!>           name: change-editor-mode      visible?: #f))
-        (<world-history!>                              visible?: #f)
-        (<world-window!>
-          (<!>           name: live-gaia/world         visible?: #f)
-          (<!>           name: design-gaia/world       visible?: #f)
-          (<!>           name: restore-gaia/world      visible?: #f))
-        (<world-tutorial!>)
         (<world-debug!>
-          (<!>           name: reset-profiling         visible?: #f)
-          (<!>           name: toggle-script           visible?: #f)
-          (<!>           name: toggle-axes             visible?: #f)
-          (<!>           name: toggle-axes-graduation  visible?: #f)
-          (<!>           name: toggle-debug-sectors    visible?: #f)
-          (<!>           name: toggle-debug-areas      visible?: #f)
-          (<!>           name: toggle-draw-atlas       visible?: #f)
-          (<!>           name: toggle-draw-me          visible?: #f)
-          (<!>           name: toggle-gc-sound         visible?: #f)
-          (<!>           name: change-missile-behavior visible?: #f)
-          (<!>           name: reset-marks             visible?: #f)
-          (<!>           name: clear-console           visible?: #f)
-          (<!>           name: clear-terminal          visible?: #f)
-          (<!>           name: garbage-collect         visible?: #f)
-          (<!>           name: explore-interface       visible?: #f)
-          (<!>           name: propagation-debugger    visible?: #f)
-          (<!>           name: test                    visible?: #f)
-          (<!>           name: test1                   visible?: #f)
-          (<!>           name: test2                   visible?: #f)
-          (<!>           name: test3                   visible?: #f)
-          (<!>           name: test4                   visible?: #f)
-          (<!>           name: test5                   visible?: #f)
-          (<!>           name: test6                   visible?: #f)
-          (<!>           name: test7                   visible?: #f)
-          (<!>           name: test8                   visible?: #f)
-          (<!>           name: test9                   visible?: #f)
-          (<!>           name: test0                   visible?: #f)))))
+          (<!>           name: toggle-info             visible?: #t)
+          (<!>           name: toggle-timeline         visible?: #t)
+          (<!>           name: toggle-profiler         visible?: #t)
+          (<!>           name: reset-profiling         visible?: #t)
+          (<!>           name: clear-console           visible?: #t)
+          (<!>           name: clear-terminal          visible?: #t)
+          (<!>           name: explore-interface       visible?: #t)
+          (<!>           name: test                    visible?: #t)
+          (<!>           name: test1                   visible?: #t)
+          (<!>           name: test2                   visible?: #t)
+          (<!>           name: test3                   visible?: #t)
+          (<!>           name: test4                   visible?: #t)
+          (<!>           name: test5                   visible?: #t)
+          (<!>           name: test6                   visible?: #t)
+          (<!>           name: test7                   visible?: #t)
+          (<!>           name: test8                   visible?: #t)
+          (<!>           name: test9                   visible?: #t)
+          (<!>           name: test0                   visible?: #t)))))
+
+  (definition developer-role
+    `((:bindings ,developer-bindings))))
+
+
+;;;
+;;;; Debug
+;;;
+
+
+(class Together-Debug-Bar extends World-Actionbar
   
-  (define-trait creator-main World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: zone-new                visible?: #f)
-        (<!>             name: zone-open               visible?: #f)
-        (<!>             name: toggle-user             visible?: #f))))
   
-  (define-trait creator-universe World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: bullet                  visible?: #f)
-        (<!>             name: arrow                   visible?: #f)
-        ;; for now as it enables jumping over kingdom bridge
-        (<!>             name: sprint                  visible?: #f)
-        (<!>             name: blink                   visible?: #f)
-        (<!>             name: warp                    visible?: #f)
-        (<!>             name: dash                    visible?: #f)
-        (<!>             name: mind-control            visible?: #f)
-        (<!>             name: toggle-aim              visible?: #f)
-        (<!>             name: toggle-free-aim         visible?: #f)
-        (<!>             name: toggle-ride             visible?: #f)
-        (<!>             name: toggle-fly              visible?: #f))))
-  
-  (define-trait creator-interface World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: run-script              visible?: #f)
-        (<!>             name: run-last-script         visible?: #f)
-        (<!>             name: toggle-glow             visible?: #f)
-        (<!>             name: toggle-interface        visible?: #f)
-        (<!>             name: toggle-occlusion        visible?: #f)
-        (<!>             name: toggle-wireframe        visible?: #f)
-        (<!>             name: toggle-lighting         visible?: #f)
-        (<!>             name: toggle-fog              visible?: #f)
-        (<!>             name: toggle-gadgets          visible?: #f)
-        (<!>             name: toggle-normals          visible?: #f)
-        (<!>             name: toggle-x-rays           visible?: #f)
-        (<!>             name: toggle-redstone-x-rays  visible?: #f)
-        (<!>             name: toggle-blocks           visible?: #f)
-        (<!>             name: toggle-post-processing  visible?: #f))))
-
-  (define-trait creator-camera World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-camera-smoothing visible?: #f)
-        (<!>             name: toggle-camera-follow    visible?: #f))))
-
-  (define-trait creator-edition World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: tiles-showcase          visible?: #f)
-        (<!>             name: shaders-showcase        visible?: #f)
-        (<!>             name: animations-showcase     visible?: #f)
-        (<!>             name: meshes-showcase         visible?: #f)
-        (<!>             name: textures-showcase       visible?: #f)
-        (<!>             name: skyboxes-showcase       visible?: #f)
-        (<!>             name: toggle-grid             visible?: #f)
-        (<!>             name: change-editor-mode      visible?: #f))))
-  
-  (define-trait creator-target World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
-
-  (define-trait creator-models World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: import-model            visible?: #f))))
-
-  (define-trait creator-history World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
-  
-  (define-trait creator-window World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: live-gaia/world         visible?: #f)
-        (<!>             name: design-gaia/world       visible?: #f)
-        (<!>             name: restore-gaia/world      visible?: #f))))
-  
-  (define-trait creator-tutorial World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait creator-objective World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait creator-debug World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: reset-profiling         visible?: #f)
-        (<!>             name: toggle-script           visible?: #f)
-        (<!>             name: toggle-axes             visible?: #f)
-        (<!>             name: toggle-debug-sectors    visible?: #f)
-        (<!>             name: toggle-debug-areas      visible?: #f)
-        (<!>             name: toggle-draw-atlas       visible?: #f)
-        (<!>             name: toggle-draw-me          visible?: #f)
-        (<!>             name: change-missile-behavior visible?: #f)
-        (<!>             name: reset-marks             visible?: #f)
-        (<!>             name: clear-terminal          visible?: #f)
-        (<!>             name: garbage-collect         visible?: #f)
-        (<!>             name: explore-interface       visible?: #f))))
-
-  (definition creator-role
-    `((:bindings ,creator-bindings)
-      (main ,creator-main)
-      (universe ,creator-universe)
-      (interface ,creator-interface)
-      (camera ,creator-camera)
-      (edition ,creator-edition)
-      (target ,creator-target)
-      (models ,creator-models)
-      (history ,creator-history)
-      (window ,creator-window)
-      (tutorial ,creator-tutorial)
-      (objective ,creator-objective)
-      (debug ,creator-debug)))
-
-
-  ;;;
-  ;;;; Designer
-  ;;;
-
-
-  (define-trait designer-bindings Bindings
-    (<Role-Trait>        name: designer
-      (<install>
-        (<world-menu!>
-          (<!>           name: view-help               visible?: #f))
-        (<world-zone!>
-          (<!>           name: zone-open-content       visible?: #f)
-          (<!>           name: zone-reload             visible?: #f))
-        (<world-universe!>
-          (<!>           name: mind-control            visible?: #f)
-          (<!>           name: toggle-aim              visible?: #f)
-          (<!>           name: toggle-free-aim         visible?: #f))
-        (<world-camera!>
-          (<!>           name: toggle-camera-follow    visible?: #f))
-        (<world-graphics!>
-          (<!>           name: toggle-lighting         visible?: #f)
-          (<!>           name: toggle-fog              visible?: #f)
-          (<!>           name: toggle-gadgets          visible?: #f)
-          (<!>           name: toggle-normals          visible?: #f)
-          (<!>           name: toggle-post-processing  visible?: #f))
-        (<world-edition!>
-          (<!>           name: select-target-mode      visible?: #f)
-          (<!>           name: move-target-mode        visible?: #f)
-          (<!>           name: rotate-target-mode      visible?: #f)
-          (<!>           name: scale-target-mode       visible?: #f)
-          (<!>           name: skeleton-target-mode    visible?: #f)
-          (<!>           name: tiles-showcase          visible?: #f)
-          (<!>           name: shaders-showcase        visible?: #f)
-          (<!>           name: animations-showcase     visible?: #f)
-          (<!>           name: meshes-showcase         visible?: #f)
-          (<!>           name: textures-showcase       visible?: #f)
-          (<!>           name: import-model            visible?: #f)
-          (<!>           name: reload-textures         visible?: #f))
-        (<world-history!>
-          (<!>           name: step-backward           visible?: #f)
-          (<!>           name: step-forward            visible?: #f)
-          (<!>           name: step-over               visible?: #f)
-          (<!>           name: reset-history           visible?: #f)
-          (<!>           name: toggle-evaluate-future  visible?: #f))
-        (<world-window!>
-          (<!>           name: live-gaia/world         visible?: #f)
-          (<!>           name: design-gaia/world       visible?: #f)
-          (<!>           name: restore-gaia/world      visible?: #f))
-        (<world-tutorial!>)
-        (<world-debug!>
-          (<!>           name: toggle-axes             visible?: #f)
-          (<!>           name: toggle-debug-sectors    visible?: #f)
-          (<!>           name: toggle-debug-areas      visible?: #f)
-          (<!>           name: toggle-draw-atlas       visible?: #f)
-          (<!>           name: toggle-draw-me          visible?: #f)
-          (<!>           name: toggle-gc-sound         visible?: #f)
-          (<!>           name: reset-marks             visible?: #f)
-          (<!>           name: clear-console           visible?: #f)
-          (<!>           name: clear-terminal          visible?: #f)
-          (<!>           name: garbage-collect         visible?: #f)
-          (<!>           name: explore-interface       visible?: #f)
-          (<!>           name: test                    visible?: #f)
-          (<!>           name: test1                   visible?: #f)
-          (<!>           name: test2                   visible?: #f)
-          (<!>           name: test3                   visible?: #f)
-          (<!>           name: test4                   visible?: #f)
-          (<!>           name: test5                   visible?: #f)
-          (<!>           name: test6                   visible?: #f)
-          (<!>           name: test7                   visible?: #f)
-          (<!>           name: test8                   visible?: #f)
-          (<!>           name: test9                   visible?: #f)
-          (<!>           name: test0                   visible?: #f)))))
-  
-  (define-trait designer-main World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait designer-universe World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: dash                   visible?: #f)
-        (<!>             name: mind-control           visible?: #f)
-        (<!>             name: toggle-aim             visible?: #f)
-        (<!>             name: toggle-free-aim        visible?: #f))))
-  
-  (define-trait designer-interface World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-lighting         visible?: #f)
-        (<!>             name: toggle-fog              visible?: #f)
-        (<!>             name: toggle-gadgets          visible?: #f)
-        (<!>             name: toggle-normals          visible?: #f)
-        (<!>             name: toggle-post-processing  visible?: #f))))
-
-  (define-trait designer-camera World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-camera-follow    visible?: #f))))
-
-  (define-trait designer-edition World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: tiles-showcase          visible?: #f)
-        (<!>             name: shaders-showcase        visible?: #f)
-        (<!>             name: animations-showcase     visible?: #f)
-        (<!>             name: meshes-showcase         visible?: #f)
-        (<!>             name: textures-showcase       visible?: #f))))
-  
-  (define-trait designer-target World-Actionbar
-    (<Role-Trait>
-      (<install>                                       visible?: #f)))
-
-  (define-trait designer-models World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: import-model            visible?: #f))))
-
-  (define-trait designer-history World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: step-backward           visible?: #f)
-        (<!>             name: step-forward            visible?: #f)
-        (<!>             name: step-over               visible?: #f)
-        (<!>             name: at-logic                visible?: #f)
-        (<!>             name: reset-history           visible?: #f)
-        (<!>             name: toggle-evaluate-future  visible?: #f))))
-  
-  (define-trait designer-window World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: live-gaia/world         visible?: #f)
-        (<!>             name: design-gaia/world       visible?: #f)
-        (<!>             name: restore-gaia/world      visible?: #f))))
-  
-  (define-trait designer-tutorial World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait designer-objective World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait designer-debug World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-axes             visible?: #f)
-        (<!>             name: toggle-debug-sectors    visible?: #f)
-        (<!>             name: toggle-debug-areas      visible?: #f)
-        (<!>             name: toggle-draw-atlas       visible?: #f)
-        (<!>             name: toggle-draw-me          visible?: #f)
-        (<!>             name: reset-marks             visible?: #f)
-        (<!>             name: clear-terminal          visible?: #f)
-        (<!>             name: garbage-collect         visible?: #f)
-        (<!>             name: explore-interface       visible?: #f))))
-
-  (definition designer-role
-    `((:bindings ,designer-bindings)
-      (main ,designer-main)
-      (universe ,designer-universe)
-      (interface ,designer-interface)
-      (camera ,designer-camera)
-      (edition ,designer-edition)
-      (target ,designer-target)
-      (models ,designer-models)
-      (history ,designer-history)
-      (window ,designer-window)
-      (tutorial ,designer-tutorial)
-      (objective ,designer-objective)
-      (debug ,designer-debug)))
-
-
-  ;;;
-  ;;;; Programmer
-  ;;;
-
-
-  (define-trait programmer-bindings Bindings
-    (<Role-Trait> name: programmer
-      (<install>)))
-  
-  (define-trait programmer-main World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-
-  (definition programmer-role
-    `((:bindings ,programmer-bindings)
-      (main ,programmer-main)))
-
-
-  ;;;
-  ;;;; Admin
-  ;;;
-
-
-  (define-trait admin-bindings Bindings
-    (<Role-Trait>
-      (<install>
-        (<world-menu!>)
-        (<world-world!>
-          (<!>           name: toggle-user             visible?: #f))
-        (<world-universe!>
-          (<!>           name: mind-control            visible?: #f)
-          (<!>           name: toggle-aim              visible?: #f)
-          (<!>           name: toggle-free-aim         visible?: #f)
-          (<!>           name: character-pane          visible?: #f)
-          (<!>           name: bag-pane                visible?: #f))
-        (<world-spell!>
-          (<!>           name: bullet                  visible?: #f)
-          (<!>           name: arrow                   visible?: #f)
-          (<!>           name: dash                    visible?: #f))
-        (<world-camera!>
-          (<!>           name: toggle-camera-smoothing visible?: #f)
-          (<!>           name: toggle-camera-follow    visible?: #f))
-        (<world-graphics!>
-          (<!>           name: toggle-lighting         visible?: #f)
-          (<!>           name: toggle-fog              visible?: #f)
-          (<!>           name: toggle-gadgets          visible?: #f)
-          (<!>           name: toggle-normals          visible?: #f)
-          (<!>           name: toggle-x-rays           visible?: #f)
-          (<!>           name: toggle-redstone-x-rays  visible?: #f)
-          (<!>           name: toggle-blocks           visible?: #f)
-          (<!>           name: toggle-post-processing  visible?: #f))
-        (<world-sound!>
-          (<!>           name: toggle-music            visible?: #f)
-          (<!>           name: toggle-ambience         visible?: #f)
-          (<!>           name: toggle-sound            visible?: #f))
-        (<world-media!>
-          (<!>           name: toggle-audio            visible?: #f)
-          (<!>           name: toggle-video            visible?: #f))
-        (<world-edition!>
-          (<!>           name: select-target-mode      visible?: #f)
-          (<!>           name: move-target-mode        visible?: #f)
-          (<!>           name: rotate-target-mode      visible?: #f)
-          (<!>           name: scale-target-mode       visible?: #f)
-          (<!>           name: no-showcase             visible?: #f)
-          (<!>           name: blocks-showcase         visible?: #f)
-          (<!>           name: models-showcase         visible?: #f)
-          (<!>           name: gadgets-showcase        visible?: #f)
-          (<!>           name: tiles-showcase          visible?: #f)
-          (<!>           name: shaders-showcase        visible?: #f)
-          (<!>           name: animations-showcase     visible?: #f)
-          (<!>           name: meshes-showcase         visible?: #f)
-          (<!>           name: textures-showcase       visible?: #f)
-          (<!>           name: skyboxes-showcase       visible?: #f)
-          (<!>           name: toggle-grid             visible?: #f)
-          (<!>           name: change-editor-mode      visible?: #f)
-          (<!>           name: import-model            visible?: #f)
-          (<!>           name: reload-textures         visible?: #f))
-        (<world-interface!>
-          (<!>           name: toggle-occlusion        visible?: #f)
-          (<!>           name: toggle-wireframe        visible?: #f))
-        (<world-history!>
-          (<!>           name: step-backward           visible?: #f)
-          (<!>           name: step-forward            visible?: #f)
-          (<!>           name: step-over               visible?: #f)
-          (<!>           name: reset-history           visible?: #f)
-          (<!>           name: toggle-evaluate-future  visible?: #f))
-        (<world-tutorial!>)
-        (<world-debug!>
-          (<!>           name: toggle-target           visible?: #f)
-          (<!>           name: toggle-axes             visible?: #f)
-          (<!>           name: toggle-debug-sectors    visible?: #f)
-          (<!>           name: toggle-debug-areas      visible?: #f)
-          (<!>           name: toggle-draw-atlas       visible?: #f)
-          (<!>           name: toggle-draw-me          visible?: #f)
-          (<!>           name: toggle-gc-sound         visible?: #f)
-          (<!>           name: change-missile-behavior visible?: #f)
-          (<!>           name: reset-marks             visible?: #f)
-          (<!>           name: clear-console           visible?: #f)
-          (<!>           name: clear-terminal          visible?: #f)
-          (<!>           name: garbage-collect         visible?: #f)
-          (<!>           name: explore-interface       visible?: #f)))))
-  
-  (define-trait admin-main World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-user             visible?: #f))))
-    
-  (define-trait admin-universe World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: bullet                  visible?: #f)
-        (<!>             name: arrow                   visible?: #f)
-        (<!>             name: dash                    visible?: #f)
-        (<!>             name: mind-control            visible?: #f)
-        (<!>             name: toggle-aim              visible?: #f)
-        (<!>             name: toggle-free-aim         visible?: #f)
-        (<!>             name: character-pane          visible?: #f)
-        (<!>             name: bag-pane                visible?: #f))))
-
-  (define-trait admin-interface World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-occlusion        visible?: #f)
-        (<!>             name: toggle-wireframe        visible?: #f)
-        (<!>             name: toggle-lighting         visible?: #f)
-        (<!>             name: toggle-fog              visible?: #f)
-        (<!>             name: toggle-gadgets          visible?: #f)
-        (<!>             name: toggle-normals          visible?: #f)
-        (<!>             name: toggle-x-rays           visible?: #f)
-        (<!>             name: toggle-redstone-x-rays  visible?: #f)
-        (<!>             name: toggle-blocks           visible?: #f)
-        (<!>             name: toggle-post-processing  visible?: #f))))
-
-  (define-trait admin-media World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-music            visible?: #f)
-        (<!>             name: toggle-ambience         visible?: #f)
-        (<!>             name: toggle-sound            visible?: #f)
-        (<!>             name: toggle-audio            visible?: #f)
-        (<!>             name: toggle-video            visible?: #f))))
-
-  (define-trait admin-camera World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-camera-smoothing visible?: #f)
-        (<!>             name: toggle-camera-follow    visible?: #f))))
-
-  (define-trait admin-edition World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: textures-showcase       visible?: #f))))
-
-  (define-trait admin-models World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: import-model            visible?: #f))))
-
-  (define-trait admin-history World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: step-backward           visible?: #f)
-        (<!>             name: step-forward            visible?: #f)
-        (<!>             name: step-over               visible?: #f)
-        (<!>             name: reset-history           visible?: #f)
-        (<!>             name: toggle-evaluate-future  visible?: #f))))
-  
-  (define-trait admin-window World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait admin-tutorial World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait admin-objective World-Actionbar
-    (<Role-Trait>
-      (<install>)))
-  
-  (define-trait admin-debug World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-target           visible?: #f)
-        (<!>             name: toggle-axes             visible?: #f)
-        (<!>             name: toggle-debug-sectors    visible?: #f)
-        (<!>             name: toggle-debug-areas      visible?: #f)
-        (<!>             name: toggle-draw-atlas       visible?: #f)
-        (<!>             name: toggle-draw-me          visible?: #f)
-        (<!>             name: change-missile-behavior visible?: #f)
-        (<!>             name: reset-marks             visible?: #f)
-        (<!>             name: clear-terminal          visible?: #f)
-        (<!>             name: garbage-collect         visible?: #f)
-        (<!>             name: explore-interface       visible?: #f))))
-
-  (definition admin-role
-    `((:bindings ,admin-bindings)
-      (main ,admin-main)
-      (universe ,admin-universe)
-      (interface ,admin-interface)
-      (media ,admin-media)
-      (camera ,admin-camera)
-      (edition ,admin-edition)
-      (models ,admin-models)
-      (history ,admin-history)
-      (window ,admin-window)
-      (tutorial ,admin-tutorial)
-      (objective ,admin-objective)
-      (debug ,admin-debug))))
+  (form
+    (<install>
+      (<World-Parameter-Button> name: toggle-info             resource: {Image-Resource "Library"} action-handler: {Action world-debug toggle-info} parameter: info)
+      (<World-Parameter-Button> name: toggle-timeline         resource: {Image-Resource "AlignmentCenter"} action-handler: {Action world-debug toggle-timeline} parameter: timeline)
+      (<World-Parameter-Button> name: toggle-profiler         resource: {Image-Resource "Memory"} action-handler: {Action world-debug toggle-profiler} parameter: profiler)
+      (<World-Action-Button>    name: reset-profiling         resource: {Image-Resource "Refresh"} action-handler: {Action world-debug reset-profiling})
+      (<World-Action-Button>    name: clear-terminal          resource: {Image-Resource "Cancel"} action-handler: {Action world-debug clear-terminal})
+      (<World-Action-Button>    name: clear-console           resource: {Image-Resource "ClearResults"} action-handler: {Action world-debug clear-console})
+      (<World-Action-Button>    name: explore-interface       resource: {Image-Resource "Watch"} action-handler: {Action world-debug explore-interface}))))
 
 
 ;;;
@@ -1186,9 +290,7 @@
       (<documents~>
         ;; Scripting
         (<Jazz-Text-Preferences>    name: jazz-text)
-        (<Command-Text-Preferences> name: command-text))
-      @wait-debugger!?
-      (<Debug-Preferences>          name: debug))))
+        (<Command-Text-Preferences> name: command-text)))))
 
 
 ;;;
@@ -1230,30 +332,28 @@
       (<Execute-Mode-Actions>        name: execute-mode)
       (<Find-Mode-Actions>           name: find-mode)
       (<Search-Results-Tree-Actions> name: search-results-tree)
-      @wait-and-need-to-split-ide-package (<Chapters-Browser-Actions>    name: chapters-browser)
-      @wait-and-need-to-split-ide-package (<Summary-View-Actions>        name: summary-view)
       ;; World
-      (<World-Menu-Actions>          name: world-menu visible?: #f)
-      (<World-Interface-Actions>     name: world-interface visible?: #f)
-      (<World-Graphics-Actions>      name: world-graphics visible?: #f)
-      (<World-Sound-Actions>         name: world-sound visible?: #f)
-      (<World-Media-Actions>         name: world-media visible?: #f)
-      (<World-Client-Actions>        name: world-client visible?: #f)
-      (<World-World-Actions>         name: world-world visible?: #f)
-      (<World-Zone-Actions>          name: world-zone visible?: #f)
-      (<World-Movement-Actions>      name: world-movement visible?: #f)
-      (<World-Camera-Actions>        name: world-camera visible?: #f)
-      (<World-Universe-Actions>      name: world-universe visible?: #f)
-      (<World-Spell-Actions>         name: world-spell visible?: #f)
-      (<World-Edition-Actions>       name: world-edition visible?: #f)
-      (<World-History-Actions>       name: world-history visible?: #f)
-      (<World-Window-Actions>        name: world-window visible?: #f)
-      (<World-Debug-Actions>         name: world-debug visible?: #f)
-      (<World-Tutorial-Actions>      name: world-tutorial visible?: #f)
-      (<World-Objective-Actions>     name: world-objective visible?: #f)
-      (<World-Collision-Actions>     name: world-collision visible?: #f)
-      (<World-Anonymous-Actions>     name: world-anonymous visible?: #f)
-      (<World-User-Actions>          name: world-user visible?: #f)
+      (<World-Menu-Actions>          name: world-menu)
+      (<World-Interface-Actions>     name: world-interface)
+      (<World-Graphics-Actions>      name: world-graphics)
+      (<World-Sound-Actions>         name: world-sound)
+      (<World-Media-Actions>         name: world-media)
+      (<World-Client-Actions>        name: world-client)
+      (<World-World-Actions>         name: world-world)
+      (<World-Zone-Actions>          name: world-zone)
+      (<World-Movement-Actions>      name: world-movement)
+      (<World-Camera-Actions>        name: world-camera)
+      (<World-Universe-Actions>      name: world-universe)
+      (<World-Spell-Actions>         name: world-spell)
+      (<World-Edition-Actions>       name: world-edition)
+      (<World-History-Actions>       name: world-history)
+      (<World-Window-Actions>        name: world-window)
+      (<World-Debug-Actions>         name: world-debug)
+      (<World-Tutorial-Actions>      name: world-tutorial)
+      (<World-Objective-Actions>     name: world-objective)
+      (<World-Collision-Actions>     name: world-collision)
+      (<World-Anonymous-Actions>     name: world-anonymous)
+      (<World-User-Actions>          name: world-user)
       ;; Together
       (<Together-Actions>            name: together))))
 
@@ -1269,37 +369,13 @@
   (form
     (<install>                                        title: "Together"
       ;; application
-      (<World-Action-Item> name: enter-press          title: "Enter" action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
-      (<World-Action-Item> name: tab-press            title: "Tab" action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
-      (<World-Action-Item> name: toggle-people        title: "Toggle people" action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
+      (<World-Action-Item> name: enter-press          title: "Enter" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
+      (<World-Action-Item> name: tab-press            title: "Tab" visible?: #t action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
+      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
       ;; media
-      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
-      (<World-Action-Item> name: toggle-video         title: "Toggle video" action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
-      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\L} description: "Cycle layouts.")
+      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
+      (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
+      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\L} description: "Cycle layouts.")
       ;; window
-      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")
-      ;; debug
-      (<World-Action-Item> name: test                 title: "Run test" action-handler: {Event-Handler :world on-test-script} shortcut: {Shortcut :control :alt #\T} description: "Run test.")
-      (<World-Action-Item> name: test1                title: "Run test #1" action-handler: {Event-Handler :world on-test-script1} shortcut: {Shortcut :control :alt #\1} description: "Run test #1.")
-      (<World-Action-Item> name: test2                title: "Run test #2" action-handler: {Event-Handler :world on-test-script2} shortcut: {Shortcut :control :alt #\2} description: "Run test #2.")
-      (<World-Action-Item> name: test3                title: "Run test #3" action-handler: {Event-Handler :world on-test-script3} shortcut: {Shortcut :control :alt #\3} description: "Run test #3.")
-      (<World-Action-Item> name: test4                title: "Run test #4" action-handler: {Event-Handler :world on-test-script4} shortcut: {Shortcut :control :alt #\4} description: "Run test #4.")
-      (<World-Action-Item> name: test5                title: "Run test #5" action-handler: {Event-Handler :world on-test-script5} shortcut: {Shortcut :control :alt #\5} description: "Run test #5.")
-      (<World-Action-Item> name: test6                title: "Run test #6" action-handler: {Event-Handler :world on-test-script6} shortcut: {Shortcut :control :alt #\6} description: "Run test #6.")
-      (<World-Action-Item> name: test7                title: "Run test #7" action-handler: {Event-Handler :world on-test-script7} shortcut: {Shortcut :control :alt #\7} description: "Run test #7.")
-      (<World-Action-Item> name: test8                title: "Run test #8" action-handler: {Event-Handler :world on-test-script8} shortcut: {Shortcut :control :alt #\8} description: "Run test #8.")
-      (<World-Action-Item> name: test9                title: "Run test #9" action-handler: {Event-Handler :world on-test-script9} shortcut: {Shortcut :control :alt #\9} description: "Run test #9.")
-      (<World-Action-Item> name: test0                title: "Run test #0" action-handler: {Event-Handler :world on-test-script0} shortcut: {Shortcut :control :alt #\0} description: "Run test #0."))))
-
-
-;;;
-;;;; Expressions
-;;;
-
-
-(define-expression define-objective
-  declaration?: #t
-  tabulate: 1
-  walk: :define
-  name-mangler: ("objective")))
+      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")))))

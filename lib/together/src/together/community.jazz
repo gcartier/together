@@ -118,18 +118,19 @@
             (name (get-character-name configuration)))
         ;; welcome
         (new Label-View name: 'welcome parent: interface title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+        (new Name-Label name: 'name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+        (new Kind-Label name: 'circle parent: interface title: "Circle" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Push-Button name: 'join parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
-        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(20 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new People-Panel name: 'people parent: interface location: '(10 90) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 50) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(18 60) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
+        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 60) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
-          (set-location chat '(-10 90))
+          (set-location chat '(-10 100))
           (set-proportion chat '(200 (bounds -300))))
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         ;; circle
@@ -164,12 +165,15 @@
       (show 'release)
       (show 'quit)
       (show 'name)
+      (show 'circle)
       (show 'join)
       (show 'people-label)
       (show 'people)
       (show 'chat-label)
       (show 'chat)
       (show 'about)
+      (when (developer?)
+        (show 'debug))
       (add-exception-view self)
       (mute-all self)
       (view-people self)
@@ -189,6 +193,8 @@
       (show 'audio)
       (show 'video)
       (show 'layouts)
+      (when (developer?)
+        (show 'debug))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
@@ -210,7 +216,7 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (define (closer frame)
-        (set-visible? (child interface 'name) #t)
+        (set-visible? (child interface 'circle) #t)
         (set-visible? (child interface 'join) #t)
         (set-visible? (child interface 'people-label) #t)
         (set-visible? (child interface 'people) #t)
@@ -228,7 +234,7 @@
   (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
     (let ((interface (current-interface))
           (world (current-world)))
-      (set-visible? (child interface 'name) #f)
+      (set-visible? (child interface 'circle) #f)
       (set-visible? (child interface 'join) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -519,6 +525,23 @@
                  (case (get-video-layout)
                    ((gallery) "Fullscreen")
                    (else "Gallery"))))))
+
+
+;;;
+;;;; Name-Label
+;;;
+
+
+(class Name-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
+  (method override (mouse-up self evt)
+    (when (developer?)
+      (open-login-zone))))
 
 
 ;;;

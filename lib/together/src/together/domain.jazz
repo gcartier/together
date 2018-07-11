@@ -1,0 +1,22 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Domain Names
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.domain jazz
+
+
+(import (world))
+
+
+(definition package (register-domain-names)
+  (register-domain-name 'character "Name")
+  (register-domain-name 'group "Circle")))

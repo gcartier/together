@@ -90,6 +90,6 @@
   (set-settings-root {Directory Home ".together"})
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user creator designer programmer admin))
+  (set-valid-roles '(user developer))
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))))

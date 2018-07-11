@@ -412,6 +412,55 @@
 
 
 ;;;
+;;;; Name-Label
+;;;
+
+
+(class Name-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre}))
+
+
+@change-display-alias
+(class Name-Label extends Label-View
+  
+  
+  (slot image initialize #f getter generate)
+  
+  
+  (method (cache-image self)
+    (or image
+        (let ((img (new Image resource: {Image-Resource "Modified"} portfolio: (resolve-nickname :images))))
+          (set! image img)
+          img)))
+  
+  
+  (method override (preferred-size self)
+    (let ((size (nextmethod self)))
+      (new Dimension (+ (get-width size) 42) (get-height size))))
+  
+  
+  (method override (mouse-enter self)
+    (invalidate-view self))
+  
+  (method override (mouse-leave self)
+    (invalidate-view self))
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
+  (method override (draw self surface context)
+    (nextmethod self surface context)
+    (when (eq? (get-mouse-in) self)
+      (let ((size (preferred-size self)))
+        (draw-at (cache-image self) surface context (- (get-width size) 16) 4)))))
+
+
+;;;
 ;;;; Info-Label
 ;;;
 

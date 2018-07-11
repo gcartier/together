@@ -18,7 +18,8 @@
 
 (import (jazz.io)
         (world)
-        (together))
+        (together)
+        (together.domain))
 
 
 (definition (prepare-worker)
@@ -30,7 +31,8 @@
   (set-settings-root {Directory Home ".together"})
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user creator designer programmer admin)))
+  (set-valid-roles '(user))
+  (register-domain-names))
 
 
 (definition protected (prepare-settings)

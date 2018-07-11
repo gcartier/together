@@ -19,7 +19,8 @@
         (jazz.settings)
         (world)
         (world.autoload)
-        (world.io))
+        (world.io)
+        (world.settings))
 
 
 (definition protected (together-file)
@@ -32,22 +33,23 @@
 ;;;
 
 
+(definition protected (open-login-zone)
+  (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
+
+
 (definition protected (open-welcome/circle-zone)
-  (define (open-welcome)
-    (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
-  
   (define (open-circle remote-file)
     (let ((obj (open-client remote-file)))
       (if (is? obj Zone)
           obj
         (let ((title (if (string? obj) obj "Unable to connect to server"))
-              (zone (open-welcome)))
+              (zone (open-login-zone)))
           (report-exception zone title obj)))))
   
   (let ((file (together-file)))
     (if (exists? file)
         (open-circle file)
-      (open-welcome))))
+      (open-login-zone))))
 
 
 (welcome-zone-open-set! open-welcome/circle-zone)

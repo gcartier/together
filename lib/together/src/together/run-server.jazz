@@ -16,7 +16,8 @@
 
 (import (jazz.io)
         (world)
-        (together))
+        (together)
+        (together.domain))
 
 
 (definition protected (prepare-server)
@@ -27,13 +28,14 @@
   (set-process-kind 'process)
   (set-settings-root {Directory Home ".together"})
   (set-settings-alias 'Resources)
+  (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(admin))
   (set-default-server "Together")
-  (register-domain-name 'character "Name")
   (set-processor-filename (determine-processor-filename))
-  (set-worker-filename (determine-worker-filename)))
+  (set-worker-filename (determine-worker-filename))
+  (register-domain-names))
 
 
 (definition protected (prepare-settings)
@@ -44,12 +46,17 @@
     (connect-slave-to-master)))
 
 
-(definition (override-settings settings)
+(definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role user
-                       ;; worker
+                       world.role user)))
+
+
+(definition (override-settings settings)
+  (for-each-property (lambda (property value)
+                       (set-setting settings property value))
+                     '(;; worker
                        world.worker? #f)))
 
 

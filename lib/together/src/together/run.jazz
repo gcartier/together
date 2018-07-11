@@ -16,7 +16,8 @@
 
 (import (jazz.io)
         (world)
-        (together))
+        (together)
+        (together.domain))
 
 
 (definition protected (prepare-together)
@@ -30,10 +31,11 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user creator designer programmer admin))
+  (set-valid-roles '(user developer))
   (set-default-server "Together")
   (set-server-filename (determine-server-filename))
-  (set-worker-filename (determine-worker-filename)))
+  (set-worker-filename (determine-worker-filename))
+  (register-domain-names))
 
 
 (definition protected (prepare-settings)
@@ -47,7 +49,9 @@
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; welcome
+                     '(;; role
+                       world.role                 user
+                       ;; welcome
                        world.welcome-skybox       "nebula"
                        ;; media
                        world.video-layout         gallery
@@ -69,9 +73,7 @@
 (definition (override-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; role
-                       world.role                 user
-                       ;; interface
+                     '(;; interface
                        world.show-belt?           #f
                        ;; audio
                        world.music?               #f

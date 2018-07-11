@@ -19,6 +19,7 @@
                               together.community
                               together.debugger
                               together.devel
+                              together.domain
                               together.login
                               together.process
                               together.product
@@ -42,19 +43,19 @@
                                     world
                                     world.client
                                     world.server))
-            (together-processor (title "Together-Processor")
+            (together-processor (title "Processor")
                                 (prefix "Processor")
                                 (run together.run-processor)
                                 (product together.product-processor)
                                 (build (together-processor executable: "Together-Processor" minimum-heap: 200000 bundle: "together-processor" resources: "resources/together-processor"))
                                 (dependencies world.processor))
-            (together-server (title "Together-Server")
+            (together-server (title "Server")
                              (prefix "Server")
                              (run together.run-server)
                              (product together.product-server)
                              (build (together-server executable: "Together-Server" minimum-heap: 100000 bundle: "together-server" resources: "resources/together-server"))
                              (dependencies world.server))
-            (together-worker (title "Together-Worker")
+            (together-worker (title "Worker")
                              (prefix "Worker")
                              (run together.run-worker)
                              (product together.product-worker)
