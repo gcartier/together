@@ -38,6 +38,7 @@
         (world.client.tier)
         (world.context)
         (world.geometry)
+        (world.interface)
         (world.interface.clients)
         (world.interface.dialogs)
         (world.interface.documents)
@@ -59,10 +60,11 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot stage         initialize #f                 getter generate)
-  (slot configuration initialize #f                 getter generate)
-  (slot hide-ring     initialize (new Time-Ring 1)  getter generate)
-  (slot hide-thread   initialize #f                 getter generate)
+  (slot stage         initialize #f                getter generate)
+  (slot configuration initialize #f                getter generate)
+  (slot view-focused  initialize #f                getter generate)
+  (slot hide-ring     initialize (new Time-Ring 1) getter generate)
+  (slot hide-thread   initialize #f                getter generate)
   
   
   (method override (zone-ready self)
@@ -134,6 +136,11 @@
           (set-location chat '(-10 100))
           (set-proportion chat '(200 (bounds -300))))
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
+        ;; create
+        (when (developer?)
+          (new Label-View name: 'circle-label parent: interface title: "New circle name" location: '(center -120) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+          (new Name-View name: 'circle-view parent: interface location: '(center -90) action-view: 'circle-create)
+          (new Push-Button name: 'circle-create parent: interface title: "Create" location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create self)))
         ;; circle
         (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
         (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
@@ -167,6 +174,10 @@
       (show 'quit)
       (show 'name)
       (show 'circle)
+      (when (developer?)
+        (show 'circle-label)
+        (show 'circle-view)
+        (show 'circle-create))
       (show 'join)
       (show 'people-label)
       (show 'people)
@@ -203,7 +214,8 @@
         (start-video video))
       (update-audio self)
       (update-video self)
-      (update-layouts self)))
+      (update-layouts self)
+      (focus-world)))
   
   
   (method (uninstall-stage self)
@@ -212,13 +224,24 @@
   
   (method (on-about self evt)
     (let ((interface (current-interface)))
+      (define (show name)
+        (set-visible? (child interface name) #t))
+      
       (define (closer frame)
-        (set-visible? (child interface 'circle) #t)
-        (set-visible? (child interface 'join) #t)
-        (set-visible? (child interface 'people-label) #t)
-        (set-visible? (child interface 'people) #t)
-        (set-visible? (child interface 'chat-label) #t)
-        (set-visible? (child interface 'chat) #t))
+        (show 'circle)
+        (show 'join)
+        (show 'people-label)
+        (show 'people)
+        (show 'chat-label)
+        (show 'chat)
+        (when (developer?)
+          (show 'circle-label)
+          (show 'circle-view)
+          (show 'circle-create))
+        (when view-focused
+          (inhibit-focus-selects-all self view-focused
+            (lambda ()
+              (acquire-focus view-focused)))))
       
       (let ((frame (top-frame)))
         (if (is? frame World-Document)
@@ -231,12 +254,20 @@
   (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
     (let ((interface (current-interface))
           (world (current-world)))
-      (set-visible? (child interface 'circle) #f)
-      (set-visible? (child interface 'join) #f)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-visible? (child interface 'chat) #f)
+      (define (hide name)
+        (set-visible? (child interface name) #f))
+      
+      (set! view-focused (active-focus))
+      (hide 'circle)
+      (hide 'join)
+      (hide 'people-label)
+      (hide 'people)
+      (hide 'chat-label)
+      (hide 'chat)
+      (when (developer?)
+        (hide 'circle-label)
+        (hide 'circle-view)
+        (hide 'circle-create))
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
   
   
@@ -384,6 +415,14 @@
   
   (method (on-leave self evt)
     (goto-stage self 'welcome))
+  
+  
+  (method (on-create self evt)
+    (debug 'create))
+  
+  
+  (method override (name-return self content)
+    (debug 'return content))
   
   
   (method (goto-stage self what)

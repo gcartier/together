@@ -116,6 +116,16 @@
       (when frame
         (close frame)))
     #t)
+  
+  
+  (method (inhibit-focus-selects-all self view thunk)
+    (if (and (is? view Text-View)
+             (get-focus-selects-all? view))
+        (begin
+          (set-focus-selects-all? view #f)
+          (prog1 (thunk)
+            (set-focus-selects-all? view #t)))
+      (thunk)))
 
   
   ;;;
@@ -198,6 +208,9 @@
 (class Name-View extends Border-View
   
   
+  (property action-view initialize #f accessors generate)
+  
+  
   (form
     (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
       (<Scroller-View>            hscroll?: #f vscroll?: #f
@@ -208,7 +221,7 @@
   (method (on-content-change self evt)
     (let ((interface (current-interface)))
       (let ((text (locate self 'text)))
-        (set-enabled? (child interface 'enter) (not (empty-string? (get-string-content text)))))))
+        (set-enabled? (child interface action-view) (not (empty-string? (get-string-content text)))))))
   
   
   (method (on-return self evt)

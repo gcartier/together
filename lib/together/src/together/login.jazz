@@ -67,7 +67,7 @@
   
   (slot stage         initialize #f getter generate)
   (slot configuration initialize #f getter generate)
-  (slot name-focused? initialize #f getter generate)
+  (slot view-focused  initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -134,8 +134,8 @@
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
         (cond ((not name)
-               (new Kind-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
-               (new Name-View name: 'name parent: interface location: '(center (center -60)))
+               (new Label-View name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+               (new Name-View name: 'name parent: interface location: '(center (center -60)) action-view: 'enter)
                (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
                (delay-event
                  (lambda ()
@@ -266,8 +266,10 @@
                (set-visible? (child interface 'name-label) #t)
                (set-visible? (child interface 'name) #t)
                (set-visible? (child interface 'enter) #t)
-               (when name-focused?
-                 (acquire-focus (locate (child interface 'name) 'text))))
+               (when view-focused
+                 (inhibit-focus-selects-all self view-focused
+                   (lambda ()
+                     (acquire-focus view-focused)))))
               (else
                (set-visible? (child interface 'name) #t)
                (set-visible? (child interface 'enter) #t))))
@@ -284,7 +286,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (cond ((not configuration)
-             (set! name-focused? (eq? (active-focus) (locate (child interface 'name) 'text)))
+             (set! view-focused (active-focus))
              (set-visible? (child interface 'name-label) #f)
              (set-visible? (child interface 'name) #f)
              (set-visible? (child interface 'enter) #f))
