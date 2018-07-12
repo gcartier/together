@@ -17,6 +17,7 @@
 (import (jazz.component)
         (jazz.event)
         (jazz.figure)
+        (jazz.geometry)
         (jazz.graphic)
         (jazz.handler)
         (jazz.io)
@@ -172,8 +173,6 @@
       (show 'chat-label)
       (show 'chat)
       (show 'about)
-      (when (developer?)
-        (show 'debug))
       (add-exception-view self)
       (mute-all self)
       (view-people self)
@@ -193,8 +192,6 @@
       (show 'audio)
       (show 'video)
       (show 'layouts)
-      (when (developer?)
-        (show 'debug))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
@@ -250,7 +247,9 @@
   
   (method override (mouse-moved self x y)
     (when (eq? stage 'circle)
-      (show-interface self)))
+      (show-interface self))
+    (when (developer?)
+      (show/hide-debug self (fxround x) (fxround y))))
   
   
   (method override (mouse-action self h v)
@@ -307,6 +306,14 @@
                                               (set-visible? (child interface 'audio) #f)
                                               (set-visible? (child interface 'video) #f)
                                               (set-visible? (child interface 'layouts) #f))))))))))
+  
+  
+  (method (show/hide-debug self h v)
+    (let ((interface (current-interface)))
+      (let ((toolbar (child interface 'debug)))
+        (let ((pos (new Point h v)))
+          (let ((in? (in-rect? pos (get-rect toolbar))))
+            (set-visible? toolbar in?))))))
   
   
   ;;;

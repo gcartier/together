@@ -194,7 +194,7 @@
           (,World-Interface-Bar interface horizontal none #f)
           ,(case current-role
              ((developer)
-              `(,Together-Debug-Bar debug horizontal (center tail)))
+              `(,Together-Debug-Bar debug horizontal (center tail) #f))
              (else
               `(,Together-Debug-Bar debug horizontal none #f)))))
       (set-layouter (child interface 'models) models-bar-layouter)
