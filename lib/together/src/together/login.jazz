@@ -134,7 +134,7 @@
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
         (cond ((not name)
-               (new Label-View name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
+               (new Kind-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} background: {Color Black alpha: .2} justification: 'tail)
                (new Name-View name: 'name parent: interface location: '(center (center -60)) action-view: 'enter)
                (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
                (delay-event
@@ -210,12 +210,7 @@
   
   (method override (enter-press self)
     (cond ((not configuration)
-           (let ((interface (current-interface)))
-             (let ((view (child interface 'name)))
-               (let ((text (locate view 'text)))
-                 (let ((content (get-string-content text)))
-                   (unless (empty-string? content)
-                     (create-default-remote self content)))))))
+           (create-default-remote self))
           (else
            (remote-open self (together-file))
            @customize
@@ -323,8 +318,8 @@
     (create-remote self))
   
   
-  (method override (name-return self content)
-    (create-default-remote self content))
+  (method override (name-return self)
+    (create-default-remote self))
   
   
   @customize
@@ -352,16 +347,21 @@
             (remote-open self file))))))
   
   
-  (method package (create-default-remote self name)
-    (let ((client-name "Together")
-          (server-address (host->string together-host))
-          (server-port (port->string together-port))
-          (avatar #f)
-          (script #f)
-          (zone '(zone "Circle")))
-      (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
-        (setup-configuration self)
-        (remote-open self file))))
+  (method package (create-default-remote self)
+    (let ((interface (current-interface)))
+      (let ((view (child interface 'name)))
+        (let ((text (locate view 'text)))
+          (let ((name (get-string-content text)))
+            (unless (empty-string? name)
+              (let ((client-name "Together")
+                    (server-address (host->string together-host))
+                    (server-port (port->string together-port))
+                    (avatar #f)
+                    (script #f)
+                    (zone '(zone "Circle")))
+                (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
+                  (setup-configuration self)
+                  (remote-open self file)))))))))
   
   
   @customize

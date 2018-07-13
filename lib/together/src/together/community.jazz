@@ -60,11 +60,14 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot stage         initialize #f                getter generate)
-  (slot configuration initialize #f                getter generate)
-  (slot view-focused  initialize #f                getter generate)
-  (slot hide-ring     initialize (new Time-Ring 1) getter generate)
-  (slot hide-thread   initialize #f                getter generate)
+  (slot stage           initialize #f                getter generate)
+  (slot configuration   initialize #f                getter generate)
+  (slot selected-group  initialize #f                getter generate)
+  (slot selected-player initialize #f                getter generate)
+  (slot joined-circle   initialize #f                getter generate)
+  (slot view-focused    initialize #f                getter generate)
+  (slot hide-ring       initialize (new Time-Ring 1) getter generate)
+  (slot hide-thread     initialize #f                getter generate)
   
   
   (method override (zone-ready self)
@@ -125,8 +128,8 @@
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (new Kind-Label name: 'circle parent: interface title: "Circle" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        (new Push-Button name: 'join parent: interface title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
+        (new Kind-Label name: 'circle parent: interface title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} background: {Color Black alpha: .2} justification: 'center)
+        (new Push-Button name: 'join parent: interface title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(18 60) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
         (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 60) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
@@ -137,11 +140,11 @@
           (set-proportion chat '(200 (bounds -300))))
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         ;; create
-        (when (developer?)
-          (new Label-View name: 'circle-label parent: interface title: "New circle name" location: '(center -120) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 shadow: thin} justification: 'tail)
-          (new Name-View name: 'circle-view parent: interface location: '(center -90) action-view: 'circle-create)
-          (new Push-Button name: 'circle-create parent: interface title: "Create" location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create self)))
+        (new Kind-Label name: 'circle-label parent: interface title: "New circle name" location: '(center -120) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} background: {Color Black alpha: .2} justification: 'tail)
+        (new Name-View name: 'circle-view parent: interface location: '(center -90) border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create)
+        (new Push-Button name: 'circle-create parent: interface title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create&join self))
         ;; circle
+        (new Name-Label name: 'circle-name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
         (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
         (new Push-Button name: 'video parent: interface location: '(360 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
@@ -174,11 +177,12 @@
       (show 'quit)
       (show 'name)
       (show 'circle)
-      (when (developer?)
-        (show 'circle-label)
-        (show 'circle-view)
-        (show 'circle-create))
+      (set-title (child interface 'circle) "")
       (show 'join)
+      (set-enabled? (child interface 'join) #f)
+      (show 'circle-label)
+      (show 'circle-view)
+      (show 'circle-create)
       (show 'people-label)
       (show 'people)
       (show 'chat-label)
@@ -199,10 +203,18 @@
       (define (show name)
         (set-visible? (child interface name) #t))
       
+      (show 'circle-name)
+      (set-title (child interface 'circle-name) joined-circle)
       (show 'leave)
       (show 'audio)
       (show 'video)
       (show 'layouts)
+      (when (not (world-setting 'together.hide-people? #t))
+        (show 'people-label)
+        (show 'people))
+      (when (not (world-setting 'together.hide-chat? #t))
+        (show 'chat-label)
+        (show 'chat))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
@@ -234,10 +246,9 @@
         (show 'people)
         (show 'chat-label)
         (show 'chat)
-        (when (developer?)
-          (show 'circle-label)
-          (show 'circle-view)
-          (show 'circle-create))
+        (show 'circle-label)
+        (show 'circle-view)
+        (show 'circle-create)
         (when view-focused
           (inhibit-focus-selects-all self view-focused
             (lambda ()
@@ -264,10 +275,9 @@
       (hide 'people)
       (hide 'chat-label)
       (hide 'chat)
-      (when (developer?)
-        (hide 'circle-label)
-        (hide 'circle-view)
-        (hide 'circle-create))
+      (hide 'circle-label)
+      (hide 'circle-view)
+      (hide 'circle-create)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
   
   
@@ -315,6 +325,7 @@
     (let ((window (current-window))
           (interface (current-interface)))
       (show-cursor window)
+      (set-visible? (child interface 'circle-name) #t)
       (set-visible? (child interface 'leave) #t)
       (set-visible? (child interface 'audio) #t)
       (set-visible? (child interface 'video) #t)
@@ -333,6 +344,7 @@
                                             (let ((window (current-window))
                                                   (interface (current-interface)))
                                               (hide-cursor window)
+                                              (set-visible? (child interface 'circle-name) #f)
                                               (set-visible? (child interface 'leave) #f)
                                               (set-visible? (child interface 'audio) #f)
                                               (set-visible? (child interface 'video) #f)
@@ -396,13 +408,8 @@
                                             "Start Video"))))
   
   
-  (method (on-enter-press self evt)
-    (enter-press self))
-  
-  
   (method override (enter-press self)
-    (when (eq? stage 'welcome)
-      (goto-stage self 'circle)))
+    )
   
   
   (method override (tab-press self)
@@ -410,19 +417,53 @@
   
   
   (method package (on-join self evt)
-    (goto-stage self 'circle))
+    (join-circle self selected-group))
   
   
   (method (on-leave self evt)
-    (goto-stage self 'welcome))
+    (leave-circle self))
   
   
-  (method (on-create self evt)
-    (debug 'create))
+  (method (on-create&join self evt)
+    (create&join-circle self))
   
   
-  (method override (name-return self content)
-    (debug 'return content))
+  (method override (name-return self)
+    (create&join-circle self))
+  
+  
+  (method (create&join-circle self)
+    (let ((interface (current-interface))
+          (tier (current-client))
+          (world (current-world)))
+      (let ((view (child interface 'circle-view)))
+        (let ((text (locate view 'text)))
+          (let ((name (get-string-content text)))
+            (unless (empty-string? name)
+              (let ((exception (create-group tier name)))
+                (if exception
+                    (display-error world exception)
+                  (clear-message world)
+                  (set-string-content text "")
+                  (join-circle self name)))))))))
+  
+  
+  (method (join-circle self name)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((exception (join-group tier name)))
+        (if exception
+            (display-error world exception)
+          (clear-message world)
+          (set! joined-circle name)
+          (goto-stage self 'circle)))))
+  
+  
+  (method (leave-circle self)
+    (let ((tier (current-client)))
+      (leave-group tier joined-circle)
+      (set! joined-circle #f)
+      (goto-stage self 'welcome)))
   
   
   (method (goto-stage self what)
@@ -452,6 +493,7 @@
           (video (current-video)))
       (set-processor-entered-hook tier (~ processor-entered self))
       (set-processor-exited-hook tier (~ processor-exited self))
+      (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-receive-hook audio (~ receive-audio self))
       (set-receive-hook video (~ receive-video self))
       (set-render-hook video (~ render-video self))))
@@ -463,6 +505,7 @@
           (video (current-video)))
       (set-processor-entered-hook tier #f)
       (set-processor-exited-hook tier #f)
+      (set-hierarchy-update-hook tier #f)
       (set-receive-hook audio #f)
       (set-receive-hook video #f)
       (set-render-hook video #f)))
@@ -475,16 +518,16 @@
   
   (method (processor-entered self character-name)
     (let ((world (current-world)))
-      (display-message world (format "{a} entered" character-name))
-      (update-people self)))
+      (display-message world (format "{a} entered" character-name))))
+  
   
   (method (processor-exited self character-name)
     (let ((world (current-world)))
-      (display-message world (format "{a} exited" character-name))
-      (update-people self)))
+      (display-message world (format "{a} exited" character-name))))
   
-  (method (update-people self)
-    (view-people self))
+  
+  (method (hierarchy-update self hierarchy)
+    (view-hierarchy self hierarchy))
   
   
   ;;;
@@ -526,22 +569,76 @@
   
   
   (method (view-people self)
+    (let ((tier (current-tier)))
+      (view-hierarchy self (list-hierarchy tier))))
+  
+  
+  (method (view-hierarchy self hierarchy)
     (let ((interface (current-interface))
-          (zone (current-zone))
           (me (current-me)))
-      (let ((players (connected-players (current-tier)))
-            (tree (locate (child interface 'people) '(people people))))
+      (let ((tree (locate (child interface 'people) '(people people))))
         (remove-every-row tree)
         (with-update-locked tree
           (lambda ()
-            (for-each (lambda (player)
-                        (bind (name zone presentation) player
-                          (unless (equal? name (get-name me))
-                            (let ((title (format "{a}" name)))
+            (bind (welcome . groups) hierarchy
+              (let ((players (cdr welcome)))
+                (let ((row (add-row tree
+                                  state: 'expanded
+                                  children: (list (new Tree-Node
+                                                    title: "The gathering"
+                                                    font: {Font Label-User}
+                                                    color: {Color red: 32 green: 205 blue: 33})))))
+                  (for-each (lambda (player)
                               (add-row tree
-                                children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Blue}))
-                                user-data: player)))))
-                      (sort nu<? players key: first)))))))
+                                       father: row
+                                       children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
+                                       user-data: (list 'player player #f)))
+                            (let ((me (get-name me)))
+                              (sort di<? players key: (lambda (player)
+                                                        (if (equal? player me)
+                                                            (cons 0 player)
+                                                          (cons 1 player))))))))
+              (when (not-null? hierarchy)
+                (add-row tree
+                         children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                (for-each (lambda (info)
+                            (bind (group . players) info
+                              (let ((row (add-row tree
+                                                  state: 'expanded
+                                                  children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
+                                                  user-data: (list 'group group))))
+                                (for-each (lambda (player)
+                                            (add-row tree
+                                                     father: row
+                                                     children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
+                                                     user-data: (list 'player player group)))
+                                          players))))
+                          (sort di<? groups key: car)))))))))
+  
+  
+  (method package (people-selection-change self)
+    (let ((interface (current-interface)))
+      (let ((tree (locate (child interface 'people) '(people people))))
+        (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
+          (bind (kind . rest) selected
+            (define (select group player)
+              (set! selected-group group)
+              (set! selected-player player)
+              (cond ((not group)
+                     (set-title (child interface 'circle) "")
+                     (set-enabled? (child interface 'join) #f))
+                    (else
+                     (set-title (child interface 'circle) group)
+                     (set-enabled? (child interface 'join) #t)
+                     (layout-view interface))))
+            
+            (case kind
+              ((player)
+               (bind (player group) rest
+                 (select group player)))
+              ((group)
+               (bind (group) rest
+                 (select group #f)))))))))
   
   
   ;;;
@@ -617,17 +714,14 @@
       (<content~>                              layout-type: fill
         (<Tree-Header>                         style: document shown?: #f
           (<content~>
-            (<Tree-View>          name: people portfolio: :images filled-column: person multiple-selection?: #t background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+            (<Tree-View>          name: people portfolio: :images filled-column: person background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click}
               (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
   
   
   (method package (on-selection-change self evt)
-    )
+    (let ((zone (current-zone)))
+      (people-selection-change zone)))
   
   
   (method package (on-double-click self evt)
-    )
-  
-  
-  (method override (on-return-press self evt)
     )))

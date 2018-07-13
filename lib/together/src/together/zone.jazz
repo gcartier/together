@@ -133,7 +133,7 @@
   ;;;
   
   
-  (method protected virtual (name-return self content)
+  (method protected virtual (name-return self)
     )
   
   
@@ -226,10 +226,7 @@
   
   (method (on-return self evt)
     (let ((zone (current-zone)))
-      (let ((text (locate self 'text)))
-        (let ((content (get-string-content text)))
-          (unless (empty-string? content)
-            (name-return zone content)))))))
+      (name-return zone))))
 
 
 ;;;
