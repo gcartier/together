@@ -666,9 +666,10 @@
 
   (method (on-cycle-layouts self evt)
     (let ((world (current-world)))
-      (cycle-layouts self)
-      (update-layouts self)
-      (display-message world (capitalize (symbol->string (get-video-layout))))))
+      (when (eq? stage 'circle)
+        (cycle-layouts self)
+        (update-layouts self)
+        (display-message world (capitalize (symbol->string (get-video-layout)))))))
   
   
   (method (cycle-layouts self)
