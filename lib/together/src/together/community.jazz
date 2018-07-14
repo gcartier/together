@@ -128,6 +128,8 @@
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
+        @invite
+        (new Label-View name: 'join-invite parent: interface title: "Join an existing circle" location: '(center (center -75)) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 30 shadow: thin})
         (new Kind-Label name: 'circle parent: interface title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} background: {Color Black alpha: .2} justification: 'center)
         (new Push-Button name: 'join parent: interface title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-join self))
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 60) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
@@ -137,9 +139,17 @@
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
           (set-location chat '(-10 100))
-          (set-proportion chat '(200 (bounds -300))))
+          (set-proportion chat '(220 (bounds -300))))
+        (new Kind-Label name: 'command-to parent: interface title: "To The gathering" location: '(-10 -158) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+        (let ((command (child interface 'command)))
+          (set-border-type (child command 'border) 'solid)
+          (set-border-color (child command 'border) {Color Dark-Gray})
+          (set-location command '(-10 -146))
+          (set-size command (new Dimension 220 19)))
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         ;; create
+        @invite
+        (new Label-View name: 'create-invite parent: interface title: "or create your own" location: '(center -170) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 30 shadow: thin})
         (new Kind-Label name: 'circle-label parent: interface title: "New circle name" location: '(center -120) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} background: {Color Black alpha: .2} justification: 'tail)
         (new Name-View name: 'circle-view parent: interface location: '(center -90) border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create)
         (new Push-Button name: 'circle-create parent: interface title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create&join self))
@@ -175,11 +185,15 @@
       (show 'version)
       (show 'release)
       (show 'quit)
+      @invite
+      (show 'join-invite)
       (show 'name)
       (show 'circle)
       (set-title (child interface 'circle) "")
       (show 'join)
       (set-enabled? (child interface 'join) #f)
+      @invite
+      (show 'create-invite)
       (show 'circle-label)
       (show 'circle-view)
       (show 'circle-create)
