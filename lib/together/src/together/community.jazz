@@ -474,18 +474,24 @@
   
   (method (join-circle self name)
     (let ((tier (current-client))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (let ((exception (join-group tier name)))
         (if exception
             (display-error world exception)
           (clear-message world)
+          (uninstall-camera)
+          (remove-skybox zone)
           (set! joined-circle name)
           (goto-stage self 'circle)))))
   
   
   (method (leave-circle self)
-    (let ((tier (current-client)))
+    (let ((tier (current-client))
+          (zone (current-zone)))
       (leave-group tier joined-circle)
+      (install-camera)
+      (install-skybox zone (find-skybox (world-setting 'world.welcome-skybox "nebula")))
       (set! joined-circle #f)
       (goto-stage self 'welcome)))
   
