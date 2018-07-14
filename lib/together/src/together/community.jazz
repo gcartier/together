@@ -201,6 +201,8 @@
       (show 'people)
       (show 'chat-label)
       (show 'chat)
+      (show 'command-to)
+      (show 'command)
       (show 'about)
       (add-exception-view self)
       (mute-all self)
@@ -228,7 +230,9 @@
         (show 'people))
       (when (not (world-setting 'together.hide-chat? #t))
         (show 'chat-label)
-        (show 'chat))
+        (show 'chat)
+        (show 'command-to)
+        (show 'command))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
@@ -260,6 +264,8 @@
         (show 'people)
         (show 'chat-label)
         (show 'chat)
+        (show 'command-to)
+        (show 'command)
         (show 'circle-label)
         (show 'circle-view)
         (show 'circle-create)
@@ -289,6 +295,8 @@
       (hide 'people)
       (hide 'chat-label)
       (hide 'chat)
+      (hide 'command-to)
+      (hide 'command)
       (hide 'circle-label)
       (hide 'circle-view)
       (hide 'circle-create)
@@ -389,7 +397,9 @@
     (let ((interface (current-interface)))
       (when (eq? stage 'circle)
         (toggle-visible? (child interface 'chat-label))
-        (toggle-visible? (child interface 'chat)))))
+        (toggle-visible? (child interface 'chat))
+        (toggle-visible? (child interface 'command-to))
+        (toggle-visible? (child interface 'command)))))
   
   
   (method (on-toggle-audio self evt)
@@ -488,12 +498,6 @@
   
   (method (on-quit self evt)
     (quit-process (current-process)))
-  
-  
-  (method (on-chat self evt)
-    (let ((interface (current-interface)))
-      (let ((chat (child interface 'chat)))
-        (set-visible? chat (not (get-visible? chat))))))
   
   
   ;;;
