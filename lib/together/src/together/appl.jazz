@@ -46,6 +46,7 @@
         (world.settings)
         (world.window)
         (together)
+        (together.community)
         (together.settings)
         (together.window)
         (together.zone))
@@ -123,31 +124,31 @@
   
   (method (on-toggle-people self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Together-Zone)
+      (when (is? zone Community-Zone)
         (on-toggle-people zone evt))))
   
   
   (method (on-toggle-chat self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Together-Zone)
+      (when (is? zone Community-Zone)
         (on-toggle-chat zone evt))))
   
   
   (method (on-toggle-audio self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Together-Zone)
+      (when (is? zone Community-Zone)
         (on-toggle-audio zone evt))))
   
   
   (method (on-toggle-video self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Together-Zone)
+      (when (is? zone Community-Zone)
         (on-toggle-video zone evt))))
   
   
   (method (on-cycle-layouts self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Together-Zone)
+      (when (is? zone Community-Zone)
         (on-cycle-layouts zone evt))))
   
   
