@@ -133,16 +133,16 @@
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         (new Push-Button name: 'quit parent: interface title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
-        (cond ((not name)
-               (new Kind-Label name: 'name-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} background: {Color Black alpha: .2} justification: 'tail)
-               (new Name-View name: 'name parent: interface location: '(center (center -60)) action-view: 'enter)
-               (new Push-Button name: 'enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
-               (delay-event
-                 (lambda ()
-                   (acquire-focus (locate (child interface 'name) 'text)))))
-              (else
-               (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-               (new Push-Button name: 'enter parent: interface title: "Enter" location: '(center center) size: (if name {Dimension 180 36} {Dimension 240 36}) font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))))
+        (new Kind-Label name: 'new-label parent: interface title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} background: {Color Black alpha: .2} justification: 'tail)
+        (new Name-View name: 'new-name parent: interface location: '(center (center -60)) action-view: 'new-enter)
+        (new Push-Button name: 'new-enter parent: interface title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
+        (new Name-Label name: 'name parent: interface title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+        (new Push-Button name: 'enter parent: interface title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-enter-press self))
+        (update-name-views self)
+        (when (not configuration)
+          (delay-event
+            (lambda ()
+              (acquire-focus (locate (child interface 'new-name) 'text)))))
         @customize
         (when name
           (new Push-Button name: 'customize parent: interface title: "Customize" location: '(center -40) size: {Dimension 140 24} action-handler: (~ on-customize self)))
@@ -179,6 +179,19 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (setup-interface world)))
+  
+  
+  (method (update-name-views self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'new-label) (not configuration))
+      (set-visible? (child interface 'new-name) (not configuration))
+      (set-visible? (child interface 'new-enter) (not configuration))
+      (set-visible? (child interface 'name) configuration)
+      (set-visible? (child interface 'enter) configuration)
+      (when configuration
+        (let ((name (and configuration (get-character-name configuration))))
+          (set-title (child interface 'name) name)
+          (layout-view interface)))))
   
   
   ;;;
@@ -258,9 +271,9 @@
     (let ((interface (current-interface)))
       (define (closer frame)
         (cond ((not configuration)
-               (set-visible? (child interface 'name-label) #t)
-               (set-visible? (child interface 'name) #t)
-               (set-visible? (child interface 'enter) #t)
+               (set-visible? (child interface 'new-label) #t)
+               (set-visible? (child interface 'new-name) #t)
+               (set-visible? (child interface 'new-enter) #t)
                (when view-focused
                  (inhibit-focus-selects-all self view-focused
                    (lambda ()
@@ -282,9 +295,9 @@
           (world (current-world)))
       (cond ((not configuration)
              (set! view-focused (active-focus))
-             (set-visible? (child interface 'name-label) #f)
-             (set-visible? (child interface 'name) #f)
-             (set-visible? (child interface 'enter) #f))
+             (set-visible? (child interface 'new-label) #f)
+             (set-visible? (child interface 'new-name) #f)
+             (set-visible? (child interface 'new-enter) #f))
             (else
              (set-visible? (child interface 'name) #f)
              (set-visible? (child interface 'enter) #f)))
@@ -344,12 +357,13 @@
         (bind (server-address server-port name) contents
           (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
             (setup-configuration self)
+            (update-name-views self)
             (remote-open self file))))))
   
   
   (method package (create-default-remote self)
     (let ((interface (current-interface)))
-      (let ((view (child interface 'name)))
+      (let ((view (child interface 'new-name)))
         (let ((text (locate view 'text)))
           (let ((name (get-string-content text)))
             (unless (empty-string? name)
@@ -361,6 +375,7 @@
                     (zone '(zone "Circle")))
                 (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
                   (setup-configuration self)
+                  (update-name-views self)
                   (remote-open self file)))))))))
   
   
