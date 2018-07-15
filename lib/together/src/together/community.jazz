@@ -435,7 +435,11 @@
   
   
   (method override (enter-press self)
-    )
+    (when (and (eq? stage 'welcome)
+               (eq? (active-focus) (current-interface))
+               selected-group
+               (not selected-player))
+      (join-circle self selected-group)))
   
   
   (method override (tab-press self)
