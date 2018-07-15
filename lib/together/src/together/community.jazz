@@ -702,6 +702,11 @@
                  (select group #f)))))))))
   
   
+  (method package (people-double-click self)
+    (when (and selected-group (not selected-player))
+      (join-circle self selected-group)))
+  
+  
   ;;;
   ;;;; Layouts
   ;;;
@@ -788,4 +793,5 @@
   
   
   (method package (on-double-click self evt)
-    )))
+    (let ((zone (current-zone)))
+      (people-double-click zone)))))
