@@ -66,6 +66,7 @@
   (slot selected-player initialize #f                getter generate)
   (slot joined-circle   initialize #f                getter generate)
   (slot view-focused    initialize #f                getter generate)
+  (slot draw-hook       initialize #f                getter generate)
   (slot hide-ring       initialize (new Time-Ring 1) getter generate)
   (slot hide-thread     initialize #f                getter generate)
   
@@ -81,7 +82,8 @@
         (install-hooks self)
         (install-hider self)
         (set-escape-hook world (lambda () (close-frame self)))
-        (set-draw-me? self #f))))
+        (set-draw-me? self #f)
+        (view-people self))))
   
   
   (method override (destroy self)
@@ -206,7 +208,6 @@
       (show 'about)
       (add-exception-view self)
       (mute-all self)
-      (view-people self)
       (layout-view interface)
       (no-showcase world)))
   
@@ -421,7 +422,8 @@
     (let ((video (current-video)))
       (when (eq? stage 'circle)
         (toggle-video video)
-        (update-video self))))
+        (update-video self)
+        (invalidate-interface))))
   
   
   (method (update-video self)
@@ -483,7 +485,8 @@
           (uninstall-camera)
           (remove-skybox zone)
           (set! joined-circle name)
-          (goto-stage self 'circle)))))
+          (goto-stage self 'circle)
+          (invalidate-interface)))))
   
   
   (method (leave-circle self)
@@ -493,7 +496,8 @@
       (install-camera)
       (install-skybox zone (find-skybox (world-setting 'world.welcome-skybox "nebula")))
       (set! joined-circle #f)
-      (goto-stage self 'welcome)))
+      (goto-stage self 'welcome)
+      (invalidate-interface)))
   
   
   (method (goto-stage self what)
@@ -512,27 +516,28 @@
   
   
   (method (install-hooks self)
-    (let ((tier (current-client))
+    (let ((interface (current-interface))
+          (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
       (set-processor-entered-hook tier (~ processor-entered self))
       (set-processor-exited-hook tier (~ processor-exited self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
-      (set-receive-hook audio (~ receive-audio self))
-      (set-receive-hook video (~ receive-video self))
-      (set-render-hook video (~ render-video self))))
+      (set-render-hook video (~ render-video self))
+      (set! draw-hook (~ draw-frames self))
+      (register-draw-hook interface draw-hook)))
   
   
   (method (uninstall-hooks self)
-    (let ((tier (current-client))
+    (let ((interface (current-interface))
+          (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
       (set-processor-entered-hook tier #f)
       (set-processor-exited-hook tier #f)
       (set-hierarchy-update-hook tier #f)
-      (set-receive-hook audio #f)
-      (set-receive-hook video #f)
-      (set-render-hook video #f)))
+      (set-render-hook video #f)
+      (unregister-draw-hook interface draw-hook)))
   
   
   ;;;
@@ -559,18 +564,34 @@
   ;;;
   
   
-  (method (receive-audio self audio id buffer timestamp duration)
-    #f
-    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
-    (neq? stage 'circle))
-  
-  (method (receive-video self video id buffer timestamp duration)
-    #f
-    @for-the-moment-need-to-always-receive-for-coherent-codec-stream
-    (neq? stage 'circle))
-  
   (method (render-video self video)
     (neq? stage 'circle))
+  
+  
+  (method (draw-frames self surface)
+    (let ((video (current-video)))
+      (define (draw-output output)
+        (when (is? output Sheet-Video-Sink)
+          (when (not (get-on? output))
+            (let ((sheet (get-sheet output)))
+              (fill-rect surface (inflate-rect (get-rect sheet) -1 -1) {Color red: 30 green: 30 blue: 30})
+              (frame-rect surface (get-rect sheet) {Color Dim-Gray})
+              (set-font surface {Font font-name: tahoma point-size: 24 hint-style: slight hint-metrics: on})
+              (let ((player (get-player output)))
+                (let ((name (if (not player) "Me" (get-name player))))
+                  (let ((extent (get-text-extent surface name)))
+                    (let ((pos (get-position sheet))
+                          (offset (center extent (get-size sheet))))
+                      (draw-text surface (+ (get-h pos) (get-h offset)) (+ (get-v pos) (get-v offset)) name {Color White})))))))))
+      
+      (let ((self-output (find-output video #f)))
+        (when (eq? stage 'circle)
+          (for-each (lambda (output)
+                      (unless (eq? output self-output)
+                        (draw-output output)))
+                    (get-ordered-outputs video))
+          (when self-output
+            (draw-output self-output))))))
   
   
   (method (mute-all self)
@@ -592,15 +613,20 @@
   ;;;
   
   
+  (method (people-tree self)
+    (let ((interface (current-interface)))
+      (locate (child interface 'people) '(people people))))
+  
+  
   (method (view-people self)
     (let ((tier (current-tier)))
       (view-hierarchy self (list-hierarchy tier))))
   
   
   (method (view-hierarchy self hierarchy)
-    (let ((interface (current-interface))
+    (let ((tier (current-tier))
           (me (current-me)))
-      (let ((tree (locate (child interface 'people) '(people people))))
+      (let ((tree (people-tree self)))
         (remove-every-row tree)
         (with-update-locked tree
           (lambda ()
@@ -612,11 +638,12 @@
                                                     title: "The gathering"
                                                     font: {Font Label-User}
                                                     color: {Color red: 32 green: 205 blue: 33})))))
-                  (for-each (lambda (player)
-                              (add-row tree
-                                       father: row
-                                       children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
-                                       user-data: (list 'player player #f)))
+                  (for-each (lambda (info)
+                              (bind (player id no) info
+                                (add-row tree
+                                         father: row
+                                         children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
+                                         user-data: (list 'player player #f))))
                             (let ((me (get-name me)))
                               (sort di<? players key: (lambda (player)
                                                         (if (equal? player me)
@@ -631,18 +658,19 @@
                                                   state: 'expanded
                                                   children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
                                                   user-data: (list 'group group))))
-                                (for-each (lambda (player)
-                                            (add-row tree
-                                                     father: row
-                                                     children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
-                                                     user-data: (list 'player player group)))
+                                (for-each (lambda (info)
+                                            (bind (player id no) info
+                                              (add-row tree
+                                                       father: row
+                                                       children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
+                                                       user-data: (list 'player player group))))
                                           players))))
                           (sort di<? groups key: car)))))))))
   
   
   (method package (people-selection-change self)
     (let ((interface (current-interface)))
-      (let ((tree (locate (child interface 'people) '(people people))))
+      (let ((tree (people-tree self)))
         (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
           (bind (kind . rest) selected
             (define (select group player)
@@ -682,9 +710,11 @@
     (let ((video (current-video)))
       (case (get-video-layout)
         ((gallery)
-         (fullscreen-layout video))
+         (fullscreen-layout video)
+         (invalidate-interface))
         ((fullscreen)
-         (gallery-layout video)))))
+         (gallery-layout video)
+         (invalidate-interface)))))
   
   
   (method (update-layouts self)
