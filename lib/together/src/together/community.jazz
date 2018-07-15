@@ -191,9 +191,14 @@
       (show 'join-invite)
       (show 'name)
       (show 'circle)
-      (set-title (child interface 'circle) "")
       (show 'join)
-      (set-enabled? (child interface 'join) #f)
+      ;; quicky for test
+      (cond ((and selected-group (not selected-player))
+             (set-title (child interface 'circle) selected-group)
+             (set-enabled? (child interface 'join) #t))
+            (else
+             (set-title (child interface 'circle) "")
+             (set-enabled? (child interface 'join) #f)))
       @invite
       (show 'create-invite)
       (show 'circle-label)
