@@ -560,7 +560,12 @@
   
   
   (method (hierarchy-update self hierarchy)
-    (view-hierarchy self hierarchy))
+    (let ((tree (people-tree self)))
+      (with-preserved-selection tree
+        (lambda ()
+          (view-hierarchy self hierarchy))
+        use: 'data
+        test: equal?)))
   
   
   ;;;
