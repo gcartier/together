@@ -161,9 +161,9 @@
         ;; circle
         (new Kind-Label name: 'circle-name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
-        (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
-        (new Push-Button name: 'video parent: interface location: '(360 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
-        (new Push-Button name: 'layouts parent: interface location: '(580 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
+        (new Push-Button name: 'audio parent: interface location: '(180 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
+        (new Push-Button name: 'video parent: interface location: '(340 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
+        (new Push-Button name: 'layouts parent: interface location: '(540 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
         (new Push-Button name: 'people-button parent: interface location: '(-190 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
         (new Push-Button name: 'chat-button parent: interface location: '(-30 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
         ;; hide
