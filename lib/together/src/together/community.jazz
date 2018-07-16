@@ -40,6 +40,7 @@
         (world.geometry)
         (world.interface)
         (world.interface.clients)
+        (world.interface.command)
         (world.interface.dialogs)
         (world.interface.documents)
         (world.interface.frame)
@@ -536,7 +537,9 @@
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set! draw-hook (~ draw-frames self))
-      (register-draw-hook interface draw-hook)))
+      (register-draw-hook interface draw-hook)
+      (set-return-handler (child interface 'command) (~ command-return self))
+      (set-escape-handler (child interface 'command) (~ command-escape self))))
   
   
   (method (uninstall-hooks self)
@@ -548,7 +551,9 @@
       (set-processor-exited-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
-      (unregister-draw-hook interface draw-hook)))
+      (unregister-draw-hook interface draw-hook)
+      (set-return-handler (child interface 'command) #f)
+      (set-escape-handler (child interface 'command) #f)))
   
   
   ;;;
@@ -715,6 +720,62 @@
   (method package (people-double-click self)
     (when (and selected-group (not selected-player))
       (join-circle self selected-group)))
+  
+  
+  ;;;
+  ;;;; Chat
+  ;;;
+  
+  
+  (method (command-return self command)
+    (define (parse-content content)
+      (if (not (developer?))
+          (values 'group (group-recipient) content)
+        (cond ((starts-with? content "/s ")
+               (values 'server #f (substring content 3 (string-length content))))
+              ((starts-with? content "/g ")
+               (values 'group (group-recipient) (substring content 3 (string-length content))))
+              ((starts-with? content "/w ")
+               (let ((str (substring content 3 (string-length content))))
+                 (let ((pos (find str #\space)))
+                   (if (not pos)
+                       (values 'whisper (get-name (current-me)) str)
+                     (let ((recipient (substring str 0 pos))
+                           (message (substring str (+ pos 1) (string-length str))))
+                       (show-panel-whisper recipient message)
+                       (values 'whisper recipient message))))))
+              ((starts-with? content "/r ")
+               (let ((last-whisperer (get-last-whisperer (current-world)))
+                     (message (substring content 3 (string-length content))))
+                 (if (not last-whisperer)
+                     (values 'group (group-recipient) message)
+                   (show-panel-whisper last-whisperer message)
+                   (values 'whisper last-whisperer message))))
+              (else
+               (values 'group (group-recipient) content)))))
+    
+    (define (group-recipient)
+      (if (eq? stage 'circle)
+          joined-circle
+        #f))
+    
+    (define (show-panel-whisper recipient message)
+      (let ((interface (current-interface)))
+        (let ((panel (child interface 'chat)))
+          (show-whisper panel recipient message))))
+    
+    (let ((world (current-world))
+          (tier (current-client)))
+      (let ((text (locate command 'text)))
+        (let ((content (get-string-content text)))
+          (unless (whitespace? content)
+            (receive (kind recipient message) (parse-content content)
+              (client-message tier kind recipient message)
+              (set-string-content text "")))))))
+  
+  
+  (method (command-escape self command)
+    )
   
   
   ;;;
