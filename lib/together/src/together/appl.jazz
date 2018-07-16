@@ -31,6 +31,7 @@
         (jazz.reference)
         (jazz.resource)
         (jazz.search)
+        (jazz.tree)
         (jazz.view)
         (world)
         (world.appl)
@@ -94,7 +95,8 @@
   
   (method override (finish-process self)
     (nextmethod self)
-    (set-safe-explore-action 'ignore))
+    (set-safe-explore-action 'ignore)
+    (set-exceeds-tooltips? #f))
 
   
   ;;;
