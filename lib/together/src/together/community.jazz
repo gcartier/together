@@ -164,6 +164,8 @@
         (new Push-Button name: 'audio parent: interface location: '(200 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
         (new Push-Button name: 'video parent: interface location: '(360 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
         (new Push-Button name: 'layouts parent: interface location: '(580 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
+        (new Push-Button name: 'people-button parent: interface location: '(-190 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
+        (new Push-Button name: 'chat-button parent: interface location: '(-30 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
         ;; hide
         (hide-all self))))
   
@@ -244,6 +246,8 @@
       (show 'audio)
       (show 'video)
       (show 'layouts)
+      (show 'people-button)
+      (show 'chat-button)
       (when (not (world-setting 'together.hide-people? #t))
         (show 'people-label)
         (show 'people))
@@ -265,6 +269,7 @@
       (update-audio self)
       (update-video self)
       (update-layouts self)
+      (update-buttons self)
       (focus-world)))
   
   
@@ -410,7 +415,8 @@
     (let ((interface (current-interface)))
       (when (eq? stage 'circle)
         (toggle-visible? (child interface 'people-label))
-        (toggle-visible? (child interface 'people)))))
+        (toggle-visible? (child interface 'people))
+        (update-buttons self))))
   
   
   (method (on-toggle-chat self evt)
@@ -419,7 +425,18 @@
         (toggle-visible? (child interface 'chat-label))
         (toggle-visible? (child interface 'chat))
         (toggle-visible? (child interface 'command-to))
-        (toggle-visible? (child interface 'command)))))
+        (toggle-visible? (child interface 'command))
+        (update-buttons self))))
+  
+  
+  (method (update-buttons self)
+    (let ((interface (current-interface)))
+      (set-title (child interface 'people-button) (if (get-visible? (child interface 'people))
+                                                      "Hide People"
+                                                    "Show People"))
+      (set-title (child interface 'chat-button) (if (get-visible? (child interface 'chat))
+                                                    "Hide Chat"
+                                                  "Show Chat"))))
   
   
   (method (on-toggle-audio self evt)
