@@ -377,6 +377,8 @@
       (set-visible? (child interface 'audio) #t)
       (set-visible? (child interface 'video) #t)
       (set-visible? (child interface 'layouts) #t)
+      (set-visible? (child interface 'people-button) #t)
+      (set-visible? (child interface 'chat-button) #t)
       (delay-hide-interface self)))
   
   
@@ -395,7 +397,9 @@
                                               (set-visible? (child interface 'leave) #f)
                                               (set-visible? (child interface 'audio) #f)
                                               (set-visible? (child interface 'video) #f)
-                                              (set-visible? (child interface 'layouts) #f))))))))))
+                                              (set-visible? (child interface 'layouts) #f)
+                                              (set-visible? (child interface 'people-button) #f)
+                                              (set-visible? (child interface 'chat-button) #f))))))))))
   
   
   (method (show/hide-debug self h v)
