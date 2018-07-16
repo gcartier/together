@@ -184,6 +184,12 @@
       (define (show name)
         (set-visible? (child interface name) #t))
       
+      (define (title name str)
+        (set-title (child interface name) str))
+      
+      (define (enabled? name flag)
+        (set-enabled? (child interface name) flag))
+      
       (stop-audio audio feedback?: #f)
       (stop-video video feedback?: #f)
       (show 'together)
@@ -197,11 +203,11 @@
       (show 'join)
       ;; quicky for test
       (cond ((and selected-group (not selected-player))
-             (set-title (child interface 'circle) selected-group)
-             (set-enabled? (child interface 'join) #t))
+             (title 'circle selected-group)
+             (enabled? 'join #t))
             (else
-             (set-title (child interface 'circle) "")
-             (set-enabled? (child interface 'join) #f)))
+             (title 'circle "")
+             (enabled? 'join #f)))
       @invite
       (show 'create-invite)
       (show 'circle-label)
@@ -212,6 +218,7 @@
       (show 'chat-label)
       (show 'chat)
       (show 'command-to)
+      (title 'command-to "To The gathering")
       (show 'command)
       (show 'about)
       (add-exception-view self)
@@ -228,8 +235,11 @@
       (define (show name)
         (set-visible? (child interface name) #t))
       
+      (define (title name str)
+        (set-title (child interface name) str))
+      
       (show 'circle-name)
-      (set-title (child interface 'circle-name) joined-circle)
+      (title 'circle-name joined-circle)
       (show 'leave)
       (show 'audio)
       (show 'video)
@@ -242,6 +252,7 @@
         (show 'chat)
         (show 'command-to)
         (show 'command))
+      (title 'command-to (format "To {a}" joined-circle))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
