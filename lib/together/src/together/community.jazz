@@ -101,7 +101,7 @@
   
   
   (method (setup-stage self)
-    (set! stage 'welcome))
+    (set! stage 'gathering))
   
   
   (method (setup-configuration self)
@@ -126,8 +126,8 @@
       (let ((version (process-version (current-process)))
             (release (process-release (current-process)))
             (name (get-character-name configuration)))
-        ;; welcome
-        (new Label-View name: 'welcome parent: interface title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+        ;; gathering
+        (new Label-View name: 'together parent: interface title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
         (new Name-Label name: 'name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (new Version-Label name: 'version parent: interface title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
         (new Version-Label name: 'release parent: interface title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12 shadow: thin})
@@ -169,13 +169,13 @@
   
   (method (install-stage self)
     (case stage
-      ((welcome)
-       (install-welcome self))
+      ((gathering)
+       (install-gathering self))
       ((circle)
        (install-circle self))))
   
   
-  (method (install-welcome self)
+  (method (install-gathering self)
     (let ((interface (current-interface))
           (world (current-world))
           (audio (current-audio))
@@ -185,7 +185,7 @@
       
       (stop-audio audio feedback?: #f)
       (stop-video video feedback?: #f)
-      (show 'welcome)
+      (show 'together)
       (show 'version)
       (show 'release)
       (show 'quit)
@@ -442,7 +442,7 @@
   
   
   (method override (enter-press self)
-    (when (and (eq? stage 'welcome)
+    (when (and (eq? stage 'gathering)
                (eq? (active-focus) (current-interface))
                selected-group
                (not selected-player))
@@ -507,7 +507,7 @@
       (install-camera)
       (install-skybox zone (find-skybox (world-setting 'world.welcome-skybox "nebula")))
       (set! joined-circle #f)
-      (goto-stage self 'welcome)
+      (goto-stage self 'gathering)
       (invalidate-interface)))
   
   
@@ -649,8 +649,8 @@
         (remove-every-row tree)
         (with-update-locked tree
           (lambda ()
-            (bind (welcome . groups) hierarchy
-              (let ((players (cdr welcome)))
+            (bind (gathering . groups) hierarchy
+              (let ((players (cdr gathering)))
                 (let ((row (add-row tree
                                   state: 'expanded
                                   children: (list (new Tree-Node
