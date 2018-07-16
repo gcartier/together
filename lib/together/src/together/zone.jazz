@@ -221,7 +221,7 @@
   (method (on-content-change self evt)
     (let ((interface (current-interface)))
       (let ((text (locate self 'text)))
-        (set-enabled? (child interface action-view) (not (empty-string? (get-string-content text)))))))
+        (set-enabled? (child interface action-view) (not (whitespace? (get-string-content text)))))))
   
   
   (method (on-return self evt)

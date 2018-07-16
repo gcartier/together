@@ -475,7 +475,7 @@
           (world (current-world)))
       (let ((view (child interface 'circle-view)))
         (let ((text (locate view 'text)))
-          (let ((name (get-string-content text)))
+          (let ((name (trim-whitespace (get-string-content text))))
             (unless (empty-string? name)
               (let ((exception (create-group tier name)))
                 (if exception

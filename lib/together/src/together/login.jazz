@@ -365,7 +365,7 @@
     (let ((interface (current-interface)))
       (let ((view (child interface 'new-name)))
         (let ((text (locate view 'text)))
-          (let ((name (get-string-content text)))
+          (let ((name (trim-whitespace (get-string-content text))))
             (unless (empty-string? name)
               (let ((client-name "Together")
                     (server-address (host->string together-host))
