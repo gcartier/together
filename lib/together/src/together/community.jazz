@@ -762,33 +762,28 @@
   
   
   (method package (people-selection-change self)
-    (let ((interface (current-interface)))
-      (let ((tree (people-tree self)))
-        (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
-          (bind (kind . rest) selected
-            (define (select group player)
-              (set! selected-group group)
-              (set! selected-player player)
-              (cond ((not group)
-                     (set-title (child interface 'circle) "")
-                     (set-enabled? (child interface 'join) #f))
-                    (else
-                     (set-title (child interface 'circle) group)
-                     (set-enabled? (child interface 'join) #t)
-                     (layout-view interface))))
-            
-            (case kind
-              ((player)
-               (bind (player group) rest
-                 (select group player)))
-              ((group)
-               (bind (group) rest
-                 (select group #f)))))))))
+    (let ((tree (people-tree self)))
+      (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
+        (bind (kind . rest) selected
+          (define (select group player)
+            (set! selected-group group)
+            (set! selected-player player)
+            (when (eq? stage 'gathering)
+              (update-circle/join self)))
+          
+          (case kind
+            ((player)
+             (bind (player group) rest
+               (select group player)))
+            ((group)
+             (bind (group) rest
+               (select group #f))))))))
   
   
   (method package (people-double-click self)
-    (when (and selected-group (not selected-player))
-      (join-circle self selected-group)))
+    (when (eq? stage 'gathering)
+      (when (and selected-group (not selected-player))
+        (join-circle self selected-group))))
   
   
   ;;;
