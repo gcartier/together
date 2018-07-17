@@ -203,13 +203,6 @@
       (show 'name)
       (show 'circle)
       (show 'join)
-      ;; quicky for test
-      (cond ((and selected-group (not selected-player))
-             (title 'circle selected-group)
-             (enabled? 'join #t))
-            (else
-             (title 'circle "")
-             (enabled? 'join #f)))
       @invite
       (show 'create-invite)
       (show 'circle-label)
@@ -223,6 +216,7 @@
       (title 'command-to "To The gathering")
       (show 'command)
       (show 'about)
+      (update-circle/join self)
       (add-exception-view self)
       (mute-all self)
       (layout-view interface)
@@ -326,6 +320,17 @@
       (hide 'circle-view)
       (hide 'circle-create)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
+  
+  
+  (method (update-circle/join self)
+    (let ((interface (current-interface)))
+      (cond ((not selected-group)
+             (set-title (child interface 'circle) "")
+             (set-enabled? (child interface 'join) #f))
+            (else
+             (set-title (child interface 'circle) selected-group)
+             (set-enabled? (child interface 'join) #t)
+             (layout-view interface)))))
   
   
   ;;;
