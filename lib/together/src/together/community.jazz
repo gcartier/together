@@ -577,6 +577,7 @@
       (set-render-hook video (~ render-video self))
       (set! draw-hook (~ draw-frames self))
       (register-draw-hook interface draw-hook)
+      (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))))
   
@@ -591,6 +592,7 @@
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
       (unregister-draw-hook interface draw-hook)
+      (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
       (set-escape-handler (child interface 'command) #f)))
   
@@ -792,6 +794,14 @@
   ;;;
   ;;;; Chat
   ;;;
+  
+  
+  (method (chat-displayed self chat)
+    (when (eq? stage 'circle)
+      (let ((interface (current-interface)))
+        (set-visible? (child interface 'command-to) #t)
+        (set-visible? (child interface 'command) #t)
+        #f)))
   
   
   (method (command-return self command)
