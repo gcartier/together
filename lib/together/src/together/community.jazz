@@ -376,6 +376,7 @@
   (method (show-interface self)
     (let ((window (current-window))
           (interface (current-interface)))
+      @wait-later-version-as-it-needs-debugging
       (show-cursor window)
       (set-visible? (child interface 'circle-name) #t)
       (set-visible? (child interface 'leave) #t)
@@ -397,6 +398,7 @@
                                           (when (eq? stage 'circle)
                                             (let ((window (current-window))
                                                   (interface (current-interface)))
+                                              @wait-later-version-as-it-needs-debugging
                                               (hide-cursor window)
                                               (set-visible? (child interface 'circle-name) #f)
                                               (set-visible? (child interface 'leave) #f)
