@@ -32,6 +32,7 @@
                               together.sphere
                               together.window
                               together.windows
+                              together.world
                               together.zone)
                       (dependencies gambit.walk
                                     jazz.editor.jazz

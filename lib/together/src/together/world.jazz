@@ -1,0 +1,58 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together World
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.world jazz
+
+
+(import (world)
+        (world.autoload)
+        (world.context)
+        (world.foreign)
+        (world.geometry)
+        (world.interface)
+        (world.interface.sheet)
+        (together.community))
+
+
+(class Together-World extends World
+  
+  
+  (slot circlebar-sheet <object> initialize #f getter generate)
+  
+  
+  (method override (prepare-sheets self)
+    (nextmethod self)
+    (set! circlebar-sheet (make-world-sheet 'circlebar World-Sheet {Dimension 4000 60})))
+  
+  
+  (method override (resize-sheets self)
+    (nextmethod self)
+    (make-orthographic-matrix! (get-projection-matrix circlebar-sheet) 0. width 0. height 0. 10.))
+  
+  
+  (method override (destroy self)
+    (glDeleteTextures* (get-id (get-texture circlebar-sheet)))
+    (nextmethod self))
+  
+  
+  (method override (render-top self)
+    (let ((zone (current-zone+)))
+      (when (and (is? zone Community-Zone) (eq? (get-stage zone) 'circle))
+        (draw-circlebar-sheet))))
+  
+  
+  (method override (draw-message-offset self)
+    (let ((zone (current-zone+)))
+      (if (and (is? zone Community-Zone) (eq? (get-stage zone) 'circle))
+          150
+        (nextmethod self))))))

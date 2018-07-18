@@ -17,9 +17,10 @@
 (import (world)
         (world.client.boot)
         (together.appl)
-        (together.settings))
+        (together.settings)
+        (together.world))
 
 
 (set-boot-process
   (lambda ()
-    (boot-client Together-Application #f context: 'together.devel))))
+    (boot-client Together-Application #f world-class: Together-World context: 'together.devel))))

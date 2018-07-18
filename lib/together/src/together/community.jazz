@@ -45,15 +45,18 @@
         (world.interface.documents)
         (world.interface.frame)
         (world.interface.panel)
+        (world.interface.sheet)
         (world.interface.text)
         (world.interface.tiers)
         (world.io)
+        (world.pane)
         (world.ring)
         (world.settings)
         (world.skybox)
         (world.task)
         (world.video)
         (world.window)
+        (together)
         (together.settings)
         (together.zone))
 
@@ -144,12 +147,12 @@
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
           (set-location chat '(-10 100))
-          (set-proportion chat '(220 (bounds -300))))
-        (new Kind-Label name: 'command-to parent: interface title: "To The gathering" location: '(-10 -158) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+          (set-proportion chat '(220 (bounds -354))))
+        (new Kind-Label name: 'command-to parent: interface title: "To The gathering" location: '(-10 -212) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (let ((command (child interface 'command)))
           (set-border-type (child command 'border) 'solid)
           (set-border-color (child command 'border) {Color Dark-Gray})
-          (set-location command '(-10 -146))
+          (set-location command '(-10 -200))
           (set-size command (new Dimension 220 19)))
         (new Toggle-Button name: 'about parent: interface title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
         ;; create
@@ -160,12 +163,14 @@
         (new Push-Button name: 'circle-create parent: interface title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create&join self))
         ;; circle
         (new Kind-Label name: 'circle-name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        (new Push-Button name: 'leave parent: interface title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
-        (new Push-Button name: 'audio parent: interface location: '(180 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
-        (new Push-Button name: 'video parent: interface location: '(340 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
-        (new Push-Button name: 'layouts parent: interface location: '(540 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
-        (new Push-Button name: 'people-button parent: interface location: '(-190 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
-        (new Push-Button name: 'chat-button parent: interface location: '(-30 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
+        (let ((circlebar (new Circlebar-View name: 'circlebar parent: interface location: '(0 tail) proportion: '(bounds 60))))
+          (new Circlebar-Button name: 'leave parent: circlebar title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
+          (new Circlebar-Button name: 'audio parent: circlebar location: '(180 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
+          (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
+          (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
+          (new Circlebar-Button name: 'people parent: circlebar location: '(-190 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
+          (new Circlebar-Button name: 'chat parent: circlebar location: '(-30 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
+          (layout-view circlebar))
         ;; hide
         (hide-all self))))
   
@@ -188,6 +193,12 @@
       
       (define (title name str)
         (set-title (child interface name) str))
+      
+      (define (location name loc)
+        (set-location (child interface name) loc))
+      
+      (define (proportion name prop)
+        (set-proportion (child interface name) prop))
       
       (define (enabled? name flag)
         (set-enabled? (child interface name) flag))
@@ -212,9 +223,12 @@
       (show 'people)
       (show 'chat-label)
       (show 'chat)
+      (proportion 'chat '(220 (bounds -300)))
       (show 'command-to)
       (title 'command-to "To The gathering")
+      (location 'command-to '(-10 -158))
       (show 'command)
+      (location 'command '(-10 -146))
       (show 'about)
       (update-circle/join self)
       (add-exception-view self)
@@ -234,23 +248,27 @@
       (define (title name str)
         (set-title (child interface name) str))
       
+      (define (location name loc)
+        (set-location (child interface name) loc))
+      
+      (define (proportion name prop)
+        (set-proportion (child interface name) prop))
+      
       (show 'circle-name)
       (title 'circle-name joined-circle)
-      (show 'leave)
-      (show 'audio)
-      (show 'video)
-      (show 'layouts)
-      (show 'people-button)
-      (show 'chat-button)
+      (show 'circlebar)
       (when (not (world-setting 'together.hide-people? #t))
         (show 'people-label)
         (show 'people))
+      (proportion 'chat '(220 (bounds -354)))
+      (title 'command-to (format "To {a}" joined-circle))
+      (location 'command-to '(-10 -212))
+      (location 'command '(-10 -200))
       (when (not (world-setting 'together.hide-chat? #t))
         (show 'chat-label)
         (show 'chat)
         (show 'command-to)
         (show 'command))
-      (title 'command-to (format "To {a}" joined-circle))
       (delay-hide-interface self)
       (add-exception-view self)
       (unmute-all self)
@@ -379,12 +397,8 @@
       @wait-later-version-as-it-needs-debugging
       (show-cursor window)
       (set-visible? (child interface 'circle-name) #t)
-      (set-visible? (child interface 'leave) #t)
-      (set-visible? (child interface 'audio) #t)
-      (set-visible? (child interface 'video) #t)
-      (set-visible? (child interface 'layouts) #t)
-      (set-visible? (child interface 'people-button) #t)
-      (set-visible? (child interface 'chat-button) #t)
+      (set-visible? (child interface 'circlebar) #t)
+      (set-uptodate? (child interface 'circlebar) #f)
       (delay-hide-interface self)))
   
   
@@ -401,12 +415,8 @@
                                               @wait-later-version-as-it-needs-debugging
                                               (hide-cursor window)
                                               (set-visible? (child interface 'circle-name) #f)
-                                              (set-visible? (child interface 'leave) #f)
-                                              (set-visible? (child interface 'audio) #f)
-                                              (set-visible? (child interface 'video) #f)
-                                              (set-visible? (child interface 'layouts) #f)
-                                              (set-visible? (child interface 'people-button) #f)
-                                              (set-visible? (child interface 'chat-button) #f))))))))))
+                                              (set-visible? (child interface 'circlebar) #f)
+                                              (set-uptodate? (child interface 'circlebar) #f))))))))))
   
   
   (method (show/hide-debug self h v)
@@ -442,12 +452,14 @@
   
   (method (update-buttons self)
     (let ((interface (current-interface)))
-      (set-title (child interface 'people-button) (if (get-visible? (child interface 'people))
-                                                      "Hide People"
-                                                    "Show People"))
-      (set-title (child interface 'chat-button) (if (get-visible? (child interface 'chat))
-                                                    "Hide Chat"
-                                                  "Show Chat"))))
+      (set-title (child interface '(circlebar people))
+                 (if (get-visible? (child interface 'people))
+                     "Hide People"
+                   "Show People"))
+      (set-title (child interface '(circlebar chat))
+                 (if (get-visible? (child interface 'chat))
+                     "Hide Chat"
+                   "Show Chat"))))
   
   
   (method (on-toggle-audio self evt)
@@ -460,9 +472,10 @@
   (method (update-audio self)
     (let ((interface (current-interface))
           (audio (current-audio)))
-      (set-title (child interface 'audio) (if (audio-playing? audio)
-                                              "Stop Audio"
-                                            "Start Audio"))))
+      (set-title (child interface '(circlebar audio))
+                 (if (audio-playing? audio)
+                     "Stop Audio"
+                   "Start Audio"))))
   
   
   (method (on-toggle-video self evt)
@@ -476,9 +489,10 @@
   (method (update-video self)
     (let ((interface (current-interface))
           (video (current-video)))
-      (set-title (child interface 'video) (if (video-playing? video)
-                                              "Stop Video"
-                                            "Start Video"))))
+      (set-title (child interface '(circlebar video))
+                 (if (video-playing? video)
+                     "Stop Video"
+                   "Start Video"))))
   
   
   (method override (enter-press self)
@@ -876,7 +890,7 @@
   
   (method (update-layouts self)
     (let ((interface (current-interface)))
-      (set-title (child interface 'layouts)
+      (set-title (child interface '(circlebar layouts))
                  (case (get-video-layout)
                    ((gallery) "Fullscreen")
                    (else "Gallery"))))))
@@ -937,4 +951,63 @@
   
   (method package (on-double-click self evt)
     (let ((zone (current-zone)))
-      (people-double-click zone)))))
+      (people-double-click zone))))
+
+
+;;;
+;;;; Circlebar
+;;;
+
+
+;; clearly I don't need 2 distinct World-Sheet and Circlebar-View views
+;; investigate or do the foundation work of using world panes everywhere!
+
+
+(definition hack-transformation?
+  (make-parameter #f))
+
+
+(definition protected (draw-circlebar-sheet)
+  (let ((world (current-world))
+        (interface (current-interface)))
+    (let ((view (child interface 'circlebar))
+          (sheet (get-circlebar-sheet world)))
+      (unless (get-uptodate? view)
+        (let ((texture (get-texture sheet)))
+          (let ((surface (get-surface texture))
+                (data (get-data texture)))
+            (clear surface)
+            (set-clipper surface (new Rect 0 0 2000 2000) @w (get-box (get-offscreen-invalid-region handle)))
+            (when (get-visible? view)
+              (parameterize ((hack-transformation? #t))
+                (paint-drawing view surface '())))
+            (map-texture texture)
+            (set-uptodate? view #t))))
+      (let ((x (cast <fl> (get-left view)))
+            (y (cast <fl> (get-top view)))
+            (h (cast <fl> (get-height view))))
+        (let ((matrix (make-translation-matrix (vertex x (- (get-height world) y h) 0.))))
+          (render-sheet sheet matrix))))))
+
+
+(class Circlebar-View extends Layout-View
+  
+  
+  (slot uptodate? initialize #f accessors generate)
+  
+  
+  (form
+    (<install> layout-type: justify))
+  
+  
+  (method override (with-clipping-self-transformation self surface thunk)
+    (let ((hack? (hack-transformation?)))
+      (with-clipping-transformation surface (if hack? 0 (get-h position)) (if hack? 0 (get-v position)) (get-width size) (get-height size) (get-transformation self)
+        thunk))))
+
+
+(class Circlebar-Button extends Push-Button
+  
+  
+  (method override (invalidate-hook self)
+    (set-uptodate? (find-ascendant self Circlebar-View) #f))))
