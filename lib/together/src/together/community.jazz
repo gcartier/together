@@ -632,7 +632,8 @@
         (lambda ()
           (view-hierarchy self hierarchy))
         use: 'data
-        test: equal?)
+        test: equal?
+        generate-event?: #t)
       (when (world-setting 'together.guillaume? #f)
         (when (not (get-single-selection tree))
           (select-user-data-row tree '(group "Circle") test: equal? error?: #f))))
