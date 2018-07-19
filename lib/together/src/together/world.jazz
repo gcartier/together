@@ -21,6 +21,7 @@
         (world.geometry)
         (world.interface)
         (world.interface.sheet)
+        (world.sound)
         (together.community))
 
 
@@ -28,6 +29,11 @@
   
   
   (slot circlebar-sheet <object> initialize #f getter generate)
+  
+  
+  (method override (prepare-sounds self)
+    (nextmethod self)
+    (register-sound 'message "sound/message"))
   
   
   (method override (prepare-sheets self)

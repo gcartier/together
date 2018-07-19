@@ -78,7 +78,6 @@
                        ;; audio
                        world.music?               #f
                        world.ambience?            #f
-                       world.sounds?              #f
                        ;; video
                        world.sun-cycle?           #f
                        world.start-time           day
