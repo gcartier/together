@@ -233,7 +233,8 @@
       (update-circle/join self)
       (add-exception-view self)
       (layout-view interface)
-      (no-showcase world)))
+      (no-showcase world)
+      (focus-world)))
   
   
   (method (install-circle self)
