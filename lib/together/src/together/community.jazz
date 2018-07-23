@@ -232,7 +232,6 @@
       (show 'about)
       (update-circle/join self)
       (add-exception-view self)
-      (mute-all self)
       (layout-view interface)
       (no-showcase world)))
   
@@ -271,7 +270,6 @@
         (show 'command))
       (delay-hide-interface self)
       (add-exception-view self)
-      (unmute-all self)
       (layout-view interface)
       (no-showcase world)
       (when (world-setting 'together.auto-audio? #t)
@@ -700,20 +698,6 @@
                     (get-ordered-outputs video))
           (when self-output
             (draw-output self-output))))))
-  
-  
-  (method (mute-all self)
-    (let ((audio (current-audio)))
-      (iterate-table (get-outputs audio)
-        (lambda (id output)
-          (mute output)))))
-  
-  
-  (method (unmute-all self)
-    (let ((audio (current-audio)))
-      (iterate-table (get-outputs audio)
-        (lambda (id output)
-          (unmute output)))))
   
   
   ;;;
