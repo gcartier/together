@@ -792,6 +792,14 @@
   
   
   (method package (people-double-click self)
+    (people-action-selected self))
+  
+  
+  (method package (people-return-press self)
+    (people-action-selected self))
+  
+  
+  (method (people-action-selected self)
     (when (eq? stage 'gathering)
       (when (and selected-group (not selected-player))
         (join-circle self selected-group))))
@@ -937,7 +945,7 @@
       (<content~>                              layout-type: fill
         (<Tree-Header>                         style: document shown?: #f
           (<content~>
-            (<Tree-View>          name: people portfolio: :images filled-column: person background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click}
+            (<Tree-View>          name: people portfolio: :images filled-column: person background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
               (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
   
   
@@ -948,7 +956,12 @@
   
   (method package (on-double-click self evt)
     (let ((zone (current-zone)))
-      (people-double-click zone))))
+      (people-double-click zone)))
+  
+  
+  (method override (on-return-press self evt)
+    (let ((zone (current-zone)))
+      (people-return-press zone))))
 
 
 ;;;
