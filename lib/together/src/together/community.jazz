@@ -448,6 +448,12 @@
         (update-buttons self))))
   
   
+  (method (on-message self evt)
+    (let ((interface (current-interface)))
+      (show-chat self)
+      (acquire-focus (locate (child interface 'command) 'text))))
+  
+  
   (method (update-buttons self)
     (let ((interface (current-interface)))
       (set-title (child interface '(circlebar people))
@@ -458,6 +464,11 @@
                  (if (get-visible? (child interface 'chat))
                      "Hide Chat"
                    "Show Chat"))))
+  
+  
+  (method (on-leave-circle self evt)
+    (when (eq? stage 'circle)
+      (leave-circle self)))
   
   
   (method (on-toggle-audio self evt)

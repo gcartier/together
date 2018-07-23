@@ -136,6 +136,18 @@
         (on-toggle-chat zone evt))))
   
   
+  (method (on-message self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-message zone evt))))
+  
+  
+  (method (on-leave-circle self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-leave-circle zone evt))))
+  
+  
   (method (on-toggle-audio self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -374,11 +386,13 @@
       ;; application
       (<World-Action-Item> name: enter-press          title: "Enter" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: tab-press            title: "Tab" visible?: #t action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
-      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :control #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :control #\C} description: "Toggle chat.")
+      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
+      (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       ;; media
-      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :control #\A} description: "Toggle audio.")
-      (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :control #\V} description: "Toggle video.")
-      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :control #\L} description: "Cycle layouts.")
+      (<World-Action-Item> name: leave-circle         title: "Leave circle" visible?: #t action-handler: {Event-Handler :application on-leave-circle} shortcut: {Shortcut :alt Backspace} description: "Leave circle.")
+      (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
+      (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
+      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} description: "Cycle layouts.")
       ;; window
       (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")))))
