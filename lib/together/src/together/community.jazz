@@ -811,11 +811,17 @@
   
   
   (method (chat-displayed self chat)
-    (when (eq? stage 'circle)
-      (let ((interface (current-interface)))
-        (set-visible? (child interface 'command-to) #t)
-        (set-visible? (child interface 'command) #t)
-        #f)))
+    (show-chat self)
+    #f)
+  
+  
+  (method (show-chat self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'chat-label) #t)
+      (set-visible? (child interface 'chat) #t)
+      (set-visible? (child interface 'command-to) #t)
+      (set-visible? (child interface 'command) #t)
+      (update-buttons self)))
   
   
   (method (command-return self command)
