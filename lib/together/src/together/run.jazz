@@ -14,7 +14,8 @@
 (module together.run jazz
 
 
-(import (jazz.io)
+(import (jazz.action)
+        (jazz.io)
         (world)
         (together)
         (together.domain))
@@ -35,6 +36,7 @@
   (set-default-server "Together")
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
+  (set-action-item-visibility #f)
   (register-domain-names))
 
 

@@ -325,34 +325,28 @@
   (form
     (<install>
       ;; Application
-      (<!>                           name: application visible?: #f)
       (<!>                           name: text
-        (<!>                         name: goto-line visible?: #f)
-        (<!>                         name: display-info visible?: #f))
-      (<!>                           name: formatted-text visible?: #f)
-      (<!>                           name: menubar visible?: #f)
-      ;; Scripting
-      (<Code-Text-Actions>           name: code-text
-        (<!>                         name: evaluate-delayed visible?: #f)
-        (<!>                         name: evaluate-buffer visible?: #f)
-        (<!>                         name: edit-definitions visible?: #f)
-        (<!>                         name: edit-references visible?: #f)
-        (<!>                         name: find-imports visible?: #f)
-        (<!>                         name: find-all-imports visible?: #f))
-      (<Lisp-Text-Actions>           name: lisp-text
-        (<!>                         name: highlight-declaration visible?: #f)
-        (<!>                         name: highlight-selection visible?: #f)
-        (<!>                         name: remove-highlights visible?: #f))
-      (<Jazz-Text-Actions>           name: jazz-text
-        (<!>                         name: reprint-current-form visible?: #f)
-        (<!>                         name: present-documentation visible?: #f)
-        (<!>                         name: edit-documentation visible?: #f))
-      (<Search-Mode-Actions>         name: search-mode)
-      (<Highlight-Mode-Actions>      name: highlight-mode)
-      (<Extended-Mode-Actions>       name: extended-mode)
-      (<Execute-Mode-Actions>        name: execute-mode)
-      (<Find-Mode-Actions>           name: find-mode)
-      (<Search-Results-Tree-Actions> name: search-results-tree)
+        (<!>                         name: move-backward-char   visible?: #t)
+        (<!>                         name: extend-backward-char visible?: #t)
+        (<!>                         name: move-forward-char    visible?: #t)
+        (<!>                         name: extend-forward-char  visible?: #t)
+        (<!>                         name: delete-char          visible?: #t)
+        (<!>                         name: home                 visible?: #t)
+        (<!>                         name: extend-home          visible?: #t)
+        (<!>                         name: end                  visible?: #t)
+        (<!>                         name: extend-end           visible?: #t))
+      (<!>                           name: tree
+        (<!>                         name: move-upward          visible?: #t)
+        (<!>                         name: move-downward        visible?: #t))
+      (<!>                           name: view
+        (<!>                         name: backspace            visible?: #t)
+        (<!>                         name: return               visible?: #t)
+        (<!>                         name: cut                  visible?: #t)
+        (<!>                         name: copy                 visible?: #t)
+        (<!>                         name: paste                visible?: #t)
+        (<!>                         name: select-all           visible?: #t)
+        (<!>                         name: move-up              visible?: #t)
+        (<!>                         name: move-down            visible?: #t))
       ;; World
       (<World-Menu-Actions>          name: world-menu)
       (<World-Interface-Actions>     name: world-interface)
