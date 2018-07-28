@@ -61,6 +61,30 @@
         (together.zone))
 
 
+(definition guillaume?
+  (world-setting 'together.guillaume? #f))
+
+
+(definition auto-hide?
+  (world-setting 'together.auto-hide? #t))
+
+(definition auto-audio?
+  (world-setting 'together.auto-audio? #t))
+
+(definition auto-video?
+  (world-setting 'together.auto-video? #t))
+
+(definition hide-people?
+  (world-setting 'together.hide-people? #t))
+
+(definition hide-chat?
+  (world-setting 'together.hide-chat? #t))
+
+
+(definition welcome-skybox
+  (world-setting 'world.welcome-skybox "nebula"))
+
+
 (class Community-Zone extends Together-Zone
   
   
@@ -84,18 +108,16 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
-        (install-hider self)
         (set-escape-hook world (lambda () (close-frame self)))
         (set-draw-me? self #f)
         (view-people self)
-        (when (world-setting 'together.guillaume? #f)
+        (when guillaume?
           (create-group (current-tier) "Circle")))))
   
   
   (method override (destroy self)
     (when (window?)
       (let ((world (current-world)))
-        (uninstall-hider self)
         (uninstall-hooks self)
         (uninstall-stage self)
         (no-showcase world)
@@ -257,14 +279,14 @@
       (show 'circle-name)
       (title 'circle-name joined-circle)
       (show 'circlebar)
-      (when (not (world-setting 'together.hide-people? #t))
+      (when (not hide-people?)
         (show 'people-label)
         (show 'people))
       (proportion 'chat '(220 (bounds -354)))
       (title 'command-to (format "To {a}" joined-circle))
       (location 'command-to '(-10 -212))
       (location 'command '(-10 -200))
-      (when (not (world-setting 'together.hide-chat? #t))
+      (when (not hide-chat?)
         (show 'chat-label)
         (show 'chat)
         (show 'command-to)
@@ -273,18 +295,22 @@
       (add-exception-view self)
       (layout-view interface)
       (no-showcase world)
-      (when (world-setting 'together.auto-audio? #t)
+      (when auto-audio?
         (start-audio audio))
-      (when (world-setting 'together.auto-video? #t)
+      (when auto-video?
         (start-video video))
       (update-audio self)
       (update-video self)
       (update-layouts self)
       (update-buttons self)
+      (when auto-hide?
+        (install-hider self))
       (focus-world)))
   
   
   (method (uninstall-stage self)
+    (when (and (eq? stage 'circle) auto-hide?)
+      (uninstall-hider self))
     (hide-all self))
   
   
@@ -385,7 +411,7 @@
   
   (method (uninstall-hider self)
     (empty hide-ring)
-    (insert hide-ring (current-seconds) #f))
+    (insert-earliest hide-ring #f))
   
   
   ;; we probably need a tolerance so moving
@@ -402,7 +428,7 @@
   
   
   (method (delay-hide-interface self)
-    (when (world-setting 'together.auto-hide? #t)
+    (when auto-hide?
       (let ((hide-time (+ (current-seconds) 2.)))
         (empty hide-ring)
         (insert hide-ring hide-time (lambda ()
@@ -576,7 +602,7 @@
           (zone (current-zone)))
       (leave-group tier joined-circle)
       (install-camera)
-      (install-skybox zone (find-skybox (world-setting 'world.welcome-skybox "nebula")))
+      (install-skybox zone (find-skybox welcome-skybox))
       (set! joined-circle #f)
       (goto-stage self 'gathering)
       (invalidate-interface)))
@@ -651,7 +677,7 @@
         use: 'data
         test: equal?
         generate-event?: #t)
-      (when (world-setting 'together.guillaume? #f)
+      (when guillaume?
         (when (not (get-single-selection tree))
           (select-user-data-row tree '(group "Circle") test: equal? error?: #f))))
     (when (eq? stage 'circle)
