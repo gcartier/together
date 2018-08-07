@@ -17,7 +17,6 @@
 (import (jazz.io)
         (jazz.logger)
         (world)
-        (world.logger)
         (together)
         (together.domain))
 
