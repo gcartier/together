@@ -21,6 +21,12 @@
         (together.domain))
 
 
+(definition (prepare-logger)
+  (initialize-aliases)
+  (set-logger-directory {Directory Home ".together" "1.0.0" "work" "logs"})
+  (set-logger-prefix "server"))
+
+
 (definition protected (prepare-server)
   (set-together? #t)
   (set-window? #f)
@@ -36,8 +42,6 @@
   (set-default-server "Together")
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename))
-  (set-logger-directory {Directory Settings "work" "logs"})
-  (set-logger-prefix "server")
   (register-domain-names))
 
 
@@ -64,11 +68,12 @@
 
 
 (definition (run-server descriptor)
+  (prepare-logger)
+  (logger "Start server")
   (prepare-server)
   (prepare-settings)
   (load-unit 'world.work)
   (load-unit 'together.boot-server)
-  (logger "Start server")
   (boot-process))
 
 
