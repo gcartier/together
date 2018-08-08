@@ -185,13 +185,13 @@
         (new Push-Button name: 'circle-create parent: interface title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 15.5} action-handler: (~ on-create&join self))
         ;; circle
         (new Kind-Label name: 'circle-name parent: interface title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+        (new Push-Button name: 'toggle-people parent: interface location: '(30 30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
+        (new Push-Button name: 'toggle-chat parent: interface location: '(210 30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
         (let ((circlebar (new Circlebar-View name: 'circlebar parent: interface location: '(0 tail) proportion: '(bounds 60))))
           (new Circlebar-Button name: 'leave parent: circlebar title: "Leave" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-leave self))
           (new Circlebar-Button name: 'audio parent: circlebar location: '(180 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-audio self))
           (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-video self))
           (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} action-handler: (~ on-cycle-layouts self))
-          (new Circlebar-Button name: 'people parent: circlebar location: '(-190 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-people self))
-          (new Circlebar-Button name: 'chat parent: circlebar location: '(-30 -30) size: {Dimension 150 24} action-handler: (~ on-toggle-chat self))
           (layout-view circlebar))
         ;; hide
         (hide-all self))))
@@ -278,6 +278,8 @@
       
       (show 'circle-name)
       (title 'circle-name joined-circle)
+      (show 'toggle-people)
+      (show 'toggle-chat)
       (show 'circlebar)
       (when (not hide-people?)
         (show 'people-label)
@@ -441,6 +443,8 @@
       @wait-later-version-as-it-needs-debugging
       (show-cursor window)
       (set-visible? (child interface 'circle-name) #t)
+      (set-visible? (child interface 'toggle-people) #t)
+      (set-visible? (child interface 'toggle-chat) #t)
       (set-visible? (child interface 'circlebar) #t)
       (set-uptodate? (child interface 'circlebar) #f)
       (delay-hide-interface self)))
@@ -459,6 +463,8 @@
                                               @wait-later-version-as-it-needs-debugging
                                               (hide-cursor window)
                                               (set-visible? (child interface 'circle-name) #f)
+                                              (set-visible? (child interface 'toggle-people) #f)
+                                              (set-visible? (child interface 'toggle-chat) #f)
                                               (set-visible? (child interface 'circlebar) #f)
                                               (set-uptodate? (child interface 'circlebar) #f))))))))))
   
@@ -502,11 +508,11 @@
   
   (method (update-buttons self)
     (let ((interface (current-interface)))
-      (set-title (child interface '(circlebar people))
+      (set-title (child interface 'toggle-people)
                  (if (get-visible? (child interface 'people))
                      "Hide People"
                    "Show People"))
-      (set-title (child interface '(circlebar chat))
+      (set-title (child interface 'toggle-chat)
                  (if (get-visible? (child interface 'chat))
                      "Hide Chat"
                    "Show Chat"))))
