@@ -37,6 +37,7 @@
         (world.client.tier)
         (world.context)
         (world.geometry)
+        (world.interface)
         (world.interface.clients)
         (world.interface.dialogs)
         (world.interface.documents)
@@ -57,6 +58,9 @@
 
 
 (class Together-Zone extends Zone
+  
+  
+  (slot root initialize #f getter generate)
   
   
   (form
@@ -165,6 +169,18 @@
 
 
 ;;;
+;;;; Together-Root
+;;;
+
+
+(class Together-Root extends Layout-View
+  
+  
+  (method override (mouse-down self evt)
+    (focus-world)))
+
+
+;;;
 ;;;; Kind-Label
 ;;;
 
@@ -219,9 +235,9 @@
   
   
   (method (on-content-change self evt)
-    (let ((interface (current-interface)))
+    (let ((zone (current-zone)))
       (let ((text (locate self 'text)))
-        (set-enabled? (child interface action-view) (not (whitespace? (get-string-content text)))))))
+        (set-enabled? (child (get-root zone) action-view) (not (whitespace? (get-string-content text)))))))
   
   
   (method (on-return self evt)
