@@ -652,8 +652,8 @@
           (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
-      (set-processor-entered-hook tier (~ processor-entered self))
-      (set-processor-exited-hook tier (~ processor-exited self))
+      (set-server-entered-hook tier (~ server-entered self))
+      (set-server-exited-hook tier (~ server-exited self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set! draw-hook (~ draw-sheets self))
@@ -668,8 +668,8 @@
           (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
-      (set-processor-entered-hook tier #f)
-      (set-processor-exited-hook tier #f)
+      (set-server-entered-hook tier #f)
+      (set-server-exited-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
       (unregister-draw-hook interface draw-hook)
@@ -683,12 +683,12 @@
   ;;;
   
   
-  (method (processor-entered self character-name)
+  (method (server-entered self character-name)
     (let ((world (current-world)))
       (display-message world (format "{a} entered" character-name))))
   
   
-  (method (processor-exited self character-name)
+  (method (server-exited self character-name)
     (let ((world (current-world)))
       (display-message world (format "{a} exited" character-name))))
   
