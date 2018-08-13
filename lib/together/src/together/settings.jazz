@@ -47,7 +47,8 @@
           (report-exception zone title obj)))))
   
   (let ((file (together-file)))
-    (if (exists? file)
+    (if (and (exists? file)
+             (not (shift-down?)))
         (open-circle file)
       (open-login-zone))))
 
