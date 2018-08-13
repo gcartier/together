@@ -25,6 +25,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.process)
+        (jazz.resource)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -66,9 +67,10 @@
 (class Login-Zone extends Together-Zone
   
   
-  (slot stage         initialize #f getter generate)
-  (slot configuration initialize #f getter generate)
-  (slot view-focused  initialize #f getter generate)
+  (slot stage                initialize #f getter generate)
+  (slot configuration        initialize #f getter generate)
+  (slot active-configuration initialize #f getter generate)
+  (slot view-focused         initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -98,7 +100,8 @@
   
   (method (setup-configuration self)
     (let ((file (together-file)))
-      (set! configuration (and (exists? file) (instantiate (read-form file))))))
+      (set! configuration (and (exists? file) (instantiate (read-form file))))
+      (set! active-configuration configuration)))
     
   
   (method override (welcome? self)
@@ -199,6 +202,28 @@
         (let ((name (and configuration (get-character-name configuration))))
           (set-title (child root 'name) name)
           (layout-view root)))))
+  
+  
+  (method package (change-name self)
+    (set! configuration #f)
+    (set-title (child root 'new-label) "Please enter your new name")
+    (update-name-views self)
+    (layout-view root)
+    (acquire-focus (locate (child root 'new-name) 'text)))
+  
+  
+  (method package (cancel-name-change self)
+    (when (changing-name? self)
+      (set! configuration active-configuration)
+      (set-title (child root 'new-label) "Please enter your name")
+      (update-name-views self)
+      (layout-view root)
+      (focus-world)))
+  
+  
+  (method (changing-name? self)
+    (and (not configuration)
+         active-configuration))
   
   
   ;;;
@@ -342,6 +367,10 @@
     (create-default-remote self))
   
   
+  (method override (name-escape self)
+    (cancel-name-change self))
+  
+  
   @customize
   (method (info-return self)
     (case stage
@@ -443,14 +472,6 @@
 (class Name-Label extends Label-View
   
   
-  (method override (text-color self)
-    {Color World-Ochre}))
-
-
-@change-display-alias
-(class Name-Label extends Label-View
-  
-  
   (slot image initialize #f getter generate)
   
   
@@ -466,6 +487,10 @@
       (new Dimension (+ (get-width size) 42) (get-height size))))
   
   
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
   (method override (mouse-enter self)
     (invalidate-view self))
   
@@ -473,8 +498,9 @@
     (invalidate-view self))
   
   
-  (method override (text-color self)
-    {Color World-Ochre})
+  (method override (mouse-up self evt)
+    (let ((zone (current-zone)))
+      (change-name zone)))
   
   
   (method override (draw self surface context)
