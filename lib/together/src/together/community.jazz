@@ -829,7 +829,8 @@
                     (get-ordered-outputs video))
           (when self-output
             (draw-output self-output))
-          (draw-video-quality)))))
+          (when (developer?)
+            (draw-video-quality))))))
   
   
   (method (click-sheet self h v)
