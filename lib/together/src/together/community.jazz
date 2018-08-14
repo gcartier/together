@@ -164,7 +164,9 @@
           (set-border-color (child chat 'border) {Color Dark-Gray})
           (set-location chat '(-10 100))
           (set-proportion chat '(220 (bounds -354))))
-        (new Kind-Label name: 'command-to parent: interface title: "To The gathering" location: '(-10 -212) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+        (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40})))
+          (new Kind-Label name: 'to parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+          (new Kind-Label name: 'dest parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
         (let ((command (child interface 'command)))
           (set-border-type (child command 'border) 'solid)
           (set-border-color (child command 'border) {Color Dark-Gray})
@@ -222,6 +224,9 @@
       (define (title parent name str)
         (set-title (child parent name) str))
       
+      (define (color parent name color)
+        (set-color (child parent name) color))
+      
       (define (location parent name loc)
         (set-location (child parent name) loc))
       
@@ -247,7 +252,8 @@
       (show interface 'chat)
       (proportion interface 'chat '(220 (bounds -300)))
       (show interface 'command-to)
-      (title interface 'command-to "To The gathering")
+      (title interface '(command-to dest) "The gathering")
+      (color interface '(command-to dest) {Color red: 32 green: 205 blue: 33})
       (location interface 'command-to '(-10 -158))
       (show interface 'command)
       (location interface 'command '(-10 -146))
@@ -273,6 +279,9 @@
       (define (title parent name str)
         (set-title (child parent name) str))
       
+      (define (color parent name color)
+        (set-color (child parent name) color))
+      
       (define (location parent name loc)
         (set-location (child parent name) loc))
       
@@ -288,7 +297,8 @@
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
       (proportion interface 'chat '(220 (bounds -354)))
-      (title interface 'command-to (format "To {a}" joined-circle))
+      (title interface '(command-to dest) joined-circle)
+      (color interface '(command-to dest) {Color World-Red})
       (location interface 'command-to '(-10 -212))
       (location interface 'command '(-10 -200))
       (visible interface 'chat-label (not hide-chat?))

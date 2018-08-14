@@ -193,7 +193,7 @@
   
   
   (method override (text-color self)
-    {Color World-Ochre}))
+    (or color {Color World-Ochre})))
 
 
 ;;;
