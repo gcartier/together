@@ -16,7 +16,7 @@
 
  styles:
  ({Text-Style Base}
-  {Text-Style Base font: {Font font-name: vera-serif point-size: 30 shadow: thin antialias: none} color: {Color World-Ochre}}
+  {Text-Style Base font: {Font font-name: vera-serif point-size: 30 shadow: thin} color: {Color World-Ochre}}
   {Text-Style Heading2}
   {Text-Style Base font: {Font Text bold?: #t}}
   {Text-Style Base font: {Font Text bold?: #t italic?: #t}}
