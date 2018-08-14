@@ -776,7 +776,8 @@
       (define (draw-video-quality)
         (set-font surface {Font font-name: tahoma point-size: 24 hint-style: slight hint-metrics: on})
         (draw-text surface 30 100 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
-        (draw-text surface 30 150 (video-quality) {Color World-Red}))
+        (draw-text surface 30 150 (video-quality) {Color World-Red})
+        (draw-text surface 30 190 (latest-nacks) {Color World-Red}))
       
       (define (video-quality)
         (let ((total 0.)
@@ -791,6 +792,19 @@
           (if (= count 0)
               "N/A"
             (format "{r precision: 1}%" (* 100. (/ total (cast <fl> count)))))))
+      
+      (define (latest-nacks)
+        (let ((total 0)
+              (count 0))
+          (iterate-table (get-receive-channels (get-udp-client client))
+            (lambda (key channel)
+              (when (= (get-media-kind channel) udp-video)
+                (let ((len (length (get-latest-nacks channel))))
+                  (increase! total len)
+                  (increase! count)))))
+          (if (= count 0)
+              "N/A"
+            (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> count)))))))
       
       (let ((self-output (find-output video #f)))
         (when (eq? stage 'circle)
