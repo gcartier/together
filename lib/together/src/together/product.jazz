@@ -113,8 +113,8 @@
     git?: #t
     gstreamer?: #t
     files: (cond-expand
-             (windows '("README" "together-server.exe" "together-processor.exe" "together-worker.exe"))
-             (unix '("README" "Together-Server" "Together-Processor" "Together-Worker"))
+             (windows '("README" @wait "together-server.exe" @wait "together-processor.exe" @wait "together-worker.exe"))
+             (unix '("README" @wait "Together-Server" @wait "Together-Processor" @wait "Together-Worker"))
              (else '("README")))
     directories: '("devel")
     ignored-macosx: '("together-server.app"
@@ -124,12 +124,15 @@
   (cond-expand
     (mac
      (let ((app-dir (new-directory install-dir install-name)))
+       @wait
        (install-directory {Directory Build "together-server.app"} (new-directory app-dir '("Contents" "MacOS" "together-server.app"))
          feedback: (lambda (action pathname)
                      (build-feedback "; {a} {a}..." action (get-name pathname))))
+       @wait
        (install-directory {Directory Build "together-processor.app"} (new-directory app-dir '("Contents" "MacOS" "together-processor.app"))
          feedback: (lambda (action pathname)
                      (build-feedback "; {a} {a}..." action (get-name pathname))))
+       @wait
        (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "MacOS" "together-worker.app"))
          feedback: (lambda (action pathname)
                      (build-feedback "; {a} {a}..." action (get-name pathname))))))
