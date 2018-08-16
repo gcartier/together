@@ -138,16 +138,15 @@
           (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
           (new Version-Label name: 'version parent: root title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'release parent: root title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
-          (new Toggle-Button font: {Font font-name: tahoma point-size: 13 shadow: thin} name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} action-handler: (~ on-about self))
-          (new Push-Button name: 'quit font: {Font font-name: tahoma point-size: 13 shadow: thin} parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} action-handler: (~ on-quit self))
+          (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
+          (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
           (new Kind-Label name: 'new-label parent: root title: "Please enter your name" location: '(center (center -90)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
           (new Name-View name: 'new-name parent: root location: '(center (center -60)) action-view: 'new-enter)
           (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
           (new Name-Label name: 'name parent: root title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
-          @customize
           (when name
-            (new Push-Button name: 'customize parent: root title: "Customize" font: {Font font-name: tahoma point-size: 13 shadow: thin} location: '(center -30) size: {Dimension 160 24} action-handler: (~ on-customize self))))
+            (new Push-Button name: 'customize parent: root title: "Customize" location: '(center -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self))))
         (set! root (child interface 'login))
         (update-name-views self)
         (when (not configuration)
@@ -208,12 +207,13 @@
   (method package (change-name self)
     (set! changing-name? #t)
     (set-title (child root 'new-label) "Please enter your new name")
+    (set-string-content (locate (child root 'new-name) 'text) (get-character-name configuration))
     (update-name-views self)
     (layout-view root)
     (acquire-focus (locate (child root 'new-name) 'text)))
   
   
-  (method package (cancel-change-name self)
+  (method package (end-change-name self)
     (when changing-name?
       (set! changing-name? #f)
       (set-title (child root 'new-label) "Please enter your name")
@@ -253,7 +253,7 @@
     (cond ((not configuration)
            (create-default-remote self))
           (changing-name?
-           (change-remote-name self))
+           (change-remote-name self #t))
           (else
            (remote-open self (together-file))
            @customize
@@ -266,6 +266,11 @@
   
   (method override (tab-press self)
     )
+  
+  
+  (method (on-customize self evt)
+    (unless changing-name?
+      (change-name self)))
   
   
   @customize
@@ -370,7 +375,7 @@
   
   
   (method override (name-escape self)
-    (cancel-change-name self))
+    (end-change-name self))
   
   
   @customize
@@ -417,7 +422,7 @@
                   (remote-open self file)))))))))
   
   
-  (method package (change-remote-name self)
+  (method package (change-remote-name self (open? #f))
     (let ((interface (current-interface)))
       (let ((view (child root 'new-name)))
         (let ((text (locate view 'text)))
@@ -431,8 +436,9 @@
                       (zone (get-character-zone configuration)))
                   (let ((file (save-client-file file server-address server-port name avatar script zone)))
                     (setup-configuration self)
-                    (update-name-views self)
-                    (remote-open self file))))))))))
+                    (end-change-name self)
+                    (when open?
+                      (remote-open self file)))))))))))
   
   
   @customize
@@ -492,42 +498,13 @@
 (class Name-Label extends Label-View
   
   
-  (slot image initialize #f getter generate)
-  
-  
-  (method (cache-image self)
-    (or image
-        (let ((img (new Image resource: {Image-Resource "Modified"} portfolio: (resolve-nickname :images))))
-          (set! image img)
-          img)))
-  
-  
-  (method override (preferred-size self)
-    (let ((size (nextmethod self)))
-      (new Dimension (+ (get-width size) 42) (get-height size))))
-  
-  
   (method override (text-color self)
     {Color World-Ochre})
   
   
-  (method override (mouse-enter self)
-    (invalidate-view self))
-  
-  (method override (mouse-leave self)
-    (invalidate-view self))
-  
-  
   (method override (mouse-up self evt)
     (let ((zone (current-zone)))
-      (change-name zone)))
-  
-  
-  (method override (draw self surface context)
-    (nextmethod self surface context)
-    (when (eq? (get-mouse-in) self)
-      (let ((size (preferred-size self)))
-        (draw-at (cache-image self) surface context (- (get-width size) 16) 5)))))
+      (change-name zone))))
 
 
 ;;;
