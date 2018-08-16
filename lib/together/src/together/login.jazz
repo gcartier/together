@@ -33,6 +33,7 @@
         (jazz.window)
         (world)
         (world.autoload)
+        (world.client)
         (world.context)
         (world.geometry)
         (world.interface)
@@ -67,10 +68,10 @@
 (class Login-Zone extends Together-Zone
   
   
-  (slot stage                initialize #f getter generate)
-  (slot configuration        initialize #f getter generate)
-  (slot active-configuration initialize #f getter generate)
-  (slot view-focused         initialize #f getter generate)
+  (slot stage          initialize #f getter generate)
+  (slot configuration  initialize #f getter generate)
+  (slot changing-name? initialize #f getter generate)
+  (slot view-focused   initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -100,8 +101,7 @@
   
   (method (setup-configuration self)
     (let ((file (together-file)))
-      (set! configuration (and (exists? file) (instantiate (read-form file))))
-      (set! active-configuration configuration)))
+      (set! configuration (and (exists? file) (instantiate (read-form file))))))
     
   
   (method override (welcome? self)
@@ -193,37 +193,33 @@
   
   (method (update-name-views self)
     (let ((interface (current-interface)))
-      (set-visible? (child root 'new-label) (not configuration))
-      (set-visible? (child root 'new-name) (not configuration))
-      (set-visible? (child root 'new-enter) (not configuration))
-      (set-visible? (child root 'name) configuration)
-      (set-visible? (child root 'enter) configuration)
-      (when configuration
-        (let ((name (and configuration (get-character-name configuration))))
-          (set-title (child root 'name) name)
-          (layout-view root)))))
+      (let ((new? (or (not configuration) changing-name?)))
+        (set-visible? (child root 'new-label) new?)
+        (set-visible? (child root 'new-name) new?)
+        (set-visible? (child root 'new-enter) new?)
+        (set-visible? (child root 'name) (not new?))
+        (set-visible? (child root 'enter) (not new?))
+        (when configuration
+          (let ((name (and configuration (get-character-name configuration))))
+            (set-title (child root 'name) name)
+            (layout-view root))))))
   
   
   (method package (change-name self)
-    (set! configuration #f)
+    (set! changing-name? #t)
     (set-title (child root 'new-label) "Please enter your new name")
     (update-name-views self)
     (layout-view root)
     (acquire-focus (locate (child root 'new-name) 'text)))
   
   
-  (method package (cancel-name-change self)
-    (when (changing-name? self)
-      (set! configuration active-configuration)
+  (method package (cancel-change-name self)
+    (when changing-name?
+      (set! changing-name? #f)
       (set-title (child root 'new-label) "Please enter your name")
       (update-name-views self)
       (layout-view root)
       (focus-world)))
-  
-  
-  (method (changing-name? self)
-    (and (not configuration)
-         active-configuration))
   
   
   ;;;
@@ -256,6 +252,8 @@
   (method override (enter-press self)
     (cond ((not configuration)
            (create-default-remote self))
+          (changing-name?
+           (change-remote-name self))
           (else
            (remote-open self (together-file))
            @customize
@@ -301,39 +299,41 @@
   
   (method (on-about self evt)
     (let ((interface (current-interface)))
-      (define (closer frame)
-        (cond ((not configuration)
-               (set-visible? (child root 'new-label) #t)
-               (set-visible? (child root 'new-name) #t)
-               (set-visible? (child root 'new-enter) #t)
-               (when view-focused
-                 (inhibit-focus-selects-all self view-focused
-                   (lambda ()
-                     (acquire-focus view-focused)))))
-              (else
-               (set-visible? (child root 'name) #t)
-               (set-visible? (child root 'enter) #t))))
-      
-      (let ((frame (top-frame)))
-        (if (is? frame World-Document)
-            (begin
-              (close frame)
-              (closer frame))
-          (show-about self closer: closer)))))
+      (let ((new? (or (not configuration) changing-name?)))
+        (define (closer frame)
+          (cond (new?
+                 (set-visible? (child root 'new-label) #t)
+                 (set-visible? (child root 'new-name) #t)
+                 (set-visible? (child root 'new-enter) #t)
+                 (when view-focused
+                   (inhibit-focus-selects-all self view-focused
+                     (lambda ()
+                       (acquire-focus view-focused)))))
+                (else
+                 (set-visible? (child root 'name) #t)
+                 (set-visible? (child root 'enter) #t))))
+        
+        (let ((frame (top-frame)))
+          (if (is? frame World-Document)
+              (begin
+                (close frame)
+                (closer frame))
+            (show-about self closer: closer))))))
   
   
   (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
     (let ((interface (current-interface))
           (world (current-world)))
-      (cond ((not configuration)
-             (set! view-focused (active-focus))
-             (set-visible? (child root 'new-label) #f)
-             (set-visible? (child root 'new-name) #f)
-             (set-visible? (child root 'new-enter) #f))
-            (else
-             (set-visible? (child root 'name) #f)
-             (set-visible? (child root 'enter) #f)))
-      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
+      (let ((new? (or (not configuration) changing-name?)))
+        (cond (new?
+               (set! view-focused (active-focus))
+               (set-visible? (child root 'new-label) #f)
+               (set-visible? (child root 'new-name) #f)
+               (set-visible? (child root 'new-enter) #f))
+              (else
+               (set-visible? (child root 'name) #f)
+               (set-visible? (child root 'enter) #f)))
+        (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
   
   
   @customize
@@ -364,11 +364,13 @@
   
   
   (method override (name-return self)
-    (create-default-remote self))
+    (if (not configuration)
+        (create-default-remote self)
+      (change-remote-name self)))
   
   
   (method override (name-escape self)
-    (cancel-name-change self))
+    (cancel-change-name self))
   
   
   @customize
@@ -413,6 +415,24 @@
                   (setup-configuration self)
                   (update-name-views self)
                   (remote-open self file)))))))))
+  
+  
+  (method package (change-remote-name self)
+    (let ((interface (current-interface)))
+      (let ((view (child root 'new-name)))
+        (let ((text (locate view 'text)))
+          (let ((name (trim-whitespace (get-string-content text))))
+            (unless (empty-string? name)
+              (let ((file (get-origin (get-form configuration))))
+                (let ((server-address (get-server-host configuration))
+                      (server-port (get-server-service configuration))
+                      (avatar (get-character-avatar configuration))
+                      (script (get-character-script configuration))
+                      (zone (get-character-zone configuration)))
+                  (let ((file (save-client-file file server-address server-port name avatar script zone)))
+                    (setup-configuration self)
+                    (update-name-views self)
+                    (remote-open self file))))))))))
   
   
   @customize
@@ -507,7 +527,7 @@
     (nextmethod self surface context)
     (when (eq? (get-mouse-in) self)
       (let ((size (preferred-size self)))
-        (draw-at (cache-image self) surface context (- (get-width size) 16) 4)))))
+        (draw-at (cache-image self) surface context (- (get-width size) 16) 5)))))
 
 
 ;;;
