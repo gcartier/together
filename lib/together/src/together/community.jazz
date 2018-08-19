@@ -85,6 +85,10 @@
   (world-setting 'together.hide-chat? #t))
 
 
+(definition show-debug?
+  (world-setting 'together.show-debug? #f))
+
+
 (definition welcome-skybox
   (world-setting 'world.welcome-skybox "nebula"))
 
@@ -829,7 +833,7 @@
                     (get-ordered-outputs video))
           (when self-output
             (draw-output self-output))
-          (when (developer?)
+          (when show-debug?
             (draw-video-quality))))))
   
   
@@ -1052,7 +1056,18 @@
       (set-title (child root '(circlebar layouts))
                  (case (get-video-layout)
                    ((gallery) "Fullscreen")
-                   (else "Gallery"))))))
+                   (else "Gallery")))))
+  
+  
+  ;;;
+  ;;;; Debug
+  ;;;
+  
+  
+  (method (on-toggle-debug self evt)
+    (when (eq? stage 'circle)
+      (set! show-debug? (not show-debug?))
+      (invalidate-interface))))
 
 
 ;;;

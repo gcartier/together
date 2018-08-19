@@ -172,6 +172,12 @@
         (on-cycle-layouts zone evt))))
   
   
+  (method (on-toggle-debug self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-debug zone evt))))
+  
+  
   ;;;
   ;;;; Files
   ;;;
@@ -253,27 +259,28 @@
 
 
   (define-trait developer-bindings Bindings
-    (<Role-Trait>        name: developer
+    (<Role-Trait>              name: developer
       (<install>
         (<world-debug!>
-          (<!>           name: toggle-info             visible?: #t)
-          (<!>           name: toggle-timeline         visible?: #t)
-          (<!>           name: toggle-profiler         visible?: #t)
-          (<!>           name: reset-profiling         visible?: #t)
-          (<!>           name: clear-console           visible?: #t)
-          (<!>           name: clear-terminal          visible?: #t)
-          (<!>           name: explore-interface       visible?: #t)
-          (<!>           name: test                    visible?: #t shortcut: {Shortcut :alt #\T})
-          (<!>           name: test1                   visible?: #t shortcut: {Shortcut :alt #\1})
-          (<!>           name: test2                   visible?: #t shortcut: {Shortcut :alt #\2})
-          (<!>           name: test3                   visible?: #t shortcut: {Shortcut :alt #\3})
-          (<!>           name: test4                   visible?: #t shortcut: {Shortcut :alt #\4})
-          (<!>           name: test5                   visible?: #t shortcut: {Shortcut :alt #\5})
-          (<!>           name: test6                   visible?: #t shortcut: {Shortcut :alt #\6})
-          (<!>           name: test7                   visible?: #t shortcut: {Shortcut :alt #\7})
-          (<!>           name: test8                   visible?: #t shortcut: {Shortcut :alt #\8})
-          (<!>           name: test9                   visible?: #t shortcut: {Shortcut :alt #\9})
-          (<!>           name: test0                   visible?: #t shortcut: {Shortcut :alt #\0})))))
+          (<!>                 name: toggle-info       visible?: #t)
+          (<!>                 name: toggle-timeline   visible?: #t)
+          (<!>                 name: toggle-profiler   visible?: #t)
+          (<!>                 name: reset-profiling   visible?: #t)
+          (<!>                 name: clear-console     visible?: #t)
+          (<!>                 name: clear-terminal    visible?: #t)
+          (<!>                 name: explore-interface visible?: #t)
+          (<!>                 name: test              visible?: #t shortcut: {Shortcut :alt #\T})
+          (<!>                 name: test1             visible?: #t shortcut: {Shortcut :alt #\1})
+          (<!>                 name: test2             visible?: #t shortcut: {Shortcut :alt #\2})
+          (<!>                 name: test3             visible?: #t shortcut: {Shortcut :alt #\3})
+          (<!>                 name: test4             visible?: #t shortcut: {Shortcut :alt #\4})
+          (<!>                 name: test5             visible?: #t shortcut: {Shortcut :alt #\5})
+          (<!>                 name: test6             visible?: #t shortcut: {Shortcut :alt #\6})
+          (<!>                 name: test7             visible?: #t shortcut: {Shortcut :alt #\7})
+          (<!>                 name: test8             visible?: #t shortcut: {Shortcut :alt #\8})
+          (<!>                 name: test9             visible?: #t shortcut: {Shortcut :alt #\9})
+          (<!>                 name: test0             visible?: #t shortcut: {Shortcut :alt #\0})
+          (<World-Action-Item> name: toggle-debug      visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
