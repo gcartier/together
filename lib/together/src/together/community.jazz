@@ -549,8 +549,8 @@
   (method (on-toggle-denoise self evt)
     (let ((world (current-world)))
       (when (eq? stage 'circle)
-        (set-audio-denoise? (not audio-denoise?))
-        (display-on/off world "Denoise" audio-denoise?))))
+        (set-audio-denoise? (not (get-audio-denoise?)))
+        (display-on/off world "Denoise" (get-audio-denoise?)))))
   
   
   (method (on-toggle-audio self evt)
