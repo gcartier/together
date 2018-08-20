@@ -119,7 +119,7 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
-        (set-escape-hook world (lambda () (close-frame self)))
+        (set-escape-hook world (~ escape-press self))
         (set-draw-me? self #f)
         (view-people self)
         (when guillaume?
@@ -599,6 +599,19 @@
                  (if (video-playing? video)
                      "Stop Video"
                    "Start Video"))))
+  
+  
+  (method (escape-press self)
+    (let ((frame (top-frame)))
+      (if frame
+          (close frame)
+        (when (and guillaume? (eq? stage 'gathering))
+          (delay-event
+            (lambda ()
+              (with-task-mutex
+                (lambda ()
+                  (open-login-zone))))))))
+    #f)
   
   
   (method override (enter-press self)

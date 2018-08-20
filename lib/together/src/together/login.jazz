@@ -80,7 +80,7 @@
       (setup-stage self)
       (setup-configuration self)
       (install-stage self)
-      (set-escape-hook world (lambda () (close-frame self)))
+      (set-escape-hook world (~ escape-press self))
       (set-draw-me? self #f)))
   
   
@@ -247,6 +247,11 @@
   
   (method (on-enter-press self evt)
     (enter-press self))
+  
+  
+  (method (escape-press self)
+    (close-frame self)
+    #f)
   
   
   (method override (enter-press self)

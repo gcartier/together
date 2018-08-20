@@ -118,8 +118,7 @@
   (method (close-frame self)
     (let ((frame (top-frame)))
       (when frame
-        (close frame)))
-    #t)
+        (close frame))))
   
   
   (method (inhibit-focus-selects-all self view thunk)
