@@ -14,8 +14,10 @@
 (module together.community jazz
 
 
-(import (jazz.component)
+(import (jazz.action)
+        (jazz.component)
         (jazz.event)
+        (jazz.exemplar)
         (jazz.figure)
         (jazz.geometry)
         (jazz.graphic)
@@ -176,6 +178,10 @@
           (set-border-color (child command 'border) {Color Dark-Gray})
           (set-location command '(-10 -200))
           (set-size command (new Dimension 220 19)))
+        (when (developer?)
+          (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 110) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+          (new Admin-Panel name: 'admin parent: interface location: '(center 150) proportion: '((bounds -500) (bounds -350)) layout-type: 'fill)
+          (initial-banner (locate (child interface 'admin) '(console text)) (format "Together server v{a}" (present version))))
         ;; gathering
         (let ((root (new Together-Root name: 'gathering parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
@@ -334,6 +340,13 @@
   
   (method (uninstall-zone self)
     (let ((interface (current-interface)))
+      (close (child interface 'people-label))
+      (close (child interface 'people))
+      (close (child interface 'chat-label))
+      (close (child interface 'command-to))
+      (when (developer?)
+        (close (child interface 'admin-label))
+        (close (child interface 'admin)))
       (close (child interface 'gathering))
       (close (child interface 'circle))))
   
@@ -383,6 +396,8 @@
       (hide interface 'chat)
       (hide interface 'command-to)
       (hide interface 'command)
+      (hide interface 'admin-label)
+      (hide interface 'admin)
       (hide root 'circle-label)
       (hide root 'circle-view)
       (hide root 'circle-create)
@@ -1067,7 +1082,18 @@
   (method (on-toggle-debug self evt)
     (when (eq? stage 'circle)
       (set! show-debug? (not show-debug?))
-      (invalidate-interface))))
+      (invalidate-interface)))
+  
+  
+  (method (on-toggle-admin self evt)
+    (let ((interface (current-interface)))
+      (toggle-visible? (child interface 'admin-label))
+      (toggle-visible? (child interface 'admin))
+      (if (not (get-visible? (child interface 'admin)))
+          ;; should not be necessary
+          (focus-world)
+        (layout-view interface)
+        (acquire-focus (locate (child interface 'admin) '(console text)))))))
 
 
 ;;;
@@ -1131,6 +1157,155 @@
   (method override (on-return-press self evt)
     (let ((zone (current-zone)))
       (people-return-press zone))))
+
+
+;;;
+;;;; Admin-Panel
+;;;
+
+
+(class Admin-Panel extends World-Panel
+  
+  
+  (form
+    (<install>
+      (<Border-View>  name: content location: center border-type: solid border-color: {Color Dark-Gray} style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
+        (<Admin-View> name: console location: center)))))
+
+
+;;;
+;;;; Admin-View
+;;;
+
+
+(class Admin-View extends Scroller-View
+  
+  
+  (form
+    (<install>
+      (<!>                 name: content
+        (<Admin-Text-View> name: text    background: #f)))))
+
+
+;;;
+;;;; Admin-Text
+;;;
+
+
+(class Admin-Text-View extends World-Text-View
+  
+  
+  (slot banner initialize #f getter generate)
+  
+  
+  (method override (new-model self)
+    (new Text-Model default-style: {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin}} base-style: {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin}} left-padding: 8))
+  
+  
+  (method override (install self rest)
+    (nextmethod self rest)
+    (add-style self 'Banner  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Blue}})
+    (add-style self 'Prompt  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Green}})
+    (add-style self 'Entry   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Purple}})
+    (add-style self 'Input   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Purple}})
+    (add-style self 'Output  {Text-Style Text-Base font: {Font Code point-size: 15.5 shadow: thin} color: {Color White}})
+    (add-style self 'Error   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Red}}))
+  
+  
+  (method package (initial-banner self banner)
+    (set! self.banner banner)
+    (display-banner self))
+  
+  
+  (method package (display-banner self)
+    (insert-styled self banner 'Banner)
+    (insert-newline self)
+    (insert-newline self)
+    (display-prompt self))
+  
+  
+  (method package (display-prompt self)
+    (insert-styled self ">" 'Prompt)
+    (insert-styled self " " 'Entry))
+  
+  
+  (method override (return-press self evt)
+    (let ((client (current-client)))
+      (let ((range (current-command self)))
+        (let ((all (read-string-content (get-string self range))))
+          (unless (null? all)
+            (bind (command . arguments) all
+              (case command
+                ((who)
+                 (stylize-range model range (locate-style self 'Input))
+                 (insert-newline self)
+                 (let ((who (admin-command client command arguments)))
+                   (for-each (lambda (name)
+                               (insert-styled self name 'Output)
+                               (insert-newline self))
+                             who))
+                 (insert-newline self)
+                 (display-prompt self))
+                ((crashes)
+                 (stylize-range model range (locate-style self 'Input))
+                 (insert-newline self)
+                 (let ((crashes (admin-command client command arguments)))
+                   (if (equal? arguments '(clear))
+                       (begin
+                         (insert-styled self "clear" 'Output)
+                         (insert-newline self))
+                     (for-each (lambda (filename)
+                                 (insert-styled self filename 'Output)
+                                 (insert-newline self))
+                               crashes)))
+                 (insert-newline self)
+                 (display-prompt self))
+                ((log)
+                 (stylize-range model range (locate-style self 'Input))
+                 (insert-newline self)
+                 (let ((log (admin-command client command arguments)))
+                   (for-each (lambda (line)
+                               (insert-styled self line 'Output)
+                               (insert-newline self))
+                             log))
+                 (insert-newline self)
+                 (display-prompt self))
+                ((logs)
+                 (stylize-range model range (locate-style self 'Input))
+                 (insert-newline self)
+                 (let ((logs (admin-command client command arguments)))
+                   (if (equal? arguments '(clear))
+                       (begin
+                         (insert-styled self "clear" 'Output)
+                         (insert-newline self))
+                     (for-each (lambda (filename)
+                                 (insert-styled self filename 'Output)
+                                 (insert-newline self))
+                               logs)))
+                 (insert-newline self)
+                 (display-prompt self))
+                ((clear)
+                 (empty-text self)
+                 (display-banner self))
+                (else
+                 (stylize-range model range (locate-style self 'Error))
+                 (insert-newline self)
+                 (insert-styled self (format "Unknown command: {a}" command) 'Error)
+                 (insert-newline self)
+                 (insert-newline self)
+                 (display-prompt self)))))))))
+  
+  
+  (method package (select-style self pos predicate)
+    (let ((explorer (new (explorer-class self) model start: pos end: pos)))
+      (select-style explorer predicate)
+      (get-range explorer)))
+  
+  
+  (method (current-command self)
+    (select-style self (text-ending self)
+      (lambda (style)
+        (inherits? style 'Entry)))))
 
 
 ;;;

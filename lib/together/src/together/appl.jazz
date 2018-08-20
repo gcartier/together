@@ -178,6 +178,12 @@
         (on-toggle-debug zone evt))))
   
   
+  (method (on-toggle-admin self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-admin zone evt))))
+  
+  
   ;;;
   ;;;; Files
   ;;;
@@ -280,7 +286,8 @@
           (<!>                 name: test8             visible?: #t shortcut: {Shortcut :alt #\8})
           (<!>                 name: test9             visible?: #t shortcut: {Shortcut :alt #\9})
           (<!>                 name: test0             visible?: #t shortcut: {Shortcut :alt #\0})
-          (<World-Action-Item> name: toggle-debug      visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")))))
+          (<World-Action-Item> name: toggle-debug      visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
+          (<World-Action-Item> name: toggle-admin      visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
