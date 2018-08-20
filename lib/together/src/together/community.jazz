@@ -1221,17 +1221,17 @@
   
   
   (method override (new-model self)
-    (new Text-Model default-style: {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin}} base-style: {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin}} left-padding: 8))
+    (new Text-Model default-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 8))
   
   
   (method override (install self rest)
     (nextmethod self rest)
-    (add-style self 'Banner  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Blue}})
-    (add-style self 'Prompt  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Green}})
-    (add-style self 'Entry   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Purple}})
-    (add-style self 'Input   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Purple}})
-    (add-style self 'Output  {Text-Style Text-Base font: {Font Code point-size: 15.5 shadow: thin} color: {Color White}})
-    (add-style self 'Error   {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color World-Red}}))
+    (add-style self 'Banner  {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Blue}})
+    (add-style self 'Prompt  {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Green}})
+    (add-style self 'Entry   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Purple}})
+    (add-style self 'Input   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Purple}})
+    (add-style self 'Output  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color White}})
+    (add-style self 'Error   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Red}}))
   
   
   (method package (initial-banner self banner)
