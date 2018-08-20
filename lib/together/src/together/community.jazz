@@ -1100,11 +1100,20 @@
   
   (method (on-toggle-admin self evt)
     (let ((interface (current-interface)))
-      (toggle-visible? (child interface 'admin-label))
-      (toggle-visible? (child interface 'admin))
-      (if (not (get-visible? (child interface 'admin)))
-          ;; should not be necessary
-          (focus-world)
+      (if (get-visible? (child interface 'admin))
+          (begin
+            (set-visible? (child interface 'admin-label) #f)
+            (set-visible? (child interface 'admin) #f)
+            (when (eq? stage 'gathering)
+              (set-visible? (child root 'join) #t)
+              (set-visible? (child root 'circle) #t))
+            ;; should not be necessary
+            (focus-world))
+        (set-visible? (child interface 'admin-label) #t)
+        (set-visible? (child interface 'admin) #t)
+        (when (eq? stage 'gathering)
+          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'circle) #f))
         (layout-view interface)
         (acquire-focus (locate (child interface 'admin) '(console text)))))))
 
