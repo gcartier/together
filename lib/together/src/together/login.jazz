@@ -205,12 +205,14 @@
   
   
   (method package (change-name self)
-    (set! changing-name? #t)
-    (set-title (child root 'new-label) "Please enter your new name")
-    (set-string-content (locate (child root 'new-name) 'text) (get-character-name configuration))
-    (update-name-views self)
-    (layout-view root)
-    (acquire-focus (locate (child root 'new-name) 'text)))
+    (let ((actual-name (get-character-name configuration)))
+      (set! changing-name? #t)
+      (set-title (child root 'new-label) "Please enter your new name")
+      (set-string-content (locate (child root 'new-name) 'text) actual-name)
+      (set-enabled? (child root 'new-enter) (not (whitespace? actual-name)))
+      (update-name-views self)
+      (layout-view root)
+      (acquire-focus (locate (child root 'new-name) 'text))))
   
   
   (method package (end-change-name self)
