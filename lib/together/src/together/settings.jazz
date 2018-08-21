@@ -96,6 +96,21 @@
            (exit 1))
           (else
            world))))
-  
-  
-(set-world-finder find-world))
+
+
+(set-world-finder find-world)
+
+
+;;;
+;;;; Skybox
+;;;
+
+
+(definition protected together-skybox
+  (or (world-setting 'together.skybox #f)
+      (if (world-setting 'together.first-use? #t)
+          (begin
+            (set-setting options-settings 'together.first-use? #f)
+            (save-content options-settings)
+            "nebula")
+        (random-element '("calm_sea" "dark_sea" "nebula"))))))

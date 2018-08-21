@@ -53,8 +53,6 @@
                        (set-setting settings property value))
                      '(;; role
                        world.role                 user
-                       ;; welcome
-                       world.welcome-skybox       "nebula"
                        ;; media
                        world.video-layout         gallery
                        ;; test

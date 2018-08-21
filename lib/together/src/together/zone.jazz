@@ -101,10 +101,10 @@
   
   (method override (about-size self)
     {Dimension 715 370})
-    
+  
   
   (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox "nebula")))
+    (set! skybox (let ((skybox (find-skybox together-skybox)))
                    (prepare skybox)
                    skybox)))
   

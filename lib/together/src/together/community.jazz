@@ -91,10 +91,6 @@
   (world-setting 'together.show-debug? #f))
 
 
-(definition welcome-skybox
-  (world-setting 'world.welcome-skybox "nebula"))
-
-
 (class Community-Zone extends Together-Zone
   
   
@@ -679,7 +675,7 @@
           (zone (current-zone)))
       (leave-group tier joined-circle)
       (install-camera)
-      (install-skybox zone (find-skybox welcome-skybox))
+      (install-skybox zone (find-skybox together-skybox))
       (set! joined-circle #f)
       (goto-stage self 'gathering)
       (invalidate-interface)))
