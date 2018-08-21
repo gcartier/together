@@ -162,9 +162,9 @@
             (release (process-release (current-process)))
             (name (get-character-name configuration)))
         ;; common
-        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 60) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 60) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
@@ -179,7 +179,7 @@
           (set-location command '(-10 -200))
           (set-size command (new Dimension 220 19)))
         (when (developer?)
-          (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 110) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+          (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 114) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
           (new Admin-Panel name: 'admin parent: interface location: '(center 150) proportion: '((bounds -500) (bounds -350)) layout-type: 'fill)
           (initial-banner (locate (child interface 'admin) '(console text)) (format "Together server v{a}" (present version))))
         ;; gathering
