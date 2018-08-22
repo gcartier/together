@@ -179,6 +179,7 @@
           (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 114) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
           (new Admin-Panel name: 'admin parent: interface location: '(center 150) proportion: '((bounds -500) (bounds -350)) layout-type: 'fill)
           (initial-banner (locate (child interface 'admin) '(console text)) (format "Together server v{a}" (present version))))
+        (add-exception-view self)
         ;; gathering
         (let ((root (new Together-Root name: 'gathering parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
@@ -272,7 +273,6 @@
       (location interface 'command '(-10 -146))
       (show root 'about)
       (update-circle/join self)
-      (add-exception-view self)
       (layout-view interface)
       (layout-view root)
       (no-showcase world)))
@@ -319,7 +319,6 @@
       (visible interface 'command-to (not hide-chat?))
       (visible interface 'command (not hide-chat?))
       (delay-hide-interface self)
-      (add-exception-view self)
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
