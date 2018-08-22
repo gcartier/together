@@ -230,6 +230,9 @@
       (define (show parent name)
         (set-visible? (child parent name) #t))
       
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
       (define (title parent name str)
         (set-title (child parent name) str))
       
@@ -250,9 +253,9 @@
       (show root 'release)
       (show root 'quit)
       (show root 'name)
-      (unless (get-visible? (child interface 'admin))
-        (show root 'circle)
-        (show root 'join))
+      (let ((admin-visible? (get-visible? (child interface 'admin))))
+        (visible root 'circle (not admin-visible?))
+        (visible root 'join (not admin-visible?)))
       (show root 'circle-label)
       (show root 'circle-view)
       (show root 'circle-create)
