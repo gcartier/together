@@ -344,7 +344,8 @@
         (close (child interface 'admin-label))
         (close (child interface 'admin)))
       (close (child interface 'gathering))
-      (close (child interface 'circle))))
+      (close (child interface 'circle))
+      (close (child interface 'exception))))
   
   
   (method (on-about self evt)

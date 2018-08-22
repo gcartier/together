@@ -187,7 +187,8 @@
   
   (method (uninstall-stage self)
     (let ((interface (current-interface)))
-      (close (child interface 'login))))
+      (close (child interface 'login))
+      (close (child interface 'exception))))
   
   
   (method (update-name-views self)
