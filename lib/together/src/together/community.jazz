@@ -124,7 +124,11 @@
   
   (method override (destroy self)
     (when (window?)
-      (let ((world (current-world)))
+      (let ((world (current-world))
+            (audio (current-audio))
+            (video (current-video)))
+        (stop-audio audio feedback?: #f)
+        (stop-video video feedback?: #f)
         (uninstall-hooks self)
         (uninstall-stage self)
         (uninstall-zone self)
