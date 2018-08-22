@@ -1309,7 +1309,7 @@
                        (insert-line "Log not found" 'Error)
                      (for-each (lambda (line)
                                  (insert-line line 'Output))
-                               log)))
+                               (remove-trailing "" log test: equal?))))
                  (insert-newline self)
                  (display-prompt self))
                 ((info)
