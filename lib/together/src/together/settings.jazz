@@ -37,7 +37,7 @@
   (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
 
 
-(definition protected (open-welcome/circle-zone)
+(definition protected (open-welcome/circle-zone (force-welcome?: force-welcome? #f))
   (define (open-circle remote-file)
     (let ((obj (open-client remote-file)))
       (if (is? obj Zone)
@@ -47,10 +47,11 @@
           (report-exception zone title obj)))))
   
   (let ((file (together-file)))
-    (if (and (exists? file)
-             (not (shift-down?)))
-        (open-circle file)
-      (open-login-zone))))
+    (if (or force-welcome?
+            (not (exists? file))
+            (shift-down?))
+        (open-login-zone)
+      (open-circle file))))
 
 
 (welcome-zone-open-set! open-welcome/circle-zone)
