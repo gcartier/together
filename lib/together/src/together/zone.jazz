@@ -100,7 +100,7 @@
   
   
   (method override (about-size self)
-    {Dimension 715 370})
+    {Dimension 715 385})
   
   
   (method override (prepare-skybox self)
