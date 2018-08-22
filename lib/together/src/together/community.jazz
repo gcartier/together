@@ -209,14 +209,16 @@
   
   
   (method (install-stage self)
-    (case stage
-      ((gathering)
-       (install-gathering self))
-      ((circle)
-       (install-circle self)))
-    (show root)
-    (send-to-back root)
-    (focus-world))
+    (let ((interface (current-interface)))
+      (case stage
+        ((gathering)
+         (install-gathering self))
+        ((circle)
+         (install-circle self)))
+      (show root)
+      (send-to-back root)
+      (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+        (focus-world))))
   
   
   (method (install-gathering self)
@@ -247,8 +249,9 @@
       (show root 'release)
       (show root 'quit)
       (show root 'name)
-      (show root 'circle)
-      (show root 'join)
+      (unless (get-visible? (child interface 'admin))
+        (show root 'circle)
+        (show root 'join))
       (show root 'circle-label)
       (show root 'circle-view)
       (show root 'circle-create)
