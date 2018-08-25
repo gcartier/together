@@ -413,4 +413,4 @@
       (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
       (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} description: "Cycle layouts.")
       ;; window
-      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :control :alt #\F} description: "Toggle between windowed and fullscreen mode.")))))
+      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :alt #\F} description: "Toggle between windowed and fullscreen mode.")))))
