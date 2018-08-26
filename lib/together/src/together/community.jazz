@@ -1137,10 +1137,9 @@
   
   
   (method (on-toggle-capture self evt)
-    (when (eq? stage 'circle)
-      (let ((world (current-world)))
-        (set-capture-screen? (not capture-screen?))
-        (display-on/off world "Capture screen" capture-screen?)))))
+    (let ((world (current-world)))
+      (set-capture-screen? (not capture-screen?))
+      (display-on/off world "Capture screen" capture-screen?))))
 
 
 ;;;
