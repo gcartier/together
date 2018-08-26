@@ -1139,7 +1139,16 @@
   (method (on-toggle-capture self evt)
     (let ((world (current-world)))
       (set-capture-screen? (not capture-screen?))
-      (display-on/off world "Capture screen" capture-screen?))))
+      (display-on/off world "Capture screen" capture-screen?)))
+  
+  
+  (method (on-toggle-mode self evt)
+    (let ((world (current-world)))
+      (set-video-mode
+        (if (eq? video-mode 'fit)
+            'fill
+          'fit))
+      (display-message world (format "Video mode: {a}" video-mode)))))
 
 
 ;;;

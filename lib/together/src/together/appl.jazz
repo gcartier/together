@@ -190,6 +190,12 @@
         (on-toggle-capture zone evt))))
   
   
+  (method (on-toggle-mode self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-mode zone evt))))
+  
+  
   ;;;
   ;;;; Files
   ;;;
@@ -294,7 +300,8 @@
           (<!>                 name: test0             visible?: #t shortcut: {Shortcut :alt #\0})
           (<World-Action-Item> name: toggle-debug      visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin      visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
-          (<World-Action-Item> name: toggle-capture    visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")))))
+          (<World-Action-Item> name: toggle-capture    visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
+          (<World-Action-Item> name: toggle-mode       visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
