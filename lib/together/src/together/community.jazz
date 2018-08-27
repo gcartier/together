@@ -187,8 +187,8 @@
           (set-location command '(-10 -200))
           (set-size command (new Dimension 220 19)))
         (when (developer?)
-          (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 114) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-          (new Admin-Panel name: 'admin parent: interface location: '(center 150) proportion: '((bounds -500) (bounds -350)) layout-type: 'fill)
+          (new Kind-Label name: 'admin-label parent: interface title: "Server" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+          (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
           (initial-banner (locate (child interface 'admin) '(console text)) (format "Together server v{a}" (present version))))
         (add-exception-view self)
         ;; gathering
