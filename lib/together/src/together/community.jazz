@@ -1418,7 +1418,7 @@
                  (stylize-range model range (locate-style self 'Input))
                  (insert-newline self)
                  (admin-command client command arguments)
-                 (insert-line "Restarted" 'Output)
+                 (insert-line "Restarting" 'Output)
                  (insert-newline self)
                  (display-prompt self))
                 ((clear)
