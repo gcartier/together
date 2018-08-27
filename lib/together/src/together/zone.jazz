@@ -67,6 +67,13 @@
     (<install> sun-cycle?: #f draw-grid?: #f))
   
   
+  (method override (destroy self)
+    (when (window?)
+      (let ((world (current-world)))
+        (clear-message world)))
+    (nextmethod self))
+  
+  
   (method override (camera-update self)
     (nextmethod self)
     (when (window?)
