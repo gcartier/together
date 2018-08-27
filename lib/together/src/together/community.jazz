@@ -16,6 +16,7 @@
 
 (import (jazz.action)
         (jazz.component)
+        (jazz.console)
         (jazz.event)
         (jazz.exemplar)
         (jazz.figure)
@@ -1250,21 +1251,48 @@
 (class Admin-Text-View extends World-Text-View
   
   
-  (slot banner initialize #f getter generate)
+  (slot inserted initialize (new Inserted))
+  (slot banner   initialize #f getter generate)
   
   
   (method override (new-model self)
-    (new Text-Model default-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 8))
+    (new Text-Model base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 8))
   
   
   (method override (install self rest)
     (nextmethod self rest)
+    (set-default-style model {Text-Style Entry})
+    (set-propagate-styles? model #f)
+    (set-colorize? syntax #f)
     (add-style self 'Banner  {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Blue}})
     (add-style self 'Prompt  {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Green}})
     (add-style self 'Entry   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Purple}})
     (add-style self 'Input   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Purple}})
     (add-style self 'Output  {Text-Style Text-Base font: {Font Code point-size: 14.5 shadow: thin} color: {Color White}})
     (add-style self 'Error   {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin} color: {Color World-Red}}))
+  
+  
+  (method override (focus-actions self)
+    (cons (cache-admin-actions)
+          (nextmethod self)))
+  
+  
+  (method override (set-selection self range . rest)
+    (apply nextmethod self range rest)
+    (set-where inserted #f))
+  
+  
+  (method package (on-clear self evt)
+    (clear-console self)
+    (reset inserted))
+  
+  
+  (method package (on-insert-previous self evt)
+    (console-insert-previous-block self inserted))
+  
+  
+  (method package (on-insert-next self evt)
+    (console-insert-next-block self inserted))
   
   
   (method package (initial-banner self banner)
@@ -1280,11 +1308,16 @@
   
   
   (method package (display-prompt self)
-    (insert-styled self ">" 'Prompt)
-    (insert-styled self " " 'Entry))
+    (insert-styled self "> " 'Prompt))
   
   
   (method override (return-press self evt)
+    (console-return self
+      (lambda ()
+        (console-evaluate self))))
+  
+  
+  (method (console-evaluate self)
     (let ((client (current-client)))
       (let ((range (current-command self)))
         (let ((all (read-string-content (get-string self range))))
@@ -1422,8 +1455,7 @@
                  (insert-newline self)
                  (display-prompt self))
                 ((clear)
-                 (empty-text self)
-                 (display-banner self))
+                 (clear-console self))
                 ((help ?)
                  (stylize-range model range (locate-style self 'Input))
                  (insert-newline self)
@@ -1443,23 +1475,47 @@
                  (insert-newline self)
                  (display-prompt self))
                 (else
-                 (stylize-range model range (locate-style self 'Error))
+                 (stylize-range model range (locate-style self 'Input))
                  (insert-newline self)
                  (insert-line (format "Unknown command: {a}" command) 'Error)
                  (insert-newline self)
                  (display-prompt self)))))))))
   
   
-  (method package (select-style self pos predicate)
-    (let ((explorer (new (explorer-class self) model start: pos end: pos)))
-      (select-style explorer predicate)
-      (get-range explorer)))
+  (method (clear-console self)
+    (empty-text self)
+    (display-banner self))
   
   
   (method (current-command self)
-    (select-style self (text-ending self)
+    (console-select-style self (text-ending self)
       (lambda (style)
         (inherits? style 'Entry)))))
+
+
+;;;
+;;;; Admin-Actions
+;;;
+
+
+(class Admin-Actions extends Actions
+  
+  
+  (form
+    (<install>
+      (<Action-Item> name: clear           visible?: #t action-handler: {Event-Handler :focus on-clear} shortcut: {Shortcut :control #\L})
+      (<Action-Item> name: insert-previous visible?: #t action-handler: {Event-Handler :focus on-insert-previous} shortcut: {Shortcut Tab})
+      (<Action-Item> name: insert-next     visible?: #t action-handler: {Event-Handler :focus on-insert-next} shortcut: {Shortcut :shift Tab}))))
+
+
+(definition admin-actions
+  #f)
+
+(definition (cache-admin-actions)
+  (or admin-actions
+      (let ((actions (new Admin-Actions)))
+        (set! admin-actions actions)
+        actions)))
 
 
 ;;;
