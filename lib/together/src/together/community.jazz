@@ -629,7 +629,7 @@
               (with-task-mutex
                 (lambda ()
                   (open-login-zone))))))))
-    #f)
+    #t)
   
   
   (method override (enter-press self)

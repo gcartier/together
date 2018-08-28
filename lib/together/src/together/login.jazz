@@ -254,7 +254,7 @@
   
   (method (escape-press self)
     (close-frame self)
-    #f)
+    #t)
   
   
   (method override (enter-press self)
