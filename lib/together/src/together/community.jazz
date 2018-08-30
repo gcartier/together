@@ -838,19 +838,20 @@
             (or (not audio-output)
                 (eq? (get-stream-state audio-output) 'off)))))
       
-      (define (draw-video-quality)
+      (define (draw-debugging)
         (set-font surface {Font font-name: tahoma point-size: 24 hint-style: slight hint-metrics: on})
-        (draw-text surface 30 80 (format "{a}" (get-client-no client)) {Color White})
-        (draw-text surface 30 130 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
-        (draw-text surface 30 180 (video-quality) {Color World-Red})
-        (draw-text surface 30 230 (latest-nacks) {Color World-Red}))
+        @should-go-to-info
+        (draw-text surface 20 80 (format "{a}" (get-client-no client)) {Color White})
+        (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
+        (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
+        (draw-text surface 20 180 (latest-nacks) {Color World-Red}))
       
-      (define (video-quality)
+      (define (media-quality kind)
         (let ((total 0.)
               (count 0))
           (iterate-table (get-receive-channels (get-udp-client client))
             (lambda (key channel)
-              (when (= (get-media-kind channel) udp-video)
+              (when (= (get-media-kind channel) kind)
                 (let ((mean (mean-average (get-process-average channel))))
                   (when mean
                     (increase! total mean)
@@ -881,7 +882,7 @@
           (when self-output
             (draw-output self-output))
           (when show-debug?
-            (draw-video-quality))))))
+            (draw-debugging))))))
   
   
   (method (click-sheet self h v)
