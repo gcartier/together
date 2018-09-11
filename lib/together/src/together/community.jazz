@@ -44,6 +44,7 @@
         (world.client.tier)
         (world.client.udp)
         (world.context)
+        (world.evolution)
         (world.geometry)
         (world.interface)
         (world.interface.clients)
@@ -845,7 +846,8 @@
         (draw-text surface 20 80 (format "{a}" (get-client-no client)) {Color White})
         (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
         (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-        (draw-text surface 20 180 (latest-nacks) {Color World-Red}))
+        (draw-text surface 20 180 (evolution-duration) {Color World-Red})
+        (draw-text surface 20 230 (latest-nacks) {Color World-Red}))
       
       (define (media-quality kind)
         (let ((total 0.)
@@ -860,6 +862,15 @@
           (if (= count 0)
               "N/A"
             (format "{r precision: 1}%" (* 100. (/ total (cast <fl> count)))))))
+      
+      (define (evolution-duration)
+        (if (= (get-count evolution) 0)
+            "N/A"
+          (let ((first (first-position evolution))
+                (last (last-position evolution)))
+            (format "{r precision: 1}s"
+                    (- (evolutionary-time evolution last)
+                       (evolutionary-time evolution first))))))
       
       (define (latest-nacks)
         (let ((total 0)
