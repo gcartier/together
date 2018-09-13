@@ -37,7 +37,9 @@
         (world.appl)
         (world.client.actions)
         (world.client.bars)
+        (world.configure)
         (world.context)
+        (world.evolution)
         (world.interface)
         (world.interface.actions)
         (world.interface.bars)
@@ -45,6 +47,7 @@
         (world.io)
         (world.role)
         (world.settings)
+        (world.task)
         (world.window)
         (together)
         (together.community)
@@ -196,6 +199,23 @@
         (on-toggle-mode zone evt))))
   
   
+  (method (on-process-evolutions self evt)
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (let ((world (current-world)))
+                  (with-task-mutex
+                    (lambda ()
+                      (display-message world "Processing..." duration: 60.)))
+                  (process-evolutions #f)
+                  (with-task-mutex
+                    (lambda ()
+                      (display-message world "Done")))))
+              'process)))
+      (thread-base-priority-set! thread background-priority)
+      (thread-start! thread)))
+  
+  
   ;;;
   ;;;; Files
   ;;;
@@ -280,28 +300,29 @@
     (<Role-Trait>              name: developer
       (<install>
         (<world-debug!>
-          (<!>                 name: toggle-info       visible?: #t)
-          (<!>                 name: toggle-timeline   visible?: #t)
-          (<!>                 name: toggle-profiler   visible?: #t)
-          (<!>                 name: reset-profiling   visible?: #t)
-          (<!>                 name: clear-console     visible?: #t)
-          (<!>                 name: clear-terminal    visible?: #t)
-          (<!>                 name: explore-interface visible?: #t)
-          (<!>                 name: test              visible?: #t shortcut: {Shortcut :alt #\T})
-          (<!>                 name: test1             visible?: #t shortcut: {Shortcut :alt #\1})
-          (<!>                 name: test2             visible?: #t shortcut: {Shortcut :alt #\2})
-          (<!>                 name: test3             visible?: #t shortcut: {Shortcut :alt #\3})
-          (<!>                 name: test4             visible?: #t shortcut: {Shortcut :alt #\4})
-          (<!>                 name: test5             visible?: #t shortcut: {Shortcut :alt #\5})
-          (<!>                 name: test6             visible?: #t shortcut: {Shortcut :alt #\6})
-          (<!>                 name: test7             visible?: #t shortcut: {Shortcut :alt #\7})
-          (<!>                 name: test8             visible?: #t shortcut: {Shortcut :alt #\8})
-          (<!>                 name: test9             visible?: #t shortcut: {Shortcut :alt #\9})
-          (<!>                 name: test0             visible?: #t shortcut: {Shortcut :alt #\0})
-          (<World-Action-Item> name: toggle-debug      visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
-          (<World-Action-Item> name: toggle-admin      visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
-          (<World-Action-Item> name: toggle-capture    visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
-          (<World-Action-Item> name: toggle-mode       visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")))))
+          (<!>                 name: toggle-info        visible?: #t)
+          (<!>                 name: toggle-timeline    visible?: #t)
+          (<!>                 name: toggle-profiler    visible?: #t)
+          (<!>                 name: reset-profiling    visible?: #t)
+          (<!>                 name: clear-console      visible?: #t)
+          (<!>                 name: clear-terminal     visible?: #t)
+          (<!>                 name: explore-interface  visible?: #t)
+          (<!>                 name: test               visible?: #t shortcut: {Shortcut :alt #\T})
+          (<!>                 name: test1              visible?: #t shortcut: {Shortcut :alt #\1})
+          (<!>                 name: test2              visible?: #t shortcut: {Shortcut :alt #\2})
+          (<!>                 name: test3              visible?: #t shortcut: {Shortcut :alt #\3})
+          (<!>                 name: test4              visible?: #t shortcut: {Shortcut :alt #\4})
+          (<!>                 name: test5              visible?: #t shortcut: {Shortcut :alt #\5})
+          (<!>                 name: test6              visible?: #t shortcut: {Shortcut :alt #\6})
+          (<!>                 name: test7              visible?: #t shortcut: {Shortcut :alt #\7})
+          (<!>                 name: test8              visible?: #t shortcut: {Shortcut :alt #\8})
+          (<!>                 name: test9              visible?: #t shortcut: {Shortcut :alt #\9})
+          (<!>                 name: test0              visible?: #t shortcut: {Shortcut :alt #\0})
+          (<World-Action-Item> name: toggle-debug       visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
+          (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
+          (<World-Action-Item> name: toggle-capture     visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
+          (<World-Action-Item> name: toggle-mode        visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
+          (<World-Action-Item> name: process-evolutions visible?: #t shortcut: {Shortcut :alt #\E} title: "Process evolutions" action-handler: {Event-Handler :application on-process-evolutions} description: "Process evolutions.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
