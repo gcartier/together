@@ -847,8 +847,9 @@
         (draw-text surface 20 80 (format "{a}" (get-client-no client)) {Color White})
         (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
         (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-        (draw-text surface 20 180 (evolution-duration) {Color World-Red})
-        (draw-text surface 20 230 (latest-nacks) {Color World-Red}))
+        (draw-text surface 20 180 (format "{a} {a}" (client-drop) (server-drop)) {Color World-Red})
+        (draw-text surface 20 230 (evolution-duration) {Color World-Red})
+        (draw-text surface 20 280 (latest-nacks) {Color World-Red}))
       
       (define (media-quality kind)
         (let ((total 0.)
@@ -863,6 +864,18 @@
           (if (= count 0)
               "N/A"
             (format "{r precision: 1}%" (* 100. (/ total (cast <fl> count)))))))
+      
+      (define (client-drop)
+        (let ((drop (get-client-drop (get-udp-client client))))
+          (if drop
+              (format "{r precision: 1}%" drop)
+            "N/A")))
+      
+      (define (server-drop)
+        (let ((drop (get-server-drop (get-udp-client client))))
+          (if drop
+              (format "{r precision: 1}%" drop)
+            "N/A")))
       
       (define (evolution-duration)
         (if (= (get-count evolution) 0)
