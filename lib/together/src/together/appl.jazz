@@ -35,6 +35,7 @@
         (jazz.view)
         (world)
         (world.appl)
+        (world.capabilities)
         (world.client.actions)
         (world.client.bars)
         (world.configure)
@@ -199,6 +200,12 @@
         (on-toggle-mode zone evt))))
   
   
+  (method (on-show-info self evt)
+    (let ((world (current-world)))
+      (let ((duration (estimate-garbage-collect)))
+        (display-message world (format "Garbage collect {a}ms" (seconds->milliseconds duration))))))
+  
+  
   (method (on-process-evolutions self evt)
     (let ((thread
             (new-thread
@@ -322,6 +329,7 @@
           (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-capture     visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
           (<World-Action-Item> name: toggle-mode        visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
+          (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")
           (<World-Action-Item> name: process-evolutions visible?: #t shortcut: {Shortcut :alt #\E} title: "Process evolutions" action-handler: {Event-Handler :application on-process-evolutions} description: "Process evolutions.")))))
 
   (definition developer-role
