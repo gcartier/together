@@ -326,12 +326,13 @@
           (<!>                 name: test8              visible?: #t shortcut: {Shortcut :alt #\8})
           (<!>                 name: test9              visible?: #t shortcut: {Shortcut :alt #\9})
           (<!>                 name: test0              visible?: #t shortcut: {Shortcut :alt #\0})
-          (<World-Action-Item> name: toggle-debug       visible?: #t shortcut: {Shortcut :alt #\G} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
-          (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-capture     visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
           (<World-Action-Item> name: toggle-mode        visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
-          (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")
-          (<World-Action-Item> name: process-evolutions visible?: #t shortcut: {Shortcut :alt #\E} title: "Process evolutions" action-handler: {Event-Handler :application on-process-evolutions} description: "Process evolutions.")))))
+          (<World-Action-Item> name: toggle-debug       visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
+          (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
+          (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")
+          (<World-Action-Item> name: show-evolutions    visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Show evolutions" action-handler: {Event-Handler :application on-show-evolutions} description: "Show evolutions.")
+          (<World-Action-Item> name: process-evolutions visible?: #t shortcut: {Shortcut :alt :shift #\P} title: "Process evolutions" action-handler: {Event-Handler :application on-process-evolutions} description: "Process evolutions.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
