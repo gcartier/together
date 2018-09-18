@@ -60,7 +60,8 @@
 (class Together-Zone extends Zone
   
   
-  (slot root initialize #f getter generate)
+  (slot stage initialize #f getter generate)
+  (slot root  initialize #f getter generate)
   
   
   (form

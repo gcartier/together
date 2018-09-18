@@ -68,7 +68,6 @@
 (class Login-Zone extends Together-Zone
   
   
-  (slot stage          initialize #f getter generate)
   (slot configuration  initialize #f getter generate)
   (slot changing-name? initialize #f getter generate)
   (slot view-focused   initialize #f getter generate)

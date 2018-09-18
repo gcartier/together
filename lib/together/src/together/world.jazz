@@ -22,7 +22,8 @@
         (world.interface)
         (world.interface.sheet)
         (world.sound)
-        (together.community))
+        (together.community)
+        (together.zone))
 
 
 (class Together-World extends World

@@ -97,7 +97,6 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot stage           initialize #f                getter generate)
   (slot configuration   initialize #f                getter generate)
   (slot selected-group  initialize #f                getter generate)
   (slot selected-player initialize #f                getter generate)
