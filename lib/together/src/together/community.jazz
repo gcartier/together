@@ -1145,22 +1145,78 @@
   
   (method (on-toggle-admin self evt)
     (let ((interface (current-interface)))
-      (if (get-visible? (child interface 'admin))
-          (begin
-            (set-visible? (child interface 'admin-label) #f)
-            (set-visible? (child interface 'admin) #f)
-            (when (eq? stage 'gathering)
-              (set-visible? (child root 'join) #t)
-              (set-visible? (child root 'circle) #t))
-            ;; should not be necessary
-            (focus-world))
-        (set-visible? (child interface 'admin-label) #t)
-        (set-visible? (child interface 'admin) #t)
-        (when (eq? stage 'gathering)
-          (set-visible? (child root 'join) #f)
-          (set-visible? (child root 'circle) #f))
-        (layout-view interface)
-        (acquire-focus (locate (child interface 'admin) '(console text))))))
+      (let ((panel (child interface 'admin)))
+        (if (get-visible? panel)
+            (begin
+              (hide-admin self)
+              ;; should not be necessary
+              (focus-world))
+          (show-admin self)
+          (acquire-focus (locate panel '(console text)))))))
+  
+  
+  (method (show-admin self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'admin-label) #t)
+      (set-visible? (child interface 'admin) #t)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'join) #f)
+        (set-visible? (child root 'circle) #f))
+      (layout-view interface)))
+  
+  
+  (method (hide-admin self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'admin-label) #f)
+      (set-visible? (child interface 'admin) #f)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'join) #t)
+        (set-visible? (child root 'circle) #t))))
+  
+  
+  (method (on-toggle-evolution self evt)
+    (let ((interface (current-interface)))
+      (if (get-visible? (child interface 'evolution))
+          (hide-evolution self)
+        (show-evolution self))))
+  
+  
+  (method (show-evolution self)
+    (let ((world (current-world)))
+      (toggle-timeline world)
+      (toggle-evolution world)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'together) #f)
+        (set-visible? (child root 'join) #f)
+        (set-visible? (child root 'circle) #f)
+        (set-visible? (child root 'circle-label) #f)
+        (set-visible? (child root 'circle-view) #f)
+        (set-visible? (child root 'circle-create) #f))))
+  
+  
+  (method (hide-evolution self)
+    (let ((world (current-world)))
+      (toggle-timeline world)
+      (toggle-evolution world)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'together) #t)
+        (set-visible? (child root 'join) #t)
+        (set-visible? (child root 'circle) #t)
+        (set-visible? (child root 'circle-label) #t)
+        (set-visible? (child root 'circle-view) #t)
+        (set-visible? (child root 'circle-create) #t))))
+  
+  
+  (method (on-request-evolutions self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'admin)))
+        (let ((text (locate panel '(console text))))
+          (show-admin self)
+          (acquire-focus text)
+          (insert-string text "request all evolution")
+          (console-return text
+            (lambda ()
+              (console-evaluate text)))))))
   
   
   (method (on-toggle-capture self evt)
