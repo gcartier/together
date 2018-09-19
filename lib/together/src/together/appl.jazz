@@ -206,21 +206,26 @@
         (display-message world (format "Garbage collect {a}ms" (seconds->milliseconds duration))))))
   
   
-  (method (on-process-evolutions self evt)
-    (let ((thread
-            (new-thread
-              (lambda ()
-                (let ((world (current-world)))
-                  (with-task-mutex
-                    (lambda ()
-                      (display-message world "Processing..." duration: 60.)))
-                  (process-evolutions #f)
-                  (with-task-mutex
-                    (lambda ()
-                      (display-message world "Done")))))
-              'process)))
-      (thread-base-priority-set! thread background-priority)
-      (thread-start! thread)))
+  (method (on-show-evolutions self evt)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (let ((panel (child interface 'evolution)))
+        (if (get-visible? panel)
+            (set-visible? panel #f)
+          (let ((file {File Home ".together" "1.0.0" "work" "requests" "Guillaume_2018-09-18_09-43-17_24553554.evolution"}))
+            (if (not (exists? file))
+                (display-error world (format "File not found {a}" (get-name file)))
+              (bind (metadata . evolution) (read-evolution file)
+                (terminal metadata (class-of evolution))
+                @w
+                (let ((effective-entries (let ((max-entries 34))
+                                           (if (> (length entries) max-entries)
+                                               (subseq entries 0 max-entries)
+                                             entries))))
+                  (view-entries panel effective-entries)))
+              (set-visible? panel #t)
+              (bring-to-front panel))))
+        (update-parameter world 'evolution))))
   
   
   ;;;
@@ -330,9 +335,7 @@
           (<World-Action-Item> name: toggle-mode        visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-debug       visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
-          (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")
-          (<World-Action-Item> name: show-evolutions    visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Show evolutions" action-handler: {Event-Handler :application on-show-evolutions} description: "Show evolutions.")
-          (<World-Action-Item> name: process-evolutions visible?: #t shortcut: {Shortcut :alt :shift #\P} title: "Process evolutions" action-handler: {Event-Handler :application on-process-evolutions} description: "Process evolutions.")))))
+          (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
   (definition developer-role
     `((:bindings ,developer-bindings))))
