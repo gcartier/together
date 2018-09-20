@@ -719,6 +719,7 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
+      (reset chronology)
       (reset evolution)
       (let ((exception (join-group tier name)))
         (if exception
