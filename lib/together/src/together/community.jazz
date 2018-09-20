@@ -896,7 +896,7 @@
         (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
         (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
         (draw-text surface 20 180 (format "{a} {a}" (client-drop) (server-drop)) {Color World-Red})
-        (draw-text surface 20 230 (format "{a} {a}" (evolution-duration) (chronology-duration)) {Color World-Red})
+        (draw-text surface 20 230 (format "{a} {a}" (chronology-duration) (evolution-duration)) {Color World-Red})
         (draw-text surface 20 280 (latest-nacks) {Color World-Red}))
       
       (define (media-quality kind)
@@ -925,15 +925,6 @@
               (format "{r precision: 1}%" drop)
             "N/A")))
       
-      (define (evolution-duration)
-        (if (= (get-count evolution) 0)
-            "N/A"
-          (let ((first (first-position evolution))
-                (last (last-position evolution)))
-            (format "{r precision: 1}s"
-                    (- (evolutionary-time evolution last)
-                       (evolutionary-time evolution first))))))
-      
       (define (chronology-duration)
         (if (= (get-count chronology) 0)
             "N/A"
@@ -942,6 +933,15 @@
             (format "{r precision: 1}s"
                     (- (chronological-time chronology last)
                        (chronological-time chronology first))))))
+      
+      (define (evolution-duration)
+        (if (= (get-count evolution) 0)
+            "N/A"
+          (let ((first (first-position evolution))
+                (last (last-position evolution)))
+            (format "{r precision: 1}s"
+                    (- (evolutionary-time evolution last)
+                       (evolutionary-time evolution first))))))
       
       (define (latest-nacks)
         (let ((total 0)
