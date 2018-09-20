@@ -17,6 +17,7 @@
 (import (jazz.io)
         (jazz.logger)
         (world)
+        (world.profiling)
         (together)
         (together.domain))
 
@@ -42,7 +43,9 @@
   (set-default-server "Together")
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename))
-  (register-domain-names))
+  (register-domain-names)
+  (setup-profiling)
+  (advise-sites))
 
 
 (definition protected (prepare-settings)

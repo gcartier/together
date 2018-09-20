@@ -51,13 +51,16 @@
         (world.interface.command)
         (world.interface.dialogs)
         (world.interface.documents)
+        (world.interface.evolution)
         (world.interface.frame)
         (world.interface.panel)
         (world.interface.sheet)
         (world.interface.text)
         (world.interface.tiers)
+        (world.interface.timeline)
         (world.io)
         (world.pane)
+        (world.profiling)
         (world.ring)
         (world.settings)
         (world.skybox)
@@ -106,6 +109,7 @@
   (slot draw-hook       initialize #f                getter generate)
   (slot hide-ring       initialize (new Time-Ring 1) getter generate)
   (slot hide-thread     initialize #f                getter generate)
+  (slot replay          initialize #f                getter generate)
   
   
   (method override (zone-ready self)
@@ -200,6 +204,8 @@
           (new Version-Label name: 'version parent: root title: (format "v{a}" (present version)) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'release parent: root title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
+          (when (developer?)
+            (new Push-Button name: 'goto-replay parent: root title: "Replay" location: '(200 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-goto-replay self)))
           (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'join parent: root title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
@@ -217,6 +223,11 @@
             (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
             (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
             (layout-view circlebar)))
+        ;; replay
+        (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #f layouter: (lambda (panel) (timeline-panel-layouter panel)))
+          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #f layouter: (lambda (panel) (evolution-panel-layouter panel)))
+          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         ;; hide all
         (for-each (lambda (child)
                     (set-visible? child #f))
@@ -229,7 +240,9 @@
         ((gathering)
          (install-gathering self))
         ((circle)
-         (install-circle self)))
+         (install-circle self))
+        ((replay)
+         (install-replay self)))
       (show root)
       (send-to-back root)
       (when (developer?)
@@ -267,6 +280,8 @@
       (show root 'version)
       (show root 'release)
       (show root 'quit)
+      (when (developer?)
+        (show root 'goto-replay))
       (show root 'name)
       (when (developer?)
         (let ((admin-visible? (get-visible? (child interface 'admin))))
@@ -349,6 +364,28 @@
         (install-hider self))))
   
   
+  (method (install-replay self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (set! root (child interface 'replay))
+      (show root 'timeline)
+      (show root 'evolution)
+      (show root 'back)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root)))
+  
+  
   (method (uninstall-stage self)
     (when (and (eq? stage 'circle) auto-hide?)
       (uninstall-hider self))
@@ -366,6 +403,7 @@
         (close (child interface 'admin)))
       (close (child interface 'gathering))
       (close (child interface 'circle))
+      (close (child interface 'replay))
       (close (child interface 'exception))))
   
   
@@ -715,6 +753,14 @@
     (quit-process (current-process)))
   
   
+  (method (on-goto-replay self evt)
+    (show-replay self))
+  
+  
+  (method (on-back self evt)
+    (hide-replay self))
+  
+  
   ;;;
   ;;;; Hooks
   ;;;
@@ -733,7 +779,8 @@
       (register-draw-hook interface draw-hook)
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-return-handler (child interface 'command) (~ command-return self))
-      (set-escape-handler (child interface 'command) (~ command-escape self))))
+      (set-escape-handler (child interface 'command) (~ command-escape self))
+      (set-view-replay (~ view-replay self))))
   
   
   (method (uninstall-hooks self)
@@ -748,7 +795,8 @@
       (unregister-draw-hook interface draw-hook)
       (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
-      (set-escape-handler (child interface 'command) #f)))
+      (set-escape-handler (child interface 'command) #f)
+      (reset-view-replay)))
   
   
   ;;;
@@ -847,7 +895,7 @@
         (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
         (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
         (draw-text surface 20 180 (format "{a} {a}" (client-drop) (server-drop)) {Color World-Red})
-        (draw-text surface 20 230 (evolution-duration) {Color World-Red})
+        (draw-text surface 20 230 (format "{a} {a}" (evolution-duration) (chronology-duration)) {Color World-Red})
         (draw-text surface 20 280 (latest-nacks) {Color World-Red}))
       
       (define (media-quality kind)
@@ -884,6 +932,15 @@
             (format "{r precision: 1}s"
                     (- (evolutionary-time evolution last)
                        (evolutionary-time evolution first))))))
+      
+      (define (chronology-duration)
+        (if (= (get-count chronology) 0)
+            "N/A"
+          (let ((first (first-position chronology))
+                (last (last-position chronology)))
+            (format "{r precision: 1}s"
+                    (- (chronological-time chronology last)
+                       (chronological-time chronology first))))))
       
       (define (latest-nacks)
         (let ((total 0)
@@ -1174,46 +1231,69 @@
         (set-visible? (child root 'circle) #t))))
   
   
-  (method (on-toggle-evolution self evt)
+  (method (on-toggle-replay self evt)
+    (case stage
+      ((gathering)
+       (show-replay self))
+      ((circle)
+       (bell))
+      ((replay)
+       (hide-replay self))))
+  
+  
+  (method (show-replay self)
+    (goto-stage self 'replay))
+  
+  
+  (method (hide-replay self)
+    (goto-stage self 'gathering))
+  
+  
+  (method (view-replay self dir)
     (let ((interface (current-interface)))
-      (if (get-visible? (child interface 'evolution))
-          (hide-evolution self)
-        (show-evolution self))))
+      (receive (names chronologies evolutions) (collect-replays dir)
+        (define (determine-my-id)
+          (let ((character-name (get-character-name (current-client))))
+            (table-find names character-name test: equal?)))
+        
+        (hide-admin self)
+        (show-replay self)
+        (set! replay (new Replay dir names chronologies evolutions))
+        (let ((my-id (determine-my-id)))
+          (if (not my-id)
+              (display-error (current-world) (format "Unable to find my-id {a}" (get-character-name (current-client))))
+            (let ((panel (child root 'timeline)))
+              (set-chronology panel (table-ref chronologies my-id))
+              (set-evolution panel (table-ref evolutions my-id))
+              (setup-replay panel))))
+        (let ((panel (child root 'evolution)))
+          (view-names/evolutions panel names evolutions (get-head replay) .3)))))
   
   
-  (method (show-evolution self)
-    (let ((world (current-world)))
-      (toggle-timeline world)
-      (toggle-evolution world)
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'together) #f)
-        (set-visible? (child root 'join) #f)
-        (set-visible? (child root 'circle) #f)
-        (set-visible? (child root 'circle-label) #f)
-        (set-visible? (child root 'circle-view) #f)
-        (set-visible? (child root 'circle-create) #f))))
+  (method package (update-now self now)
+    (let ((panel (child root 'evolution)))
+      (let ((names (get-names replay))
+            (evolutions (get-evolutions replay)))
+        (view-names/evolutions panel names evolutions (- now .025) (+ now .025)))))
   
   
-  (method (hide-evolution self)
-    (let ((world (current-world)))
-      (toggle-timeline world)
-      (toggle-evolution world)
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'together) #t)
-        (set-visible? (child root 'join) #t)
-        (set-visible? (child root 'circle) #t)
-        (set-visible? (child root 'circle-label) #t)
-        (set-visible? (child root 'circle-view) #t)
-        (set-visible? (child root 'circle-create) #t))))
+  (method package (update-evolution-selection self selection)
+    (when (not-null? selection)
+      (let ((panel (child root 'evolution)))
+        (let ((tree (locate panel 'entries)))
+          (let ((cell (car selection)))
+            (let ((row (get-row tree (get-line cell))))
+              (let ((user-data (get-user-data row)))
+                (debug (vector-ref user-data (get-col cell))))))))))
   
   
-  (method (on-request-evolutions self evt)
+  (method (on-request-replays self evt)
     (let ((interface (current-interface)))
       (let ((panel (child interface 'admin)))
         (let ((text (locate panel '(console text))))
           (show-admin self)
           (acquire-focus text)
-          (insert-string text "request all evolution")
+          (insert-string text "request all replay")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
@@ -1382,4 +1462,62 @@
   
   
   (method override (invalidate-hook self)
-    (set-uptodate? (find-ascendant self Circlebar-View) #f))))
+    (set-uptodate? (find-ascendant self Circlebar-View) #f)))
+
+
+;;;
+;;;; Replay
+;;;
+
+
+(class Replay extends Object
+  
+  
+  (slot directory    getter generate)
+  (slot names        getter generate)
+  (slot chronologies getter generate)
+  (slot evolutions   getter generate)
+  (slot head         getter generate)
+  (slot tail         getter generate)
+  
+  
+  (method override (initialize self directory names chronologies evolutions)
+    (define (determine-head)
+      (apply min (map (lambda (evolution)
+                        (evolutionary-time evolution (first-position evolution)))
+                      (table-values evolutions))))
+    
+    (define (determine-tail)
+      (apply max (map (lambda (evolution)
+                        (evolutionary-time evolution (last-position evolution)))
+                      (table-values evolutions))))
+    
+    (nextmethod self)
+    (set! self.directory directory)
+    (set! self.names names)
+    (set! self.chronologies chronologies)
+    (set! self.evolutions evolutions)
+    (set! self.head (determine-head))
+    (set! self.tail (determine-tail))))
+
+
+(class Together-Timeline-Panel extends Timeline-Panel
+  
+  
+  (method override (now-update self)
+    (let ((zone (current-zone)))
+      (update-now zone now))))
+
+
+(class Together-Evolution-Panel extends Evolution-Panel
+  
+  
+  (form
+    (<install>
+      (<entries~> selection-handler: {Event-Handler :form on-selection-change})))
+  
+  
+  (method (on-selection-change self evt)
+    (let ((zone (current-zone)))
+      (let ((selection (get-selection evt)))
+        (update-evolution-selection zone selection))))))

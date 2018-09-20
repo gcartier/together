@@ -188,16 +188,16 @@
         (on-toggle-admin zone evt))))
   
   
-  (method (on-toggle-evolution self evt)
+  (method (on-toggle-replay self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
-        (on-toggle-evolution zone evt))))
+        (on-toggle-replay zone evt))))
   
   
-  (method (on-request-evolutions self evt)
+  (method (on-request-replays self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
-        (on-request-evolutions zone evt))))
+        (on-request-replays zone evt))))
   
   
   (method (on-toggle-capture self evt)
@@ -325,8 +325,8 @@
           (<World-Action-Item> name: toggle-mode        visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-debug       visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin       visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
-          (<World-Action-Item> name: toggle-evolution   visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Toggle evolution" action-handler: {Event-Handler :application on-toggle-evolution} description: "Toggle evolution.")
-          (<World-Action-Item> name: request-evolutions visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Request evolutions" action-handler: {Event-Handler :application on-request-evolutions} description: "Request evolutions.")
+          (<World-Action-Item> name: toggle-replay      visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Toggle replay" action-handler: {Event-Handler :application on-toggle-replay} description: "Toggle replay.")
+          (<World-Action-Item> name: request-replays    visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: show-info          visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
   (definition developer-role
@@ -402,7 +402,9 @@
         (<!>                         name: copy                 visible?: #t)
         (<!>                         name: paste                visible?: #t)
         (<!>                         name: select-all           visible?: #t)
+        (<!>                         name: move-left            visible?: #t)
         (<!>                         name: move-up              visible?: #t)
+        (<!>                         name: move-right           visible?: #t)
         (<!>                         name: move-down            visible?: #t))
       ;; World
       (<World-Menu-Actions>          name: world-menu)

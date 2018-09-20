@@ -17,6 +17,7 @@
 (import (jazz.action)
         (jazz.io)
         (world)
+        (world.profiling)
         (together)
         (together.domain))
 
@@ -37,7 +38,9 @@
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
   (set-action-item-visibility #f)
-  (register-domain-names))
+  (register-domain-names)
+  (setup-profiling)
+  (advise-sites))
 
 
 (definition protected (prepare-settings)

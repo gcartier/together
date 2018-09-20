@@ -16,6 +16,7 @@
 
 (import (jazz.io)
         (world)
+        (world.profiling)
         (together)
         (together.domain))
 
@@ -33,7 +34,9 @@
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(admin))
   (set-worker-filename (determine-worker-filename))
-  (register-domain-names))
+  (register-domain-names)
+  (setup-profiling)
+  (advise-sites))
 
 
 (definition protected (prepare-settings)
