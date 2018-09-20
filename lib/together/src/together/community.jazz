@@ -1275,7 +1275,14 @@
     (let ((panel (child root 'evolution)))
       (let ((names (get-names replay))
             (evolutions (get-evolutions replay)))
-        (view-names/evolutions panel names evolutions (- now .025) (+ now .025)))))
+        (set-highlighted-cells replay '())
+        (view-names/evolutions panel names evolutions (- now .025) (+ now .025))
+        (let ((target (get-highlighted-value replay))
+              (col (get-highlighted-column replay)))
+          (when target
+            (let ((tree (locate panel 'entries)))
+              (highlight-value self tree target col)
+              (invalidate-view tree)))))))
   
   
   (method package (update-selection self selection)
@@ -1285,9 +1292,9 @@
           ;; unhighlight
           (for-each (lambda (cell)
                       (let ((data (get-cell-data tree cell)))
-                        (set-frame-color data #f)
-                        (invalidate-cell tree cell)))
+                        (set-frame-color data #f)))
                     (get-highlighted-cells replay))
+          (set-highlighted-value replay #f)
           (set-highlighted-cells replay '())
           ;; highlight
           (let ((cell (car selection)))
@@ -1296,16 +1303,21 @@
               (let ((row (get-row tree line)))
                 (let ((user-data (get-user-data row)))
                   (let ((target (vector-ref user-data col)))
-                    (for-each-visible-row tree
-                      (lambda (row line)
-                        (let ((value (vector-ref (get-user-data row) col)))
-                          (when (eqv? value target)
-                            (let ((data (get-child row col)))
-                              (set-frame-color data {Color Red})
-                              (invalidate-cell tree cell)
-                              (set-highlighted-cells replay (cons (new Cell line col) (get-highlighted-cells replay)))))))))))))
+                    (highlight-value self tree target col))))))
           ;; invalidate
           (invalidate-view tree)))))
+  
+  
+  (method (highlight-value self tree target col)
+    (set-highlighted-value replay target)
+    (set-highlighted-column replay col)
+    (for-each-visible-row tree
+      (lambda (row line)
+        (let ((value (vector-ref (get-user-data row) col)))
+          (when (eqv? value target)
+            (let ((data (get-child row col)))
+              (set-frame-color data {Color Red})
+              (set-highlighted-cells replay (cons (new Cell line col) (get-highlighted-cells replay)))))))))
   
   
   (method (on-request-replays self evt)
@@ -1501,8 +1513,9 @@
   (slot head         getter generate)
   (slot tail         getter generate)
   
-  (slot highlighted-value initialize #f  accessors generate)
-  (slot highlighted-cells initialize '() accessors generate)
+  (slot highlighted-value  initialize #f  accessors generate)
+  (slot highlighted-column initialize #f  accessors generate)
+  (slot highlighted-cells  initialize '() accessors generate)
   
   
   (method override (initialize self directory names chronologies evolutions)
