@@ -1266,6 +1266,7 @@
             (let ((panel (child root 'timeline)))
               (set-chronology panel (table-ref chronologies my-id))
               (set-evolution panel (table-ref evolutions my-id))
+              (set-evolutions panel evolutions)
               (setup-replay panel))))
         (let ((panel (child root 'evolution)))
           (view-names/evolutions panel names evolutions (get-head replay) .3)))))
@@ -1283,6 +1284,33 @@
             (let ((tree (locate panel 'entries)))
               (highlight-value self tree target col)
               (invalidate-view tree)))))))
+  
+  
+  (method package (update-double-click self)
+    (let ((timeline (child root 'timeline))
+          (panel (child root 'evolution)))
+      (let ((tree (locate panel 'entries)))
+        (let ((selection (get-selection tree)))
+          (if (null? selection)
+              (set-highlighted-value timeline #f)
+            (let ((cell (car selection)))
+              (let ((line (get-line cell))
+                    (col (get-col cell)))
+                (if (<= col 1)
+                    (set-highlighted-value timeline #f)
+                  ;; quicky only sequence for now
+                  (if (/= col 5)
+                      (set-highlighted-value timeline #f)
+                    (let ((row (get-row tree line)))
+                      (let ((user-data (get-user-data row)))
+                        (let ((origin (vector-ref user-data (- col 2)))
+                              (kind (vector-ref user-data (- col 1)))
+                              (value (vector-ref user-data col)))
+                          (set-highlighted-origin timeline origin)
+                          (set-highlighted-kind timeline kind)
+                          (set-highlighted-value timeline value)
+                          (set-highlighted-column timeline (- col 1))))))))))
+          (invalidate-view timeline)))))
   
   
   (method package (update-selection self selection)
@@ -1541,6 +1569,33 @@
 (class Together-Timeline-Panel extends Timeline-Panel
   
   
+  (slot evolutions         initialize '() accessors generate)
+  (slot highlighted-origin initialize #f  accessors generate)
+  (slot highlighted-kind   initialize #f  accessors generate)
+  (slot highlighted-value  initialize #f  accessors generate)
+  (slot highlighted-column initialize #f  accessors generate)
+  
+  
+  (method override (plot-evolutions self surface from to)
+    (when highlighted-value
+      (draw-text surface 10 10 (->string highlighted-value) {Color Red})
+      (let ((width (cast <fl> (get-width self))))
+        (iterate-table evolutions
+          (lambda (id evolution)
+            (loop (for n from (first-position evolution) to (last-position evolution))
+                  (let ((time (evolutionary-time evolution n))
+                        (origin (evolutionary-data1 evolution n))
+                        (kind (evolutionary-data2 evolution n))
+                        (value (evolutionary-data3 evolution n)))
+                    (when (and (eqv? origin highlighted-origin)
+                               (eqv? kind highlighted-kind)
+                               (eqv? value highlighted-value))
+                      (let ((h (fxround (* (/ (- time from) span) width))))
+                        (let ((color {Color Red})
+                              (v 13))
+                          (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color)))))))))))
+  
+  
   (method override (now-update self)
     (let ((zone (current-zone)))
       (update-now zone now))))
@@ -1551,7 +1606,12 @@
   
   (form
     (<install>
-      (<entries~> selection-handler: {Event-Handler :form on-selection-change})))
+      (<entries~> double-click-handler: {Event-Handler :form on-double-click} selection-handler: {Event-Handler :form on-selection-change})))
+  
+  
+  (method (on-double-click self evt)
+    (let ((zone (current-zone)))
+      (update-double-click zone)))
   
   
   (method (on-selection-change self evt)
