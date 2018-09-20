@@ -1278,14 +1278,34 @@
         (view-names/evolutions panel names evolutions (- now .025) (+ now .025)))))
   
   
-  (method package (update-evolution-selection self selection)
+  (method package (update-selection self selection)
     (when (not-null? selection)
       (let ((panel (child root 'evolution)))
         (let ((tree (locate panel 'entries)))
+          ;; unhighlight
+          (for-each (lambda (cell)
+                      (let ((data (get-cell-data tree cell)))
+                        (set-frame-color data #f)
+                        (invalidate-cell tree cell)))
+                    (get-highlighted-cells replay))
+          (set-highlighted-cells replay '())
+          ;; highlight
           (let ((cell (car selection)))
-            (let ((row (get-row tree (get-line cell))))
-              (let ((user-data (get-user-data row)))
-                (debug (vector-ref user-data (get-col cell))))))))))
+            (let ((line (get-line cell))
+                  (col (get-col cell)))
+              (let ((row (get-row tree line)))
+                (let ((user-data (get-user-data row)))
+                  (let ((target (vector-ref user-data col)))
+                    (for-each-visible-row tree
+                      (lambda (row line)
+                        (let ((value (vector-ref (get-user-data row) col)))
+                          (when (eqv? value target)
+                            (let ((data (get-child row col)))
+                              (set-frame-color data {Color Red})
+                              (invalidate-cell tree cell)
+                              (set-highlighted-cells replay (cons (new Cell line col) (get-highlighted-cells replay)))))))))))))
+          ;; invalidate
+          (invalidate-view tree)))))
   
   
   (method (on-request-replays self evt)
@@ -1481,6 +1501,9 @@
   (slot head         getter generate)
   (slot tail         getter generate)
   
+  (slot highlighted-value initialize #f  accessors generate)
+  (slot highlighted-cells initialize '() accessors generate)
+  
   
   (method override (initialize self directory names chronologies evolutions)
     (define (determine-head)
@@ -1521,4 +1544,4 @@
   (method (on-selection-change self evt)
     (let ((zone (current-zone)))
       (let ((selection (get-selection evt)))
-        (update-evolution-selection zone selection))))))
+        (update-selection zone selection))))))
