@@ -1278,11 +1278,13 @@
             (evolutions (get-evolutions replay)))
         (set-highlighted-cells replay '())
         (view-names/evolutions panel names evolutions (- now .025) (+ now .025))
-        (let ((target (get-highlighted-value replay))
+        (let ((value (get-highlighted-value replay))
               (col (get-highlighted-column replay)))
-          (when target
-            (let ((tree (locate panel 'entries)))
-              (highlight-value self tree target col)
+          (when value
+            (let ((origin (get-highlighted-origin replay))
+                  (kind (get-highlighted-kind replay))
+                  (tree (locate panel 'entries)))
+              (highlight-value self tree origin kind value col)
               (invalidate-view tree)))))))
   
   
@@ -1329,23 +1331,34 @@
             (let ((line (get-line cell))
                   (col (get-col cell)))
               (let ((row (get-row tree line)))
-                (let ((user-data (get-user-data row)))
-                  (let ((target (vector-ref user-data col)))
-                    (highlight-value self tree target col))))))
+                (let ((user-data (get-user-data row))
+                      (sequence? (= col 5)))
+                  (let ((origin (and sequence? (vector-ref user-data (- col 2))))
+                        (kind (and sequence? (vector-ref user-data (- col 1))))
+                        (value (vector-ref user-data col)))
+                    (highlight-value self tree origin kind value col))))))
           ;; invalidate
           (invalidate-view tree)))))
   
   
-  (method (highlight-value self tree target col)
-    (set-highlighted-value replay target)
+  (method (highlight-value self tree origin kind value col)
+    (set-highlighted-origin replay origin)
+    (set-highlighted-kind replay kind)
+    (set-highlighted-value replay value)
     (set-highlighted-column replay col)
     (for-each-visible-row tree
       (lambda (row line)
-        (let ((value (vector-ref (get-user-data row) col)))
-          (when (eqv? value target)
-            (let ((data (get-child row col)))
-              (set-frame-color data {Color Red})
-              (set-highlighted-cells replay (cons (new Cell line col) (get-highlighted-cells replay)))))))))
+        (let ((user-data (get-user-data row))
+              (sequence? (= col 5)))
+          (let ((data-origin (and sequence? (vector-ref user-data (- col 2))))
+                (data-kind (and sequence? (vector-ref user-data (- col 1))))
+                (data-value (vector-ref user-data col)))
+            (when (and (eqv? data-value value)
+                       (or (not origin) (eqv? data-origin origin))
+                       (or (not kind) (eqv? data-kind kind)))
+              (let ((data (get-child row col)))
+                (set-frame-color data {Color Red})
+                (set-highlighted-cells replay (cons (new Cell line col) (get-highlighted-cells replay))))))))))
   
   
   (method (on-request-replays self evt)
@@ -1541,6 +1554,8 @@
   (slot head         getter generate)
   (slot tail         getter generate)
   
+  (slot highlighted-origin initialize #f  accessors generate)
+  (slot highlighted-kind   initialize #f  accessors generate)
   (slot highlighted-value  initialize #f  accessors generate)
   (slot highlighted-column initialize #f  accessors generate)
   (slot highlighted-cells  initialize '() accessors generate)
