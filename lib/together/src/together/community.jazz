@@ -755,7 +755,7 @@
   
   
   (method (on-goto-replay self evt)
-    (show-replay self))
+    (show-replay/last self))
   
   
   (method (on-back self evt)
@@ -1235,11 +1235,24 @@
   (method (on-toggle-replay self evt)
     (case stage
       ((gathering)
-       (show-replay self))
+       (show-replay/last self))
       ((circle)
        (bell))
       ((replay)
        (hide-replay self))))
+  
+  
+  (method (show-replay/last self)
+    (if (not replay)
+        (let ((last-replay (world-setting 'world.last-replay #f)))
+          (if last-replay
+              (bind (name now) last-replay
+                (let ((dir (new-directory {Directory Settings "work" "requests"} name)))
+                  (if (exists? dir)
+                      (view-replay self dir now)
+                    (show-replay self))))
+            (show-replay self)))
+      (show-replay self)))
   
   
   (method (show-replay self)
@@ -1250,7 +1263,7 @@
     (goto-stage self 'gathering))
   
   
-  (method (view-replay self dir)
+  (method (view-replay self dir (now #f))
     (let ((interface (current-interface)))
       (receive (names chronologies evolutions) (collect-replays dir)
         (define (determine-my-id)
@@ -1267,15 +1280,22 @@
               (set-chronology panel (table-ref chronologies my-id))
               (set-evolution panel (table-ref evolutions my-id))
               (set-evolutions panel evolutions)
-              (setup-replay panel))))
+              (setup-replay panel)
+              (when now
+                (set-now panel now)))))
         (let ((panel (child root 'evolution)))
-          (view-names/evolutions panel names evolutions (get-head replay) .3)))))
+          (if (not now)
+              (view-names/evolutions panel names evolutions (get-head replay) .3)
+            (view-names/evolutions panel names evolutions (- now .025) (+ now .025))))
+        (set-setting options-settings 'world.last-replay (list (get-name dir) (get-now replay)))
+        (save-content options-settings))))
   
   
   (method package (update-now self now)
     (let ((panel (child root 'evolution)))
       (let ((names (get-names replay))
             (evolutions (get-evolutions replay)))
+        (set-now replay now)
         (set-highlighted-cells replay '())
         (view-names/evolutions panel names evolutions (- now .025) (+ now .025))
         (let ((value (get-highlighted-value replay))
@@ -1285,7 +1305,9 @@
                   (kind (get-highlighted-kind replay))
                   (tree (locate panel 'entries)))
               (highlight-value self tree origin kind value col)
-              (invalidate-view tree)))))))
+              (invalidate-view tree))))
+        (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) (get-now replay)))
+        (save-content options-settings))))
   
   
   (method package (update-double-click self)
@@ -1554,6 +1576,7 @@
   (slot head         getter generate)
   (slot tail         getter generate)
   
+  (slot now                initialize #f  accessors generate)
   (slot highlighted-origin initialize #f  accessors generate)
   (slot highlighted-kind   initialize #f  accessors generate)
   (slot highlighted-value  initialize #f  accessors generate)
