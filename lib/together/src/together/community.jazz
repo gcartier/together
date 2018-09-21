@@ -1282,6 +1282,7 @@
               (set-evolutions panel evolutions)
               (setup-replay panel)
               (when now
+                (set-now replay now)
                 (set-now panel now)))))
         (let ((panel (child root 'evolution)))
           (if (not now)
