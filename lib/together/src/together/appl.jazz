@@ -45,6 +45,7 @@
         (world.interface.actions)
         (world.interface.bars)
         (world.interface.history)
+        (world.interface.timeline)
         (world.io)
         (world.role)
         (world.settings)
@@ -237,6 +238,41 @@
   
   (method override (about-file self)
     (world-file '("devel" "together" "About.ftx") 'Resources))
+  
+  
+  ;;;
+  ;;;; Sites
+  ;;;
+  
+  
+  (method override (register-site-looks self)
+    (let ((dark-purple {Color red: .464 green: .141 blue: .732})
+          (purple {Color Purple})
+          (cyan {Color red: .120 green: .624 blue: .616}))
+      ;; origin
+      (register-site-look 'audio 10 chronology-yellow)
+      (register-site-look 'video 9 chronology-green)
+      (register-site-look 'udp-release 8 chronology-cyan) ;; SERVER
+      ;; receiver
+      (register-site-look 'udp-state 7 chronology-blue)
+      (register-site-look 'udp-receive 6 chronology-purple)  ;; SERVER
+      (register-site-look 'udp-process 5 chronology-magenta)
+      (register-site-look 'video-output 4 chronology-red)
+      ;; internal
+      (register-site-look 'alive 3 {Color Yellow})
+      (register-site-look 'network 3 {Color Yellow})
+      (register-site-look 'tick 3 {Color Green})
+      (register-site-look 'render 3 {Color Blue})
+      (register-site-look 'render-world #f #f)
+      (register-site-look 'render-interface #f #f)
+      (register-site-look 'render-sync #f #f)
+      ;; message
+      (register-site-look 'message 2 {Color Orange})
+      (register-site-look 'event #f #f)
+      ;; memory
+      (register-site-look 'memory 1 {Color Red})
+      ;; other
+      (register-site-look #f 10 {Color Dark-Gray})))
   
   
   ;;;
