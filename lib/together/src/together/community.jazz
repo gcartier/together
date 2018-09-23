@@ -719,8 +719,8 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
-      (reset chronology)
-      (reset evolution)
+      (reset (current-chronology))
+      (reset (current-evolution))
       (let ((exception (join-group tier name)))
         (if exception
             (display-error world exception)
@@ -926,22 +926,28 @@
             "N/A")))
       
       (define (chronology-duration)
-        (if (= (get-count chronology) 0)
-            "N/A"
-          (let ((first (first-position chronology))
-                (last (last-position chronology)))
-            (format "{r precision: 1}s"
-                    (- (chronological-time chronology last)
-                       (chronological-time chronology first))))))
+        (let ((chronology (current-chronology)))
+          (with-mutex chronology
+            (lambda ()
+              (if (= (get-count chronology) 0)
+                  "N/A"
+                (let ((first (first-position chronology))
+                      (last (last-position chronology)))
+                  (format "{r precision: 1}s"
+                          (- (chronological-time chronology last)
+                             (chronological-time chronology first)))))))))
       
       (define (evolution-duration)
-        (if (= (get-count evolution) 0)
-            "N/A"
-          (let ((first (first-position evolution))
-                (last (last-position evolution)))
-            (format "{r precision: 1}s"
-                    (- (evolutionary-time evolution last)
-                       (evolutionary-time evolution first))))))
+        (let ((evolution (current-evolution)))
+          (with-mutex evolution
+            (lambda ()
+              (if (= (get-count evolution) 0)
+                  "N/A"
+                (let ((first (first-position evolution))
+                      (last (last-position evolution)))
+                  (format "{r precision: 1}s"
+                          (- (evolutionary-time evolution last)
+                             (evolutionary-time evolution first)))))))))
       
       (define (latest-nacks)
         (let ((total 0)
