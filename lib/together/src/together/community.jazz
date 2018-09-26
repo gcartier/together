@@ -1252,10 +1252,10 @@
     (if (not replay)
         (let ((last-replay (world-setting 'world.last-replay #f)))
           (if last-replay
-              (bind (name now) last-replay
+              (bind (name from to now) last-replay
                 (let ((dir (new-directory {Directory Settings "work" "requests"} name)))
                   (if (exists? dir)
-                      (view-replay self dir now)
+                      (view-replay self dir from to now)
                     (show-replay self))))
             (show-replay self)))
       (show-replay self)))
@@ -1269,7 +1269,7 @@
     (goto-stage self 'gathering))
   
   
-  (method (view-replay self dir (now #f))
+  (method (view-replay self dir (from #f) (to #f) (now #f))
     (let ((interface (current-interface))
           (world (current-world)))
       (if (eq? stage 'circle)
@@ -1291,29 +1291,38 @@
                 (set! replay (new Replay dir tier names metadatas chronologies evolutions base-time))
                 (let ((panel (child root 'timeline)))
                   (set-title panel (get-name dir))
+                  (set-highlighted-value panel #f)
                   (set-chronology panel (table-ref chronologies tier))
                   (set-evolution panel (table-ref evolutions tier))
                   (set-evolutions panel evolutions)
                   (setup-replay panel base-time)
+                  (when (and from to)
+                    (set-bounds panel from to)
+                    (update-span panel))
                   (when now
-                    (set-now replay now)
-                    (set-now panel now)))
+                    (set-now panel now))
+                  (set-from replay from)
+                  (set-to replay to)
+                  (set-now replay now))
                 (let ((panel (child root 'evolution)))
                   (if (not now)
-                      (view-names/evolutions panel names evolutions base-time (get-head replay) (+ (get-head replay) .05))
+                      (clear-evolutions panel)
                     (view-names/evolutions panel names evolutions base-time (- now .025) (+ now .025) now)))
-                (set-setting options-settings 'world.last-replay (list (get-name dir) (get-now replay)))
+                (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
                 (save-content options-settings))))))))
   
   
-  (method package (update-now self now)
+  (method package (update-view self from to now)
     (let ((panel (child root 'evolution)))
       (let ((names (get-names replay))
             (evolutions (get-evolutions replay))
             (base-time (get-base-time replay)))
+        (set-from replay from)
+        (set-to replay to)
         (set-now replay now)
         (set-highlighted-cells replay '())
-        (view-names/evolutions panel names evolutions base-time (- now .025) (+ now .025) now)
+        (when now
+          (view-names/evolutions panel names evolutions base-time (- now .025) (+ now .025) now))
         (let ((value (get-highlighted-value replay))
               (col (get-highlighted-column replay)))
           (when value
@@ -1322,7 +1331,7 @@
                   (tree (locate panel 'entries)))
               (highlight-value self tree origin kind value col)
               (invalidate-view tree))))
-        (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) (get-now replay)))
+        (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to now))
         (save-content options-settings))))
   
   
@@ -1613,6 +1622,8 @@
   (slot head         getter generate)
   (slot tail         getter generate)
   
+  (slot from               initialize #f  accessors generate)
+  (slot to                 initialize #f  accessors generate)
   (slot now                initialize #f  accessors generate)
   (slot highlighted-origin initialize #f  accessors generate)
   (slot highlighted-kind   initialize #f  accessors generate)
@@ -1690,9 +1701,13 @@
                              (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color)))))))))))))
   
   
-  (method override (now-update self)
+  (method override (right-mouse-up self evt)
+    )
+  
+  
+  (method override (view-update self)
     (let ((zone (current-zone)))
-      (update-now zone now))))
+      (update-view zone from to now))))
 
 
 (class Together-Evolution-Panel extends Evolution-Panel
