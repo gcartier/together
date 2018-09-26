@@ -1275,24 +1275,24 @@
       (if (eq? stage 'circle)
           (display-error world "Cannot view replay in circle")
         (receive (names metadatas chronologies evolutions) (collect-replays dir)
-          (define (determine-my-id)
+          (define (determine-my-tier)
             (let ((character-name (get-character-name (current-client))))
               (table-find names character-name test: equal?)))
           
           (define (determine-base-time)
             (second (table-ref metadatas #f)))
           
-          (let ((my-id (determine-my-id)))
-            (if (not my-id)
-                (display-error world (format "Unable to find my-id {a}" (get-character-name (current-client))))
+          (let ((tier (determine-my-tier)))
+            (if (not tier)
+                (display-error world (format "Unable to find my tier {a}" (get-character-name (current-client))))
               (let ((base-time (determine-base-time)))
                 (hide-admin self)
                 (show-replay self)
-                (set! replay (new Replay dir names metadatas chronologies evolutions base-time))
+                (set! replay (new Replay dir tier names metadatas chronologies evolutions base-time))
                 (let ((panel (child root 'timeline)))
                   (set-title panel (get-name dir))
-                  (set-chronology panel (table-ref chronologies my-id))
-                  (set-evolution panel (table-ref evolutions my-id))
+                  (set-chronology panel (table-ref chronologies tier))
+                  (set-evolution panel (table-ref evolutions tier))
                   (set-evolutions panel evolutions)
                   (setup-replay panel base-time)
                   (when now
@@ -1326,33 +1326,6 @@
         (save-content options-settings))))
   
   
-  (method package (update-double-click self)
-    (let ((timeline (child root 'timeline))
-          (panel (child root 'evolution)))
-      (let ((tree (locate panel 'entries)))
-        (let ((selection (get-selection tree)))
-          (if (null? selection)
-              (set-highlighted-value timeline #f)
-            (let ((cell (car selection)))
-              (let ((line (get-line cell))
-                    (col (get-col cell)))
-                (if (<= col 1)
-                    (set-highlighted-value timeline #f)
-                  ;; quicky only sequence for now
-                  (if (/= col 5)
-                      (set-highlighted-value timeline #f)
-                    (let ((row (get-row tree line)))
-                      (let ((user-data (get-user-data row)))
-                        (let ((origin (vector-ref user-data (- col 2)))
-                              (kind (vector-ref user-data (- col 1)))
-                              (value (vector-ref user-data col)))
-                          (set-highlighted-origin timeline origin)
-                          (set-highlighted-kind timeline kind)
-                          (set-highlighted-value timeline value)
-                          (set-highlighted-column timeline (- col 1))))))))))
-          (invalidate-view timeline)))))
-  
-  
   (method package (update-selection self selection)
     (when (not-null? selection)
       (let ((panel (child root 'evolution)))
@@ -1376,7 +1349,52 @@
                         (value (vector-ref user-data col)))
                     (highlight-value self tree origin kind value col))))))
           ;; invalidate
-          (invalidate-view tree)))))
+          (invalidate-view tree))))
+    ;; timeline highlighted
+    (let ((timeline (child root 'timeline))
+          (panel (child root 'evolution)))
+      (let ((tree (locate panel 'entries)))
+        (let ((selection (get-selection tree)))
+          (if (null? selection)
+              (set-highlighted-value timeline #f)
+            (let ((cell (car selection)))
+              (let ((line (get-line cell))
+                    (col (get-col cell)))
+                (cond ;; time
+                      ((= col 0)
+                       (let ((row (get-row tree line)))
+                         (let ((user-data (get-user-data row)))
+                           (let ((value (vector-ref user-data col)))
+                             (set-highlighted-value timeline value)
+                             (set-highlighted-column timeline 1)))))
+                      ;; tier
+                      ((= col 1)
+                       (let ((row (get-row tree line)))
+                         (let ((user-data (get-user-data row)))
+                           (let ((value (vector-ref user-data col)))
+                             (if (neq? value (get-tier replay))
+                                 (set-highlighted-value timeline #f)
+                               (set-highlighted-value timeline value)
+                               (set-highlighted-column timeline 0))))))
+                      ;; sequence
+                      ((= col 5)
+                       (let ((row (get-row tree line)))
+                         (let ((user-data (get-user-data row)))
+                           (let ((origin (vector-ref user-data (- col 2)))
+                                 (kind (vector-ref user-data (- col 1)))
+                                 (value (vector-ref user-data col)))
+                             (set-highlighted-origin timeline origin)
+                             (set-highlighted-kind timeline kind)
+                             (set-highlighted-value timeline value)
+                             (set-highlighted-column timeline col)))))
+                      ;; value
+                      (else
+                       (let ((row (get-row tree line)))
+                         (let ((user-data (get-user-data row)))
+                           (let ((value (vector-ref user-data col)))
+                             (set-highlighted-value timeline value)
+                             (set-highlighted-column timeline col)))))))))
+          (invalidate-view timeline)))))
   
   
   (method (highlight-value self tree origin kind value col)
@@ -1586,6 +1604,7 @@
   
   
   (slot directory    getter generate)
+  (slot tier         getter generate)
   (slot names        getter generate)
   (slot metadatas    getter generate)
   (slot chronologies getter generate)
@@ -1602,7 +1621,7 @@
   (slot highlighted-cells  initialize '() accessors generate)
   
   
-  (method override (initialize self directory names metadatas chronologies evolutions base-time)
+  (method override (initialize self directory tier names metadatas chronologies evolutions base-time)
     (define (determine-head)
       (apply min (map (lambda (evolution)
                         (evolutionary-time evolution (first-position evolution)))
@@ -1615,6 +1634,7 @@
     
     (nextmethod self)
     (set! self.directory directory)
+    (set! self.tier tier)
     (set! self.names names)
     (set! self.metadatas metadatas)
     (set! self.chronologies chronologies)
@@ -1636,22 +1656,38 @@
   
   (method override (plot-evolutions self surface from to)
     (when highlighted-value
-      (draw-text surface 10 10 (->string highlighted-value) {Color Red})
+      (draw-text surface 5 3 (->string highlighted-value) {Color Gray alpha: .7})
       (let ((width (cast <fl> (get-width self))))
         (iterate-table evolutions
           (lambda (id evolution)
             (loop (for n from (first-position evolution) to (last-position evolution))
-                  (let ((time (evolutionary-time evolution n))
-                        (origin (evolutionary-data1 evolution n))
-                        (kind (evolutionary-data2 evolution n))
-                        (value (evolutionary-data3 evolution n)))
-                    (when (and (eqv? origin highlighted-origin)
-                               (eqv? kind highlighted-kind)
-                               (eqv? value highlighted-value))
-                      (let ((h (fxround (* (/ (- time from) span) width))))
-                        (let ((color {Color Red})
-                              (v 13))
-                          (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color)))))))))))
+                  (case highlighted-column
+                    ((0)
+                     (let ((time (evolutionary-time evolution n)))
+                       (let ((h (fxround (* (/ (- time from) span) width))))
+                         (let ((color {Color Red})
+                               (v 120))
+                           (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color)))))
+                    ((5)
+                     (let ((time (evolutionary-time evolution n))
+                           (origin (evolutionary-data1 evolution n))
+                           (kind (evolutionary-data2 evolution n))
+                           (value (evolutionary-data3 evolution n)))
+                       (when (and (eqv? origin highlighted-origin)
+                                  (eqv? kind highlighted-kind)
+                                  (eqv? value highlighted-value))
+                         (let ((h (fxround (* (/ (- time from) span) width))))
+                           (let ((color {Color Red})
+                                 (v 120))
+                             (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color))))))
+                    (else
+                     (let ((time (evolutionary-time evolution n))
+                           (value (evolutionary-ref evolution n (- highlighted-column 1))))
+                       (when (eqv? value highlighted-value)
+                         (let ((h (fxround (* (/ (- time from) span) width))))
+                           (let ((color {Color Red})
+                                 (v 120))
+                             (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color)))))))))))))
   
   
   (method override (now-update self)
@@ -1664,12 +1700,7 @@
   
   (form
     (<install>
-      (<entries~> double-click-handler: {Event-Handler :form on-double-click} selection-handler: {Event-Handler :form on-selection-change})))
-  
-  
-  (method (on-double-click self evt)
-    (let ((zone (current-zone)))
-      (update-double-click zone)))
+      (<entries~> selection-handler: {Event-Handler :form on-selection-change})))
   
   
   (method (on-selection-change self evt)
