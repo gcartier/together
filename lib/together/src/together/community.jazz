@@ -1698,25 +1698,25 @@
                                        (fill-rect surface (new Rect (- h 0) (- v 4) (+ h 1) (+ v 5)) color))))))
                              highlighted-markers)))))
             (highlighted-value
-             (let ((first (first-position evolution))
-                   (last (last-position evolution)))
-               (define (find-head)
-                 (loop (for n from first to last)
-                       (when (>= (evolutionary-time evolution n) from)
-                         (return n))
-                       (finally first)))
-               
-               (define (find-tail head)
-                 (loop (for n from head to last)
-                       (when (> (evolutionary-time evolution n) to)
-                         (return (- n 1)))
-                       (finally last)))
-               
-               (let ((head (find-head)))
-                 (let ((tail (find-tail head)))
-                   (draw-text surface 5 3 (->string highlighted-value) {Color Gray alpha: .7})
-                   (iterate-table evolutions
-                     (lambda (id evolution)
+             (draw-text surface 5 3 (->string highlighted-value) {Color Gray alpha: .7})
+             (iterate-table evolutions
+               (lambda (id evolution)
+                 (let ((first (first-position evolution))
+                       (last (last-position evolution)))
+                   (define (find-head)
+                     (loop (for n from first to last)
+                           (when (>= (evolutionary-time evolution n) from)
+                             (return n))
+                           (finally first)))
+                   
+                   (define (find-tail head)
+                     (loop (for n from head to last)
+                           (when (> (evolutionary-time evolution n) to)
+                             (return (- n 1)))
+                           (finally last)))
+                   
+                   (let ((head (find-head)))
+                     (let ((tail (find-tail head)))
                        (loop (for n from head to tail)
                              (case highlighted-column
                                ((0)
