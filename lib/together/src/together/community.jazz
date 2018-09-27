@@ -1748,7 +1748,7 @@
   
   
   (method override (right-mouse-up self evt)
-    )
+    (zoom-reset self))
   
   
   (method override (view-update self)
