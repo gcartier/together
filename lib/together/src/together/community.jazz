@@ -1312,7 +1312,7 @@
                 (save-content options-settings))))))))
   
   
-  (method package (update-view self from to now)
+  (method package (update-view/now self from to now)
     (let ((panel (child root 'evolution)))
       (let ((names (get-names replay))
             (evolutions (get-evolutions replay))
@@ -1736,7 +1736,12 @@
   
   (method override (view-update self)
     (let ((zone (current-zone)))
-      (update-view zone from to now))))
+      (update-view/now zone from to #f)))
+  
+  
+  (method override (now-update self)
+    (let ((zone (current-zone)))
+      (update-view/now zone from to now))))
 
 
 (class Together-Evolution-Panel extends Evolution-Panel
