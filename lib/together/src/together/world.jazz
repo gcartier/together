@@ -47,6 +47,10 @@
     (make-orthographic-matrix! (get-projection-matrix circlebar-sheet) 0. width 0. height 0. 10.))
   
   
+  (method override (script-panel-class self)
+    Together-Script-Panel)
+  
+  
   (method override (destroy self)
     (glDeleteTextures* (get-id (get-texture circlebar-sheet)))
     (nextmethod self))

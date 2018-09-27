@@ -59,18 +59,18 @@
                        ;; media
                        world.video-layout         gallery
                        ;; test
-                       world.init                 #f
-                       world.test                 #f
-                       world.test1                #f
-                       world.test2                #f
-                       world.test3                #f
-                       world.test4                #f
-                       world.test5                #f
-                       world.test6                #f
-                       world.test7                #f
-                       world.test8                #f
-                       world.test9                #f
-                       world.test0                #f)))
+                       world.init-script          #f
+                       world.test-script          #f
+                       world.test1-script         #f
+                       world.test2-script         #f
+                       world.test3-script         #f
+                       world.test4-script         #f
+                       world.test5-script         #f
+                       world.test6-script         #f
+                       world.test7-script         #f
+                       world.test8-script         #f
+                       world.test9-script         #f
+                       world.test0-script         #f)))
 
 
 (definition (override-settings settings)

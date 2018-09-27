@@ -54,6 +54,7 @@
         (world.interface.evolution)
         (world.interface.frame)
         (world.interface.panel)
+        (world.interface.script)
         (world.interface.sheet)
         (world.interface.text)
         (world.interface.tiers)
@@ -62,6 +63,7 @@
         (world.pane)
         (world.profiling)
         (world.ring)
+        (world.script.asset)
         (world.settings)
         (world.skybox)
         (world.task)
@@ -223,6 +225,13 @@
             (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
             (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
             (layout-view circlebar)))
+        ;; script
+        (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
+        (let ((panel (child interface 'script)))
+          (let ((border (locate panel 'border)))
+            (set-border-type border 'solid)
+            (set-border-color border {Color Dark-Gray})))
         ;; replay
         (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Together-Timeline-Panel parent: root name: 'timeline visible?: #f layouter: (lambda (panel) (timeline-panel-layouter panel)))
@@ -241,6 +250,8 @@
          (install-gathering self))
         ((circle)
          (install-circle self))
+        ((script)
+         (install-script self))
         ((replay)
          (install-replay self)))
       (show root)
@@ -364,6 +375,27 @@
         (install-hider self))))
   
   
+  (method (install-script self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (set! root (child interface 'script-root))
+      (show root 'back)
+      (show interface 'script)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root)))
+  
+  
   (method (install-replay self)
     (let ((interface (current-interface)))
       (define (show parent name)
@@ -387,9 +419,14 @@
   
   
   (method (uninstall-stage self)
-    (when (and (eq? stage 'circle) auto-hide?)
-      (uninstall-hider self))
-    (hide root))
+    (let ((interface (current-interface)))
+      (case stage
+        ((circle)
+         (when auto-hide?
+           (uninstall-hider self)))
+        ((script)
+         (hide (child interface 'script))))
+      (hide root)))
   
   
   (method (uninstall-zone self)
@@ -754,12 +791,8 @@
     (quit-process (current-process)))
   
   
-  (method (on-goto-replay self evt)
-    (show-replay/last self))
-  
-  
   (method (on-back self evt)
-    (hide-replay self))
+    (goto-stage self 'gathering))
   
   
   ;;;
@@ -1238,17 +1271,53 @@
         (set-visible? (child root 'circle) #t))))
   
   
-  (method (on-toggle-replay self evt)
+  (method (on-goto-gathering self evt)
     (case stage
-      ((gathering)
-       (show-replay/last self))
+      ((gathering))
+      ((circle)
+       (leave-circle self))
+      (else
+       (goto-stage self 'gathering))))
+  
+  
+  (method (on-goto-script self evt)
+    (case stage
+      ((script))
       ((circle)
        (bell))
-      ((replay)
-       (hide-replay self))))
+      (else
+       (goto-script/last self))))
   
   
-  (method (show-replay/last self)
+  (method (goto-script/last self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (let ((panel (child interface 'script)))
+        (let ((text (locate panel '(manager script text))))
+          (when (not edited-entity)
+            (let ((script (find-script world "test/replay")))
+              (when script
+                (let ((entity (register-asset-script script)))
+                  (set-edited-entity entity)
+                  (set-string-content text (get-text (get-script entity)))))))
+          (goto-script self)
+          (acquire-focus text)))))
+  
+  
+  (method (goto-script self)
+    (goto-stage self 'script))
+  
+  
+  (method (on-goto-replay self evt)
+    (case stage
+      ((replay))
+      ((circle)
+       (bell))
+      (else
+       (goto-replay/last self))))
+  
+  
+  (method (goto-replay/last self)
     (if (not replay)
         (let ((last-replay (world-setting 'world.last-replay #f)))
           (if last-replay
@@ -1256,17 +1325,13 @@
                 (let ((dir (new-directory {Directory Settings "work" "requests"} name)))
                   (if (exists? dir)
                       (view-replay self dir from to now)
-                    (show-replay self))))
-            (show-replay self)))
-      (show-replay self)))
+                    (goto-replay self))))
+            (goto-replay self)))
+      (goto-replay self)))
   
   
-  (method (show-replay self)
+  (method (goto-replay self)
     (goto-stage self 'replay))
-  
-  
-  (method (hide-replay self)
-    (goto-stage self 'gathering))
   
   
   (method (view-replay self dir (from #f) (to #f) (now #f))
@@ -1287,7 +1352,7 @@
                 (display-error world (format "Unable to find my tier {a}" (get-character-name (current-client))))
               (let ((base-time (determine-base-time)))
                 (hide-admin self)
-                (show-replay self)
+                (goto-replay self)
                 (set! replay (new Replay dir tier names metadatas chronologies evolutions base-time))
                 (let ((panel (child root 'timeline)))
                   (set-title panel (get-name dir))
@@ -1605,6 +1670,49 @@
 
 
 ;;;
+;;;; Script
+;;;
+
+
+(class Together-Script-Panel extends Script-Panel
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((manager) Together-Script-Manager)
+      (else (nextmethod self form)))))
+
+
+(class Together-Script-Manager extends Script-Manager
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((script) Together-Script-View)
+      (else (nextmethod self form)))))
+
+
+(class Together-Script-View extends Script-View
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((text) Together-Script-Text-View)
+      (else (nextmethod self form)))))
+
+
+(class Together-Script-Text-View extends Script-Text-View
+  
+  
+  (method override (content-changed self range strings undo-range undo-strings)
+    )
+  
+  
+  (method override (evaluate-selection self)
+    (debug 'evaluate)))
+
+
+;;;
 ;;;; Replay
 ;;;
 
@@ -1655,6 +1763,11 @@
     (set! self.tail (determine-tail))))
 
 
+;;;
+;;;; Timeline
+;;;
+
+
 (class Together-Timeline-Panel extends Timeline-Panel
   
   
@@ -1665,6 +1778,10 @@
   (slot highlighted-kind    initialize #f  accessors generate)
   (slot highlighted-value   initialize #f  accessors generate)
   (slot highlighted-column  initialize #f  accessors generate)
+  
+  
+  (method override (border-color self)
+    {Color Dark-Gray})
   
   
   (method override (plot-evolutions self surface from to)
@@ -1761,15 +1878,34 @@
       (update-view/now zone from to now))))
 
 
+;;;
+;;;; Evolution
+;;;
+
+
 (class Together-Evolution-Panel extends Evolution-Panel
   
   
   (form
     (<install>
+      (<border~>  border-type: solid border-color: {Color Dark-Gray})
       (<entries~> selection-handler: {Event-Handler :form on-selection-change})))
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((entries) Together-Evolution-Tree)
+      (else (nextmethod self form))))
   
   
   (method (on-selection-change self evt)
     (let ((zone (current-zone)))
       (let ((selection (get-selection evt)))
-        (update-selection zone selection))))))
+        (update-selection zone selection)))))
+
+
+(class Together-Evolution-Tree extends Evolution-Tree
+  
+  
+  (method override (header-click self column)
+    (nextmethod self column))))
