@@ -1,0 +1,84 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Script Stage
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.script jazz
+
+
+(import (world)
+        (world.context)
+        (world.interface.script))
+
+
+;;;
+;;;; Panel
+;;;
+
+
+(class Together-Script-Panel extends Script-Panel
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((manager) Together-Script-Manager)
+      (else (nextmethod self form)))))
+
+
+;;;
+;;;; Manager
+;;;
+
+
+(class Together-Script-Manager extends Script-Manager
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((script) Together-Script-View)
+      (else (nextmethod self form)))))
+
+
+;;;
+;;;; View
+;;;
+
+
+(class Together-Script-View extends Script-View
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((text) Together-Script-Text-View)
+      (else (nextmethod self form)))))
+
+
+;;;
+;;;; Text
+;;;
+
+
+(class Together-Script-Text-View extends Script-Text-View
+  
+  
+  (method override (content-changed self range strings undo-range undo-strings)
+    )
+  
+  
+  (method override (evaluate-selection self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (when edited-entity
+        (let ((panel (child interface 'script)))
+          (let ((manager (locate panel 'manager))
+                (asset (get-asset edited-entity)))
+            (save-script manager)
+            (execute-script world (get-path asset)))))))))

@@ -75,6 +75,7 @@
         (world.window)
         (together)
         (together.replay)
+        (together.script)
         (together.settings)
         (together.zone))
 
@@ -1566,54 +1567,4 @@
   
   
   (method override (invalidate-hook self)
-    (set-uptodate? (find-ascendant self Circlebar-View) #f)))
-
-
-;;;
-;;;; Script
-;;;
-
-
-(class Together-Script-Panel extends Script-Panel
-  
-  
-  (method override (form-model self form)
-    (case (get-name form)
-      ((manager) Together-Script-Manager)
-      (else (nextmethod self form)))))
-
-
-(class Together-Script-Manager extends Script-Manager
-  
-  
-  (method override (form-model self form)
-    (case (get-name form)
-      ((script) Together-Script-View)
-      (else (nextmethod self form)))))
-
-
-(class Together-Script-View extends Script-View
-  
-  
-  (method override (form-model self form)
-    (case (get-name form)
-      ((text) Together-Script-Text-View)
-      (else (nextmethod self form)))))
-
-
-(class Together-Script-Text-View extends Script-Text-View
-  
-  
-  (method override (content-changed self range strings undo-range undo-strings)
-    )
-  
-  
-  (method override (evaluate-selection self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (when edited-entity
-        (let ((panel (child interface 'script)))
-          (let ((manager (locate panel 'manager))
-                (asset (get-asset edited-entity)))
-            (save-script manager)
-            (execute-script world (get-path asset)))))))))
+    (set-uptodate? (find-ascendant self Circlebar-View) #f))))

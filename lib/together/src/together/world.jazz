@@ -23,6 +23,7 @@
         (world.interface.sheet)
         (world.sound)
         (together.community)
+        (together.script)
         (together.zone))
 
 

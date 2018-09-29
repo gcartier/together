@@ -29,6 +29,7 @@
                               together.run
                               together.run-processor
                               together.run-server
+                              together.script
                               together.scripts
                               together.settings
                               together.simulation
