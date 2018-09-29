@@ -29,6 +29,7 @@
                               together.run-processor
                               together.run-server
                               together.settings
+                              together.simulation
                               together.sphere
                               together.window
                               together.windows
