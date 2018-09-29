@@ -53,6 +53,7 @@
         (<Jazz-File>       name: domain             source: {File :context "src" "together" "domain.jazz"})
         (<Jazz-File>       name: world              source: {File :context "src" "together" "world.jazz"})
         (<Jazz-File>       name: simulation         source: {File :context "src" "together" "simulation.jazz"})
+        (<Jazz-File>       name: replay             source: {File :context "src" "together" "replay.jazz"})
         (<Jazz-File>       name: scripts            source: {File :context "src" "together" "scripts.jazz"}))
       (<Jazz-File>         name: t                  source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun               source: {File :context "src" "trun.jazz"})))))

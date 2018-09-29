@@ -25,6 +25,7 @@
                               together.product
                               together.product-processor
                               together.product-server
+                              together.replay
                               together.run
                               together.run-processor
                               together.run-server
