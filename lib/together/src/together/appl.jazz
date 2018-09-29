@@ -404,6 +404,8 @@
           (<!>                 name: toggle-timeline           visible?: #t)
           (<!>                 name: toggle-evolution          visible?: #t)
           (<!>                 name: view-workspace            visible?: #t)
+          (<!>                 name: view-console              visible?: #t)
+          (<!>                 name: view-debugger             visible?: #t)
           (<!>                 name: clear-console             visible?: #t)
           (<!>                 name: clear-terminal            visible?: #t)
           (<!>                 name: explore-interface         visible?: #t)
