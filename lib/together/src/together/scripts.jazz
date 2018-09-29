@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module together.script jazz
+(module together.scripts jazz
 
 
 (import (jazz.io)
@@ -59,7 +59,7 @@
             (set! all (cons (cons unit-name unreferenced) all)))))
       repositories: (list (jazz:find-repository 'World)
                           (jazz:find-repository 'Together)))
-    (call-with-output-file (path-settings {File Home "unreferenced.jazz"} eol-encoding: (get-eol-encoding))
+    (call-with-output-file (path-settings {File Home "unreferenced.jazz"})
       (lambda (port)
         (pretty-print (sort string<? all key: (lambda (info) (symbol->string (car info))))
                       port)))

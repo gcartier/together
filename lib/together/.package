@@ -28,6 +28,7 @@
                               together.run
                               together.run-processor
                               together.run-server
+                              together.scripts
                               together.settings
                               together.simulation
                               together.sphere
@@ -73,5 +74,5 @@
                                         together-processor
                                         together-server
                                         together-worker))
-            (together-script (run together.script)))
+            (together-script (run together.scripts)))
   (project ".project"))
