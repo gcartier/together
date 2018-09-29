@@ -60,6 +60,7 @@
         (world.interface.tiers)
         (world.interface.timeline)
         (world.io)
+        (world.manager)
         (world.pane)
         (world.profiling)
         (world.ring)
@@ -425,7 +426,10 @@
          (when auto-hide?
            (uninstall-hider self)))
         ((script)
-         (hide (child interface 'script))))
+         (let ((panel (child interface 'script)))
+           (let ((manager (locate panel 'manager)))
+             (save-script manager))
+           (hide panel))))
       (hide root)))
   
   
@@ -1293,15 +1297,17 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((panel (child interface 'script)))
-        (let ((text (locate panel '(manager script text))))
-          (when (not edited-entity)
-            (let ((script (find-script world "test/replay")))
-              (when script
-                (let ((entity (register-asset-script script)))
-                  (set-edited-entity entity)
-                  (set-string-content text (get-text (get-script entity)))))))
-          (goto-script self)
-          (acquire-focus text)))))
+        (let ((manager (locate panel 'manager)))
+          (let ((text (locate manager '(script text))))
+            (when (not edited-entity)
+              (let ((script (find-script world "test/replay")))
+                (when script
+                  (let ((entity (register-asset-script script)))
+                    (set-edited-entity entity)
+                    (set-edited manager entity)
+                    (set-string-content text (get-text (get-script entity)))))))
+            (goto-script self)
+            (acquire-focus text))))))
   
   
   (method (goto-script self)
