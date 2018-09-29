@@ -15,6 +15,7 @@
 
 
 (import (jazz.action)
+        (jazz.application)
         (jazz.component)
         (jazz.console)
         (jazz.event)
@@ -29,6 +30,7 @@
         (jazz.network)
         (jazz.opengl.window)
         (jazz.outline)
+        (jazz.platform)
         (jazz.process)
         (jazz.resource)
         (jazz.text)
@@ -700,16 +702,18 @@
   
   
   (method (escape-press self)
-    (let ((frame (top-frame)))
-      (if frame
-          (close frame)
-        (when (and guillaume? (eq? stage 'gathering))
-          (delay-event
-            (lambda ()
-              (with-task-mutex
-                (lambda ()
-                  (open-login-zone))))))))
-    #t)
+    (if (is? (active-focus) Filter-View)
+        #f
+      (let ((frame (top-frame)))
+        (if frame
+            (close frame)
+          (when (and guillaume? (eq? stage 'gathering))
+            (delay-event
+              (lambda ()
+                (with-task-mutex
+                  (lambda ()
+                    (open-login-zone))))))))
+      #t))
   
   
   (method override (enter-press self)
@@ -1376,9 +1380,12 @@
                   (set-to replay to)
                   (set-now replay now))
                 (let ((panel (child root 'evolution)))
+                  (set-names panel names)
+                  (set-evolutions panel evolutions)
+                  (set-base-time panel base-time)
                   (if (not now)
                       (clear-evolutions panel)
-                    (view-names/evolutions panel names evolutions base-time (- now .025) (+ now .025) now)))
+                    (view-evolutions-at panel (- now .025) (+ now .025) now)))
                 (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
                 (save-content options-settings))))))))
   
@@ -1393,17 +1400,22 @@
         (set-now replay now)
         (set-highlighted-cells replay '())
         (when now
-          (view-names/evolutions panel names evolutions base-time (- now .025) (+ now .025) now))
-        (let ((value (get-highlighted-value replay))
-              (col (get-highlighted-column replay)))
-          (when value
-            (let ((origin (get-highlighted-origin replay))
-                  (kind (get-highlighted-kind replay))
-                  (tree (locate panel 'entries)))
-              (highlight-value self tree origin kind value col)
-              (invalidate-view tree))))
+          (view-evolutions-at panel (- now .025) (+ now .025) now))
+        (highlight-replay-value self)
         (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to now))
         (save-content options-settings))))
+  
+  
+  (method package (highlight-replay-value self)
+    (let ((value (get-highlighted-value replay))
+          (col (get-highlighted-column replay)))
+      (when value
+        (let ((panel (child root 'evolution)))
+          (let ((origin (get-highlighted-origin replay))
+                (kind (get-highlighted-kind replay))
+                (tree (locate panel 'entries)))
+            (highlight-value self tree origin kind value col)
+            (invalidate-view tree))))))
   
   
   (method package (update-selection self selection)
@@ -1715,7 +1727,14 @@
   
   
   (method override (evaluate-selection self)
-    (debug 'evaluate)))
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (when edited-entity
+        (let ((panel (child interface 'script)))
+          (let ((manager (locate panel 'manager))
+                (asset (get-asset edited-entity)))
+            (save-script manager)
+            (execute-script world (get-path asset))))))))
 
 
 ;;;
@@ -1900,8 +1919,29 @@
   
   (method override (form-model self form)
     (case (get-name form)
+      ((header) Together-Evolution-Header)
       ((entries) Together-Evolution-Tree)
       (else (nextmethod self form))))
+  
+  
+  (method protected (collect-entries self column)
+    (if (memv? column '(1 2 3 4))
+        (let ((entries (make-table test: eqv?)))
+          (define (process value present)
+            (unless (table-ref entries value #f)
+              (let ((entry (present self value)))
+                (table-set! entries value entry))))
+          
+          (iterate-table evolutions
+            (lambda (id evolution)
+              (loop (for n from (first-position evolution) to (last-position evolution))
+                    (case column
+                      ((1) (process (evolutionary-id evolution n) present-event))
+                      ((2) (process (evolutionary-id evolution n) present-event))
+                      ((3) (process (evolutionary-data1 evolution n) present-origin))
+                      ((4) (process (evolutionary-data2 evolution n) present-kind))))))
+          (sort ci<? (table-values entries)))
+      '()))
   
   
   (method (on-selection-change self evt)
@@ -1910,8 +1950,174 @@
         (update-selection zone selection)))))
 
 
+(class Together-Evolution-Header extends Tree-Header
+  
+  
+  (method override (close-popups self (event: event #f) (all?: all? #f) (exclude: exclude #f) (initiator: initiator #f))
+    (unless (memq? event '(mouse-down double-click))
+      (nextmethod self event: event all?: all? exclude: exclude initiator: initiator))))
+
+
 (class Together-Evolution-Tree extends Evolution-Tree
   
   
   (method override (header-click self column)
-    (nextmethod self column))))
+    (let ((view (find-popup Filter-View)))
+      (close-popups (get-window-manager) (current-window))
+      (unless (and view (eq? (get-column view) column))
+        (let ((panel (find-ascendant self Together-Evolution-Panel))
+              (header (find-ascendant self Tree-Header)))
+          (let ((entries (collect-entries panel (get-rank column))))
+            (let ((view (make-filter-view self column entries))
+                  (rect (header-rect header column)))
+              (popup header
+                     view
+                     (new Point (get-left rect) (+ (get-top rect) 17)))
+              (acquire-focus view))))))))
+
+
+(definition (make-filter-view tree column entries)
+  (let ((view (new Filter-View
+                size: {Dimension 186 300}
+                background: {Color red: .000 green: .000 blue: .000 alpha: .85}
+                tree: tree
+                column: column)))
+    (case (column-sorting tree column)
+      ((ascending) (set-checked? (child view 'ascending) #t))
+      ((descending) (set-checked? (child view 'descending) #t))
+      (else (set-checked? (child view 'unsorted) #t)))
+    (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 120} size: {Dimension 176 144} vscroll?: #t style: 'tool)))
+      (let ((content (get-content scroller))
+            (v 0)
+            (values (column-filtering tree column)))
+        (let ((client (new View parent: content)))
+          (for-each (lambda (entry)
+                      (let ((checked? (or (not values) (member? entry values))))
+                        (new Filter-Label parent: client title: entry position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked?))
+                      (increase! v 20))
+                    entries)
+          (set-size client (new Dimension 163 (+ v 2)))
+          (set-client scroller client))))
+    view))
+
+
+(class Filter-View extends Layout-View
+  
+  
+  (property tree   initialize #f accessors generate)
+  (property column initialize #f accessors generate)
+  
+  
+  (form
+    (<install>
+      (<Label-View>                    title: "Sort" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} color: {Color World-Ochre})
+      (<Filter-Label> name: ascending  title: "Ascending" style: text background: #f position: {Point 10 23} color: {Color White} action-handler: {Event-Handler :form on-sort-ascending})
+      (<Filter-Label> name: descending title: "Descending" style: text background: #f position: {Point 10 43} color: {Color White} action-handler: {Event-Handler :form on-sort-descending})
+      (<Filter-Label> name: unsorted   title: "Unsorted" style: text background: #f position: {Point 10 63} color: {Color White} action-handler: {Event-Handler :form on-unsorted})
+      (<Label-View>                    title: "Filter" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 100} color: {Color World-Ochre})
+      (<Push-Button>                   title: "All" style: text background: #f position: {Point 115 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-all})
+      (<Push-Button>                   title: "None" style: text background: #f position: {Point 140 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-none})
+      (<Push-Button>                   title: "OK" position: {Point 8 268} size: {Dimension 80 24} default?: #t action-handler: {Event-Handler :form on-ok})
+      (<Push-Button>                   title: "Cancel" position: {Point 98 268} size: {Dimension 80 24} action-handler: {Event-Handler :form on-cancel})))
+  
+  
+  (method override (escape-press self evt)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method override (return-press self evt)
+    (apply-filter self)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (sort-column self new-direction)
+    (let ((current-direction (column-sorting tree column)))
+      (unless (eq? current-direction new-direction)
+        (set-sorted-column tree column new-direction)
+        (sort-rows tree column new-direction)))
+    (ensure-displayed tree))
+  
+  
+  (method (on-sort-ascending self evt)
+    (sort-column self 'ascending)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-sort-descending self evt)
+    (sort-column self 'descending)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-unsorted self evt)
+    (let ((zone (current-zone)))
+      (let ((panel (find-ascendant tree Together-Evolution-Panel)))
+        (redisplay-evolutions panel)
+        (highlight-replay-value zone))
+      (close-popups (get-window-manager) (current-window))))
+  
+  
+  (method (on-filter-all self evt)
+    (let ((client (get-client (child self 'scroller))))
+      (for-each (lambda (label)
+                  (set-checked? label #t))
+                (get-children client))))
+  
+  
+  (method (on-filter-none self evt)
+    (let ((client (get-client (child self 'scroller))))
+      (for-each (lambda (label)
+                  (set-checked? label #f))
+                (get-children client))))
+  
+  
+  (method (apply-filter self)
+    (let ((client (get-client (child self 'scroller))))
+      (let ((all (get-children client)))
+        (let ((checked (collect-if get-checked? all)))
+          (if (= (length checked) (length all))
+              (unfilter-column tree column)
+            (let ((values (map get-title checked)))
+              (filter-column tree column values)))))))
+  
+  
+  (method (on-ok self evt)
+    (apply-filter self)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-cancel self evt)
+    (close-popups (get-window-manager) (current-window))))
+
+
+(class Filter-Label extends Push-Button
+  
+  
+  (property checked? initialize #f accessors explicit)
+
+
+  (method public (get-checked? self)
+    checked?)
+  
+
+  (method public (set-checked? self flag)
+    (set! checked? flag)
+    (invalidate-view self))
+  
+  
+  (method override (process-action self sender . rest)
+    (if action-handler
+        (apply nextmethod self sender rest)
+      (set-checked? self (not checked?))))
+  
+  
+  (method override (draw self surface context)
+    (nextmethod self surface context)
+    (when checked?
+      (let ((appl (current-application))
+            (left 3)
+            (top 4))
+        (draw-image (get-images-portfolio appl) surface context {Image-Resource "CheckMarkWhite"} left top))))
+  
+  
+  (method override (draw-text-at self surface h v title color enabled?)
+    (draw-text surface (+ h 20) v title color enabled?: enabled?))))
