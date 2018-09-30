@@ -252,7 +252,7 @@
                
                (let ((head (find-head)))
                  (let ((tail (find-tail head)))
-                   (draw-text surface 5 3 (->string highlighted-title) {Color Gray alpha: .7})
+                   (draw-text surface 5 3 (->string highlighted-title) {Color Dark-Gray})
                    (for-each (lambda (n)
                                (when (and (>= n head)
                                           (<= n tail))
@@ -264,7 +264,7 @@
                                        (fill-rect surface (new Rect (- h 0) (- v 4) (+ h 1) (+ v 5)) color))))))
                              highlighted-markers)))))
             (highlighted-value
-             (draw-text surface 5 3 (->string highlighted-value) {Color Gray alpha: .7})
+             (draw-text surface 100 3 (->string highlighted-value) {Color Dark-Gray})
              (iterate-table evolutions
                (lambda (id evolution)
                  (let ((first (first-position evolution))
