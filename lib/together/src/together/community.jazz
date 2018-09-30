@@ -766,8 +766,8 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
-      (reset (current-chronology))
-      (reset (current-evolution))
+      (reset-chronology)
+      (reset-evolution)
       (let ((exception (join-group tier name)))
         (if exception
             (display-error world exception)
