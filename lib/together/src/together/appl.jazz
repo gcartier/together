@@ -427,7 +427,7 @@
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\Q} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
-          (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
+          (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
   (definition developer-role
