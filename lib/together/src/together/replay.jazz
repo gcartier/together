@@ -370,7 +370,7 @@
   
   
   (method protected (collect-entries self column)
-    (if (memv? column '(1 2 3 4))
+    (if (memv? column '(@todo 1 2 3 4))
         (let ((entries (make-table test: eqv?)))
           (define (process value present)
             (unless (table-ref entries value #f)
