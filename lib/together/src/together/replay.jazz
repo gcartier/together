@@ -516,13 +516,16 @@
   
   
   (method (apply-filter self)
-    (let ((client (get-client (child self 'scroller))))
-      (let ((all (get-children client)))
-        (let ((checked (collect-if get-checked? all)))
-          (if (= (length checked) (length all))
-              (unfilter-column tree column)
-            (let ((values (map get-title checked)))
-              (filter-column tree column values)))))))
+    (let ((zone (current-zone)))
+      (set-highlighted-cells (get-replay zone) '())
+      (let ((client (get-client (child self 'scroller))))
+        (let ((all (get-children client)))
+          (let ((checked (collect-if get-checked? all)))
+            (if (= (length checked) (length all))
+                (unfilter-column tree column)
+              (let ((values (map get-title checked)))
+                (filter-column tree column values))))))
+      (highlight-replay-value zone)))
   
   
   (method (on-ok self evt)
