@@ -42,6 +42,7 @@
         (world)
         (world.audio)
         (world.autoload)
+        (world.chronology)
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
