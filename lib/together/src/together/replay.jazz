@@ -252,7 +252,7 @@
     {Color Dark-Gray})
   
   
-  (method override (plot-evolutions self surface from to)
+  (method override (plot-evolutions self surface <Surface> from <fl> to <fl>)
     (let ((width (cast <fl> (get-width self)))
           (now-h (and now (when->h self from to span now))))
       (cond (highlighted-markers
