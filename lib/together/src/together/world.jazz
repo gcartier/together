@@ -65,6 +65,9 @@
   
   (method override (draw-message-offset self)
     (let ((zone (current-zone+)))
-      (if (and (is? zone Community-Zone) (eq? (get-stage zone) 'circle))
-          185
+      (if (is? zone Community-Zone)
+          (case (get-stage zone)
+            ((circle) 185)
+            ((replay) 130)
+            (else (nextmethod self)))
         (nextmethod self))))))
