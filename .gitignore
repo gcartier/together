@@ -5,6 +5,7 @@
 /jazz
 /jiri
 /world
+/*.patch
 .configuration
 .jazzini
 .DS_Store
