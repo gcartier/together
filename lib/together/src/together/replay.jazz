@@ -307,11 +307,11 @@
                          (let ((h (fxround (* (/ (- time from) span) width))))
                            (let ((color (ecase id
                                           ((udp-id-create-packet) {Color Yellow})
-                                          ((udp-id-add-retain) {Color Yellow})
                                           ((udp-id-add-nack) {Color Blue})
                                           ((udp-id-add-process) {Color Blue})
                                           ((udp-id-remove-process) {Color Green})
                                           ((udp-id-discard-packet udp-id-duplicate-packet) {Color Orange})
+                                          ((udp-id-add-retain) {Color Dark-Gray})
                                           ((udp-id-remove-retain) {Color Dark-Gray})
                                           (else {Color Red})))
                                  (left (- h 2))
