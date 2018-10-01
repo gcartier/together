@@ -38,6 +38,10 @@
         (together))
 
 
+(definition protected evolutions-range
+  .025)
+
+
 (definition package (timeline-view/now-update zone from to now)
   (let ((root (get-root zone))
         (replay (get-replay zone)))
@@ -50,7 +54,7 @@
         (set-now replay now)
         (set-highlighted-cells replay '())
         (when now
-          (view-evolutions-at panel (- now .025) (+ now .025) now))
+          (view-evolutions-at panel (- now evolutions-range) (+ now evolutions-range) now))
         (highlight-replay-value zone)
         (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to now))
         (save-content options-settings)))))
@@ -230,6 +234,17 @@
   (slot highlighted-kind    initialize #f  accessors generate)
   (slot highlighted-value   initialize #f  accessors generate)
   (slot highlighted-column  initialize #f  accessors generate)
+  
+  
+  (method override (mouse-up self evt)
+    (if (in-rect? (get-position evt) {Rect 0 0 100 18})
+        (let ((world (current-world))
+              (zone (current-zone)))
+          (let ((range (if (= evolutions-range .025) 1. .025)))
+            (set! evolutions-range range)
+            (timeline-view/now-update zone from to now)
+            (display-message world (format "Range {a}" range))))
+      (nextmethod self evt)))
   
   
   (method override (border-color self)
