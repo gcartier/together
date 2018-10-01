@@ -16,6 +16,7 @@
 
 (import (jazz.application)
         (jazz.component)
+        (jazz.event)
         (jazz.geometry)
         (jazz.graphic)
         (jazz.handler)
@@ -41,7 +42,10 @@
 
 
 (definition protected evolutions-range
-  .025)
+  .25)
+
+(definition protected (set-evolutions-range range)
+  (set! evolutions-range range))
 
 
 (definition package (timeline-view/now-update zone from to now)
@@ -241,10 +245,17 @@
     (if (in-rect? (get-position evt) {Rect 0 0 100 18})
         (let ((world (current-world))
               (zone (current-zone)))
-          (let ((range (if (= evolutions-range .025) 1. .025)))
-            (set! evolutions-range range)
-            (timeline-view/now-update zone from to now)
-            (display-message world (format "Range {a}" range))))
+          (let ((values '(.25 1. 3.)))
+            (let ((range (if (get-shift? evt)
+                             (previous-element values evolutions-range)
+                           (next-element values evolutions-range))))
+              (set-evolutions-range range)
+              (let ((max (cond ((= evolutions-range .25) 30)
+                               ((= evolutions-range 1.) 100)
+                               (else 300))))
+                (set-evolutions-max max)
+                (timeline-view/now-update zone from to now)
+                (display-message world (format "Range {a} Max {a}" range max))))))
       (nextmethod self evt)))
   
   
