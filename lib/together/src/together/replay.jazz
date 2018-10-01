@@ -22,6 +22,7 @@
         (jazz.markup)
         (jazz.outline)
         (jazz.resource)
+        (jazz.text)
         (jazz.tree)
         (jazz.ui)
         (jazz.view)
@@ -31,6 +32,7 @@
         (world.context)
         (world.evolution)
         (world.interface.evolution)
+        (world.interface.text)
         (world.interface.timeline)
         (world.manager)
         (world.settings)
@@ -427,46 +429,62 @@
       (close-popups (get-window-manager) (current-window))
       (unless (and view (eq? (get-column view) column))
         (let ((panel (find-ascendant self Together-Evolution-Panel))
-              (header (find-ascendant self Tree-Header)))
-          (let ((entries (collect-entries panel (get-rank column))))
-            (let ((view (make-filter-view self column entries))
+              (header (find-ascendant self Tree-Header))
+              (enumerated? (<= (get-rank column) 4)))
+          (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
+            (let ((view (make-filter-view self column enumerated? entries))
                   (rect (header-rect header column)))
               (popup header
                      view
-                     (new Point (get-left rect) (+ (get-top rect) 17)))
-              (acquire-focus view))))))))
+                     (new Point
+                       (if enumerated?
+                           (get-left rect)
+                         (- (get-right rect) 15))
+                       (+ (get-top rect) 17)))
+              (if enumerated?
+                  (acquire-focus view)
+                (let ((client (get-client (child view '(border scroller)))))
+                  (acquire-focus client))))))))))
 
 
-(definition (make-filter-view tree column entries)
+(definition (make-filter-view tree column enumerated? entries)
   (let ((view (new Filter-View
                 size: {Dimension 186 300}
                 background: {Color red: .000 green: .000 blue: .000 alpha: .85}
                 tree: tree
-                column: column)))
+                column: column
+                enumerated?: enumerated?)))
     (case (column-sorting tree column)
       ((ascending) (set-checked? (child view 'ascending) #t))
       ((descending) (set-checked? (child view 'descending) #t))
       (else (set-checked? (child view 'unsorted) #t)))
-    (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 120} size: {Dimension 176 144} vscroll?: #t style: 'tool)))
-      (let ((content (get-content scroller))
-            (v 0)
-            (values (column-filtering tree column)))
-        (let ((client (new View parent: content)))
-          (for-each (lambda (entry)
-                      (let ((checked? (or (not values) (member? entry values))))
-                        (new Filter-Label parent: client title: entry position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked?))
-                      (increase! v 20))
-                    entries)
-          (set-size client (new Dimension 163 (+ v 2)))
-          (set-client scroller client))))
+    (if enumerated?
+        (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 120} size: {Dimension 176 144} vscroll?: #t style: 'tool)))
+          (let ((content (get-content scroller)))
+            (let ((v 0)
+                  (values (column-filtering tree column)))
+              (let ((client (new View parent: content)))
+                (for-each (lambda (entry)
+                            (let ((checked? (or (not values) (member? entry values))))
+                              (new Filter-Label parent: client title: entry position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked?))
+                            (increase! v 20))
+                          entries)
+                (set-size client (new Dimension 163 (+ v 2)))
+                (set-client scroller client)))))
+      (let ((border (new Border-View parent: view name: 'border position: {Point 5 120} size: {Dimension 176 144} border-type: 'solid border-color: {Color Dark-Gray})))
+        (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
+          (let ((content (get-content scroller)))
+            (let ((client (new Filtered-Text-View parent: content background: 'none)))
+              (set-client scroller client))))))
     view))
 
 
 (class Filter-View extends Layout-View
   
   
-  (property tree   initialize #f accessors generate)
-  (property column initialize #f accessors generate)
+  (property tree        initialize #f accessors generate)
+  (property column      initialize #f accessors generate)
+  (property enumerated? initialize #f accessors generate)
   
   
   (form
@@ -518,29 +536,44 @@
   
   
   (method (on-filter-all self evt)
-    (let ((client (get-client (child self 'scroller))))
-      (for-each (lambda (label)
-                  (set-checked? label #t))
-                (get-children client))))
+    (if enumerated?
+        (let ((client (get-client (child self 'scroller))))
+          (for-each (lambda (label)
+                      (set-checked? label #t))
+                    (get-children client)))
+      (let ((client (get-client (child self '(border scroller)))))
+        (set-string-content client ""))))
   
   
   (method (on-filter-none self evt)
-    (let ((client (get-client (child self 'scroller))))
-      (for-each (lambda (label)
-                  (set-checked? label #f))
-                (get-children client))))
+    (if enumerated?
+        (let ((client (get-client (child self 'scroller))))
+          (for-each (lambda (label)
+                      (set-checked? label #f))
+                    (get-children client)))
+      (bell)))
   
   
   (method (apply-filter self)
     (let ((zone (current-zone)))
       (set-highlighted-cells (get-replay zone) '())
-      (let ((client (get-client (child self 'scroller))))
-        (let ((all (get-children client)))
-          (let ((checked (collect-if get-checked? all)))
-            (if (= (length checked) (length all))
-                (unfilter-column tree column)
-              (let ((values (map get-title checked)))
-                (filter-column tree column values))))))
+      (if enumerated?
+          (let ((client (get-client (child self 'scroller))))
+            (let ((all (get-children client)))
+              (let ((checked (collect-if get-checked? all)))
+                (if (= (length checked) (length all))
+                    (unfilter-column tree column)
+                  (let ((values (map get-title checked)))
+                    (filter-column tree column values))))))
+        (let ((client (get-client (child self '(border scroller)))))
+          (let ((content (get-string-content client)))
+            (let ((all (read-string-content content)))
+              (if (null? all)
+                  (unfilter-column tree column)
+                (let ((values (map (lambda (n)
+                                     (->string (exact->inexact n)))
+                                   all)))
+                  (filter-column tree column values)))))))
       (highlight-replay-value zone)))
   
   
@@ -584,4 +617,11 @@
   
   
   (method override (draw-text-at self surface h v title color enabled?)
-    (draw-text surface (+ h 20) v title color enabled?: enabled?))))
+    (draw-text surface (+ h 20) v title color enabled?: enabled?)))
+
+
+(class Filtered-Text-View extends World-Text-View
+  
+  
+  (method override (new-model self)
+    (new Text-Model base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 4))))
