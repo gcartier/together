@@ -705,7 +705,8 @@
   
   
   (method (escape-press self)
-    (if (is? (active-focus) Filter-View)
+    (if (or (is? (active-focus) Filter-View)
+            (is? (active-focus) Filter-Text))
         #f
       (let ((frame (top-frame)))
         (if frame

@@ -488,7 +488,7 @@
       (let ((border (new Border-View parent: view name: 'border position: {Point 5 120} size: {Dimension 176 144} border-type: 'solid border-color: {Color Dark-Gray})))
         (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
           (let ((content (get-content scroller)))
-            (let ((client (new Filtered-Text-View parent: content background: 'none)))
+            (let ((client (new Filter-Text parent: content background: 'none)))
               (set-client scroller client))))))
     view))
 
@@ -568,7 +568,7 @@
       (bell)))
   
   
-  (method (apply-filter self)
+  (method protected (apply-filter self)
     (let ((zone (current-zone)))
       (set-highlighted-cells (get-replay zone) '())
       (if enumerated?
@@ -634,7 +634,21 @@
     (draw-text surface (+ h 20) v title color enabled?: enabled?)))
 
 
-(class Filtered-Text-View extends World-Text-View
+(class Filter-Text extends World-Text-View
+  
+  
+  (method override (escape-press self evt)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method override (return-press self evt)
+    (let ((end (get-end self)))
+      (if (and (cell=? end (text-ending self))
+               (= (get-col end) 0))
+          (begin
+            (apply-filter (find-ascendant self Filter-View))
+            (close-popups (get-window-manager) (current-window)))
+        (nextmethod self evt))))
   
   
   (method override (new-model self)
