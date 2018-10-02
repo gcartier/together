@@ -321,7 +321,7 @@
                                           ((udp-id-add-nack) {Color Blue})
                                           ((udp-id-add-process) {Color Blue})
                                           ((udp-id-remove-process) {Color Green})
-                                          ((udp-id-discard-packet udp-id-duplicate-packet) {Color Orange})
+                                          ((udp-id-late-packet udp-id-duplicate-packet) {Color Orange})
                                           ((udp-id-add-retain) {Color Dark-Gray})
                                           ((udp-id-remove-retain) {Color Dark-Gray})
                                           (else {Color Red})))
