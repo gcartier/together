@@ -336,6 +336,7 @@
                        
                        (loop (for n from head to tail)
                              (case highlighted-column
+                               ;; tier
                                ((0)
                                 (let ((time (evolutionary-time evolution n))
                                       (id (evolutionary-id evolution n))
@@ -343,6 +344,7 @@
                                   ;; the -1 is a quick hack for server's #f
                                   (when (= (or evolution-id -1) highlighted-value)
                                     (highlighted-rect time id kind))))
+                               ;; sequence
                                ((5)
                                 (let ((time (evolutionary-time evolution n))
                                       (origin (evolutionary-data1 evolution n))
@@ -354,6 +356,7 @@
                                     (let ((id (evolutionary-id evolution n))
                                           (kind (evolutionary-data2 evolution n)))
                                       (highlighted-rect time id kind)))))
+                               ;; value
                                (else
                                 (let ((time (evolutionary-time evolution n))
                                       (value (evolutionary-ref evolution n (- highlighted-column 1))))
