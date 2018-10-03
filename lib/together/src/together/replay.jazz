@@ -450,23 +450,25 @@
   
   
   (method protected (collect-entries self column)
-    (if (memv? column '(@todo 1 2 3 4))
-        (let ((entries (make-table test: eqv?)))
-          (define (process value present)
-            (unless (table-ref entries value #f)
-              (let ((entry (present self value)))
-                (table-set! entries value entry))))
-          
-          (iterate-table evolutions
-            (lambda (id evolution)
-              (loop (for n from (first-position evolution) to (last-position evolution))
-                    (case column
-                      ((1) (process (evolutionary-id evolution n) present-event))
-                      ((2) (process (evolutionary-id evolution n) present-event))
-                      ((3) (process (evolutionary-data1 evolution n) present-origin))
-                      ((4) (process (evolutionary-data2 evolution n) present-kind))))))
-          (sort ci<? (table-values entries)))
-      '()))
+    (if (= column 1)
+        (let ((values (table-values names)))
+          (if (memv? #f values)
+              (append (sort ci<? (remove-false values)) (list "<server>"))
+            values))
+      (let ((entries (make-table test: eqv?)))
+        (define (process value present)
+          (unless (table-ref entries value #f)
+            (let ((entry (present self value)))
+              (table-set! entries value entry))))
+        
+        (iterate-table evolutions
+          (lambda (id evolution)
+            (loop (for n from (first-position evolution) to (last-position evolution))
+                  (case column
+                    ((2) (process (evolutionary-id evolution n) present-event))
+                    ((3) (process (evolutionary-data1 evolution n) present-origin))
+                    ((4) (process (evolutionary-data2 evolution n) present-kind))))))
+        (sort ci<? (table-values entries)))))
   
   
   (method (on-selection-change self evt)
@@ -487,12 +489,13 @@
   
   
   (method override (header-click self column)
-    (let ((view (find-popup Filter-View)))
+    (let ((view (find-popup Filter-View))
+          (rank (get-rank column)))
       (close-popups (get-window-manager) (current-window))
       (unless (and view (eq? (get-column view) column))
         (let ((panel (find-ascendant self Together-Evolution-Panel))
               (header (find-ascendant self Tree-Header))
-              (enumerated? (<= (get-rank column) 4)))
+              (enumerated? (between? rank 1 4)))
           (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
             (let ((view (make-filter-view self column enumerated? entries))
                   (rect (header-rect header column)))
