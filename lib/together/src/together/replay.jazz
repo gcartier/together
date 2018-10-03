@@ -506,6 +506,7 @@
               (if enumerated?
                   (acquire-focus view)
                 (let ((client (get-client (child view '(border scroller)))))
+                  (select-all client)
                   (acquire-focus client))))))))))
 
 
@@ -536,7 +537,12 @@
       (let ((border (new Border-View parent: view name: 'border position: {Point 5 120} size: {Dimension 176 144} border-type: 'solid border-color: {Color Dark-Gray})))
         (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
           (let ((content (get-content scroller)))
-            (let ((client (new Filter-Text parent: content background: 'none)))
+            (let ((client (new Filter-Text parent: content background: 'none))
+                  (values (column-filtering tree column)))
+              (if (not values)
+                  (set-string-content client "*\n")
+                (unless (null? values)
+                  (set-string-content client (string-append (join (map ->string values) "\n") "\n"))))
               (set-client scroller client))))))
     view))
 
@@ -604,7 +610,8 @@
                       (set-checked? label #t))
                     (get-children client)))
       (let ((client (get-client (child self '(border scroller)))))
-        (set-string-content client ""))))
+        (set-string-content client "*\n")
+        (select-all client))))
   
   
   (method (on-filter-none self evt)
@@ -613,7 +620,9 @@
           (for-each (lambda (label)
                       (set-checked? label #f))
                     (get-children client)))
-      (bell)))
+      (let ((client (get-client (child self '(border scroller)))))
+        (set-string-content client "")
+        (select-all client))))
   
   
   (method protected (apply-filter self)
@@ -629,9 +638,9 @@
                     (filter-column tree column values))))))
         (let ((client (get-client (child self '(border scroller)))))
           (let ((content (get-string-content client)))
-            (let ((all (read-string-content content)))
-              (if (null? all)
-                  (unfilter-column tree column)
+            (if (equal? (trim-whitespace content) "*")
+                (unfilter-column tree column)
+              (let ((all (read-string-content content)))
                 (let ((values (map (lambda (n)
                                      (->string (exact->inexact n)))
                                    all)))
@@ -685,6 +694,10 @@
 (class Filter-Text extends World-Text-View
   
   
+  (method override (new-model self)
+    (new Text-Model base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 2))
+  
+  
   (method override (escape-press self evt)
     (close-popups (get-window-manager) (current-window)))
   
@@ -696,8 +709,4 @@
           (begin
             (apply-filter (find-ascendant self Filter-View))
             (close-popups (get-window-manager) (current-window)))
-        (nextmethod self evt))))
-  
-  
-  (method override (new-model self)
-    (new Text-Model base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 4))))
+        (nextmethod self evt))))))

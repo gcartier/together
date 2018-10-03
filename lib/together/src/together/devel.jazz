@@ -48,6 +48,7 @@
         (jazz.snapshot)
         (jazz.syntax (phase syntax))
         (jazz.tracker)
+        (jazz.tree)
         (jazz.ui)
         (jazz.ui.development)
         (jazz.version)
