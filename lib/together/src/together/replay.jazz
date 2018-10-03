@@ -468,7 +468,7 @@
                     ((2) (process (evolutionary-id evolution n) present-event))
                     ((3) (process (evolutionary-data1 evolution n) present-origin))
                     ((4) (process (evolutionary-data2 evolution n) present-kind))))))
-        (sort ci<? (table-values entries)))))
+        (sort ci<? (remove-empty (table-values entries))))))
   
   
   (method (on-selection-change self evt)
