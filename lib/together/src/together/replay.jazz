@@ -15,6 +15,7 @@
 
 
 (import (jazz.application)
+        (jazz.clipboard)
         (jazz.component)
         (jazz.event)
         (jazz.geometry)
@@ -486,6 +487,18 @@
 
 
 (class Together-Evolution-Tree extends Evolution-Tree
+  
+  
+  (method override (can-copy? self)
+    #t)
+  
+  
+  (method override (copy-selection self)
+    (let ((selection (get-selection self)))
+      (if (null? selection)
+          (bell)
+        (set-clipboard-text (get-cell-title self (car selection)))
+        (add-clipboard (current-application)))))
   
   
   (method override (header-click self column)
