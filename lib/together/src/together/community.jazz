@@ -991,8 +991,8 @@
                 (let ((first (first-position evolution))
                       (last (last-position evolution)))
                   (format "{r precision: 1}s"
-                          (- (evolutionary-time evolution last)
-                             (evolutionary-time evolution first)))))))))
+                          (- (evolutionary-udp-time evolution last)
+                             (evolutionary-udp-time evolution first)))))))))
       
       (define (latest-nacks)
         (let ((total 0)

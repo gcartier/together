@@ -211,12 +211,12 @@
   (method override (initialize self directory tier names metadatas chronologies evolutions base-time)
     (define (determine-head)
       (apply min (map (lambda (evolution)
-                        (evolutionary-time evolution (first-position evolution)))
+                        (evolutionary-udp-time evolution (first-position evolution)))
                       (table-values evolutions))))
     
     (define (determine-tail)
       (apply max (map (lambda (evolution)
-                        (evolutionary-time evolution (last-position evolution)))
+                        (evolutionary-udp-time evolution (last-position evolution)))
                       (table-values evolutions))))
     
     (nextmethod self)
@@ -350,13 +350,13 @@
                        (last (last-position evolution)))
                    (define (find-head)
                      (loop (for n from first to last)
-                           (when (>= (evolutionary-time evolution n) from)
+                           (when (>= (evolutionary-udp-time evolution n) from)
                              (return n))
                            (finally first)))
                    
                    (define (find-tail head)
                      (loop (for n from head to last)
-                           (when (> (evolutionary-time evolution n) to)
+                           (when (> (evolutionary-udp-time evolution n) to)
                              (return (- n 1)))
                            (finally last)))
                    
@@ -386,31 +386,31 @@
                              (case highlighted-column
                                ;; tier
                                ((0)
-                                (let ((time (evolutionary-time evolution n))
-                                      (id (evolutionary-id evolution n))
-                                      (kind (evolutionary-data2 evolution n)))
+                                (let ((time (evolutionary-udp-time evolution n))
+                                      (id (evolutionary-udp-id evolution n))
+                                      (kind (evolutionary-udp-kind evolution n)))
                                   ;; the -1 is a quick hack for server's #f
                                   (when (= (or evolution-id -1) highlighted-value)
                                     (highlighted-rect time id kind))))
                                ;; sequence
                                ((5)
-                                (let ((time (evolutionary-time evolution n))
-                                      (origin (evolutionary-data1 evolution n))
-                                      (kind (evolutionary-data2 evolution n))
-                                      (value (evolutionary-data3 evolution n)))
+                                (let ((time (evolutionary-udp-time evolution n))
+                                      (origin (evolutionary-udp-origin evolution n))
+                                      (kind (evolutionary-udp-kind evolution n))
+                                      (value (evolutionary-udp-data1 evolution n)))
                                   (when (and (eqv? origin highlighted-origin)
                                              (eqv? kind highlighted-kind)
                                              (eqv? value highlighted-value))
-                                    (let ((id (evolutionary-id evolution n))
-                                          (kind (evolutionary-data2 evolution n)))
+                                    (let ((id (evolutionary-udp-id evolution n))
+                                          (kind (evolutionary-udp-kind evolution n)))
                                       (highlighted-rect time id kind)))))
                                ;; value
                                (else
-                                (let ((time (evolutionary-time evolution n))
+                                (let ((time (evolutionary-udp-time evolution n))
                                       (value (evolutionary-ref evolution n (- highlighted-column 1))))
                                   (when (eqv? value highlighted-value)
-                                    (let ((id (evolutionary-id evolution n))
-                                          (kind (evolutionary-data2 evolution n)))
+                                    (let ((id (evolutionary-udp-id evolution n))
+                                          (kind (evolutionary-udp-kind evolution n)))
                                       (highlighted-rect time id kind))))))))))))))))
   
   
@@ -465,9 +465,9 @@
           (lambda (id evolution)
             (loop (for n from (first-position evolution) to (last-position evolution))
                   (case column
-                    ((2) (process (evolutionary-id evolution n) present-event))
-                    ((3) (process (evolutionary-data1 evolution n) present-origin))
-                    ((4) (process (evolutionary-data2 evolution n) present-kind))))))
+                    ((2) (process (evolutionary-udp-id evolution n) present-event))
+                    ((3) (process (evolutionary-udp-origin evolution n) present-origin))
+                    ((4) (process (evolutionary-udp-kind evolution n) present-kind))))))
         (sort ci<? (remove-empty (table-values entries))))))
   
   
