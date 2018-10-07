@@ -499,7 +499,7 @@
     (let ((selection (get-selection self)))
       (if (null? selection)
           (bell)
-        (set-clipboard-text (get-cell-title self (car selection)))
+        (set-clipboard-text (join (map (lambda (cell) (get-cell-title self cell)) selection) " "))
         (add-clipboard (current-application)))))
   
   
