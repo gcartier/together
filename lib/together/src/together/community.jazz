@@ -1425,7 +1425,11 @@
         (if (eq? video-mode 'fit)
             'fill
           'fit))
-      (display-message world (format "Video mode: {a}" video-mode)))))
+      (display-message world (format "Video mode: {a}" video-mode))))
+  
+  
+  (method (on-configure-settings self evt)
+    ))
 
 
 ;;;
