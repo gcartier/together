@@ -60,7 +60,7 @@
                                      (update-time channel seq data ring)
                                      (terminal 'update-time seq timestamp))))
                                 ;; insert-media
-                                ((udp-id-add-process)
+                                ((udp-id-insert-packet)
                                  (let ((seq (flonum->fixnum (get-data1 entry)))
                                        (timestamp (flonum->timestamp (get-data4 entry)))
                                        (time-base (get-time-base channel)))
@@ -75,7 +75,7 @@
                                  (thread-yield!))
                                 ;; process-loop
                                 @w
-                                ((udp-id-remove-process)
+                                ((udp-id-retrieve-packet)
                                  (let ((seq (flonum->fixnum (get-data1 entry)))
                                        (timestamp (flonum->timestamp (get-data4 entry))))
                                    (terminal 'wait)
