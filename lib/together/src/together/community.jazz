@@ -942,7 +942,8 @@
         (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
         (draw-text surface 20 180 (format "{a} {a}" (client-drop) (server-drop)) {Color World-Red})
         (draw-text surface 20 230 (format "{a} {a}" (chronology-duration) (evolution-duration)) {Color World-Red})
-        (draw-text surface 20 280 (latest-nacks) {Color World-Red}))
+        (draw-text surface 20 280 (format "{a} {a}" (latest-nacks udp-audio) (latest-nacks udp-video)) {Color World-Red})
+        (draw-text surface 20 330 (format "{a} {a}" (ready-count udp-audio) (ready-count udp-video)) {Color World-Red}))
       
       (define (media-quality kind)
         (let ((total 0.)
@@ -994,18 +995,26 @@
                           (- (evolutionary-udp-time evolution last)
                              (evolutionary-udp-time evolution first)))))))))
       
-      (define (latest-nacks)
+      (define (latest-nacks kind)
         (let ((total 0)
               (count 0))
           (iterate-table (get-receive-channels (get-udp-client client))
             (lambda (key channel)
-              (when (= (get-media-kind channel) udp-video)
+              (when (= (get-media-kind channel) kind)
                 (let ((len (length (get-latest-nacks channel))))
                   (increase! total len)
                   (increase! count)))))
           (if (= count 0)
               "N/A"
             (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> count)))))))
+      
+      (define (ready-count kind)
+        (let ((count 0))
+          (iterate-table (get-receive-channels (get-udp-client client))
+            (lambda (key channel)
+              (when (= (get-media-kind channel) kind)
+                (set! count (get-ready-count channel)))))
+          (format "{a}" count)))
       
       (let ((self-output (find-output video #f)))
         (when (eq? stage 'circle)
