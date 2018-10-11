@@ -452,16 +452,22 @@
   
   
   (method protected (collect-entries self column)
+    (define (sort-tiers tiers)
+      (sort (lambda (x y)
+              ;; server last
+              (or (= (car y) 0)
+                  (and (/= (car x) 0)
+                       (ci<? (cdr x) (cdr y)))))
+            tiers))
+    
     (if (= column 1)
-        (let ((values (table-values names)))
-          (if (memv? #f values)
-              (append (sort ci<? (remove-false values)) (list "<server>"))
-            values))
+        (sort-tiers (table->list names))
       (let ((entries (make-table test: eqv?)))
         (define (process value present)
           (unless (table-ref entries value #f)
-            (let ((entry (present self value)))
-              (table-set! entries value entry))))
+            (let ((title (present self value)))
+              (unless (empty-string? title)
+                (table-set! entries value title)))))
         
         (iterate-table evolutions
           (lambda (id evolution)
@@ -470,7 +476,10 @@
                     ((2) (process (evolutionary-udp-id evolution n) present-event))
                     ((3) (process (evolutionary-udp-origin evolution n) present-origin))
                     ((4) (process (evolutionary-udp-kind evolution n) present-kind))))))
-        (sort ci<? (remove-empty (table-values entries))))))
+        (let ((entries (table->list entries)))
+          (if (= column 3)
+              (sort-tiers entries)
+            (sort ci<? entries key: cdr))))))
   
   
   (method (on-selection-change self evt)
@@ -545,8 +554,9 @@
                   (values (column-filtering tree column)))
               (let ((client (new View parent: content)))
                 (for-each (lambda (entry)
-                            (let ((checked? (or (not values) (member? entry values))))
-                              (new Filter-Label parent: client title: entry position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked?))
+                            (bind (value . title) entry
+                              (let ((checked? (or (not values) (member? value values))))
+                                (new Filter-Label parent: client title: title position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked? value: value)))
                             (increase! v 20))
                           entries)
                 (set-size client (new Dimension 163 (+ v 2)))
@@ -574,15 +584,15 @@
   
   (form
     (<install>
-      (<Label-View>                    title: "Sort" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} color: {Color World-Ochre})
-      (<Filter-Label> name: ascending  title: "Ascending" style: text background: #f position: {Point 10 23} color: {Color White} action-handler: {Event-Handler :form on-sort-ascending})
-      (<Filter-Label> name: descending title: "Descending" style: text background: #f position: {Point 10 43} color: {Color White} action-handler: {Event-Handler :form on-sort-descending})
-      (<Filter-Label> name: unsorted   title: "Unsorted" style: text background: #f position: {Point 10 63} color: {Color White} action-handler: {Event-Handler :form on-unsorted})
-      (<Label-View>                    title: "Filter" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 100} color: {Color World-Ochre})
-      (<Push-Button>                   title: "All" style: text background: #f position: {Point 115 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-all})
-      (<Push-Button>                   title: "None" style: text background: #f position: {Point 140 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-none})
-      (<Push-Button>                   title: "OK" position: {Point 8 268} size: {Dimension 80 24} default?: #t action-handler: {Event-Handler :form on-ok})
-      (<Push-Button>                   title: "Cancel" position: {Point 98 268} size: {Dimension 80 24} action-handler: {Event-Handler :form on-cancel})))
+      (<Label-View>                   title: "Sort" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} color: {Color World-Ochre})
+      (<Check-Label> name: ascending  title: "Ascending" style: text background: #f position: {Point 10 23} color: {Color White} action-handler: {Event-Handler :form on-sort-ascending})
+      (<Check-Label> name: descending title: "Descending" style: text background: #f position: {Point 10 43} color: {Color White} action-handler: {Event-Handler :form on-sort-descending})
+      (<Check-Label> name: unsorted   title: "Unsorted" style: text background: #f position: {Point 10 63} color: {Color White} action-handler: {Event-Handler :form on-unsorted})
+      (<Label-View>                   title: "Filter" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 100} color: {Color World-Ochre})
+      (<Push-Button>                  title: "All" style: text background: #f position: {Point 115 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-all})
+      (<Push-Button>                  title: "None" style: text background: #f position: {Point 140 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-none})
+      (<Push-Button>                  title: "OK" position: {Point 8 268} size: {Dimension 80 24} default?: #t action-handler: {Event-Handler :form on-ok})
+      (<Push-Button>                  title: "Cancel" position: {Point 98 268} size: {Dimension 80 24} action-handler: {Event-Handler :form on-cancel})))
   
   
   (method override (escape-press self evt)
@@ -615,8 +625,8 @@
   (method (on-unsorted self evt)
     (let ((zone (current-zone)))
       (let ((panel (find-ascendant tree Together-Evolution-Panel)))
-        (redisplay-evolutions panel)
-        (highlight-replay-value zone))
+        (redisplay-evolutions panel))
+      (highlight-replay-value zone)
       (close-popups (get-window-manager) (current-window))))
   
   
@@ -650,15 +660,17 @@
             (let ((all (get-children client)))
               (let ((checked (collect-if get-checked? all)))
                 (if (= (length checked) (length all))
-                    (unfilter-column tree column)
-                  (let ((values (map get-title checked)))
-                    (filter-column tree column values type: 'text))))))
+                    (unfilter-column tree column filter-rows?: #f)
+                  (let ((values (map get-value checked)))
+                    (filter-column tree column values type: 'number filter-rows?: #f))))))
         (let ((client (get-client (child self '(border scroller)))))
           (let ((content (get-string-content client)))
             (if (equal? (trim-whitespace content) "*")
-                (unfilter-column tree column)
+                (unfilter-column tree column filter-rows?: #f)
               (let ((values (read-string-content content)))
-                (filter-column tree column values type: 'number))))))
+                (filter-column tree column values type: 'number filter-rows?: #f))))))
+      (let ((panel (find-ascendant tree Together-Evolution-Panel)))
+        (time (redisplay-evolutions panel)))
       (highlight-replay-value zone)))
   
   
@@ -671,7 +683,7 @@
     (close-popups (get-window-manager) (current-window))))
 
 
-(class Filter-Label extends Push-Button
+(class Check-Label extends Push-Button
   
   
   (property checked? initialize #f accessors explicit)
@@ -703,6 +715,12 @@
   
   (method override (draw-text-at self surface h v title color enabled?)
     (draw-text surface (+ h 20) v title color enabled?: enabled?)))
+
+
+(class Filter-Label extends Check-Label
+  
+  
+  (property value initialize #f accessors generate))
 
 
 (class Filter-Text extends World-Text-View
