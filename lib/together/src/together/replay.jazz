@@ -524,9 +524,7 @@
               (popup header
                      view
                      (new Point
-                       (if enumerated?
-                           (get-left rect)
-                         (- (get-right rect) 15))
+                       (- (get-right rect) 15)
                        (+ (get-top rect) 17)))
               (if enumerated?
                   (acquire-focus view)
