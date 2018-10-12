@@ -31,7 +31,7 @@
   (set-settings-root {Directory Home ".together"})
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user))
+  (set-valid-roles '(user developer))
   (register-domain-names))
 
 
