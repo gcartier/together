@@ -43,36 +43,42 @@
         (together))
 
 
-(definition protected evolutions-range
-  .5)
-
-(definition protected (set-evolutions-range range)
-  (set! evolutions-range range))
-
-
 (definition package (timeline-view/now-update zone from to now)
   (let ((root (get-root zone))
         (replay (get-replay zone)))
-    (let ((evolution-from (and now evolutions-range (- now evolutions-range)))
-          (evolution-to (and now evolutions-range (+ now evolutions-range))))
-      (let ((panel (child root 'evolution)))
-        (let ((names (get-names replay))
-              (evolutions (get-evolutions replay))
-              (base-time (get-base-time replay)))
-          (set-from replay from)
-          (set-to replay to)
-          (set-now replay now)
-          (set-highlighted-cells replay '())
-          (when now
-            (receive (displayed total) (view-evolutions-at panel evolution-from evolution-to now) @w (time (view-evolutions-at panel evolution-from evolution-to now))
-              (let ((panel (child root 'timeline)))
-                (set-evolution-range panel (format "{a} of {a}" displayed total))
-                (set-evolution-from panel evolution-from)
-                (set-evolution-to panel evolution-to)
-                (invalidate-view panel))))
-          (highlight-replay-value zone)
-          (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to now))
-          (save-content options-settings))))))
+    (let ((panel (child root 'evolution)))
+      (let ((names (get-names replay))
+            (evolutions (get-evolutions replay))
+            (base-time (get-base-time replay)))
+        (set-from replay from)
+        (set-to replay to)
+        (when now
+          (set-now replay now))
+        (set-highlighted-cells replay '())
+        (when now
+          (display-evolutions zone now))
+        (highlight-replay-value zone)
+        (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to (or now (get-now replay))))
+        (save-content options-settings)))))
+
+
+(definition package (display-evolutions zone (now #f))
+  (let ((root (get-root zone))
+        (replay (get-replay zone)))
+    (let ((evolution-panel (child root 'evolution))
+          (timeline-panel (child root 'timeline))
+          (now (or now (get-now replay))))
+      (if (not now)
+          (begin
+            (clear-evolutions evolution-panel)
+            (set-evolution-range timeline-panel #f)
+            (set-evolution-left timeline-panel #f)
+            (set-evolution-right timeline-panel #f))
+        (receive (displayed total left right) (view-evolutions-at evolution-panel now)
+          (set-evolution-range timeline-panel (format "{a} of {a}" displayed total))
+          (set-evolution-left timeline-panel left)
+          (set-evolution-right timeline-panel right)))
+      (invalidate-view timeline-panel))))
 
 
 (definition package (highlight-replay-value zone)
@@ -288,25 +294,18 @@
                          (when now
                            (set-now self now))
                          (set-tier replay id)
-                         (set-from replay from)
-                         (set-to replay to)
                          (set-now replay now)
                          (set-highlighted-cells replay '())))
                      (invalidate-view self))))))
             ((in-range?)
              (let ((world (current-world))
                    (zone (current-zone)))
-               (let ((values '(.5 1. 3. #f)))
-                 (let ((range (if (get-shift? evt)
-                                  (previous-element values evolutions-range)
-                                (next-element values evolutions-range))))
-                   (set-evolutions-range range)
-                   (let ((max (cond ((eqv? evolutions-range .5) 50)
-                                    ((eqv? evolutions-range 1.) 100)
-                                    ((eqv? evolutions-range 3.) 300)
-                                    (else 500))))
-                     (set-evolutions-max max)
-                     (timeline-view/now-update zone from to now))))))
+               (let ((values '(30 100 250 500)))
+                 (let ((max (if (get-shift? evt)
+                                (previous-element values evolutions-max)
+                              (next-element values evolutions-max))))
+                   (set-evolutions-max max)
+                   (timeline-view/now-update zone from to now)))))
             (else
              (nextmethod self evt)))))
   
@@ -624,8 +623,7 @@
   
   (method (on-unsorted self evt)
     (let ((zone (current-zone)))
-      (let ((panel (find-ascendant tree Together-Evolution-Panel)))
-        (redisplay-evolutions panel))
+      (display-evolutions zone)
       (highlight-replay-value zone)
       (close-popups (get-window-manager) (current-window))))
   
@@ -669,8 +667,7 @@
                 (unfilter-column tree column filter-rows?: #f)
               (let ((values (read-string-content content)))
                 (filter-column tree column values type: 'number filter-rows?: #f))))))
-      (let ((panel (find-ascendant tree Together-Evolution-Panel)))
-        (time (redisplay-evolutions panel)))
+      (display-evolutions zone)
       (highlight-replay-value zone)))
   
   
