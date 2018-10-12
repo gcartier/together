@@ -936,14 +936,12 @@
       
       (define (draw-debugging)
         (set-font surface {Font font-name: tahoma point-size: 24 hint-style: slight hint-metrics: on})
-        @should-go-to-info
-        (draw-text surface 20 80 (format "{a}" (get-client-no client)) {Color White})
         (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
-        (draw-text surface 20 130 (format "{a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-        (draw-text surface 20 180 (format "{a} {a}" (client-drop) (server-drop)) {Color World-Red})
-        (draw-text surface 20 230 (format "{a} {a}" (chronology-duration) (evolution-duration)) {Color World-Red})
-        (draw-text surface 20 280 (format "{a} {a}" (latest-nacks udp-audio) (latest-nacks udp-video)) {Color World-Red})
-        (draw-text surface 20 330 (format "{a} {a}" (ready-count udp-audio) (ready-count udp-video)) {Color World-Red}))
+        (draw-text surface 20 115 (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
+        (draw-text surface 20 150 (format "Drop: {a} {a}" (client-drop) (server-drop)) {Color World-Red})
+        (draw-text surface 20 185 (format "Nacks: {a} {a}" (latest-nacks udp-audio) (latest-nacks udp-video)) {Color World-Red})
+        (draw-text surface 20 220 (format "Ready: {a} {a}" (ready-buffers udp-audio) (ready-buffers udp-video)) {Color World-Red})
+        (draw-text surface 20 255 (format "Replay: {a} {a}" (chronology-duration) (evolution-duration)) {Color World-Red}))
       
       (define (media-quality kind)
         (let ((total 0.)
@@ -1008,13 +1006,17 @@
               "N/A"
             (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> count)))))))
       
-      (define (ready-count kind)
-        (let ((count 0))
+      (define (ready-buffers kind)
+        (let ((total 0)
+              (count 0))
           (iterate-table (get-receive-channels (get-udp-client client))
             (lambda (key channel)
               (when (= (get-media-kind channel) kind)
-                (set! count (get-ready-count channel)))))
-          (format "{a}" count)))
+                (increase! total (get-ready-count channel))
+                (increase! count))))
+          (if (= count 0)
+              "N/A"
+            (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> count)))))))
       
       (let ((self-output (find-output video #f)))
         (when (eq? stage 'circle)
