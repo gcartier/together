@@ -76,6 +76,7 @@
         (world.change)
         (world.changes)
         (world.chunk)
+        (world.client.udp)
         (world.collision)
         (world.configure)
         (world.console)
