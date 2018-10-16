@@ -1393,7 +1393,7 @@
                   (let ((panel (child root 'timeline)))
                     (set-tier panel character-name)
                     (set-title panel (get-name dir))
-                    (set-highlighted-value panel #f)
+                    (set-highlighted-values panel '())
                     (set-chronology panel chronology)
                     (set-evolution panel evolution)
                     (set-evolutions panel evolutions)

@@ -23,6 +23,7 @@
         (jazz.handler)
         (jazz.markup)
         (jazz.outline)
+        (jazz.platform)
         (jazz.resource)
         (jazz.text)
         (jazz.tree)
@@ -120,50 +121,52 @@
                         (value (vector-ref user-data col)))
                     (highlight-value zone tree origin kind value col))))))
           ;; invalidate
-          (invalidate-view tree))))
-    ;; timeline highlighted
+          (invalidate-view tree))))))
+
+
+(definition package (evolution-double-click zone selection)
+  (let ((root (get-root zone)))
     (let ((timeline (child root 'timeline))
           (panel (child root 'evolution)))
       (let ((tree (locate panel 'entries)))
         (let ((selection (get-selection tree)))
           (if (null? selection)
-              (set-highlighted-value timeline #f)
-            (let ((cell (car selection)))
-              (let ((line (get-line cell))
-                    (col (get-col cell)))
-                (cond ;; time
-                      ((= col 0)
-                       (let ((row (get-row tree line)))
-                         (let ((user-data (get-user-data row)))
-                           (let ((value (vector-ref user-data col)))
-                             (set-highlighted-value timeline value)
-                             (set-highlighted-column timeline 1)))))
-                      ;; tier
-                      ((= col 1)
-                       (let ((row (get-row tree line)))
-                         (let ((user-data (get-user-data row)))
-                           (let ((value (vector-ref user-data col)))
-                             ;; the -1 is a quick hack for server's #f
-                             (set-highlighted-value timeline (or value -1))
-                             (set-highlighted-column timeline 0)))))
-                      ;; sequence
-                      ((= col 5)
-                       (let ((row (get-row tree line)))
-                         (let ((user-data (get-user-data row)))
-                           (let ((origin (vector-ref user-data (- col 2)))
-                                 (kind (vector-ref user-data (- col 1)))
-                                 (value (vector-ref user-data col)))
-                             (set-highlighted-origin timeline origin)
-                             (set-highlighted-kind timeline kind)
-                             (set-highlighted-value timeline value)
-                             (set-highlighted-column timeline col)))))
-                      ;; value
-                      (else
-                       (let ((row (get-row tree line)))
-                         (let ((user-data (get-user-data row)))
-                           (let ((value (vector-ref user-data col)))
-                             (set-highlighted-value timeline value)
-                             (set-highlighted-column timeline col)))))))))
+              (set-highlighted-values timeline '())
+            (let ((highlighted
+                    (let ((cell (car selection)))
+                      (let ((line (get-line cell))
+                            (col (get-col cell)))
+                        (cond ;; time
+                              ((= col 0)
+                               (let ((row (get-row tree line)))
+                                 (let ((user-data (get-user-data row)))
+                                   (let ((value (vector-ref user-data col)))
+                                     (list 1 value)))))
+                              ;; tier
+                              ((= col 1)
+                               (let ((row (get-row tree line)))
+                                 (let ((user-data (get-user-data row)))
+                                   (let ((value (vector-ref user-data col)))
+                                     ;; the -1 is a quick hack for server's #f
+                                     (list 0 (or value -1))))))
+                              ;; sequence
+                              ((= col 5)
+                               (let ((row (get-row tree line)))
+                                 (let ((user-data (get-user-data row)))
+                                   (let ((origin (vector-ref user-data (- col 2)))
+                                         (kind (vector-ref user-data (- col 1)))
+                                         (value (vector-ref user-data col)))
+                                     (list col value origin kind)))))
+                              ;; value
+                              (else
+                               (let ((row (get-row tree line)))
+                                 (let ((user-data (get-user-data row)))
+                                   (let ((value (vector-ref user-data col)))
+                                     (list col value))))))))))
+              (let ((highlighted-values (get-highlighted-values timeline)))
+                (if (member? highlighted highlighted-values)
+                    (set-highlighted-values timeline (remove highlighted highlighted-values test: equal?))
+                  (set-highlighted-values timeline (cons highlighted highlighted-values))))))
           (invalidate-view timeline))))))
 
 
@@ -250,10 +253,7 @@
   (slot evolutions          initialize '() accessors generate)
   (slot highlighted-title   initialize #f  accessors generate)
   (slot highlighted-markers initialize #f  accessors generate)
-  (slot highlighted-origin  initialize #f  accessors generate)
-  (slot highlighted-kind    initialize #f  accessors generate)
-  (slot highlighted-value   initialize #f  accessors generate)
-  (slot highlighted-column  initialize #f  accessors generate)
+  (slot highlighted-values  initialize '() accessors generate)
   
   
   (method override (mouse-up self evt)
@@ -345,8 +345,8 @@
                                            (v 120))
                                        (fill-rect surface (new Rect (- h 0) (- v 4) (+ h 1) (+ v 5)) color))))))
                              highlighted-markers)))))
-            (highlighted-value
-             (draw-text surface 320 3 (format "Highlight: {a}" highlighted-value) timeline-text-color)
+            ((not-null? highlighted-values)
+             (draw-text surface 320 3 (format "Highlight: {l}" (map second highlighted-values)) timeline-text-color)
              (let ((tier (get-tier (get-replay (current-zone))))
                    (first (first-position evolution))
                    (last (last-position evolution)))
@@ -384,35 +384,39 @@
                                (set! highlighted (cons id highlighted))))))))
                    
                    (loop (for n from head to tail)
-                         (case highlighted-column
-                           ;; tier
-                           ((0)
-                            (let ((time (evolutionary-udp-time evolution n))
-                                  (id (evolutionary-udp-id evolution n))
-                                  (kind (evolutionary-udp-kind evolution n)))
-                              ;; the -1 is a quick hack for server's #f
-                              (when (= (or tier -1) highlighted-value)
-                                (highlighted-rect time id kind))))
-                           ;; sequence
-                           ((5)
-                            (let ((time (evolutionary-udp-time evolution n))
-                                  (origin (evolutionary-udp-origin evolution n))
-                                  (kind (evolutionary-udp-kind evolution n))
-                                  (value (evolutionary-udp-data1 evolution n)))
-                              (when (and (eqv? origin highlighted-origin)
-                                         (eqv? kind highlighted-kind)
-                                         (eqv? value highlighted-value))
-                                (let ((id (evolutionary-udp-id evolution n))
-                                      (kind (evolutionary-udp-kind evolution n)))
-                                  (highlighted-rect time id kind)))))
-                           ;; value
-                           (else
-                            (let ((time (evolutionary-udp-time evolution n))
-                                  (value (evolutionary-ref evolution n (- highlighted-column 1))))
-                              (when (eqv? value highlighted-value)
-                                (let ((id (evolutionary-udp-id evolution n))
-                                      (kind (evolutionary-udp-kind evolution n)))
-                                  (highlighted-rect time id kind))))))))))))))
+                         (for-each (lambda (highlighted)
+                                     (bind (highlighted-column highlighted-value . others) highlighted
+                                       (case highlighted-column
+                                         ;; tier
+                                         ((0)
+                                          (let ((time (evolutionary-udp-time evolution n))
+                                                (id (evolutionary-udp-id evolution n))
+                                                (kind (evolutionary-udp-kind evolution n)))
+                                            ;; the -1 is a quick hack for server's #f
+                                            (when (= (or tier -1) highlighted-value)
+                                              (highlighted-rect time id kind))))
+                                         ;; sequence
+                                         ((5)
+                                          (bind (highlighted-origin highlighted-kind) others
+                                            (let ((time (evolutionary-udp-time evolution n))
+                                                  (origin (evolutionary-udp-origin evolution n))
+                                                  (kind (evolutionary-udp-kind evolution n))
+                                                  (value (evolutionary-udp-data1 evolution n)))
+                                              (when (and (eqv? origin highlighted-origin)
+                                                         (eqv? kind highlighted-kind)
+                                                         (eqv? value highlighted-value))
+                                                (let ((id (evolutionary-udp-id evolution n))
+                                                      (kind (evolutionary-udp-kind evolution n)))
+                                                  (highlighted-rect time id kind))))))
+                                         ;; value
+                                         (else
+                                          (let ((time (evolutionary-udp-time evolution n))
+                                                (value (evolutionary-ref evolution n (- highlighted-column 1))))
+                                            (when (eqv? value highlighted-value)
+                                              (let ((id (evolutionary-udp-id evolution n))
+                                                    (kind (evolutionary-udp-kind evolution n)))
+                                                (highlighted-rect time id kind))))))))
+                                   highlighted-values)))))))))
   
   
   (method override (right-mouse-up self evt)
@@ -440,7 +444,7 @@
   (form
     (<install>
       (<border~>  border-type: solid border-color: {Color Dark-Gray})
-      (<entries~> selection-handler: {Event-Handler :form on-selection-change})))
+      (<entries~> selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click})))
   
   
   (method override (form-model self form)
@@ -484,7 +488,13 @@
   (method (on-selection-change self evt)
     (let ((zone (current-zone)))
       (let ((selection (get-selection evt)))
-        (evolution-selection-update zone selection)))))
+        (evolution-selection-update zone selection))))
+  
+  
+  (method (on-double-click self evt)
+    (let ((zone (current-zone)))
+      (let ((selection (get-selection (get-sender evt))))
+        (evolution-double-click zone selection)))))
 
 
 (class Together-Evolution-Header extends Tree-Header
