@@ -346,77 +346,87 @@
                                        (fill-rect surface (new Rect (- h 0) (- v 4) (+ h 1) (+ v 5)) color))))))
                              highlighted-markers)))))
             ((not-null? highlighted-values)
-             (draw-text surface 320 3 (format "Highlight: {l}" (map second highlighted-values)) timeline-text-color)
-             (let ((tier (get-tier (get-replay (current-zone))))
-                   (first (first-position evolution))
-                   (last (last-position evolution)))
-               (define (find-head)
-                 (loop (for n from first to last)
-                       (when (>= (evolutionary-udp-time evolution n) from)
-                         (return n))
-                       (finally first)))
-               
-               (define (find-tail head)
-                 (loop (for n from head to last)
-                       (when (> (evolutionary-udp-time evolution n) to)
-                         (return (- n 1)))
-                       (finally last)))
-               
-               (let ((head (find-head)))
-                 (let ((tail (find-tail head)))
-                   (define (highlighted-rect time id kind)
-                     (let ((h (fxround (* (/ (- time from) span) width))))
-                       (let ((color (ecase id
-                                      ((udp-id-create-packet) {Color Yellow})
-                                      ((udp-id-nack-packet) {Color Blue})
-                                      ((udp-id-insert-packet) {Color Blue})
-                                      ((udp-id-duplicate-packet) {Color Orange})
-                                      ((udp-id-retain-packet) {Color Dark-Gray})
-                                      ((udp-id-release-packet) {Color Dark-Gray})
-                                      (else {Color Red})))
-                             (left (- h 2))
-                             (right (+ h 3))
-                             (v (if (= kind udp-audio) 117 124)))
-                         (let ((rect (new Rect left (- v 2) right (+ v 3))))
-                           (fill-rect surface rect color)
-                           (when (and now (between? now-h left right))
-                             (unless (memv? id highlighted)
-                               (set! highlighted (cons id highlighted))))))))
-                   
-                   (loop (for n from head to tail)
-                         (for-each (lambda (highlighted)
-                                     (bind (highlighted-column highlighted-value . others) highlighted
-                                       (case highlighted-column
-                                         ;; tier
-                                         ((0)
-                                          (let ((time (evolutionary-udp-time evolution n))
-                                                (id (evolutionary-udp-id evolution n))
-                                                (kind (evolutionary-udp-kind evolution n)))
-                                            ;; the -1 is a quick hack for server's #f
-                                            (when (= (or tier -1) highlighted-value)
-                                              (highlighted-rect time id kind))))
-                                         ;; sequence
-                                         ((5)
-                                          (bind (highlighted-origin highlighted-kind) others
-                                            (let ((time (evolutionary-udp-time evolution n))
-                                                  (origin (evolutionary-udp-origin evolution n))
-                                                  (kind (evolutionary-udp-kind evolution n))
-                                                  (value (evolutionary-udp-data1 evolution n)))
-                                              (when (and (eqv? origin highlighted-origin)
-                                                         (eqv? kind highlighted-kind)
-                                                         (eqv? value highlighted-value))
-                                                (let ((id (evolutionary-udp-id evolution n))
+             (let ((v 110)
+                   (the-evolution evolution))
+               (iterate-table evolutions
+                 (lambda (id evolution)
+                   (let ((tier (get-tier (get-replay (current-zone))))
+                         (first (first-position evolution))
+                         (last (last-position evolution))
+                         (the-evolution? (eq? evolution the-evolution)))
+                     (define (find-head)
+                       (loop (for n from first to last)
+                             (when (>= (evolutionary-udp-time evolution n) from)
+                               (return n))
+                             (finally first)))
+                     
+                     (define (find-tail head)
+                       (loop (for n from head to last)
+                             (when (> (evolutionary-udp-time evolution n) to)
+                               (return (- n 1)))
+                             (finally last)))
+                     
+                     (let ((head (find-head)))
+                       (let ((tail (find-tail head)))
+                         (define (highlighted-rect time id kind)
+                           (let ((h (fxround (* (/ (- time from) span) width))))
+                             (let ((color (ecase id
+                                            ((udp-id-create-packet) {Color Yellow})
+                                            ((udp-id-nack-packet) {Color Blue})
+                                            ((udp-id-insert-packet) {Color Blue})
+                                            ((udp-id-duplicate-packet) {Color Orange})
+                                            ((udp-id-retain-packet) {Color Dark-Gray})
+                                            ((udp-id-release-packet) {Color Dark-Gray})
+                                            ((udp-id-process-waiting) {Color Orange})
+                                            ((udp-id-process-ok) {Color Green})
+                                            ((udp-id-reset-media) {Color Blue})
+                                            (else {Color Red})))
+                                   (left (- h 2))
+                                   (right (+ h 3))
+                                   @old!?
+                                   (v (if (= kind udp-audio) 117 124)))
+                               (let ((rect (new Rect left (- v 2) right (+ v 3))))
+                                 (fill-rect surface rect color)
+                                 (when (and now (between? now-h left right))
+                                   (unless (memv? id highlighted)
+                                     (set! highlighted (cons id highlighted))))))))
+                         
+                         (loop (for n from head to tail)
+                               (for-each (lambda (highlighted)
+                                           (bind (highlighted-column highlighted-value . others) highlighted
+                                             (case highlighted-column
+                                               ;; tier
+                                               ((0)
+                                                (let ((time (evolutionary-udp-time evolution n))
+                                                      (id (evolutionary-udp-id evolution n))
                                                       (kind (evolutionary-udp-kind evolution n)))
-                                                  (highlighted-rect time id kind))))))
-                                         ;; value
-                                         (else
-                                          (let ((time (evolutionary-udp-time evolution n))
-                                                (value (evolutionary-ref evolution n (- highlighted-column 1))))
-                                            (when (eqv? value highlighted-value)
-                                              (let ((id (evolutionary-udp-id evolution n))
-                                                    (kind (evolutionary-udp-kind evolution n)))
-                                                (highlighted-rect time id kind))))))))
-                                   highlighted-values)))))))))
+                                                  ;; the -1 is a quick hack for server's #f
+                                                  (when (= (or tier -1) highlighted-value)
+                                                    (highlighted-rect time id kind))))
+                                               ;; sequence
+                                               ((5)
+                                                (let ((highlighted-origin (and (not-null? others) (first others)))
+                                                      (highlighted-kind (and (not-null? others) (second others))))
+                                                  (let ((time (evolutionary-udp-time evolution n))
+                                                        (origin (evolutionary-udp-origin evolution n))
+                                                        (kind (evolutionary-udp-kind evolution n))
+                                                        (value (evolutionary-udp-data1 evolution n)))
+                                                    (when (and (eqv? value highlighted-value)
+                                                               (or (not highlighted-origin) (eqv? origin highlighted-origin))
+                                                               (or (not highlighted-kind) (eqv? kind highlighted-kind)))
+                                                      (let ((id (evolutionary-udp-id evolution n))
+                                                            (kind (evolutionary-udp-kind evolution n)))
+                                                        (highlighted-rect time id kind))))))
+                                               ;; value
+                                               (else
+                                                (let ((time (evolutionary-udp-time evolution n))
+                                                      (value (evolutionary-ref evolution n (- highlighted-column 1))))
+                                                  (when (eqv? value highlighted-value)
+                                                    (let ((id (evolutionary-udp-id evolution n))
+                                                          (kind (evolutionary-udp-kind evolution n)))
+                                                      (highlighted-rect time id kind))))))))
+                                         highlighted-values)))))
+                   (increase! v 7))))))))
   
   
   (method override (right-mouse-up self evt)
@@ -500,6 +510,17 @@
 (class Together-Evolution-Header extends Tree-Header
   
   
+  (method override (draw-button self surface width h v title column)
+    (let ((zone (current-zone)))
+      (let ((root (get-root zone)))
+        (let ((timeline (child root 'timeline))
+              (rank (get-rank column)))
+          (when (some? (lambda (highlight)
+                         (= (first highlight) rank))
+                       (get-highlighted-values timeline))
+            (draw-highlighted surface 0 h v title #t {Color World-Red}))))))
+  
+  
   (method override (close-popups self (event: event #f) (all?: all? #f) (exclude: exclude #f) (initiator: initiator #f))
     (unless (memq? event '(mouse-down double-click))
       (nextmethod self event: event all?: all? exclude: exclude initiator: initiator))))
@@ -522,6 +543,12 @@
   
   
   (method override (header-click self column)
+    (if (alt-down?)
+        (highlight-click self column)
+      (filter-click self column)))
+  
+  
+  (method (filter-click self column)
     (let ((view (find-popup Filter-View))
           (rank (get-rank column)))
       (close-popups (get-window-manager) (current-window))
@@ -531,6 +558,29 @@
               (enumerated? (between? rank 1 4)))
           (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
             (let ((view (make-filter-view self column enumerated? entries))
+                  (rect (header-rect header column)))
+              (popup header
+                     view
+                     (new Point
+                       (- (get-right rect) 15)
+                       (+ (get-top rect) 17)))
+              (if enumerated?
+                  (acquire-focus view)
+                (let ((client (get-client (child view '(border scroller)))))
+                  (select-all client)
+                  (acquire-focus client)))))))))
+  
+  
+  (method (highlight-click self column)
+    (let ((view (find-popup Highlight-View))
+          (rank (get-rank column)))
+      (close-popups (get-window-manager) (current-window))
+      (unless (and view (eq? (get-column view) column))
+        (let ((panel (find-ascendant self Together-Evolution-Panel))
+              (header (find-ascendant self Tree-Header))
+              (enumerated? (between? rank 1 4)))
+          (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
+            (let ((view (make-highlight-view self column enumerated? entries))
                   (rect (header-rect header column)))
               (popup header
                      view
@@ -592,13 +642,13 @@
   
   (form
     (<install>
-      (<Label-View>                   title: "Sort" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} color: {Color World-Ochre})
+      (<Label-View>                   title: "Sort" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} size: {Dimension 80 18} color: {Color World-Ochre})
       (<Check-Label> name: ascending  title: "Ascending" style: text background: #f position: {Point 10 23} color: {Color White} action-handler: {Event-Handler :form on-sort-ascending})
       (<Check-Label> name: descending title: "Descending" style: text background: #f position: {Point 10 43} color: {Color White} action-handler: {Event-Handler :form on-sort-descending})
       (<Check-Label> name: unsorted   title: "Unsorted" style: text background: #f position: {Point 10 63} color: {Color White} action-handler: {Event-Handler :form on-unsorted})
-      (<Label-View>                   title: "Filter" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 100} color: {Color World-Ochre})
-      (<Push-Button>                  title: "All" style: text background: #f position: {Point 115 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-all})
-      (<Push-Button>                  title: "None" style: text background: #f position: {Point 140 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-none})
+      (<Label-View>                   title: "Filter" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 100} size: {Dimension 80 18} color: {Color World-Ochre})
+      (<Push-Button>                  title: "All" style: text background: #f position: {Point 120 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-all})
+      (<Push-Button>                  title: "None" style: text background: #f position: {Point 145 100} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-filter-none})
       (<Push-Button>                  title: "OK" position: {Point 8 268} size: {Dimension 80 24} default?: #t action-handler: {Event-Handler :form on-ok})
       (<Push-Button>                  title: "Cancel" position: {Point 98 268} size: {Dimension 80 24} action-handler: {Event-Handler :form on-cancel})))
   
@@ -689,6 +739,147 @@
     (close-popups (get-window-manager) (current-window))))
 
 
+(definition (make-highlight-view tree column enumerated? entries)
+  (let ((zone (current-zone)))
+    (let ((root (get-root zone)))
+      (let ((timeline (child root 'timeline))
+            (view (new Highlight-View
+                    size: {Dimension 186 300}
+                    background: {Color red: .000 green: .000 blue: .000 alpha: .85}
+                    tree: tree
+                    column: column
+                    enumerated?: enumerated?)))
+        (let ((rank (get-rank column)))
+          (let ((highlighted (collect-if (lambda (highlight) (= (first highlight) rank)) (get-highlighted-values timeline))))
+            (if enumerated?
+                (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 23} size: {Dimension 176 241} vscroll?: #t style: 'tool)))
+                  (let ((content (get-content scroller)))
+                    (let ((v 0)
+                          (values (map second highlighted)))
+                      (let ((client (new View parent: content)))
+                        (for-each (lambda (entry)
+                                    (bind (value . title) entry
+                                      (let ((checked? (or (not values) (member? value values))))
+                                        (new Highlight-Label parent: client title: title position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked? value: value)))
+                                    (increase! v 20))
+                                  entries)
+                        (set-size client (new Dimension 163 (+ v 2)))
+                        (set-client scroller client)))))
+              (set-visible? (child view 'all) #f)
+              (let ((border (new Border-View parent: view name: 'border position: {Point 5 23} size: {Dimension 176 241} border-type: 'solid border-color: {Color Dark-Gray})))
+                (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
+                  (let ((content (get-content scroller)))
+                    (let ((client (new Highlight-Text parent: content background: 'none))
+                          (values (map second highlighted)))
+                      (unless (null? values)
+                        (set-string-content client (substitute-alist '((#\( . "[") (#\) . "]")) (string-append (join (map ->string values) "\n") "\n"))))
+                      (set-client scroller client))))))
+            view))))))
+
+
+(class Highlight-View extends Layout-View
+  
+  
+  (property tree        initialize #f accessors generate)
+  (property column      initialize #f accessors generate)
+  (property enumerated? initialize #f accessors generate)
+  
+  
+  (form
+    (<install>
+      (<Label-View>             title: "Highlight" font: {Font font-name: tahoma point-size: 14 shadow: thin} position: {Point 5 3} size: {Dimension 80 18} color: {Color World-Ochre})
+      (<Push-Button> name: all  title: "All" style: text background: #f position: {Point 120 3} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-highlight-all})
+      (<Push-Button> name: none title: "None" style: text background: #f position: {Point 145 3} color: {Color red: .861 green: .081 blue: .093} action-handler: {Event-Handler :form on-highlight-none})
+      (<Push-Button>            title: "OK" position: {Point 8 268} size: {Dimension 80 24} default?: #t action-handler: {Event-Handler :form on-ok})
+      (<Push-Button>            title: "Cancel" position: {Point 98 268} size: {Dimension 80 24} action-handler: {Event-Handler :form on-cancel})))
+  
+  
+  (method override (escape-press self evt)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method override (return-press self evt)
+    (apply-highlight self)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (sort-column self new-direction)
+    (let ((current-direction (column-sorting tree column)))
+      (unless (eq? current-direction new-direction)
+        (set-sorted-column tree column new-direction)
+        (sort-rows tree column new-direction)))
+    (ensure-displayed tree))
+  
+  
+  (method (on-sort-ascending self evt)
+    (sort-column self 'ascending)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-sort-descending self evt)
+    (sort-column self 'descending)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-unsorted self evt)
+    (let ((zone (current-zone)))
+      (display-evolutions zone)
+      (highlight-replay-value zone)
+      (close-popups (get-window-manager) (current-window))))
+  
+  
+  (method (on-highlight-all self evt)
+    (when enumerated?
+      (let ((client (get-client (child self 'scroller))))
+        (for-each (lambda (label)
+                    (set-checked? label #t))
+                  (get-children client)))))
+  
+  
+  (method (on-highlight-none self evt)
+    (if enumerated?
+        (let ((client (get-client (child self 'scroller))))
+          (for-each (lambda (label)
+                      (set-checked? label #f))
+                    (get-children client)))
+      (let ((client (get-client (child self '(border scroller)))))
+        (set-string-content client "")
+        (select-all client))))
+  
+  
+  (method protected (apply-highlight self)
+    (let ((zone (current-zone)))
+      (let ((root (get-root zone)))
+        (let ((timeline (child root 'timeline)))
+          (set-highlighted-cells (get-replay zone) '())
+          (let ((rank (get-rank column))
+                (values
+                  (if enumerated?
+                      (let ((client (get-client (child self 'scroller))))
+                        (let ((all (get-children client)))
+                          (let ((checked (collect-if get-checked? all)))
+                            (map get-value checked))))
+                    (let ((client (get-client (child self '(border scroller)))))
+                      (let ((content (get-string-content client)))
+                        (read-string-content content))))))
+            (set-highlighted-values timeline (append (collect-if (lambda (highlight)
+                                                                   (/= (first highlight) rank))
+                                                                 (get-highlighted-values timeline))
+                                                     (map (lambda (value)
+                                                            (list rank value))
+                                                          values)))
+            (invalidate-view timeline))))))
+  
+  
+  (method (on-ok self evt)
+    (apply-highlight self)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method (on-cancel self evt)
+    (close-popups (get-window-manager) (current-window))))
+
+
 (class Check-Label extends Push-Button
   
   
@@ -746,5 +937,32 @@
                (= (get-col end) 0))
           (begin
             (apply-filter (find-ascendant self Filter-View))
+            (close-popups (get-window-manager) (current-window)))
+        (nextmethod self evt)))))
+
+
+(class Highlight-Label extends Check-Label
+  
+  
+  (property value initialize #f accessors generate))
+
+
+(class Highlight-Text extends World-Text-View
+  
+  
+  (method override (new-model self)
+    (new Text-Model base-style: {Text-Style Text-Base font: {Font font-name: tahoma point-size: 15.5 shadow: thin}} left-padding: 2))
+  
+  
+  (method override (escape-press self evt)
+    (close-popups (get-window-manager) (current-window)))
+  
+  
+  (method override (return-press self evt)
+    (let ((end (get-end self)))
+      (if (and (cell=? end (text-ending self))
+               (= (get-col end) 0))
+          (begin
+            (apply-highlight (find-ascendant self Highlight-View))
             (close-popups (get-window-manager) (current-window)))
         (nextmethod self evt))))))
