@@ -516,8 +516,9 @@
     (let ((selection (get-selection self)))
       (if (null? selection)
           (bell)
-        (set-clipboard-text (join (map (lambda (cell) (get-cell-title self cell)) selection) " "))
-        (add-clipboard (current-application)))))
+        (let ((sorted-selection (sort nu<? selection)))
+          (set-clipboard-text (join (map (lambda (cell) (get-cell-title self cell)) sorted-selection) " "))
+          (add-clipboard (current-application))))))
   
   
   (method override (header-click self column)
