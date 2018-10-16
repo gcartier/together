@@ -102,6 +102,20 @@
     (when (not-null? selection)
       (let ((panel (child root 'evolution)))
         (let ((tree (locate panel 'entries)))
+          ;; elapses
+          (let ((timeline (child root 'timeline)))
+            (set-elapses timeline
+              (and (> (length selection) 1)
+                   (uniform selection key: get-col)
+                   (let ((values (map (lambda (cell)
+                                        (string->number (get-cell-title tree cell)))
+                                      (sort nu<? selection))))
+                     (and (not (memv? #f values))
+                          (loop (for before in values remainder after)
+                                (unless (null? after)
+                                  (collect
+                                    (let ((elapse (- (car after) before)))
+                                      (format "{r precision: 6}" elapse))))))))))
           ;; unhighlight
           (for-each (lambda (cell)
                       (let ((data (get-cell-data tree cell)))
