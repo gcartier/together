@@ -75,6 +75,7 @@
         (world.camera)
         (world.change)
         (world.changes)
+        (world.chronology)
         (world.chunk)
         (world.client.udp)
         (world.collision)
