@@ -167,7 +167,8 @@
                 (if (member? highlighted highlighted-values)
                     (set-highlighted-values timeline (remove highlighted highlighted-values test: equal?))
                   (set-highlighted-values timeline (cons highlighted highlighted-values))))))
-          (invalidate-view timeline))))))
+          (invalidate-view timeline)
+          (invalidate-view panel))))))
 
 
 (definition package (highlight-value zone tree origin kind value col)
@@ -405,8 +406,8 @@
                                                     (highlighted-rect time id kind))))
                                                ;; sequence
                                                ((5)
-                                                (let ((highlighted-origin (and (not-null? others) (first others)))
-                                                      (highlighted-kind (and (not-null? others) (second others))))
+                                                (let ((highlighted-origin (and (not-null? others) (car others)))
+                                                      (highlighted-kind (and (not-null? others) (cadr others))))
                                                   (let ((time (evolutionary-udp-time evolution n))
                                                         (origin (evolutionary-udp-origin evolution n))
                                                         (kind (evolutionary-udp-kind evolution n))
