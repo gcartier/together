@@ -40,6 +40,7 @@
         (world.client.bars)
         (world.configure)
         (world.context)
+        (world.event)
         (world.evolution)
         (world.interface)
         (world.interface.actions)
@@ -50,6 +51,7 @@
         (world.role)
         (world.settings)
         (world.task)
+        (world.udp)
         (world.window)
         (together)
         (together.community)
@@ -175,6 +177,18 @@
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
         (on-cycle-layouts zone evt))))
+  
+  
+  (method (on-add-bookmark self evt)
+    (let ((world (current-world)))
+      (record-event udp-id-bookmark
+                    -1.
+                    -1.
+                    -1.
+                    -1.
+                    -1.
+                    -1.)
+      (display-message world "Bookmarked!")))
   
   
   (method (on-toggle-debug self evt)
@@ -571,5 +585,6 @@
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
       (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} description: "Cycle layouts.")
+      (<World-Action-Item> name: add-bookmark         title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
       ;; window
       (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :alt #\F} description: "Toggle between windowed and fullscreen mode.")))))
