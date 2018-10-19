@@ -70,7 +70,9 @@
                        world.test7-script         #f
                        world.test8-script         #f
                        world.test9-script         #f
-                       world.test0-script         #f)))
+                       world.test0-script         #f
+                       ;; worker
+                       world.worker?              #f)))
 
 
 (definition (override-settings settings)
@@ -92,9 +94,7 @@
                        world.tile-resolution      16
                        world.generate-mipmap?     #t
                        world.min-filter           linear
-                       world.mag-filter           nearest
-                       ;; worker
-                       world.worker?              #f)))
+                       world.mag-filter           nearest)))
 
 
 (definition (run-together descriptor)

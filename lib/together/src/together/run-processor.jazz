@@ -51,14 +51,13 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role user)))
+                       world.role user
+                       ;; worker
+                       world.worker? #f)))
 
 
 (definition (override-settings settings)
-  (for-each-property (lambda (property value)
-                       (set-setting settings property value))
-                     '(;; worker
-                       world.worker? #f)))
+  )
 
 
 (definition (run-processor descriptor)
