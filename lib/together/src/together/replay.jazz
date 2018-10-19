@@ -667,11 +667,19 @@
   
   
   (method (sort-column self new-direction)
-    (let ((current-direction (column-sorting tree column)))
-      (unless (eq? current-direction new-direction)
-        (set-sorted-column tree column new-direction)
-        (sort-rows tree column new-direction)))
-    (ensure-displayed tree))
+    (let ((zone (current-zone)))
+      (let ((current-direction (column-sorting tree column)))
+        (unless (eq? current-direction new-direction)
+          (sort-column tree column new-direction sort-rows?: #f)
+          (display-evolutions zone)
+          (highlight-replay-value zone)))))
+  
+  
+  (method (unsort-column self)
+    (let ((zone (current-zone)))
+      (unsort-columns tree sort-rows?: #f)
+      (display-evolutions zone)
+      (highlight-replay-value zone)))
   
   
   (method (on-sort-ascending self evt)
@@ -685,10 +693,8 @@
   
   
   (method (on-unsorted self evt)
-    (let ((zone (current-zone)))
-      (display-evolutions zone)
-      (highlight-replay-value zone)
-      (close-popups (get-window-manager) (current-window))))
+    (unsort-column self)
+    (close-popups (get-window-manager) (current-window)))
   
   
   (method (on-filter-all self evt)
@@ -810,8 +816,7 @@
   (method (sort-column self new-direction)
     (let ((current-direction (column-sorting tree column)))
       (unless (eq? current-direction new-direction)
-        (set-sorted-column tree column new-direction)
-        (sort-rows tree column new-direction)))
+        (sort-column tree column new-direction)))
     (ensure-displayed tree))
   
   
@@ -827,6 +832,7 @@
   
   (method (on-unsorted self evt)
     (let ((zone (current-zone)))
+      (unsort-columns tree)
       (display-evolutions zone)
       (highlight-replay-value zone)
       (close-popups (get-window-manager) (current-window))))
