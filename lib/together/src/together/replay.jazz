@@ -285,7 +285,7 @@
       (cond ((in-tier?)
              ;; really quick code that needs cleanup
              (let ((replay (get-replay (current-zone))))
-               (let ((names (map (lambda (name) (or name "<server>")) (table-values (get-names replay)))))
+               (let ((names (table-values (get-names replay))))
                  (let ((tiers (sort nu<? names)))
                    (let ((new-tier (if (get-shift? evt)
                                        (previous-element tiers tier)
@@ -480,16 +480,8 @@
   
   
   (method protected (collect-entries self column)
-    (define (sort-tiers tiers)
-      (sort (lambda (x y)
-              ;; server last
-              (or (= (car y) 0)
-                  (and (/= (car x) 0)
-                       (ci<? (cdr x) (cdr y)))))
-            tiers))
-    
     (if (= column 1)
-        (sort-tiers (table->list names))
+        (sort ci<? (table->list names) key: cdr)
       (let ((entries (make-table test: eqv?)))
         (define (process value present)
           (unless (table-ref entries value #f)
@@ -504,10 +496,7 @@
                     ((2) (process (evolutionary-udp-id evolution n) present-event))
                     ((3) (process (evolutionary-udp-origin evolution n) present-origin))
                     ((4) (process (evolutionary-udp-kind evolution n) present-kind))))))
-        (let ((entries (table->list entries)))
-          (if (= column 3)
-              (sort-tiers entries)
-            (sort ci<? entries key: cdr))))))
+        (sort ci<? (table->list entries) key: cdr))))
   
   
   (method (on-selection-change self evt)
