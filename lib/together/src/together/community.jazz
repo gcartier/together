@@ -1306,7 +1306,7 @@
         (let ((manager (locate panel 'manager)))
           (let ((text (locate manager '(script text))))
             (when (not edited-entity)
-              (let ((script (find-script world "test/replay")))
+              (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
                 (when script
                   (let ((entity (register-asset-script script)))
                     (set-edited-entity entity)
