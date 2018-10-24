@@ -572,7 +572,7 @@
   
   (method (uninstall-hider self)
     (empty hide-ring)
-    (insert-earliest hide-ring #f))
+    (terminate hide-ring))
   
   
   ;; we probably need a tolerance so moving
