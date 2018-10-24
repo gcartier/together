@@ -60,8 +60,10 @@
         (when now
           (display-evolutions zone now))
         (highlight-replay-value zone)
-        (set-setting options-settings 'world.last-replay (list (get-name (get-directory replay)) from to (or now (get-now replay))))
-        (save-content options-settings)))))
+        (let ((dir (get-directory replay)))
+          (when dir
+            (set-setting options-settings 'world.last-replay (list (get-name dir) from to (or now (get-now replay))))
+            (save-content options-settings)))))))
 
 
 (definition package (display-evolutions zone (now #f))

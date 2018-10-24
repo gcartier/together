@@ -71,6 +71,7 @@
         (world.settings)
         (world.skybox)
         (world.task)
+        (world.timeline)
         (world.udp)
         (world.video)
         (world.window)
@@ -826,7 +827,7 @@
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))
-      (set-view-replay (~ view-replay self))))
+      (set-view-replay-directory (~ view-replay-directory self))))
   
   
   (method (uninstall-hooks self)
@@ -842,7 +843,7 @@
       (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
       (set-escape-handler (child interface 'command) #f)
-      (reset-view-replay)))
+      (reset-view-replay-directory)))
   
   
   ;;;
@@ -1336,7 +1337,7 @@
               (bind (name from to now) last-replay
                 (let ((dir (new-directory {Directory Settings "work" "requests"} name)))
                   (if (exists? dir)
-                      (view-replay self dir from to now)
+                      (view-replay-directory self dir from to now)
                     (goto-replay self))))
             (goto-replay self)))
       (goto-replay self)))
@@ -1346,7 +1347,7 @@
     (goto-stage self 'replay))
   
   
-  (method (view-replay self dir (from #f) (to #f) (now #f))
+  (method (view-replay-directory self dir (from #f) (to #f) (now #f))
     (let ((interface (current-interface))
           (world (current-world)))
       (if (eq? stage 'circle)
@@ -1362,34 +1363,46 @@
           (let ((character-name (get-character-name (current-client))))
             (let ((tier (determine-tier character-name)))
               (let ((base-time (determine-base-time))
-                    (chronology (table-ref chronologies tier))
-                    (evolution (table-ref evolutions tier)))
-                (hide-admin self)
-                (goto-replay self)
-                (set! replay (new Replay dir tier names metadatas chronologies evolutions base-time))
-                (let ((panel (child root 'timeline)))
-                  (set-tier panel (table-ref names tier))
-                  (set-title panel (get-name dir))
-                  (set-highlighted-values panel '())
-                  (set-chronology panel chronology)
-                  (set-evolution panel evolution)
-                  (set-evolutions panel evolutions)
-                  (setup-replay panel base-time)
-                  (when (and from to)
-                    (set-bounds panel from to)
-                    (update-span panel))
-                  (when now
-                    (set-now panel now))
-                  (set-from replay from)
-                  (set-to replay to)
-                  (set-now replay now))
-                (let ((panel (child root 'evolution)))
-                  (set-names panel names)
-                  (set-evolutions panel evolutions)
-                  (set-base-time panel base-time))
-                (display-evolutions self now)
+                    (title (get-name dir)))
+                (let ((replay (new Replay title dir tier names metadatas chronologies evolutions base-time)))
+                  (view-replay self replay from to now))
                 (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
                 (save-content options-settings))))))))
+  
+  
+  (method protected (view-replay self replay (from #f) (to #f) (now #f))
+    (let ((title (get-title replay))
+          (tier (get-tier replay))
+          (names (get-names replay))
+          (chronologies (get-chronologies replay))
+          (evolutions (get-evolutions replay))
+          (base-time (get-base-time replay)))
+      (let ((chronology (table-ref chronologies tier))
+            (evolution (table-ref evolutions tier)))
+        (set! self.replay replay)
+        (hide-admin self)
+        (goto-replay self)
+        (let ((panel (child root 'timeline)))
+          (set-tier panel (table-ref names tier))
+          (set-title panel title)
+          (set-highlighted-values panel '())
+          (set-chronology panel chronology)
+          (set-evolution panel evolution)
+          (set-evolutions panel evolutions)
+          (setup-replay panel base-time)
+          (when (and from to)
+            (set-bounds panel from to)
+            (update-span panel))
+          (when now
+            (set-now panel now))
+          (set-from replay from)
+          (set-to replay to)
+          (set-now replay now))
+        (let ((panel (child root 'evolution)))
+          (set-names panel names)
+          (set-evolutions panel evolutions)
+          (set-base-time panel base-time))
+        (display-evolutions self now))))
   
   
   (method (on-request-replays self evt)
@@ -1402,6 +1415,10 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
+  
+  
+  (method (on-run-validate self evt)
+    )
   
   
   (method (on-toggle-capture self evt)

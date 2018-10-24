@@ -34,6 +34,7 @@
                               together.settings
                               together.simulation
                               together.sphere
+                              together.validate
                               together.window
                               together.windows
                               together.world

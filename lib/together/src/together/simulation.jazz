@@ -15,6 +15,73 @@
 
 
 ;;;
+;;;; Test
+;;;
+
+
+(import (world.event)
+        (world.udp))
+
+
+(define (test-ring media-kind suite)
+  (let ((origin 1))
+    (let ((ring (new UDP-Ring origin media-kind udp-process-size max-size: udp-process-max-size time-base?: #t invalid-proc: (udp-ring-invalid origin media-kind) overflow-proc: (udp-ring-overflow 'process udp-ring-kind-process)))
+          (datas (make-table test: eqv?))
+          (now (current-seconds)))
+      (define (need-data sequence frame part total timestamp header?)
+        (or (table-ref datas sequence #f)
+            (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
+              (let ((data (make-u8vector header-size)))
+                (write-udp-sequence data sequence)
+                (write-udp-frame data frame)
+                (write-udp-part data part)
+                (write-udp-total data total)
+                (write-udp-media-timestamp data timestamp)
+                (write-udp-media-header? data header?)
+                (table-set! datas sequence data)
+                data))))
+      
+      (let ((insert (new-thread
+                      (lambda ()
+                        (for-each (lambda (info)
+                                    (bind (seconds sequence frame part total timestamp header?) info
+                                      (let ((time (+ now seconds))
+                                            (data (need-data sequence frame part total timestamp header?)))
+                                        (sleep (- time (current-seconds)))
+                                        (insert ring time data)
+                                        (parameterize ((simulation? #t))
+                                          (let ((ring-size (get-count ring)))
+                                            (record-event udp-id-insert-packet
+                                                          (fixnum->flonum origin)
+                                                          (fixnum->flonum media-kind)
+                                                          (fixnum->flonum sequence)
+                                                          (fixnum->flonum ring-size)
+                                                          (if (not timestamp) -1. time)
+                                                          (if (not timestamp) -1. timestamp)))))))
+                                  suite))
+                      'insert))
+            (process (new-thread
+                       (lambda ()
+                         )
+                       'process)))
+        (thread-start! insert)
+        (thread-start! process)
+        (thread-join! insert)
+        (thread-join! process)))))
+
+
+(define video-suite
+  '((1. 0 0 0 1 0 #f)))
+
+
+(define audio-suite
+  '())
+
+
+(test-ring udp-video video-suite)
+
+
+;;;
 ;;;; Simulate
 ;;;
 

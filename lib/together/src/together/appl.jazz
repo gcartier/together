@@ -104,6 +104,16 @@
     (nextmethod self)
     (set-safe-explore-action 'ignore)
     (set-exceeds-tooltips? #f))
+  
+  
+  ;;;
+  ;;;; Activation
+  ;;;
+  
+  
+  (method override (activate self)
+    ;(verify-reload-replay)
+    (nextmethod self))
 
   
   ;;;
@@ -225,6 +235,12 @@
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
         (on-request-replays zone evt))))
+  
+  
+  (method (on-run-validate self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-run-validate zone evt))))
   
   
   (method (on-toggle-capture self evt)
@@ -448,6 +464,7 @@
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
+          (<World-Action-Item> name: run-validate              visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Run validate" action-handler: {Event-Handler :application on-run-validate} description: "Run validate.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
