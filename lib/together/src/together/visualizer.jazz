@@ -1,0 +1,163 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Visualizer
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.visualizer jazz
+
+
+(import (jazz.application)
+        (jazz.clipboard)
+        (jazz.component)
+        (jazz.event)
+        (jazz.geometry)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.markup)
+        (jazz.outline)
+        (jazz.platform)
+        (jazz.resource)
+        (jazz.text)
+        (jazz.tree)
+        (jazz.ui)
+        (jazz.view)
+        (jazz.window)
+        (world)
+        (world.chronology)
+        (world.client.udp)
+        (world.context)
+        (world.event)
+        (world.evolution)
+        (world.geometry)
+        (world.interface.evolution)
+        (world.interface.panel)
+        (world.interface.text)
+        (world.interface.timeline)
+        (world.manager)
+        (world.settings)
+        (world.simulation)
+        (world.timeline)
+        (world.udp)
+        (together))
+
+
+;;;
+;;;; Panel
+;;;
+
+
+(class Together-Visualizer-Panel extends World-Panel
+  
+  
+  (slot replay     initialize #f accessors generate)
+  (slot evolution  initialize #f getter generate)
+  (slot call       initialize #f getter generate)
+  (slot client     initialize #f getter generate)
+  (slot channel    initialize #f getter generate)
+  (slot ring       initialize #f getter generate)
+  (slot visualizer initialize #f getter generate)
+  (slot now        initialize #f getter generate)
+  
+  
+  (form
+    (<install>                          background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
+      (<Border-View>       name: border border-type: solid border-color: {Color Dark-Gray} layout-type: fill
+        (<Tier-Visualizer> name: tier))))
+  
+  
+  (method override (conclude self initargs)
+    (nextmethod self initargs)
+    (set-panel (locate self 'tier) self))
+  
+  
+  (method protected (setup-visualizer self)
+    ;; quick sanity for the moment
+    (when (equal? (get-title replay) "validate")
+      (let ((origin 1)
+            (receiver 2))
+        (set! evolution (table-ref (get-evolutions replay) receiver))
+        (set! call (parameterize ((visualization? #t))
+                     (simulate-udp-call (get-names replay))))
+        (set! client (require-tier call (get-tier replay)))
+        (set! channel (find-receive-channel client origin udp-video))
+        (set! ring (get-process-ring channel))
+        (set! visualizer (visualize-call call ring evolution))
+        (set-%c channel)
+        (set-%e evolution)
+        (set-%r ring))))
+  
+  
+  (method protected (visualize-time self time)
+    ;; quick sanity for the moment
+    (when (equal? (get-title replay) "validate")
+      (let ((last-time (get-last-time visualizer))
+            (last-event (get-last-event visualizer)))
+        (if (and last-time (> time last-time))
+            (visualize-from visualizer (+ last-event 1) time)
+          (setup-visualizer self)
+          (visualize-from visualizer #f time)))
+      (set! now time)
+      (invalidate-view self))))
+
+
+;;;
+;;;; Tier
+;;;
+
+
+(class Tier-Visualizer extends View
+  
+  
+  (slot panel initialize #f accessors generate)
+  
+  
+  (method override (draw self surface context)
+    (let ((giveup .05)
+          (play-window .05))
+      (let ((total (+ giveup udp-ready-window udp-process-window)))
+        (let ((process-x (interpolate (+ giveup udp-ready-window) 0. total 21. 767.)))
+          (let ((giveup-h (fxround (interpolate giveup 0. total 21. 767.)))
+                (freeze-h (fxround (interpolate (+ giveup udp-ready-window (- play-window)) 0. total 21. 767.)))
+                (process-h (fxround process-x))
+                (top 21)
+                (bottom 39))
+            (frame-rect surface (new Rect 20 (- top 1) 768 (+ bottom 1)) {Color Dark-Gray})
+            (fill-rect surface (new Rect 21 top giveup-h bottom) {Color Red alpha: .8})
+            (fill-rect surface (new Rect giveup-h top freeze-h bottom) {Color Orange alpha: .8})
+            (fill-rect surface (new Rect freeze-h top process-h bottom) {Color Green alpha: .8})
+            (fill-rect surface (new Rect process-h top 767 bottom) {Color Yellow alpha: .8})
+            (draw-ring self surface process-x))))))
+  
+  
+  (method (draw-ring self surface process-x)
+    (let ((ring (get-ring panel))
+          (now (get-now panel)))
+      (define (collect-packets)
+        (let ((queue (new-queue)))
+          (iterate-earliest ring
+            (lambda (packet)
+              (enqueue queue packet)))
+          (queue-list queue)))
+      
+      (when (and ring now)
+        (let ((packets (collect-packets)))
+          (for-each (lambda (packet)
+                      (let ((time (get-time packet)))
+                        (let ((h (fxround (interpolate now time (- time udp-process-window) process-x 767.)))
+                              (v 29)
+                              (color (if (get-data packet) {Color Green} {Color Red})))
+                          (fill-rect surface (new Rect (- h 2) (- v 2) (+ h 3) (+ v 3)) color))))
+                    packets)))))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((timeline (brother panel 'timeline)))
+      (set-playing? timeline (not (get-playing? timeline)))))))

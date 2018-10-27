@@ -35,17 +35,20 @@
         (world.context)
         (world.event)
         (world.evolution)
+        (world.geometry)
         (world.interface.evolution)
+        (world.interface.panel)
         (world.interface.text)
         (world.interface.timeline)
         (world.manager)
         (world.settings)
         (world.timeline)
         (world.udp)
-        (together))
+        (together)
+        (together.visualizer))
 
 
-(definition package (timeline-view/now-update zone from to now)
+(definition package (timeline-view/now-update zone from to now visualize?)
   (let ((root (get-root zone))
         (replay (get-replay zone)))
     (let ((panel (child root 'evolution)))
@@ -58,12 +61,16 @@
           (set-now replay now))
         (set-highlighted-cells replay '())
         (when now
-          (display-evolutions zone now))
-        (highlight-replay-value zone)
-        (let ((dir (get-directory replay)))
-          (when dir
-            (set-setting options-settings 'world.last-replay (list (get-name dir) from to (or now (get-now replay))))
-            (save-content options-settings)))))))
+          (let ((visualizer (child root 'visualizer)))
+            (visualize-time visualizer now)))
+        (unless visualize?
+          (when now
+            (display-evolutions zone now))
+          (highlight-replay-value zone)
+          (let ((dir (get-directory replay)))
+            (when dir
+              (set-setting options-settings 'world.last-replay (list (get-name dir) from to (or now (get-now replay))))
+              (save-content options-settings))))))))
 
 
 (definition package (display-evolutions zone (now #f))
@@ -250,7 +257,9 @@
       
       (define (in-range?)
         (and (< v 25)
-             (between? h 160 310)))
+             (if cpu%
+                 (between? h 160 310)
+               (between? h 75 225))))
       
       (cond ((in-tier?)
              ;; really quick code that needs cleanup
@@ -290,7 +299,7 @@
                                 (previous-element values evolutions-max)
                               (next-element values evolutions-max))))
                    (set-evolutions-max max)
-                   (timeline-view/now-update zone from to now)))))
+                   (timeline-view/now-update zone from to now visualize?)))))
             (else
              (nextmethod self evt)))))
   
@@ -423,12 +432,12 @@
   
   (method override (view-update self)
     (let ((zone (current-zone)))
-      (timeline-view/now-update zone from to #f)))
+      (timeline-view/now-update zone from to #f visualize?)))
   
   
   (method override (now-update self)
     (let ((zone (current-zone)))
-      (timeline-view/now-update zone from to now))))
+      (timeline-view/now-update zone from to now visualize?))))
 
 
 ;;;

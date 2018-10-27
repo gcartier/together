@@ -79,6 +79,7 @@
         (together.replay)
         (together.script)
         (together.settings)
+        (together.visualizer)
         (together.zone))
 
 
@@ -241,8 +242,9 @@
             (set-border-color border {Color Dark-Gray})))
         ;; replay
         (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #f layouter: (lambda (panel) (timeline-panel-layouter panel)))
-          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #f layouter: (lambda (panel) (evolution-panel-layouter panel)))
+          (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #f layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
+          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #f layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
+          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #f layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         ;; hide all
         (for-each (lambda (child)
@@ -1282,6 +1284,21 @@
         (set-visible? (child root 'circle) #t))))
   
   
+  (method (on-toggle-visualizer self evt)
+    (if (eq? stage 'replay)
+        (let ((interface (current-interface)))
+          (let ((root (child interface 'replay)))
+            (let ((visualizer (child root 'visualizer)))
+              (set-visible? visualizer (not (get-visible? visualizer)))
+              (together-visualizer-panel-layouter visualizer)
+              (together-timeline-panel-layouter (child root 'timeline))
+              (together-evolution-panel-layouter (child root 'evolution))
+              (layout-view root)
+              (layout-view interface)
+              (invalidate-interface))))
+      (bell)))
+  
+  
   (method (on-goto-gathering self evt)
     (case stage
       ((gathering))
@@ -1382,6 +1399,9 @@
         (set! self.replay replay)
         (hide-admin self)
         (goto-replay self)
+        (let ((panel (child root 'visualizer)))
+          (set-replay panel replay)
+          (setup-visualizer panel))
         (let ((panel (child root 'timeline)))
           (set-tier panel (table-ref names tier))
           (set-title panel title)
@@ -1415,10 +1435,6 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
-  
-  
-  (method (on-run-validate self evt)
-    )
   
   
   (method (on-toggle-capture self evt)
