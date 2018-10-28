@@ -108,16 +108,18 @@
                 (thread-join! process)
                 (compare-events)
                 (clear-message world)
-                (view-evolution origin receiver evolution base)))))))))
+                (view-evolution origin receiver evolution base datas)))))))))
 
 
-(definition public (view-evolution origin receiver evolution base-time)
+(definition public (view-evolution origin receiver evolution base-time datas)
   (let ((zone (current-zone)))
     (let ((names (list->table (list (cons origin "Origin") (cons receiver "Receiver"))))
           (metadatas (list->table '()))
           (chronologies (list->table (list (cons receiver (new Chronology 10)))))
           (evolutions (list->table (list (cons receiver evolution)))))
       (let ((replay (new Replay "validate" #f receiver names metadatas chronologies evolutions base-time)))
+        ;; quick hack
+        (set-datas replay datas)
         (view-replay zone replay)
         (let ((root (get-root zone)))
           (let ((panel (child root 'timeline)))

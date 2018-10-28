@@ -85,7 +85,7 @@
             (receiver 2))
         (set! evolution (table-ref (get-evolutions replay) receiver))
         (set! call (parameterize ((visualization? #t))
-                     (simulate-udp-call (get-names replay))))
+                     (simulate-udp-call (get-names replay) (get-datas replay))))
         (set! client (require-tier call (get-tier replay)))
         (set! channel (find-receive-channel client origin udp-video))
         (set! ring (get-process-ring channel))
