@@ -89,6 +89,8 @@
                                                   (let ((data (need-data media-kind origin sequence frame part total timestamp header?)))
                                                     (receive-media client media-kind data)))))
                                             inserts))
+                                ;; quicky give some time for process to finish
+                                (sleep .8)
                                 (terminate ring))
                               'insert))
                     (process (new-thread
