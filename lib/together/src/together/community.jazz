@@ -242,9 +242,9 @@
             (set-border-color border {Color Dark-Gray})))
         ;; replay
         (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #f layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
-          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #f layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
-          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #f layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
+          (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
+          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
+          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         ;; hide all
         (for-each (lambda (child)
@@ -414,6 +414,7 @@
         (set-visible? (child parent name) flag))
       
       (set! root (child interface 'replay))
+      (show root 'visualizer)
       (show root 'timeline)
       (show root 'evolution)
       (show root 'back)
