@@ -138,7 +138,8 @@
   
   
   (method (draw-ring self surface process-x)
-    (let ((ring (get-ring panel))
+    (let ((replay (get-replay panel))
+          (ring (get-ring panel))
           (now (get-now panel)))
       (define (collect-packets)
         (let ((queue (new-queue)))
