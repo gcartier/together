@@ -68,6 +68,6 @@
       (if (is? zone Community-Zone)
           (case (get-stage zone)
             ((circle) 185)
-            ((replay) 130)
+            ((replay) 185)
             (else (nextmethod self)))
         (nextmethod self))))))
