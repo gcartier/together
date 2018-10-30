@@ -129,7 +129,8 @@
   (method override (draw self surface context)
     (let ((giveup .05)
           (play-window .05)
-          (channel (get-channel panel)))
+          (channel (get-channel panel))
+          (ring (get-ring panel)))
       (when channel
         (when description
           (draw-text surface 5 3 description visualizer-text-color))
@@ -140,7 +141,7 @@
                   (process-h (fxround process-x))
                   (top 31)
                   (bottom 49)
-                  (state-color (case (get-process-state channel)
+                  (state-color (case (get-state ring)
                                  ((ok) {Color Green alpha: .8})
                                  ((late) {Color red: .005 green: .933 blue: .836 alpha: .8})
                                  ((waiting) {Color Red alpha: .8}))))

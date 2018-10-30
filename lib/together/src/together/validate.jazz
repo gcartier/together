@@ -101,7 +101,7 @@
                                    (let (looping)
                                      (let ((info (process-wait ring udp-process-window average)))
                                        (when (neq? info 'terminate)
-                                         (process-info channel info)
+                                         (present-frame channel info)
                                          (looping))))))
                                'process)))
                 (display-message world "Validating..." duration: +inf.0)
