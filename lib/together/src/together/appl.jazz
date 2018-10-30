@@ -31,6 +31,7 @@
         (jazz.reference)
         (jazz.resource)
         (jazz.search)
+        (jazz.text)
         (jazz.tree)
         (jazz.view)
         (world)
@@ -111,8 +112,29 @@
   ;;;
   
   
+  (import (world.script.asset))
+  (import (world.interface.script))
+  (import (world.scriptum))
   (method override (activate self)
-    ;(verify-reload-replay)
+    ;; super mega quicky
+    (let ((interface (current-interface))
+          (world (current-world))
+          (zone (current-zone)))
+      (when edited-entity
+        (let ((edited-path (world-setting 'together.edited-script "test/replay")))
+          (when (equal? (get-path (get-asset edited-entity)) edited-path)
+            (let ((script (find-script world edited-path)))
+              (let ((content (load-asset-text script)))
+                (when (not (equal? (digest-string content 'SHA-1)
+                                   (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
+                  (let ((panel (child interface 'script)))
+                    (let ((manager (locate panel 'manager)))
+                      (let ((text (locate manager '(script text))))
+                        (let ((entity (register-asset-script script)))
+                          (set-edited-entity entity)
+                          (set-edited manager entity)
+                          (set-string-content text content)
+                          (execute-script world edited-path))))))))))))
     (nextmethod self))
 
   
