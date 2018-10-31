@@ -1402,6 +1402,7 @@
         (goto-replay self)
         (let ((panel (child root 'visualizer)))
           (set-replay panel replay)
+          (set-tier panel tier)
           (setup-visualizer panel))
         (let ((panel (child root 'timeline)))
           (set-tier panel (table-ref names tier))

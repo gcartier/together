@@ -118,9 +118,10 @@
 (definition public (view-evolution origin receiver evolution base-time datas)
   (let ((zone (current-zone)))
     (let ((names (list->table (list (cons origin "Origin") (cons receiver "Receiver"))))
-          (metadatas (list->table '()))
-          (chronologies (list->table (list (cons receiver (new Chronology 10)))))
-          (evolutions (list->table (list (cons receiver evolution)))))
+          (metadatas (list->table (list (cons origin (list origin "Origin" (list udp-video) (list)))
+                                        (cons receiver (list receiver "Receiver" (list) (list (cons origin udp-video)))))))
+          (chronologies (list->table (list (cons origin (new Chronology 10)) (cons receiver (new Chronology 10)))))
+          (evolutions (list->table (list (cons origin (new Evolution 10)) (cons receiver evolution)))))
       (let ((replay (new Replay "validate" #f receiver names metadatas chronologies evolutions base-time)))
         ;; quick hack
         (set-datas replay datas)

@@ -273,6 +273,10 @@
                                      (next-element tiers tier))))
                      (set! tier new-tier)
                      (let ((id (table-find (get-names replay) tier)))
+                       (let ((visualizer (brother self 'visualizer)))
+                         (set-tier visualizer id)
+                         (setup-visualizer visualizer)
+                         (invalidate-view visualizer))
                        (let (;; quick preserve for copy/paste below
                              (now now)
                              (from from)

@@ -63,6 +63,9 @@
   
   
   (slot replay      initialize #f accessors generate)
+  (slot tier        initialize #f accessors generate)
+  (slot origin      initialize #f accessors generate)
+  (slot media-kind  initialize #f accessors generate)
   (slot evolution   initialize #f getter generate)
   (slot call        initialize #f getter generate)
   (slot client      initialize #f getter generate)
@@ -86,38 +89,65 @@
   
   
   (method protected (setup-visualizer self)
-    ;; quick sanity for the moment
-    (when (equal? (get-title replay) "validate")
-      (let ((origin 1)
-            (receiver 2))
-        (set! evolution (table-ref (get-evolutions replay) receiver))
-        (set! call (parameterize ((visualization? #t))
-                     (simulate-udp-call (get-names replay) (get-datas replay))))
-        (set! client (require-tier call (get-tier replay)))
-        (set! channel (find-receive-channel client origin udp-video))
-        (set! ring (get-process-ring channel))
-        (set! visualizer (visualize-call call client channel ring evolution))
-        (set-%c channel)
-        (set-%e evolution)
-        (set-%r ring))))
+    (define (determine-origin)
+      (let ((metadata (metadata-ref replay tier)))
+        (and (/= (first metadata) server-no)
+             (let ((receive-channels (fourth metadata)))
+               (let ((origins (collect (lambda (key)
+                                         (bind (origin . media-kind) key
+                                           (and (= media-kind udp-video)
+                                                origin)))
+                                       receive-channels)))
+                 (and (not-null? origins)
+                      (car origins)))))))
+    
+    (set! origin (determine-origin))
+    (set! media-kind udp-video)
+    (set! evolution (table-ref (get-evolutions replay) tier))
+    (set! selection #f)
+    (set! description #f)
+    (set-%v self)
+    (reset-visualizer self))
+  
+  
+  ;; quicky to setup everything again
+  (method protected (reset-visualizer self)
+    (if (not origin)
+        (begin
+          (set! call #f)
+          (set! client #f)
+          (set! channel #f)
+          (set! ring #f)
+          (set! visualizer #f))
+      (set! call (parameterize ((visualization? #t))
+                   (simulate-udp-call (get-names replay) (get-datas replay))))
+      (set! client (require-tier call tier))
+      (set! channel (find-receive-channel client origin media-kind))
+      (set! ring (get-process-ring channel))
+      (set! visualizer (visualize-call call client channel ring evolution)))
+    (set-%c channel)
+    (set-%e evolution)
+    (set-%r ring))
   
   
   (method protected (visualize-time self time)
-    ;; quick sanity for the moment
-    (when (equal? (get-title replay) "validate")
+    (when origin
       (let ((last-time (get-last-time visualizer))
             (last-event (get-last-event visualizer)))
         (if (and last-time (> time last-time))
             (visualize-from visualizer (+ last-event 1) time)
-          (setup-visualizer self)
+          (reset-visualizer self)
           (visualize-from visualizer #f time)))
       (set! now time)
       (invalidate-view self)))
   
   
   (method override (draw self surface context)
+    (if (not origin)
+        (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
+      (draw-text surface 5 3 (format "{a} {a}" (name-ref replay origin) (udp-name media-kind)) visualizer-text-color))
     (when description
-      (draw-text surface 5 3 description visualizer-text-color))))
+      (draw-text surface 100 3 description visualizer-text-color))))
 
 
 ;;;

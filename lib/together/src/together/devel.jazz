@@ -191,4 +191,5 @@
         (world.working)
         (world.zone)
         (together.community)
-        (together.replay)))
+        (together.replay)
+        (together.visualizer)))
