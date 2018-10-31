@@ -50,6 +50,10 @@
         (together))
 
 
+(definition protected visualizer-text-color
+  (world-setting 'world.visualizer-text {Color Dark-Gray}))
+
+
 ;;;
 ;;;; Panel
 ;;;
@@ -58,20 +62,22 @@
 (class Together-Visualizer-Panel extends World-Panel
   
   
-  (slot replay     initialize #f accessors generate)
-  (slot evolution  initialize #f getter generate)
-  (slot call       initialize #f getter generate)
-  (slot client     initialize #f getter generate)
-  (slot channel    initialize #f getter generate)
-  (slot ring       initialize #f getter generate)
-  (slot visualizer initialize #f getter generate)
-  (slot now        initialize #f getter generate)
+  (slot replay      initialize #f accessors generate)
+  (slot evolution   initialize #f getter generate)
+  (slot call        initialize #f getter generate)
+  (slot client      initialize #f getter generate)
+  (slot channel     initialize #f getter generate)
+  (slot ring        initialize #f getter generate)
+  (slot visualizer  initialize #f getter generate)
+  (slot now         initialize #f getter generate)
+  (slot selection   initialize #f accessors generate)
+  (slot description initialize #f accessors generate)
   
   
   (form
     (<install>                          background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
-      (<Border-View>       name: border border-type: solid border-color: {Color Dark-Gray} layout-type: fill
-        (<Tier-Visualizer> name: tier))))
+      (<Border-View>       name: border border-type: solid border-color: {Color Dark-Gray} layout-type: #f
+        (<Tier-Visualizer> name: tier   position: {Point 19 30} size: {Dimension 752 24}))))
   
   
   (method override (conclude self initargs)
@@ -106,7 +112,12 @@
           (setup-visualizer self)
           (visualize-from visualizer #f time)))
       (set! now time)
-      (invalidate-view self))))
+      (invalidate-view self)))
+  
+  
+  (method override (draw self surface context)
+    (when description
+      (draw-text surface 5 3 description visualizer-text-color))))
 
 
 ;;;
@@ -114,16 +125,10 @@
 ;;;
 
 
-(definition protected visualizer-text-color
-  (world-setting 'world.visualizer-text {Color Dark-Gray}))
-
-
 (class Tier-Visualizer extends View
   
   
-  (slot panel       initialize #f accessors generate)
-  (slot selection   initialize #f accessors generate)
-  (slot description initialize #f accessors generate)
+  (slot panel initialize #f accessors generate)
   
   
   (method override (draw self surface context)
@@ -132,37 +137,39 @@
           (channel (get-channel panel))
           (ring (get-ring panel)))
       (when channel
-        (when description
-          (draw-text surface 5 3 description visualizer-text-color))
-        (let ((total (+ giveup udp-ready-window udp-process-window)))
-          (let ((process-x (interpolate (+ giveup udp-ready-window) 0. total 21. 767.)))
-            (let ((giveup-h (fxround (interpolate giveup 0. total 21. 767.)))
-                  (freeze-h (fxround (interpolate (+ giveup udp-ready-window (- play-window)) 0. total 21. 767.)))
-                  (process-h (fxround process-x))
-                  (top 31)
-                  (bottom 49)
-                  (state-color (case (get-state ring)
-                                 ((ok) {Color Green alpha: .8})
-                                 ((late) {Color red: .005 green: .933 blue: .836 alpha: .8})
-                                 ((waiting) {Color Red alpha: .8}))))
-              (when (eq? (active-focus) self)
-                (frame-rect surface (new Rect 18 (- top 3) 770 (+ bottom 3)) state-color))
-              (frame-rect surface (new Rect 19 (- top 2) 769 (+ bottom 2)) state-color)
-              (frame-rect surface (new Rect 20 (- top 1) 768 (+ bottom 1)) {Color Black})
-              (fill-rect surface (new Rect 21 top giveup-h bottom) {Color Red alpha: .8})
-              (fill-rect surface (new Rect giveup-h top freeze-h bottom) {Color Orange alpha: .8})
-              (fill-rect surface (new Rect freeze-h top process-h bottom) {Color Green alpha: .8})
-              (fill-rect surface (new Rect process-h top 767 bottom) {Color Yellow alpha: .8})
-              (draw-ring self surface process-x)))))))
+        (let ((total (+ giveup udp-ready-window udp-process-window))
+              (width (get-width size))
+              (height (get-height size)))
+          (with-boundaries self
+            (lambda (left-x right-x process-x)
+              (let ((giveup-h (fxround (interpolate giveup 0. total left-x right-x)))
+                    (freeze-h (fxround (interpolate (+ giveup udp-ready-window (- play-window)) 0. total left-x right-x)))
+                    (process-h (fxround process-x))
+                    (top 3)
+                    (bottom (- height 3))
+                    (state-color (case (get-state ring)
+                                   ((ok) {Color Green alpha: .8})
+                                   ((late) {Color red: .005 green: .933 blue: .836 alpha: .8})
+                                   ((waiting) {Color Red alpha: .8}))))
+                (when (eq? (active-focus) self)
+                  (frame-rect surface (new Rect 0 (- top 3) width (+ bottom 3)) state-color))
+                (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+                (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+                (fill-rect surface (new Rect 3 top giveup-h bottom) {Color Red alpha: .8})
+                (fill-rect surface (new Rect giveup-h top freeze-h bottom) {Color Orange alpha: .8})
+                (fill-rect surface (new Rect freeze-h top process-h bottom) {Color Green alpha: .8})
+                (fill-rect surface (new Rect process-h top (- width 3) bottom) {Color Yellow alpha: .8})
+                (draw-ring self surface left-x right-x process-x))))))))
   
   
-  (method (draw-ring self surface process-x)
+  (method (draw-ring self surface left-x right-x process-x)
     (let ((replay (get-replay panel))
           (ring (get-ring panel))
-          (now (get-now panel)))
+          (now (get-now panel))
+          (selection (get-selection panel)))
       (when (and ring now)
         (let ((base-time (get-base-time replay)))
-          (iterate-packets self
+          (iterate-packets self left-x right-x process-x
             (lambda (packet rect)
               (let ((color (if (get-header? packet)
                                {Color Purple}
@@ -174,10 +181,13 @@
                 (frame-rect surface (inflate-rect rect 1 1) {Color White}))))))))
   
   
-  (method (determine-process-x self)
+  (method (with-boundaries self proc)
     (let ((giveup .05))
-      (let ((total (+ giveup udp-ready-window udp-process-window)))
-        (interpolate (+ giveup udp-ready-window) 0. total 21. 767.))))
+      (let ((total (+ giveup udp-ready-window udp-process-window))
+            (left-x 3.)
+            (right-x (cast <fl> (- (get-width size) 3))))
+        (let ((process-x (interpolate (+ giveup udp-ready-window) 0. total left-x right-x)))
+          (proc left-x right-x process-x)))))
   
   
   (method (collect-packets self)
@@ -189,17 +199,16 @@
       (queue-list queue)))
   
   
-  (method (iterate-packets self proc)
+  (method (iterate-packets self left-x right-x process-x proc)
     (let ((ring (get-ring panel))
-          (now (get-now panel))
-          (process-x (determine-process-x self)))
+          (now (get-now panel)))
       ;; quick hack around update-time called after insert
       (when (get-time-base ring)
         (for-each (lambda (packet)
                     (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
                           (frame (get-frame packet)))
-                      (let ((h (fxround (interpolate now time (- time udp-process-window) process-x 767.)))
-                            (v 40))
+                      (let ((h (fxround (interpolate now time (- time udp-process-window) process-x right-x)))
+                            (v 12))
                         (if (not frame)
                             (let ((width 8))
                               (let ((h (- h (quotient width 2))))
@@ -243,29 +252,31 @@
   
   
   (method override (mouse-up self evt)
-    (define (find-packet h)
-      (continuation-capture
-        (lambda (return)
-          (iterate-packets self
-            (lambda (packet rect)
-              (when (and (>= h (get-left rect))
-                         (< h (get-right rect)))
-                (continuation-return return packet))))
-          #f)))
-    
-    (define (describe-packet packet)
-      (format "Header {a}, timestamp {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-              (if (get-header? packet) 'yes 'no)
-              (get-timestamp packet)
-              (get-sequence packet)
-              (get-frame packet)
-              (get-part packet)
-              (get-total packet)
-              (if (get-data packet) 'yes 'no)))
-    
-    (acquire-focus self)
-    (let ((packet (find-packet (get-h evt))))
-      (when (neq? packet selection)
-        (set! selection (and packet (get-sequence packet)))
-        (set! description (and packet (describe-packet packet)))
-        (invalidate-view self))))))
+    (with-boundaries self
+      (lambda (left-x right-x process-x)
+        (define (find-packet h)
+          (continuation-capture
+            (lambda (return)
+              (iterate-packets self left-x right-x process-x
+                (lambda (packet rect)
+                  (when (and (>= h (get-left rect))
+                             (< h (get-right rect)))
+                    (continuation-return return packet))))
+              #f)))
+        
+        (define (describe-packet packet)
+          (format "Header {a}, timestamp {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                  (if (get-header? packet) 'yes 'no)
+                  (get-timestamp packet)
+                  (get-sequence packet)
+                  (get-frame packet)
+                  (get-part packet)
+                  (get-total packet)
+                  (if (get-data packet) 'yes 'no)))
+        
+        (acquire-focus self)
+        (let ((packet (find-packet (get-h evt))))
+          (when (neq? packet (get-selection panel))
+            (set-selection panel (and packet (get-sequence packet)))
+            (set-description panel (and packet (describe-packet packet)))
+            (invalidate-view panel))))))))
