@@ -124,7 +124,7 @@
       (set! client (require-tier call tier))
       (set! channel (find-receive-channel client origin media-kind))
       (set! ring (get-process-ring channel))
-      (set! visualizer (visualize-call call client channel ring evolution)))
+      (set! visualizer (visualize-call call client origin media-kind channel ring evolution)))
     (set-%c channel)
     (set-%e evolution)
     (set-%r ring))
