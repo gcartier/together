@@ -62,19 +62,21 @@
 (class Together-Visualizer-Panel extends World-Panel
   
   
-  (slot replay      initialize #f accessors generate)
-  (slot tier        initialize #f accessors generate)
-  (slot origin      initialize #f accessors generate)
-  (slot media-kind  initialize #f accessors generate)
-  (slot evolution   initialize #f getter generate)
-  (slot call        initialize #f getter generate)
-  (slot client      initialize #f getter generate)
-  (slot channel     initialize #f getter generate)
-  (slot ring        initialize #f getter generate)
-  (slot visualizer  initialize #f getter generate)
-  (slot now         initialize #f getter generate)
-  (slot selection   initialize #f accessors generate)
-  (slot description initialize #f accessors generate)
+  (slot replay             initialize #f accessors generate)
+  (slot tier               initialize #f accessors generate)
+  (slot origin             initialize #f accessors generate)
+  (slot media-kind         initialize #f accessors generate)
+  (slot origin-evolution   initialize #f getter generate)
+  (slot server-evolution   initialize #f getter generate)
+  (slot receiver-evolution initialize #f getter generate)
+  (slot call               initialize #f getter generate)
+  (slot client             initialize #f getter generate)
+  (slot channel            initialize #f getter generate)
+  (slot ring               initialize #f getter generate)
+  (slot visualizer         initialize #f getter generate)
+  (slot now                initialize #f getter generate)
+  (slot selection          initialize #f accessors generate)
+  (slot description        initialize #f accessors generate)
   
   
   (form
@@ -103,7 +105,9 @@
     
     (set! origin (determine-origin))
     (set! media-kind udp-video)
-    (set! evolution (table-ref (get-evolutions replay) tier))
+    (set! origin-evolution (evolution-ref replay origin))
+    (set! server-evolution (evolution-ref replay server-no))
+    (set! receiver-evolution (evolution-ref replay tier))
     (set! selection #f)
     (set! description #f)
     (set-%v self)
@@ -120,13 +124,13 @@
           (set! ring #f)
           (set! visualizer #f))
       (set! call (parameterize ((visualization? #t))
-                   (simulate-udp-call (get-names replay) (get-datas replay))))
+                   (simulate-udp-call (get-names replay))))
       (set! client (require-tier call tier))
       (set! channel (find-receive-channel client origin media-kind))
       (set! ring (get-process-ring channel))
-      (set! visualizer (visualize-call call client origin media-kind channel ring evolution)))
+      (set! visualizer (visualize-call call client origin media-kind channel ring origin-evolution receiver-evolution)))
     (set-%c channel)
-    (set-%e evolution)
+    (set-%e receiver-evolution)
     (set-%r ring))
   
   

@@ -231,9 +231,7 @@
   (slot highlighted-kind   initialize #f  accessors generate)
   (slot highlighted-value  initialize #f  accessors generate)
   (slot highlighted-column initialize #f  accessors generate)
-  (slot highlighted-cells  initialize '() accessors generate)
-  ;; quick hack for visualizer
-  (slot datas              initialize #f  accessors generate))
+  (slot highlighted-cells  initialize '() accessors generate))
 
 
 ;;;
