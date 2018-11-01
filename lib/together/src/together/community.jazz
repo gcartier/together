@@ -87,6 +87,9 @@
   (world-setting 'together.guillaume? #f))
 
 
+(definition auto-join?
+  (world-setting 'together.auto-join? #f))
+
 (definition auto-hide?
   (world-setting 'together.auto-hide? #t))
 
@@ -135,7 +138,10 @@
         (set-draw-me? self #f)
         (view-people self)
         (when guillaume?
-          (create-group (current-tier) "Circle")))))
+          (let ((circle "Circle"))
+            (create-group (current-tier) circle)
+            (when auto-join?
+              (join-circle self circle)))))))
   
   
   (method override (destroy self)
