@@ -105,7 +105,7 @@
     
     (set! origin (determine-origin))
     (set! media-kind udp-video)
-    (set! origin-evolution (evolution-ref replay origin))
+    (set! origin-evolution (and origin (evolution-ref replay origin)))
     (set! server-evolution (evolution-ref replay server-no))
     (set! receiver-evolution (evolution-ref replay tier))
     (set! selection #f)
