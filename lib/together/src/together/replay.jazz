@@ -60,7 +60,7 @@
         (when now
           (set-now replay now))
         (set-highlighted-cells replay '())
-        (when now
+        (when (and visualize? now)
           (let ((visualizer (child root 'visualizer)))
             (visualize-time visualizer now)))
         (unless visualize?
