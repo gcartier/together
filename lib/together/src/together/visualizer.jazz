@@ -231,7 +231,7 @@
                     (bottom (- height 3))
                     (state-color (case (get-state ring)
                                    ((ok) {Color Green alpha: .8})
-                                   ((late) {Color red: .005 green: .933 blue: .836 alpha: .8})
+                                   ((late) {Color Light-Blue alpha: .8})
                                    ((waiting) {Color Red alpha: .8}))))
                 (when (eq? (active-focus) self)
                   (frame-rect surface (new Rect 0 (- top 3) width (+ bottom 3)) state-color))
