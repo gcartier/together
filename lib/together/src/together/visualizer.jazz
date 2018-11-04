@@ -260,11 +260,15 @@
                 (collect-packets self))))
   
   
+  (method (toggle-playing self)
+    (let ((timeline (brother panel 'timeline)))
+      (set-playing? timeline (not (get-playing? timeline)))))
+  
+  
   (method override (key-press self evt)
     (case (get-key evt)
       ((#\space)
-       (let ((timeline (brother panel 'timeline)))
-         (set-playing? timeline (not (get-playing? timeline)))))))
+       (toggle-playing self))))
   
   
   (method override (left-arrow-press self modifiers)
@@ -318,4 +322,8 @@
           (when (neq? packet (get-selection panel))
             (set-selection panel (and packet (get-sequence packet)))
             (set-description panel (and packet (describe-packet packet)))
-            (invalidate-view panel))))))))
+            (invalidate-view panel))))))
+  
+  
+  (method override (double-click self evt)
+    (toggle-playing self))))
