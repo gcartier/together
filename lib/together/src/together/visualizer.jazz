@@ -64,14 +64,15 @@
   
   (slot replay             initialize #f accessors generate)
   (slot tier               initialize #f accessors generate)
-  (slot origin             initialize #f accessors generate)
-  (slot media-kind         initialize #f accessors generate)
   (slot origin-evolution   initialize #f getter generate)
   (slot server-evolution   initialize #f getter generate)
   (slot receiver-evolution initialize #f getter generate)
   (slot call               initialize #f getter generate)
   (slot client             initialize #f getter generate)
+  (slot channels           initialize #f getter generate)
   (slot channel            initialize #f getter generate)
+  (slot origin             initialize #f getter generate)
+  (slot media-kind         initialize #f getter generate)
   (slot ring               initialize #f getter generate)
   (slot visualizer         initialize #f getter generate)
   (slot now                initialize #f getter generate)
@@ -80,38 +81,40 @@
   
   
   (form
-    (<install>                          background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
-      (<Border-View>       name: border border-type: solid border-color: {Color Dark-Gray} layout-type: #f
-        (<Tier-Visualizer> name: tier   position: {Point 19 30} size: {Dimension 752 24}))))
+    (<install>                                background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
+      (<Border-View>            name: border  border-type: solid border-color: {Color Dark-Gray}
+        (<Tier-Visualizer>      name: tier
+          (<Channel-Visualizer> name: channel position: {Point 18 29} size: {Dimension 752 24})))))
   
   
   (method override (conclude self initargs)
     (nextmethod self initargs)
-    (set-panel (locate self 'tier) self))
+    (set-panel (locate self 'tier) self)
+    (set-panel (locate self 'channel) self))
   
   
   (method protected (setup-visualizer self)
-    (define (determine-origin)
+    (define (collect-channels)
       (let ((metadata (metadata-ref replay tier)))
-        (and (/= (first metadata) server-no)
-             (let ((receive-channels (fourth metadata)))
-               (let ((origins (collect (lambda (key)
-                                         (bind (origin . media-kind) key
-                                           (and (= media-kind udp-video)
-                                                origin)))
-                                       receive-channels)))
-                 (and (not-null? origins)
-                      (car origins)))))))
+        (if (= (first metadata) server-no)
+            '()
+          (sort nu<? (fourth metadata)))))
     
-    (set! origin (determine-origin))
-    (set! media-kind udp-video)
-    (set! origin-evolution (and origin (evolution-ref replay origin)))
-    (set! server-evolution (evolution-ref replay server-no))
-    (set! receiver-evolution (evolution-ref replay tier))
-    (set! selection #f)
-    (set! description #f)
-    (set-%v self)
-    (reset-visualizer self))
+    (define (determine-channel channels)
+      (and (not-null? channels)
+           (car channels)))
+    
+    (set! channels (collect-channels))
+    (let ((channel (determine-channel channels)))
+      (set! origin (and channel (car channel)))
+      (set! media-kind (and channel (cdr channel)))
+      (set! origin-evolution (and origin (evolution-ref replay origin)))
+      (set! server-evolution (evolution-ref replay server-no))
+      (set! receiver-evolution (evolution-ref replay tier))
+      (set! selection #f)
+      (set! description #f)
+      (set-%v self)
+      (reset-visualizer self)))
   
   
   ;; quicky to setup everything again
@@ -152,7 +155,26 @@
         (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a} {a}" (name-ref replay origin) (udp-name media-kind)) visualizer-text-color))
     (when description
-      (draw-text surface 100 3 description visualizer-text-color))))
+      (draw-text surface 100 3 description visualizer-text-color)))
+  
+  
+  (method protected (cycle-channels self reversed?)
+    (when channel
+      (let ((key (cons (get-origin channel) (get-media-kind channel))))
+        (let ((new-key (if reversed?
+                           (previous-element channels key test: equal?)
+                         (next-element channels key test: equal?))))
+          (set! origin (car new-key))
+          (set! media-kind (cdr new-key))
+          (set! origin-evolution (evolution-ref replay origin))
+          (set! server-evolution (evolution-ref replay server-no))
+          (set! receiver-evolution (evolution-ref replay tier))
+          (set! selection #f)
+          (set! description #f)
+          (reset-visualizer self)
+          (when now
+            (visualize-time self now))
+          (invalidate-view self))))))
 
 
 ;;;
@@ -161,6 +183,30 @@
 
 
 (class Tier-Visualizer extends View
+  
+  
+  (slot panel initialize #f accessors generate)
+  
+  
+  (method override (mouse-up self evt)
+    (let ((h (get-h evt))
+          (v (get-v evt)))
+      (define (in-tier?)
+        (and (< v 25)
+             (between? h 0 90)))
+      
+      (cond ((in-tier?)
+             (cycle-channels panel (get-shift? evt)))
+            (else
+             (nextmethod self evt))))))
+
+
+;;;
+;;;; Channel
+;;;
+
+
+(class Channel-Visualizer extends View
   
   
   (slot panel initialize #f accessors generate)
