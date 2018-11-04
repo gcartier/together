@@ -135,15 +135,16 @@
   
   
   (method protected (visualize-time self time)
-    (when origin
-      (let ((last-time (get-last-time visualizer))
-            (last-event (get-last-event visualizer)))
-        (if (and last-time (> time last-time))
-            (visualize-from visualizer (+ last-event 1) time)
-          (reset-visualizer self)
-          (visualize-from visualizer #f time)))
-      (set! now time)
-      (invalidate-view self)))
+    (parameterize ((visualization? #t))
+      (when origin
+        (let ((last-time (get-last-time visualizer))
+              (last-event (get-last-event visualizer)))
+          (if (and last-time (> time last-time))
+              (visualize-from visualizer (+ last-event 1) time)
+            (reset-visualizer self)
+            (visualize-from visualizer #f time)))
+        (set! now time)
+        (invalidate-view self))))
   
   
   (method override (draw self surface context)
