@@ -62,22 +62,23 @@
 (class Together-Visualizer-Panel extends World-Panel
   
   
-  (slot replay             initialize #f accessors generate)
-  (slot tier               initialize #f accessors generate)
-  (slot origin-evolution   initialize #f getter generate)
-  (slot server-evolution   initialize #f getter generate)
-  (slot receiver-evolution initialize #f getter generate)
-  (slot call               initialize #f getter generate)
-  (slot client             initialize #f getter generate)
-  (slot channels           initialize #f getter generate)
-  (slot channel            initialize #f getter generate)
-  (slot origin             initialize #f getter generate)
-  (slot media-kind         initialize #f getter generate)
-  (slot ring               initialize #f getter generate)
-  (slot visualizer         initialize #f getter generate)
-  (slot now                initialize #f getter generate)
-  (slot selection          initialize #f accessors generate)
-  (slot description        initialize #f accessors generate)
+  (slot replay                initialize #f accessors generate)
+  (slot tier                  initialize #f accessors generate)
+  (slot origin-evolution      initialize #f getter generate)
+  (slot server-evolution      initialize #f getter generate)
+  (slot receiver-evolution    initialize #f getter generate)
+  (slot call                  initialize #f getter generate)
+  (slot client                initialize #f getter generate)
+  (slot channels              initialize #f getter generate)
+  (slot channel               initialize #f getter generate)
+  (slot origin                initialize #f getter generate)
+  (slot media-kind            initialize #f getter generate)
+  (slot ring                  initialize #f getter generate)
+  (slot visualizer            initialize #f getter generate)
+  (slot now                   initialize #f getter generate)
+  (slot selection             initialize #f accessors generate)
+  (slot selection-frame       initialize #f accessors generate)
+  (slot selection-description initialize #f accessors generate)
   
   
   (form
@@ -112,7 +113,7 @@
       (set! server-evolution (evolution-ref replay server-no))
       (set! receiver-evolution (evolution-ref replay tier))
       (set! selection #f)
-      (set! description #f)
+      (set! selection-description #f)
       (set-%v self)
       (reset-visualizer self)))
   
@@ -154,8 +155,8 @@
     (if (not origin)
         (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a} {a}" (name-ref replay origin) (udp-name media-kind)) visualizer-text-color))
-    (when description
-      (draw-text surface 100 3 description visualizer-text-color)))
+    (when selection-description
+      (draw-text surface 100 3 selection-description visualizer-text-color)))
   
   
   (method protected (cycle-channels self reversed?)
@@ -170,7 +171,7 @@
           (set! server-evolution (evolution-ref replay server-no))
           (set! receiver-evolution (evolution-ref replay tier))
           (set! selection #f)
-          (set! description #f)
+          (set! selection-description #f)
           (reset-visualizer self)
           (when now
             (visualize-time self now))
@@ -282,7 +283,8 @@
   
   (method (iterate-packets self left-x right-x process-x proc)
     (let ((ring (get-ring panel))
-          (now (get-now panel)))
+          (now (get-now panel))
+          (selection-frame (get-selection-frame panel)))
       (for-each (lambda (packet)
                   (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
                         (frame (get-frame packet)))
@@ -294,15 +296,15 @@
                         (let ((h (max min-h (min h max-h))))
                           (proc packet (new Rect (- h 4) (- v 4) (+ h 4) (+ v 4)))))
                       
-                      (if (not frame)
-                          (let ((width 8))
-                            (let ((h (- h (quotient width 2))))
-                              (call-proc h v)))
-                        (let ((part (get-part packet))
-                              (total (get-total packet)))
-                          (let ((width (- (* 9 total) 1)))
-                            (let ((h (+ (- h (quotient width 2)) (* 9 part))))
-                              (call-proc h v))))))))
+                      (if (and frame selection-frame (= frame selection-frame))
+                          (let ((part (get-part packet))
+                                (total (get-total packet)))
+                            (let ((width (- (* 9 total) 1)))
+                              (let ((h (+ (- h (quotient width 2)) (* 9 part))))
+                                (call-proc h v))))
+                        (let ((width 8))
+                          (let ((h (- h (quotient width 2))))
+                            (call-proc h v)))))))
                 (collect-packets self))))
   
   
@@ -349,7 +351,7 @@
               (iterate-packets self left-x right-x process-x
                 (lambda (packet rect)
                   (when (and (>= h (get-left rect))
-                             (< h (get-right rect)))
+                             (<= h (get-right rect)))
                     (continuation-return return packet))))
               #f)))
         
@@ -367,7 +369,8 @@
         (let ((packet (find-packet (get-h evt))))
           (when (neq? packet (get-selection panel))
             (set-selection panel (and packet (get-sequence packet)))
-            (set-description panel (and packet (describe-packet packet)))
+            (set-selection-frame panel (and packet (get-frame packet)))
+            (set-selection-description panel (and packet (describe-packet packet)))
             (invalidate-view panel))))))
   
   
