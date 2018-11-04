@@ -250,15 +250,27 @@
           (now (get-now panel))
           (selection (get-selection panel)))
       (when (and ring now)
-        (let ((base-time (get-base-time replay)))
+        (let ((base-time (get-base-time replay))
+              (drawn (make-table test: eqv?)))
           (iterate-packets self left-x right-x process-x
-            (lambda (packet rect)
-              (let ((color (if (get-header? packet)
-                               {Color Purple}
-                             {Color Blue})))
-                (if (get-data packet)
-                    (fill-rect surface rect color)
-                  (frame-rect surface rect color)))
+            (lambda (index packet selection-frame? rect)
+              (let ((frame (get-frame packet))
+                    (header? (get-header? packet)))
+                (let ((color (if header?
+                                 {Color Purple}
+                               {Color Blue})))
+                  (cond ((not frame)
+                         (frame-rect surface rect color))
+                        ((not selection-frame?)
+                         (unless (table-ref drawn frame #f)
+                           (if (frame-complete? ring index)
+                               (fill-rect surface rect color)
+                             (frame-rect surface rect color))
+                           (table-set! drawn frame #t)))
+                        (else
+                         (if (get-data packet)
+                             (fill-rect surface rect color)
+                           (frame-rect surface rect color))))))
               (when (and selection (eq? (get-sequence packet) selection))
                 (frame-rect surface (inflate-rect rect 1 1) {Color White}))))))))
   
@@ -272,40 +284,40 @@
           (proc left-x right-x process-x)))))
   
   
-  (method (collect-packets self)
-    (let ((ring (get-ring panel))
-          (queue (new-queue)))
-      (iterate-earliest ring
-        (lambda (packet)
-          (enqueue queue packet)))
-      (queue-list queue)))
-  
-  
   (method (iterate-packets self left-x right-x process-x proc)
     (let ((ring (get-ring panel))
           (now (get-now panel))
           (selection-frame (get-selection-frame panel)))
-      (for-each (lambda (packet)
-                  (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
-                        (frame (get-frame packet)))
-                    (let ((h (fxround (interpolate now time (- time udp-process-window) process-x right-x)))
-                          (v 12)
-                          (min-h (fxround left-x))
-                          (max-h (fxround right-x)))
-                      (define (call-proc h v)
-                        (let ((h (max min-h (min h max-h))))
-                          (proc packet (new Rect (- h 4) (- v 4) (+ h 4) (+ v 4)))))
-                      
-                      (if (and frame selection-frame (= frame selection-frame))
-                          (let ((part (get-part packet))
-                                (total (get-total packet)))
-                            (let ((width (- (* 9 total) 1)))
-                              (let ((h (+ (- h (quotient width 2)) (* 9 part))))
-                                (call-proc h v))))
-                        (let ((width 8))
-                          (let ((h (- h (quotient width 2))))
-                            (call-proc h v)))))))
-                (collect-packets self))))
+      (define (collect-indexes)
+        (let ((queue (new-queue)))
+          (iterate-indexes ring
+            (lambda (index)
+              (enqueue queue index)))
+          (queue-list queue)))
+      
+      (for-each (lambda (index)
+                  (let ((packet (packet-ref ring index)))
+                    (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
+                          (frame (get-frame packet)))
+                      (let ((h (fxround (interpolate now time (- time udp-process-window) process-x right-x)))
+                            (v 12)
+                            (min-h (fxround left-x))
+                            (max-h (fxround right-x))
+                            (selection-frame? (and frame selection-frame (= frame selection-frame))))
+                        (define (call-proc h v)
+                          (let ((h (max min-h (min h max-h))))
+                            (proc index packet selection-frame? (new Rect (- h 4) (- v 4) (+ h 4) (+ v 4)))))
+                        
+                        (if selection-frame?
+                            (let ((part (get-part packet))
+                                  (total (get-total packet)))
+                              (let ((width (- (* 9 total) 1)))
+                                (let ((h (+ (- h (quotient width 2)) (* 9 part))))
+                                  (call-proc h v))))
+                          (let ((width 8))
+                            (let ((h (- h (quotient width 2))))
+                              (call-proc h v))))))))
+                (collect-indexes))))
   
   
   (method (toggle-playing self)
@@ -349,7 +361,7 @@
           (continuation-capture
             (lambda (return)
               (iterate-packets self left-x right-x process-x
-                (lambda (packet rect)
+                (lambda (index packet selection-frame? rect)
                   (when (and (>= h (get-left rect))
                              (<= h (get-right rect)))
                     (continuation-return return packet))))
