@@ -114,6 +114,7 @@
       (set! receiver-evolution (evolution-ref replay tier))
       (set! selection #f)
       (set! selection-description #f)
+      (setup-timeline self)
       (set-%v self)
       (reset-visualizer self)))
   
@@ -159,6 +160,14 @@
       (draw-text surface 100 3 selection-description visualizer-text-color)))
   
   
+  (method (setup-timeline self)
+    (let ((timeline (brother self 'timeline)))
+      (let ((from (evolutionary-time receiver-evolution (first-position receiver-evolution)))
+            (to (evolutionary-time receiver-evolution (last-position receiver-evolution))))
+        (set-visualizer-from timeline from)
+        (set-visualizer-to timeline to))))
+  
+  
   (method protected (cycle-channels self reversed?)
     (when channel
       (let ((key (cons (get-origin channel) (get-media-kind channel))))
@@ -172,6 +181,7 @@
           (set! receiver-evolution (evolution-ref replay tier))
           (set! selection #f)
           (set! selection-description #f)
+          (setup-timeline self)
           (reset-visualizer self)
           (when now
             (visualize-time self now))
