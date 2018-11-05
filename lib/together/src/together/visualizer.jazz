@@ -162,10 +162,10 @@
   
   (method (setup-timeline self)
     (let ((timeline (brother self 'timeline)))
-      (let ((from (evolutionary-time receiver-evolution (first-position receiver-evolution)))
-            (to (evolutionary-time receiver-evolution (last-position receiver-evolution))))
-        (set-visualizer-from timeline from)
-        (set-visualizer-to timeline to))))
+      (let ((start (evolutionary-time receiver-evolution (first-position receiver-evolution)))
+            (end (evolutionary-time receiver-evolution (last-position receiver-evolution))))
+        (set-visualizer-start timeline start)
+        (set-visualizer-end timeline end))))
   
   
   (method protected (cycle-channels self reversed?)
