@@ -31,6 +31,10 @@
         (together.replay))
 
 
+(definition protected debug-validate?
+  (world-setting 'together.debug-validate? #f))
+
+
 (definition public (test-ring media-kind suite)
   (declare (proper-tail-calls))
   (let ((world (current-world)))
@@ -105,6 +109,8 @@
                                               (bind (header? timestamp seconds sequence frame part total) info
                                                 (let ((time (+ base seconds)))
                                                   (sleep (- time (current-seconds)))
+                                                  (when debug-validate?
+                                                    (terminal 'insert sequence frame))
                                                   (let ((data (need-data media-kind origin sequence frame part total timestamp header?)))
                                                     (receive-media receiver-client media-kind data)))))
                                             inserts))
@@ -117,8 +123,12 @@
                                  (parameterize ((simulation? #t)
                                                 (simulation-evolution receiver-evolution))
                                    (let (looping)
+                                     (when debug-validate?
+                                       (terminal 'process))
                                      (let ((info (process-wait receiver-ring udp-process-window average)))
                                        (when (neq? info 'terminate)
+                                         (when debug-validate?
+                                           (terminal 'present (read-udp-frame (car info))))
                                          (present-frame receiver-channel info)
                                          (looping))))))
                                'process)))
@@ -127,6 +137,8 @@
                 (thread-start! process)
                 (thread-join! insert)
                 (thread-join! process)
+                (when debug-validate?
+                  (terminal 'done))
                 @wait
                 (compare-events)
                 (clear-message world)
