@@ -251,7 +251,7 @@
   ;; quicky until the timeline panel uses the timeline class
   (method override (timeline-start self) <fl>
     (or start
-        (let ((start (apply min (map evolution-start (table-values evolutions)))))
+        (let ((start (apply min (map evolution-start (non-empty-evolutions self)))))
           (set! self.start start)
           start)))
   
@@ -259,9 +259,15 @@
   ;; quicky until the timeline panel uses the timeline class
   (method override (timeline-end self) <fl>
     (or end
-        (let ((end (apply max (map evolution-end (table-values evolutions)))))
+        (let ((end (apply max (map evolution-end (non-empty-evolutions self)))))
           (set! self.end end)
           end)))
+  
+  
+  (method (non-empty-evolutions self)
+    (collect-if (lambda (evolution)
+                  (not (empty? evolution)))
+                (table-values evolutions)))
   
   
   (method override (mouse-up self evt)
