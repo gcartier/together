@@ -34,123 +34,130 @@
 (definition protected debug-validate?
   (world-setting 'together.debug-validate? #f))
 
+(definition protected debug-insert?
+  (world-setting 'together.debug-insert? #f))
+
+(definition protected debug-process?
+  (world-setting 'together.debug-process? #f))
+
 
 (definition public (test-ring media-kind suite)
   (declare (proper-tail-calls))
   (let ((world (current-world)))
-    (let ((inserts suite))
-      (let ((origin 1)
-            (server server-no)
-            (receiver 2))
-        (let ((receiver-client (simulate-udp-client receiver)))
-          (let ((receiver-channel (require-receive-channel receiver-client origin media-kind)))
-            (let ((receiver-ring (get-process-ring receiver-channel))
-                  (average (new Average .05 1.))
-                  (datas (make-table test: eqv?))
-                  (base (current-seconds))
-                  (origin-evolution (new Evolution 10000))
-                  (server-evolution (new Evolution 10000))
-                  (receiver-evolution (new Evolution 10000))
-                  (expected (new Evolution 10000)))
-              (define (need-data kind origin sequence frame part total timestamp header?)
-                (or (table-ref datas sequence #f)
-                    (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
-                      (let ((data (make-u8vector header-size))
-                            (nanostamp (if (not timestamp)
-                                           -1.
-                                         (flonum->timestamp timestamp))))
-                        (write-udp-kind data kind)
-                        (write-udp-origin data origin)
-                        (write-udp-sequence data sequence)
-                        (write-udp-frame data frame)
-                        (write-udp-part data part)
-                        (write-udp-total data total)
-                        (write-udp-media-timestamp data nanostamp)
-                        (write-udp-media-header? data header?)
-                        (table-set! datas sequence data)
-                        (parameterize ((simulation-evolution origin-evolution))
-                          (record-event udp-id-create-packet
-                                        (fixnum->flonum origin)
-                                        (fixnum->flonum kind)
-                                        (fixnum->flonum sequence)
-                                        (fixnum->flonum frame)
-                                        (barbara-header-hack header?)
-                                        timestamp)
-                          (record-event udp-id-create-info
-                                        (fixnum->flonum origin)
-                                        (fixnum->flonum kind)
-                                        (fixnum->flonum sequence)
-                                        (fixnum->flonum frame)
-                                        (fixnum->flonum part)
-                                        (fixnum->flonum total)))
-                        data))))
-              
-              @wait
-              (define (compare-events)
-                (for-each (lambda (info)
-                            (bind (time abbrev data1 data2 data3 data4) info
-                              (parameterize ((simulation-time (+ base time))
-                                             (simulation-evolution expected))
-                                (let ((id (evolution-abbrev->id abbrev)))
-                                  (record-event id
-                                                (fixnum->flonum origin)
-                                                (fixnum->flonum media-kind)
-                                                data1
-                                                data2
-                                                data3
-                                                data4)))))
-                          events))
-              
-              (let ((insert (new-thread
-                              (lambda ()
-                                (parameterize ((simulation? #t)
-                                               (simulation-evolution receiver-evolution))
-                                  (for-each (lambda (info)
-                                              (bind (header? timestamp seconds sequence frame part total) info
-                                                (let ((time (+ base seconds)))
-                                                  (sleep (- time (current-seconds)))
-                                                  (when debug-validate?
-                                                    (terminal 'insert sequence frame))
-                                                  (let ((data (need-data media-kind origin sequence frame part total timestamp header?)))
-                                                    (receive-media receiver-client media-kind data)))))
-                                            inserts))
-                                ;; quicky give some time for process to finish
-                                (sleep .8)
-                                (terminate receiver-ring))
-                              'insert))
-                    (process (new-thread
-                               (lambda ()
-                                 (parameterize ((simulation? #t)
-                                                (simulation-evolution receiver-evolution))
-                                   (let (looping)
-                                     (when debug-validate?
-                                       (terminal 'process))
-                                     (let ((info (process-wait receiver-ring udp-process-window average)))
-                                       (when (neq? info 'terminate)
-                                         (when debug-validate?
-                                           (terminal 'present (read-udp-frame (car info))))
-                                         (present-frame receiver-channel info)
-                                         (looping))))))
-                               'process)))
-                (display-message world "Validating..." duration: +inf.0)
-                (thread-start! insert)
-                (thread-start! process)
-                (thread-join! insert)
-                (thread-join! process)
-                (when debug-validate?
-                  (terminal 'done))
+    (let ((origin 1)
+          (server server-no)
+          (receiver 2))
+      (let ((names (list->table (list (cons origin "Origin")
+                                      (cons server "<server>")
+                                      (cons receiver "Receiver")))))
+        (let ((call (simulate-udp-call names)))
+          (let ((receiver-client (require-tier call receiver)))
+            (let ((receiver-channel (require-receive-channel receiver-client origin media-kind)))
+              (let ((receiver-ring (get-process-ring receiver-channel))
+                    (average (new Average .05 1.))
+                    (datas (make-table test: eqv?))
+                    (base (current-seconds))
+                    (origin-evolution (new Evolution 10000))
+                    (server-evolution (new Evolution 10000))
+                    (receiver-evolution (new Evolution 10000))
+                    (expected (new Evolution 10000))
+                    (inserts suite))
+                (define (need-data kind origin sequence frame part total timestamp header?)
+                  (or (table-ref datas sequence #f)
+                      (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
+                        (let ((data (make-u8vector header-size))
+                              (nanostamp (if (not timestamp)
+                                             -1.
+                                           (flonum->timestamp timestamp))))
+                          (write-udp-kind data kind)
+                          (write-udp-origin data origin)
+                          (write-udp-sequence data sequence)
+                          (write-udp-frame data frame)
+                          (write-udp-part data part)
+                          (write-udp-total data total)
+                          (write-udp-media-timestamp data nanostamp)
+                          (write-udp-media-header? data header?)
+                          (table-set! datas sequence data)
+                          (parameterize ((simulation-evolution origin-evolution))
+                            (record-event udp-id-create-packet
+                                          (fixnum->flonum origin)
+                                          (fixnum->flonum kind)
+                                          (fixnum->flonum sequence)
+                                          (fixnum->flonum frame)
+                                          (barbara-header-hack header?)
+                                          timestamp)
+                            (record-event udp-id-create-info
+                                          (fixnum->flonum origin)
+                                          (fixnum->flonum kind)
+                                          (fixnum->flonum sequence)
+                                          (fixnum->flonum frame)
+                                          (fixnum->flonum part)
+                                          (fixnum->flonum total)))
+                          data))))
+                
                 @wait
-                (compare-events)
-                (clear-message world)
-                (view-evolution origin server receiver origin-evolution server-evolution receiver-evolution base)))))))))
+                (define (compare-events)
+                  (for-each (lambda (info)
+                              (bind (time abbrev data1 data2 data3 data4) info
+                                (parameterize ((simulation-time (+ base time))
+                                               (simulation-evolution expected))
+                                  (let ((id (evolution-abbrev->id abbrev)))
+                                    (record-event id
+                                                  (fixnum->flonum origin)
+                                                  (fixnum->flonum media-kind)
+                                                  data1
+                                                  data2
+                                                  data3
+                                                  data4)))))
+                            events))
+                
+                (let ((insert (new-thread
+                                (lambda ()
+                                  (parameterize ((simulation? #t)
+                                                 (simulation-evolution receiver-evolution))
+                                    (for-each (lambda (info)
+                                                (bind (header? timestamp seconds sequence frame part total) info
+                                                  (let ((time (+ base seconds)))
+                                                    (sleep (- time (current-seconds)))
+                                                    (when (or debug-validate? debug-insert?)
+                                                      (terminal 'insert sequence frame))
+                                                    (let ((data (need-data media-kind origin sequence frame part total timestamp header?)))
+                                                      (receive-media receiver-client media-kind data)))))
+                                              inserts))
+                                  ;; quicky give some time for process to finish
+                                  (sleep .8)
+                                  (terminate receiver-ring))
+                                'insert))
+                      (process (new-thread
+                                 (lambda ()
+                                   (parameterize ((simulation? #t)
+                                                  (simulation-evolution receiver-evolution))
+                                     (let (looping)
+                                       (when debug-validate?
+                                         (terminal 'process))
+                                       (let ((info (process-wait receiver-ring udp-process-window average debug-process?)))
+                                         (when (neq? info 'terminate)
+                                           (when debug-validate?
+                                             (terminal 'present (read-udp-frame (car info))))
+                                           (present-frame receiver-channel info)
+                                           (looping))))))
+                                 'process)))
+                  (display-message world "Validating..." duration: +inf.0)
+                  (thread-start! insert)
+                  (thread-start! process)
+                  (thread-join! insert)
+                  (thread-join! process)
+                  (when debug-validate?
+                    (terminal 'done))
+                  @wait
+                  (compare-events)
+                  (clear-message world)
+                  (view-evolution origin server receiver names origin-evolution server-evolution receiver-evolution base))))))))))
 
 
-(definition public (view-evolution origin server receiver origin-evolution server-evolution receiver-evolution base-time)
+(definition public (view-evolution origin server receiver names origin-evolution server-evolution receiver-evolution base-time)
   (let ((zone (current-zone)))
-    (let ((names (list->table (list (cons origin "Origin")
-                                    (cons server "<server>")
-                                    (cons receiver "Receiver"))))
-          (metadatas (list->table (list (cons origin (list origin "Origin" (list udp-video) (list)))
+    (let ((metadatas (list->table (list (cons origin (list origin "Origin" (list udp-video) (list)))
                                         (cons server (list server "<server>"))
                                         (cons receiver (list receiver "Receiver" (list) (list (cons origin udp-video)))))))
           (chronologies (list->table (list (cons origin (new Chronology 10))
