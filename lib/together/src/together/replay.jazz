@@ -248,20 +248,29 @@
   (slot highlighted-values  initialize '() accessors generate)
   
   
+  ;; quicky
+  (method override (together-timeline? self)
+    #t)
+  
+  
   ;; quicky until the timeline panel uses the timeline class
   (method override (timeline-start self) <fl>
-    (or start
-        (let ((start (apply min (map evolution-start (client-evolutions self)))))
-          (set! self.start start)
-          start)))
+    (if live?
+        (nextmethod self)
+      (or start
+          (let ((start (apply min (map evolution-start (client-evolutions self)))))
+            (set! self.start start)
+            start))))
   
   
   ;; quicky until the timeline panel uses the timeline class
   (method override (timeline-end self) <fl>
-    (or end
-        (let ((end (apply max (map evolution-end (client-evolutions self)))))
-          (set! self.end end)
-          end)))
+    (if live?
+        (nextmethod self)
+      (or end
+          (let ((end (apply max (map evolution-end (client-evolutions self)))))
+            (set! self.end end)
+            end))))
   
   
   (method (client-evolutions self)
