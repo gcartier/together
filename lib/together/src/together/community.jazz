@@ -1407,6 +1407,7 @@
           (set-chronology panel chronology)
           (set-evolution panel evolution)
           (set-evolutions panel evolutions)
+          (reset-start/end panel)
           (setup-replay panel base-time)
           (when (and from to)
             (set-bounds panel from to)
