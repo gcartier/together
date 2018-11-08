@@ -53,6 +53,12 @@
 (definition protected visualizer-text-color
   (world-setting 'world.visualizer-text {Color Dark-Gray}))
 
+(definition protected visualizer-after
+  (world-setting 'world.visualizer-after .05))
+
+(definition protected visualizer-before
+  (world-setting 'world.visualizer-before .1))
+
 
 ;;;
 ;;;; Panel
@@ -227,18 +233,18 @@
   
   
   (method override (draw self surface context)
-    (let ((gaveup .05)
-          (channel (get-channel panel))
+    (let ((channel (get-channel panel))
           (ring (get-ring panel)))
       (when channel
-        (let ((total (+ gaveup udp-ready-window udp-process-window))
+        (let ((total (+ visualizer-after udp-ready-window udp-process-window visualizer-before))
               (width (get-width size))
               (height (get-height size)))
           (with-boundaries self
-            (lambda (left-x right-x present-x)
-              (let ((giveup-h (fxround (interpolate gaveup 0. total left-x right-x)))
-                    (freeze-h (fxround (interpolate (+ gaveup udp-ready-window (- udp-late-window)) 0. total left-x right-x)))
+            (lambda (left-x right-x present-x before-x)
+              (let ((after-h (fxround (interpolate visualizer-after 0. total left-x right-x)))
+                    (freeze-h (fxround (interpolate (+ visualizer-after udp-ready-window (- udp-late-window)) 0. total left-x right-x)))
                     (present-h (fxround present-x))
+                    (before-h (fxround (interpolate (+ visualizer-after udp-ready-window udp-process-window) 0. total left-x right-x)))
                     (top 3)
                     (bottom (- height 3))
                     (state-color (case (get-state ring)
@@ -249,14 +255,15 @@
                   (frame-rect surface (new Rect 0 (- top 3) width (+ bottom 3)) state-color))
                 (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
                 (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-                (fill-rect surface (new Rect 3 top giveup-h bottom) {Color Red alpha: .8})
-                (fill-rect surface (new Rect giveup-h top freeze-h bottom) {Color Orange alpha: .8})
+                (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
+                (fill-rect surface (new Rect after-h top freeze-h bottom) {Color Orange alpha: .8})
                 (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
-                (fill-rect surface (new Rect present-h top (- width 3) bottom) {Color Yellow alpha: .8})
-                (draw-ring self surface left-x right-x present-x))))))))
+                (fill-rect surface (new Rect present-h top before-h bottom) {Color Yellow alpha: .8})
+                (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
+                (draw-ring self surface left-x right-x present-x before-x))))))))
   
   
-  (method (draw-ring self surface left-x right-x present-x)
+  (method (draw-ring self surface left-x right-x present-x before-x)
     (let ((replay (get-replay panel))
           (ring (get-ring panel))
           (now (get-now panel))
@@ -264,7 +271,7 @@
       (when (and ring now)
         (let ((base-time (get-base-time replay))
               (drawn (make-table test: eqv?)))
-          (iterate-packets self left-x right-x present-x
+          (iterate-packets self left-x right-x present-x before-x
             (lambda (index packet selection-frame? rect)
               (let ((frame (get-frame packet))
                     (header? (get-header? packet)))
@@ -288,15 +295,15 @@
   
   
   (method (with-boundaries self proc)
-    (let ((gaveup .05))
-      (let ((total (+ gaveup udp-ready-window udp-process-window))
-            (left-x 3.)
-            (right-x (cast <fl> (- (get-width size) 3))))
-        (let ((present-x (interpolate (+ gaveup udp-ready-window) 0. total left-x right-x)))
-          (proc left-x right-x present-x)))))
+    (let ((total (+ visualizer-after udp-ready-window udp-process-window visualizer-before))
+          (left-x 3.)
+          (right-x (cast <fl> (- (get-width size) 3))))
+      (let ((present-x (interpolate (+ visualizer-after udp-ready-window) 0. total left-x right-x))
+            (before-x (interpolate (+ visualizer-after udp-ready-window udp-process-window) 0. total left-x right-x)))
+        (proc left-x right-x present-x before-x))))
   
   
-  (method (iterate-packets self left-x right-x present-x proc)
+  (method (iterate-packets self left-x right-x present-x before-x proc)
     (let ((ring (get-ring panel))
           (now (get-now panel))
           (selection-frame (get-selection-frame panel)))
@@ -309,9 +316,9 @@
       
       (for-each (lambda (index)
                   (let ((packet (packet-ref ring index)))
-                    (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
+                    (let ((time (+ (get-time-base ring) (get-timestamp packet)))
                           (frame (get-frame packet)))
-                      (let ((h (fxround (interpolate now time (- time udp-process-window) present-x right-x)))
+                      (let ((h (fxround (interpolate now (+ time udp-process-window) time present-x before-x)))
                             (v 12)
                             (min-h (fxround left-x))
                             (max-h (fxround right-x))
@@ -379,11 +386,11 @@
   
   (method override (mouse-up self evt)
     (with-boundaries self
-      (lambda (left-x right-x present-x)
+      (lambda (left-x right-x present-x before-x)
         (define (find-packet h)
           (continuation-capture
             (lambda (return)
-              (iterate-packets self left-x right-x present-x
+              (iterate-packets self left-x right-x present-x before-x
                 (lambda (index packet selection-frame? rect)
                   (when (and (>= h (get-left rect))
                              (<= h (get-right rect)))
