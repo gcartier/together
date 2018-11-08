@@ -223,19 +223,18 @@
   
   
   (method override (draw self surface context)
-    (let ((giveup .05)
-          (play-window .05)
+    (let ((gaveup .05)
           (channel (get-channel panel))
           (ring (get-ring panel)))
       (when channel
-        (let ((total (+ giveup udp-ready-window udp-process-window))
+        (let ((total (+ gaveup udp-ready-window udp-process-window))
               (width (get-width size))
               (height (get-height size)))
           (with-boundaries self
-            (lambda (left-x right-x process-x)
-              (let ((giveup-h (fxround (interpolate giveup 0. total left-x right-x)))
-                    (freeze-h (fxround (interpolate (+ giveup udp-ready-window (- play-window)) 0. total left-x right-x)))
-                    (process-h (fxround process-x))
+            (lambda (left-x right-x present-x)
+              (let ((giveup-h (fxround (interpolate gaveup 0. total left-x right-x)))
+                    (freeze-h (fxround (interpolate (+ gaveup udp-ready-window (- udp-late-window)) 0. total left-x right-x)))
+                    (present-h (fxround present-x))
                     (top 3)
                     (bottom (- height 3))
                     (state-color (case (get-state ring)
@@ -248,12 +247,12 @@
                 (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
                 (fill-rect surface (new Rect 3 top giveup-h bottom) {Color Red alpha: .8})
                 (fill-rect surface (new Rect giveup-h top freeze-h bottom) {Color Orange alpha: .8})
-                (fill-rect surface (new Rect freeze-h top process-h bottom) {Color Green alpha: .8})
-                (fill-rect surface (new Rect process-h top (- width 3) bottom) {Color Yellow alpha: .8})
-                (draw-ring self surface left-x right-x process-x))))))))
+                (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
+                (fill-rect surface (new Rect present-h top (- width 3) bottom) {Color Yellow alpha: .8})
+                (draw-ring self surface left-x right-x present-x))))))))
   
   
-  (method (draw-ring self surface left-x right-x process-x)
+  (method (draw-ring self surface left-x right-x present-x)
     (let ((replay (get-replay panel))
           (ring (get-ring panel))
           (now (get-now panel))
@@ -261,7 +260,7 @@
       (when (and ring now)
         (let ((base-time (get-base-time replay))
               (drawn (make-table test: eqv?)))
-          (iterate-packets self left-x right-x process-x
+          (iterate-packets self left-x right-x present-x
             (lambda (index packet selection-frame? rect)
               (let ((frame (get-frame packet))
                     (header? (get-header? packet)))
@@ -285,15 +284,15 @@
   
   
   (method (with-boundaries self proc)
-    (let ((giveup .05))
-      (let ((total (+ giveup udp-ready-window udp-process-window))
+    (let ((gaveup .05))
+      (let ((total (+ gaveup udp-ready-window udp-process-window))
             (left-x 3.)
             (right-x (cast <fl> (- (get-width size) 3))))
-        (let ((process-x (interpolate (+ giveup udp-ready-window) 0. total left-x right-x)))
-          (proc left-x right-x process-x)))))
+        (let ((present-x (interpolate (+ gaveup udp-ready-window) 0. total left-x right-x)))
+          (proc left-x right-x present-x)))))
   
   
-  (method (iterate-packets self left-x right-x process-x proc)
+  (method (iterate-packets self left-x right-x present-x proc)
     (let ((ring (get-ring panel))
           (now (get-now panel))
           (selection-frame (get-selection-frame panel)))
@@ -308,7 +307,7 @@
                   (let ((packet (packet-ref ring index)))
                     (let ((time (+ (get-time-base ring) (get-timestamp packet) udp-process-window))
                           (frame (get-frame packet)))
-                      (let ((h (fxround (interpolate now time (- time udp-process-window) process-x right-x)))
+                      (let ((h (fxround (interpolate now time (- time udp-process-window) present-x right-x)))
                             (v 12)
                             (min-h (fxround left-x))
                             (max-h (fxround right-x))
@@ -365,11 +364,11 @@
   
   (method override (mouse-up self evt)
     (with-boundaries self
-      (lambda (left-x right-x process-x)
+      (lambda (left-x right-x present-x)
         (define (find-packet h)
           (continuation-capture
             (lambda (return)
-              (iterate-packets self left-x right-x process-x
+              (iterate-packets self left-x right-x present-x
                 (lambda (index packet selection-frame? rect)
                   (when (and (>= h (get-left rect))
                              (<= h (get-right rect)))
