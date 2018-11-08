@@ -333,7 +333,7 @@
             ((in-range?)
              (let ((world (current-world))
                    (zone (current-zone)))
-               (let ((values '(30 100 250 500)))
+               (let ((values '(26 100 250 500)))
                  (let ((max (if (get-shift? evt)
                                 (previous-element values evolutions-max)
                               (next-element values evolutions-max))))
