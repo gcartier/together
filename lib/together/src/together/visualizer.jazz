@@ -156,7 +156,11 @@
         (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a} {a}" (name-ref replay origin) (udp-name media-kind)) visualizer-text-color))
     (when selection-description
-      (draw-text surface 100 3 selection-description visualizer-text-color)))
+      (draw-text surface 100 3 selection-description visualizer-text-color))
+    (let ((title (format "{r precision: 1}" visualizer-speed)))
+      (let ((width (get-width self))
+            (extent (get-text-extent surface title)))
+        (draw-text surface (- width (get-width extent) 5) 3 title timeline-text-color))))
   
   
   (method (setup-timeline self)
@@ -346,6 +350,17 @@
   (method override (right-arrow-press self modifiers)
     (let ((timeline (brother panel 'timeline)))
       (step-forward timeline (if (shift-down?) .001 .01))))
+  
+  
+  (method override (up-arrow-press self modifiers)
+    (let ((timeline (brother panel 'timeline)))
+      (play-faster timeline))
+    (invalidate-view panel))
+  
+  (method override (down-arrow-press self modifiers)
+    (let ((timeline (brother panel 'timeline)))
+      (play-slower timeline))
+    (invalidate-view panel))
   
   
   (method override (focus-gained self)
