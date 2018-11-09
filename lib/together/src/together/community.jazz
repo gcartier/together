@@ -113,16 +113,16 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot configuration   initialize #f                getter generate)
-  (slot selected-group  initialize #f                getter generate)
-  (slot selected-player initialize #f                getter generate)
-  (slot joined-circle   initialize #f                getter generate)
-  (slot circle-start    initialize #f                getter generate)
-  (slot view-focused    initialize #f                getter generate)
-  (slot draw-hook       initialize #f                getter generate)
-  (slot hide-ring       initialize (new Time-Ring 1) getter generate)
-  (slot hide-thread     initialize #f                getter generate)
-  (slot replay          initialize #f                getter generate)
+  (slot configuration   initialize #f getter generate)
+  (slot selected-group  initialize #f getter generate)
+  (slot selected-player initialize #f getter generate)
+  (slot joined-circle   initialize #f getter generate)
+  (slot circle-start    initialize #f getter generate)
+  (slot view-focused    initialize #f getter generate)
+  (slot draw-hook       initialize #f getter generate)
+  (slot hide-ring       initialize #f getter generate)
+  (slot hide-thread     initialize #f getter generate)
+  (slot replay          initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -374,7 +374,6 @@
       (visible interface 'chat (not hide-chat?))
       (visible interface 'command-to (not hide-chat?))
       (visible interface 'command (not hide-chat?))
-      (delay-hide-interface self)
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
@@ -387,7 +386,8 @@
       (update-layouts self)
       (update-buttons self)
       (when auto-hide?
-        (install-hider self))))
+        (install-hider self)
+        (delay-hide-interface self))))
   
   
   (method (install-script self)
@@ -576,13 +576,16 @@
                                 (proc)))
                             (loop)))))
                     'hider)))
+      (set! hide-ring (new Time-Ring 1))
       (set! hide-thread thread)
       (thread-start! thread)))
   
   
   (method (uninstall-hider self)
-    (empty hide-ring)
-    (terminate hide-ring))
+    (terminate hide-ring)
+    (thread-join! hide-thread)
+    (set! hide-ring #f)
+    (set! hide-thread #f))
   
   
   ;; we probably need a tolerance so moving
