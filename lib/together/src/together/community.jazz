@@ -637,7 +637,7 @@
   
   (method (on-toggle-people self evt)
     (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
+      (when (neq? stage 'gathering)
         (toggle-visible? (child interface 'people-label))
         (toggle-visible? (child interface 'people))
         (update-buttons self))))
@@ -645,7 +645,7 @@
   
   (method (on-toggle-chat self evt)
     (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
+      (when (neq? stage 'gathering)
         (toggle-visible? (child interface 'chat-label))
         (toggle-visible? (child interface 'chat))
         (toggle-visible? (child interface 'command-to))
