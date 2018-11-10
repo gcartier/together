@@ -121,7 +121,7 @@
       (set! selection #f)
       (set! selection-description #f)
       (setup-timeline self)
-      (set-%v self)
+      (set-%p self)
       (reset-visualizer self)))
   
   
@@ -141,7 +141,8 @@
       (set! visualizer (visualize-call call client origin media-kind channel ring origin-evolution receiver-evolution)))
     (set-%c channel)
     (set-%e receiver-evolution)
-    (set-%r ring))
+    (set-%r ring)
+    (set-%v visualizer))
   
   
   (method protected (visualize-time self time)
@@ -267,27 +268,57 @@
     (let ((replay (get-replay panel))
           (ring (get-ring panel))
           (now (get-now panel))
+          (visualizer (get-visualizer panel))
           (selection (get-selection panel)))
       (when (and ring now)
         (let ((base-time (get-base-time replay))
               (drawn (make-table test: eqv?)))
+          (iterate-table (get-removes visualizer)
+            (lambda (packet info)
+              (bind (time . complete?) info
+                (let ((full .015))
+                  (let ((age (- now time)))
+                    (when (< age full)
+                      (with-packet self left-x right-x present-x before-x packet
+                        (lambda (selection-frame? h v)
+                          (let ((size (interpolate age 0. full 4. 1.)))
+                            (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                              (let ((frame (get-frame packet))
+                                    (header? (get-header? packet)))
+                                (let ((color (if header?
+                                                 {Color Purple}
+                                               {Color Blue})))
+                                  (cond ((not frame)
+                                         (ellipse$fl$ surface rect color #f))
+                                        ((not selection-frame?)
+                                         (ellipse$fl$ surface rect color (and complete? color)))
+                                        (else
+                                         (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                              (when (and selection (eq? (get-sequence packet) selection))
+                                (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
           (iterate-packets self left-x right-x present-x before-x
-            (lambda (index packet selection-frame? rect)
-              (let ((frame (get-frame packet))
-                    (header? (get-header? packet)))
-                (let ((color (if header?
-                                 {Color Purple}
-                               {Color Blue})))
-                  (cond ((not frame)
-                         (ellipse surface rect color #f))
-                        ((not selection-frame?)
-                         (unless (table-ref drawn frame #f)
-                           (ellipse surface rect color (and (frame-complete? ring index) color))
-                           (table-set! drawn frame #t)))
-                        (else
-                         (ellipse surface rect color (and (get-data packet) color))))))
-              (when (and selection (eq? (get-sequence packet) selection))
-                (ellipse surface (inflate-rect rect 1 1) {Color White} #f))))))))
+            (lambda (index packet selection-frame? h v)
+              (let ((full .015))
+                (let ((age (- now (table-ref (get-adds visualizer) packet #f))))
+                  (let ((size (cond ((<= age 0.) 1.)
+                                    ((>= age full) 4.)
+                                    (else (interpolate age 0. full 1. 4.)))))
+                    (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                      (let ((frame (get-frame packet))
+                            (header? (get-header? packet)))
+                        (let ((color (if header?
+                                         {Color Purple}
+                                       {Color Blue})))
+                          (cond ((not frame)
+                                 (ellipse$fl$ surface rect color #f))
+                                ((not selection-frame?)
+                                 (unless (table-ref drawn frame #f)
+                                   (ellipse$fl$ surface rect color (and (frame-complete? ring index) color))
+                                   (table-set! drawn frame #t)))
+                                (else
+                                 (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                      (when (and selection (eq? (get-sequence packet) selection))
+                        (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
   
   
   (method (with-boundaries self proc)
@@ -299,10 +330,32 @@
         (proc left-x right-x present-x before-x))))
   
   
-  (method (iterate-packets self left-x right-x present-x before-x proc)
+  (method (with-packet self left-x right-x present-x before-x packet proc)
     (let ((ring (get-ring panel))
           (now (get-now panel))
           (selection-frame (get-selection-frame panel)))
+      (let ((time (+ (get-time-base ring) (get-timestamp packet)))
+            (frame (get-frame packet)))
+        (let ((h (interpolate now (+ time udp-process-window) time present-x before-x))
+              (v 12.)
+              (selection-frame? (and frame selection-frame (= frame selection-frame))))
+          (define (call-proc h v)
+            (let ((h (max left-x (min h right-x))))
+              (proc selection-frame? h v)))
+          
+          (if selection-frame?
+              (let ((part (get-part packet))
+                    (total (get-total packet)))
+                (let ((width (- (* 10 total) 1)))
+                  (let ((h (+ (- h (quotient width 2)) (* 10 part))))
+                    (call-proc h v))))
+            (let ((width 8))
+              (let ((h (- h (quotient width 2))))
+                (call-proc h v))))))))
+  
+  
+  (method (iterate-packets self left-x right-x present-x before-x proc)
+    (let ((ring (get-ring panel)))
       (define (collect-indexes)
         (let ((queue (new-queue)))
           (iterate-indexes ring
@@ -312,26 +365,9 @@
       
       (for-each (lambda (index)
                   (let ((packet (packet-ref ring index)))
-                    (let ((time (+ (get-time-base ring) (get-timestamp packet)))
-                          (frame (get-frame packet)))
-                      (let ((h (fxround (interpolate now (+ time udp-process-window) time present-x before-x)))
-                            (v 12)
-                            (min-h (fxround left-x))
-                            (max-h (fxround right-x))
-                            (selection-frame? (and frame selection-frame (= frame selection-frame))))
-                        (define (call-proc h v)
-                          (let ((h (max min-h (min h max-h))))
-                            (proc index packet selection-frame? (new Rect (- h 4) (- v 4) (+ h 4) (+ v 4)))))
-                        
-                        (if selection-frame?
-                            (let ((part (get-part packet))
-                                  (total (get-total packet)))
-                              (let ((width (- (* 10 total) 1)))
-                                (let ((h (+ (- h (quotient width 2)) (* 10 part))))
-                                  (call-proc h v))))
-                          (let ((width 8))
-                            (let ((h (- h (quotient width 2))))
-                              (call-proc h v))))))))
+                    (with-packet self left-x right-x present-x before-x packet
+                      (lambda (selection-frame? h v)
+                        (proc index packet selection-frame? h v)))))
                 (collect-indexes))))
   
   
@@ -387,9 +423,9 @@
           (continuation-capture
             (lambda (return)
               (iterate-packets self left-x right-x present-x before-x
-                (lambda (index packet selection-frame? rect)
-                  (when (and (>= h (get-left rect))
-                             (<= h (get-right rect)))
+                (lambda (index packet selection-frame? packet-h packet-v)
+                  (when (and (>= h (- packet-h 4))
+                             (<= h (+ packet-h 4)))
                     (continuation-return return packet))))
               #f)))
         
