@@ -273,12 +273,15 @@
       (when (and ring now)
         (let ((base-time (get-base-time replay))
               (drawn (make-table test: eqv?)))
-          (iterate-table (get-removes visualizer)
-            (lambda (packet info)
-              (bind (time . complete?) info
+          (iterate-table-safe (get-removes visualizer)
+            (lambda (sequence info)
+              (bind (packet time complete?) info
                 (let ((full .015))
                   (let ((age (- now time)))
-                    (when (< age full)
+                    (if (>= age full)
+                        (begin
+                          (table-clear (get-adds visualizer) sequence)
+                          (table-clear (get-removes visualizer) sequence))
                       (with-packet self left-x right-x present-x before-x packet
                         (lambda (selection-frame? h v)
                           (let ((size (interpolate age 0. full 4. 1.)))
@@ -299,7 +302,7 @@
           (iterate-packets self left-x right-x present-x before-x
             (lambda (index packet selection-frame? h v)
               (let ((full .015))
-                (let ((age (- now (table-ref (get-adds visualizer) packet #f))))
+                (let ((age (- now (table-ref (get-adds visualizer) (get-sequence packet) #f))))
                   (let ((size (cond ((<= age 0.) 1.)
                                     ((>= age full) 4.)
                                     (else (interpolate age 0. full 1. 4.)))))
@@ -372,7 +375,9 @@
   
   
   (method (toggle-playing self)
-    (let ((timeline (brother panel 'timeline)))
+    (let ((timeline (brother panel 'timeline))
+          (fast? (shift-down?)))
+      (set-fast-playing? timeline fast?)
       (set-playing? timeline (not (get-playing? timeline)))))
   
   
