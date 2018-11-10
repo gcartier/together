@@ -279,19 +279,15 @@
                                  {Color Purple}
                                {Color Blue})))
                   (cond ((not frame)
-                         (frame-rect surface rect color))
+                         (ellipse surface rect color #f))
                         ((not selection-frame?)
                          (unless (table-ref drawn frame #f)
-                           (if (frame-complete? ring index)
-                               (fill-rect surface rect color)
-                             (frame-rect surface rect color))
+                           (ellipse surface rect color (and (frame-complete? ring index) color))
                            (table-set! drawn frame #t)))
                         (else
-                         (if (get-data packet)
-                             (fill-rect surface rect color)
-                           (frame-rect surface rect color))))))
+                         (ellipse surface rect color (and (get-data packet) color))))))
               (when (and selection (eq? (get-sequence packet) selection))
-                (frame-rect surface (inflate-rect rect 1 1) {Color White}))))))))
+                (ellipse surface (inflate-rect rect 1 1) {Color White} #f))))))))
   
   
   (method (with-boundaries self proc)
@@ -330,8 +326,8 @@
                         (if selection-frame?
                             (let ((part (get-part packet))
                                   (total (get-total packet)))
-                              (let ((width (- (* 9 total) 1)))
-                                (let ((h (+ (- h (quotient width 2)) (* 9 part))))
+                              (let ((width (- (* 10 total) 1)))
+                                (let ((h (+ (- h (quotient width 2)) (* 10 part))))
                                   (call-proc h v))))
                           (let ((width 8))
                             (let ((h (- h (quotient width 2))))
