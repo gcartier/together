@@ -31,7 +31,7 @@
   (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user developer))
+  (set-valid-roles '(user developer admin))
   (register-domain-names))
 
 

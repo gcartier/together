@@ -32,7 +32,7 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(admin))
+  (set-valid-roles '(user admin))
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-profiling)
