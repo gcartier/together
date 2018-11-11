@@ -58,7 +58,7 @@
   (world-setting 'together.default-host "togethersphere.com"))
 
 (definition together-port
-  (world-setting 'together.default-port 50000))
+  (world-setting 'together.default-port default-server-service))
 
 
 (definition use-sphere?

@@ -28,7 +28,7 @@
   (set-tier-title "Together")
   (set-tier-kind 'worker)
   (set-process-kind 'application)
-  (set-settings-root {Directory Home ".together"})
+  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user developer))

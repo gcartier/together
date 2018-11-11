@@ -28,7 +28,7 @@
   (set-tier-title "Together")
   (set-tier-kind 'client)
   (set-process-kind 'application)
-  (set-settings-root {Directory Home ".together"})
+  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)

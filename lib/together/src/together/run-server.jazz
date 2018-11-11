@@ -24,7 +24,7 @@
 
 (definition (prepare-logger)
   (initialize-aliases)
-  (set-logger-directory {Directory Home ".together" "1.0.0" "work" "logs"})
+  (set-logger-directory (new-directory (determine-settings-root) '("1.0.0" "work" "logs")))
   (set-logger-prefix "server"))
 
 
@@ -34,7 +34,7 @@
   (set-tier-title "Together")
   (set-tier-kind 'server)
   (set-process-kind 'process)
-  (set-settings-root {Directory Home ".together"})
+  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)

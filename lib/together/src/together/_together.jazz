@@ -29,6 +29,18 @@
 
 
 ;;;
+;;;; Settings
+;;;
+
+
+(definition protected (determine-settings-root)
+  (cond-expand (test  {Directory Home ".together" "test"})
+               (stage {Directory Home ".together" "stage"})
+               (prod  {Directory Home ".together" "prod"})
+               (else  {Directory Home ".together" "devel"})))
+
+
+;;;
 ;;;; Version
 ;;;
 
@@ -96,7 +108,7 @@
   (set-tier-title "Together")
   (set-tier-kind 'client)
   (set-process-kind 'application)
-  (set-settings-root {Directory Home ".together"})
+  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user developer))

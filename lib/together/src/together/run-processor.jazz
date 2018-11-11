@@ -27,7 +27,7 @@
   (set-tier-title "Together")
   (set-tier-kind 'processor)
   (set-process-kind 'process)
-  (set-settings-root {Directory Home ".together"})
+  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
