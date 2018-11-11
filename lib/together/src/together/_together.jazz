@@ -63,8 +63,8 @@
                   (if (is-alias? 'Together)
                       (list 'Together)
                     (cond-expand
-                      (mac (get-list (get-parent (get-parent {Directory Build}))))
-                      (else (list 'Build)))))
+                      (windows (list 'Build))
+                      (else (get-list (get-parent (get-parent {Directory Build})))))))
   (register-resources-alias 'Together 'together))
 
 
