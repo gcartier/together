@@ -39,7 +39,7 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user admin))
+  (set-valid-roles '(user developer admin))
   (set-default-server "Together")
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename))
