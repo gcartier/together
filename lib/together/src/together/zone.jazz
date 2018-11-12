@@ -57,6 +57,14 @@
         (together.settings))
 
 
+(definition protected together-title
+  (cond-expand
+    (prod  "Together")
+    (stage "Together (stage)")
+    (test  "Together (test)")
+    (else  "Together (devel)")))
+
+
 (class Together-Zone extends Zone
   
   

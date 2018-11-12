@@ -34,9 +34,9 @@
 
 
 (definition protected (determine-settings-root)
-  (cond-expand (test  {Directory Home ".together" "test"})
+  (cond-expand (prod  {Directory Home ".together" "prod"})
                (stage {Directory Home ".together" "stage"})
-               (prod  {Directory Home ".together" "prod"})
+               (test  {Directory Home ".together" "test"})
                (else  {Directory Home ".together" "devel"})))
 
 
