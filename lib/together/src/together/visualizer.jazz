@@ -384,16 +384,25 @@
   (method (toggle-playing self)
     (let ((timeline (brother panel 'timeline)))
       (let ((playing? (not (get-playing? timeline))))
-        (set-playing? timeline playing?)
-        (if (not playing?)
-            (set-fast-playing? timeline #f)
-          (set-fast-playing? timeline (shift-down?))))))
+        (set-playing? timeline playing?))))
+  
+  
+  (method (toggle-fast-playing self)
+    (let ((world (current-world)))
+      (let ((timeline (brother panel 'timeline)))
+        (let ((fast-playing? (not (get-fast-playing? timeline))))
+          (set-fast-playing? timeline fast-playing?)
+          (redraw timeline)
+          (now-update timeline)
+          (display-on/off world "Fast playing" fast-playing?)))))
   
   
   (method override (key-press self evt)
     (case (get-key evt)
       ((#\space)
-       (toggle-playing self))))
+       (toggle-playing self))
+      ((#\f)
+       (toggle-fast-playing self))))
   
   
   (method override (left-arrow-press self modifiers)

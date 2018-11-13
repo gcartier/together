@@ -476,7 +476,8 @@
   
   (method override (now-update self)
     (let ((zone (current-zone)))
-      (timeline-view/now-update zone from to now (not visualize?)))))
+      (let ((update-evolution? (and (not visualize?) (not fast-playing?))))
+        (timeline-view/now-update zone from to now update-evolution?)))))
 
 
 ;;;
