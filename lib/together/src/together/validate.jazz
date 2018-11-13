@@ -90,9 +90,9 @@
                                           (fixnum->flonum origin)
                                           (fixnum->flonum kind)
                                           (fixnum->flonum sequence)
-                                          (fixnum->flonum frame)
                                           (fixnum->flonum part)
-                                          (fixnum->flonum total)))
+                                          (fixnum->flonum total)
+                                          -1.))
                           data))))
                 
                 @wait
@@ -135,7 +135,7 @@
                                      (let (looping)
                                        (when debug-validate?
                                          (terminal 'process))
-                                       (let ((info (process-wait receiver-ring udp-process-window average debug-process?)))
+                                       (let ((info (process-wait receiver-ring average debug-process?)))
                                          (when (neq? info 'terminate)
                                            (when debug-validate?
                                              (terminal 'present (read-udp-frame (car info))))

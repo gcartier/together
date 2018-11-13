@@ -25,6 +25,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.resource)
+        (jazz.stream)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -453,9 +454,10 @@
               #f)))
         
         (define (describe-packet packet)
-          (format "Header {a}, timestamp {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+          (format "Header {a}, timestamp {r precision: 3}, duration {r precision: 3}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                   (if (get-header? packet) 'yes 'no)
                   (get-timestamp packet)
+                  (/ (get-duration packet) nanosecond)
                   (get-sequence packet)
                   (get-frame packet)
                   (get-part packet)
