@@ -375,10 +375,12 @@
   
   
   (method (toggle-playing self)
-    (let ((timeline (brother panel 'timeline))
-          (fast? (shift-down?)))
-      (set-fast-playing? timeline fast?)
-      (set-playing? timeline (not (get-playing? timeline)))))
+    (let ((timeline (brother panel 'timeline)))
+      (let ((playing? (not (get-playing? timeline))))
+        (set-playing? timeline playing?)
+        (if (not playing?)
+            (set-fast-playing? timeline #f)
+          (set-fast-playing? timeline (shift-down?))))))
   
   
   (method override (key-press self evt)

@@ -48,7 +48,7 @@
         (together.visualizer))
 
 
-(definition package (timeline-view/now-update zone from to now update)
+(definition package (timeline-view/now-update zone from to now (update-evolution? #t))
   (let ((root (get-root zone))
         (replay (get-replay zone)))
     (let ((panel (child root 'evolution)))
@@ -60,10 +60,10 @@
         (when now
           (set-now replay now))
         (set-highlighted-cells replay '())
-        (when (and now (memq? update '(all visualizer)))
+        (when now
           (let ((visualizer (child root 'visualizer)))
             (visualize-time visualizer now)))
-        (when (memq? update '(all evolution))
+        (when update-evolution?
           (when now
             (display-evolutions zone now))
           (highlight-replay-value zone)
@@ -338,7 +338,7 @@
                                 (previous-element values evolutions-max)
                               (next-element values evolutions-max))))
                    (set-evolutions-max max)
-                   (timeline-view/now-update zone from to now 'evolution)))))
+                   (timeline-view/now-update zone from to now)))))
             (else
              (nextmethod self evt)))))
   
@@ -471,13 +471,12 @@
   
   (method override (view-update self)
     (let ((zone (current-zone)))
-      (timeline-view/now-update zone from to #f 'evolution)))
+      (timeline-view/now-update zone from to #f)))
   
   
-  (method override (now-update self (update #f))
+  (method override (now-update self)
     (let ((zone (current-zone)))
-      (let ((update (or update (if visualize? 'visualizer 'evolution))))
-        (timeline-view/now-update zone from to now update)))))
+      (timeline-view/now-update zone from to now (not visualize?)))))
 
 
 ;;;
