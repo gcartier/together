@@ -32,6 +32,7 @@
         (jazz.view)
         (jazz.window)
         (world)
+        (world.audio)
         (world.chronology)
         (world.client.udp)
         (world.context)
@@ -48,6 +49,7 @@
         (world.timeline)
         (world.visualization)
         (world.udp)
+        (world.video)
         (together))
 
 
@@ -71,6 +73,8 @@
   
   (slot replay                initialize #f accessors generate)
   (slot tier                  initialize #f accessors generate)
+  (slot origin-audio          initialize #f getter generate)
+  (slot origin-video          initialize #f getter generate)
   (slot origin-evolution      initialize #f getter generate)
   (slot server-evolution      initialize #f getter generate)
   (slot receiver-evolution    initialize #f getter generate)
@@ -91,16 +95,20 @@
   
   
   (form
-    (<install>                                background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
-      (<Border-View>            name: border  border-type: solid border-color: {Color Dark-Gray}
-        (<Tier-Visualizer>      name: tier
-          (<Channel-Visualizer> name: channel position: {Point 18 29} size: {Dimension 752 24})))))
+    (<install>                                  background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
+      (<Border-View>             name: border   border-type: solid border-color: {Color Dark-Gray}
+        (<Flow-Visualizer>       name: flow
+          (<Video-Visualizer>    name: video    position: {Point 27 31} @w {Point 18 25} size: {Dimension 160 90})
+          (<Sender-Visualizer>   name: sender   position: {Point 218 25} size: {Dimension 552 24})
+          (<Server-Visualizer>   name: server   position: {Point 218 65} size: {Dimension 552 24})
+          (<Receiver-Visualizer> name: receiver position: {Point 218 105} size: {Dimension 552 24})))))
   
   
   (method override (conclude self initargs)
     (nextmethod self initargs)
-    (set-panel (locate self 'tier) self)
-    (set-panel (locate self 'channel) self))
+    (set-panel (locate self 'flow) self)
+    (set-panel (locate self 'receiver) self)
+    (set-visualizer-render (~ render-video self)))
   
   
   (method protected (setup-visualizer self)
@@ -118,12 +126,15 @@
     (let ((channel (determine-channel channels)))
       (set! origin (and channel (car channel)))
       (set! media-kind (and channel (cdr channel)))
+      (set! origin-audio (and origin (audio-ref replay origin)))
+      (set! origin-video (and origin (video-ref replay origin)))
       (set! origin-evolution (and origin (evolution-ref replay origin)))
       (set! server-evolution (evolution-ref replay server-no))
       (set! receiver-evolution (evolution-ref replay tier))
       (set! selection #f)
       (set! selection-description #f)
       (setup-timeline self)
+      (set-%y replay)
       (set-%p self)
       (reset-visualizer self)))
   
@@ -143,7 +154,9 @@
       (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
       (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))
       (set! ring (get-process-ring channel))
-      (set! visualizer (visualize-call call client origin media-kind channel ring origin-evolution receiver-evolution)))
+      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-video origin-evolution receiver-evolution
+                            (and origin-audio (visualizer-output (current-audio)))
+                            (and origin-video (visualizer-output (current-video))))))
     (set-%c channel)
     (set-%e receiver-evolution)
     (set-%r ring)
@@ -175,6 +188,13 @@
         (draw-text surface (- width (get-width extent) 5) 3 title timeline-text-color))))
   
   
+  (method protected (render-video self)
+    (when visualizer
+      (let ((output (get-video-output visualizer)))
+        (when output
+          (render output)))))
+  
+  
   (method (setup-timeline self)
     (let ((timeline (brother self 'timeline)))
       (let ((start (evolutionary-time receiver-evolution (first-position receiver-evolution)))
@@ -204,14 +224,33 @@
 
 
 ;;;
-;;;; Tier
+;;;; Flow
 ;;;
 
 
-(class Tier-Visualizer extends View
+(class Flow-Visualizer extends View
   
   
   (slot panel initialize #f accessors generate)
+  
+  
+  (method override (draw self surface context)
+    (let ((h 300.)
+          (v 57.)
+          (size 4.)
+          (color {Color Blue}))
+      (loop (for n from 0 below 10)
+            (let ((h (+ h (* n 14.))))
+              (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                (ellipse$fl$ surface rect color color)))))
+    (let ((h 500.)
+          (v 97.)
+          (size 4.)
+          (color {Color Blue}))
+      (loop (for n from 0 below 10)
+            (let ((h (+ h (* n 20.))))
+              (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                (ellipse$fl$ surface rect color color))))))
   
   
   (method override (mouse-up self evt)
@@ -228,11 +267,65 @@
 
 
 ;;;
-;;;; Channel
+;;;; Video
 ;;;
 
 
-(class Channel-Visualizer extends View
+(class Video-Visualizer extends View
+  
+  
+  (method override (draw self surface context)
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((state-color {Color Light-Blue alpha: .8}))
+        (frame-rect surface (new Rect 0 0 width height) state-color)
+        @w(fill-rect surface (new Rect 1 1 (- width 1) (- height 1)) {Color Medium-Gray alpha: .8})))))
+
+
+;;;
+;;;; Sender
+;;;
+
+
+(class Sender-Visualizer extends View
+  
+  
+  (method override (draw self surface context)
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((top 3)
+            (bottom (- height 3))
+            (state-color {Color Light-Blue alpha: .8}))
+        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Green alpha: .8})))))
+
+
+;;;
+;;;; Server
+;;;
+
+
+(class Server-Visualizer extends View
+  
+  
+  (method override (draw self surface context)
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((top 3)
+            (bottom (- height 3))
+            (state-color {Color Green alpha: .8}))
+        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Yellow alpha: .8})))))
+
+
+;;;
+;;;; Receiver
+;;;
+
+
+(class Receiver-Visualizer extends View
   
   
   (slot panel initialize #f accessors generate)
@@ -259,6 +352,7 @@
                                    ((ok) {Color Green alpha: .8})
                                    ((late) {Color Light-Blue alpha: .8})
                                    ((waiting) {Color Red alpha: .8}))))
+                @w
                 (when (eq? (active-focus) self)
                   (frame-rect surface (new Rect 0 (- top 3) width (+ bottom 3)) state-color))
                 (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
