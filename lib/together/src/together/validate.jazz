@@ -41,7 +41,7 @@
   (world-setting 'together.debug-process? #f))
 
 
-(definition public (test-ring media-kind suite)
+(definition public (test-ring media-kind suite (start-time 0.))
   (declare (proper-tail-calls))
   (let ((world (current-world)))
     (let ((origin 1)
@@ -117,7 +117,7 @@
                                                  (simulation-evolution receiver-evolution))
                                     (for-each (lambda (info)
                                                 (bind (header? timestamp seconds sequence frame part total) info
-                                                  (let ((time (+ base seconds)))
+                                                  (let ((time (+ base (- seconds start-time))))
                                                     (sleep (- time (current-seconds)))
                                                     (when (or debug-validate? debug-insert?)
                                                       (terminal 'insert sequence frame))
