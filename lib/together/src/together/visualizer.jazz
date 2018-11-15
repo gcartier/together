@@ -81,13 +81,15 @@
   (slot receiver-evolution    initialize #f getter generate)
   (slot call                  initialize #f getter generate)
   (slot client                initialize #f getter generate)
-  (slot channels              initialize #f getter generate)
-  (slot channel               initialize #f getter generate)
+  (slot origins               initialize #f getter generate)
   (slot origin                initialize #f getter generate)
   (slot media-kind            initialize #f getter generate)
+  (slot audio-channel         initialize #f getter generate)
+  (slot video-channel         initialize #f getter generate)
   (slot giveup-window         initialize #f getter generate)
   (slot late-window           initialize #f getter generate)
-  (slot ring                  initialize #f getter generate)
+  (slot audio-ring            initialize #f getter generate)
+  (slot video-ring            initialize #f getter generate)
   (slot visualizer            initialize #f getter generate)
   (slot now                   initialize #f getter generate)
   (slot selection             initialize #f accessors generate)
@@ -98,8 +100,8 @@
   (form
     (<install>                                  background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
       (<Border-View>             name: border   border-type: solid border-color: {Color Dark-Gray}
-        (<Flow-Visualizer>       name: flow
-          (<Video-Visualizer>    name: video    position: {Point 27 31} @w {Point 18 25} size: {Dimension 160 90})
+        (<Stream-Visualizer>     name: stream
+          (<Video-Visualizer>    name: video    position: {Point 26 30} size: {Dimension 164 94})
           (<Sender-Visualizer>   name: sender   position: {Point 218 25} size: {Dimension 552 24})
           (<Server-Visualizer>   name: server   position: {Point 218 65} size: {Dimension 552 24})
           (<Receiver-Visualizer> name: receiver position: {Point 218 105} size: {Dimension 552 24})))))
@@ -107,21 +109,20 @@
   
   (method override (conclude self initargs)
     (nextmethod self initargs)
-    (set-panel (locate self 'flow) self)
+    (set-panel (locate self 'stream) self)
+    (set-panel (locate self 'video) self)
+    (set-panel (locate self 'sender) self)
+    (set-panel (locate self 'server) self)
     (set-panel (locate self 'receiver) self)
     (set-visualizer-render (~ render-video self)))
   
   
   (method protected (setup-visualizer self)
-    (define (collect-channels)
+    (define (collect-origins)
       (let ((metadata (metadata-ref replay tier)))
         (if (= (first metadata) server-no)
             '()
-          (sort nu<? (fourth metadata)))))
-    
-    (define (determine-channel channels)
-      (and (not-null? channels)
-           (car channels)))
+          (sort nu<? (remove-duplicates (map car (fourth metadata)))))))
     
     (define (setup-audio)
       (when origin
@@ -138,21 +139,26 @@
             (bind (ring header) info
               (set! origin-video ring))))))
     
-    (set! channels (collect-channels))
-    (let ((channel (determine-channel channels)))
-      (set! origin (and channel (car channel)))
-      (set! media-kind (and channel (cdr channel)))
-      (set! origin-evolution (and origin (evolution-ref replay origin)))
-      (set! server-evolution (evolution-ref replay server-no))
-      (set! receiver-evolution (evolution-ref replay tier))
-      (set! selection #f)
-      (set! selection-description #f)
-      (setup-audio)
-      (setup-video)
-      (setup-timeline self)
-      (set-%y replay)
-      (set-%p self)
-      (reset-visualizer self)))
+    (set! origins (collect-origins))
+    (set! origin (and (not-null? origins) (car origins)))
+    (set! media-kind udp-video)
+    (set! origin-evolution (and origin (evolution-ref replay origin)))
+    (set! server-evolution (evolution-ref replay server-no))
+    (set! receiver-evolution (evolution-ref replay tier))
+    (set! selection #f)
+    (set! selection-description #f)
+    (setup-audio)
+    (setup-video)
+    (setup-timeline self)
+    (set-%y replay)
+    (set-%p self)
+    (reset-media-kind self)
+    (reset-visualizer self))
+  
+  
+  (method protected (reset-media-kind self)
+    (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
+    (set! late-window (if (= media-kind udp-audio) 0. udp-video-late)))
   
   
   ;; quicky to setup everything again
@@ -161,21 +167,23 @@
         (begin
           (set! call #f)
           (set! client #f)
-          (set! channel #f)
-          (set! ring #f)
+          (set! audio-channel #f)
+          (set! video-channel #f)
+          (set! audio-ring #f)
+          (set! video-ring #f)
           (set! visualizer #f))
       (set! call (simulate-udp-call (get-names replay)))
       (set! client (require-tier call tier))
-      (set! channel (find-receive-channel client origin media-kind))
-      (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
-      (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))
-      (set! ring (get-process-ring channel))
-      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution
+      (set! audio-channel (find-receive-channel client origin udp-audio))
+      (set! video-channel (find-receive-channel client origin udp-video))
+      (set! audio-ring (get-process-ring audio-channel))
+      (set! video-ring (get-process-ring video-channel))
+      (set! visualizer (new UDP-Visualizer call client origin audio-ring video-ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution
                             (and origin-audio (visualizer-output (current-audio)))
                             (and origin-video (visualizer-output (current-video))))))
-    (set-%c channel)
+    (set-%c video-channel)
     (set-%e receiver-evolution)
-    (set-%r ring)
+    (set-%r video-ring)
     (set-%v visualizer))
   
   
@@ -205,10 +213,13 @@
   
   
   (method protected (render-video self)
-    (when visualizer
-      (let ((output (get-video-output visualizer)))
-        (when output
-          (render output)))))
+    (let ((zone (current-zone)))
+      (when (and (is? zone together.community:Community-Zone)
+                 (eq? (get-stage zone) 'replay)
+                 visualizer)
+        (let ((output (get-video-output visualizer)))
+          (when output
+            (render output))))))
   
   
   (method (setup-timeline self)
@@ -219,32 +230,31 @@
         (set-visualizer-end timeline end))))
   
   
-  (method protected (cycle-channels self reversed?)
-    (when channel
-      (let ((key (cons (get-origin channel) (get-media-kind channel))))
-        (let ((new-key (if reversed?
-                           (previous-element channels key test: equal?)
-                         (next-element channels key test: equal?))))
-          (set! origin (car new-key))
-          (set! media-kind (cdr new-key))
-          (set! origin-evolution (evolution-ref replay origin))
-          (set! server-evolution (evolution-ref replay server-no))
-          (set! receiver-evolution (evolution-ref replay tier))
-          (set! selection #f)
-          (set! selection-description #f)
-          (setup-timeline self)
-          (reset-visualizer self)
-          (when now
-            (visualize-time self now))
-          (invalidate-view self))))))
+  (method protected (cycle-origins self reversed?)
+    (set! media-kind (if (= media-kind udp-audio) udp-video udp-audio))
+    (reset-media-kind self)
+    (invalidate-view self)
+    @wait
+    (when origin
+      (set! origin (cycle-element origins origin reversed?: reversed?))
+      (set! origin-evolution (evolution-ref replay origin))
+      (set! server-evolution (evolution-ref replay server-no))
+      (set! receiver-evolution (evolution-ref replay tier))
+      (set! selection #f)
+      (set! selection-description #f)
+      (setup-timeline self)
+      (reset-visualizer self)
+      (when now
+        (visualize-time self now))
+      (invalidate-view self))))
 
 
 ;;;
-;;;; Flow
+;;;; Stream
 ;;;
 
 
-(class Flow-Visualizer extends View
+(class Stream-Visualizer extends View
   
   
   (slot panel initialize #f accessors generate)
@@ -277,7 +287,7 @@
              (between? h 0 90)))
       
       (cond ((in-tier?)
-             (cycle-channels panel (get-shift? evt)))
+             (cycle-origins panel (get-shift? evt)))
             (else
              (nextmethod self evt))))))
 
@@ -290,206 +300,35 @@
 (class Video-Visualizer extends View
   
   
-  (method override (draw self surface context)
-    (let ((width (get-width size))
-          (height (get-height size)))
-      (let ((state-color {Color Light-Blue alpha: .8}))
-        (frame-rect surface (new Rect 0 0 width height) state-color)
-        @w(fill-rect surface (new Rect 1 1 (- width 1) (- height 1)) {Color Medium-Gray alpha: .8})))))
-
-
-;;;
-;;;; Sender
-;;;
-
-
-(class Sender-Visualizer extends View
-  
-  
-  (method override (draw self surface context)
-    (let ((width (get-width size))
-          (height (get-height size)))
-      (let ((top 3)
-            (bottom (- height 3))
-            (state-color {Color Light-Blue alpha: .8}))
-        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Green alpha: .8})))))
-
-
-;;;
-;;;; Server
-;;;
-
-
-(class Server-Visualizer extends View
-  
-  
-  (method override (draw self surface context)
-    (let ((width (get-width size))
-          (height (get-height size)))
-      (let ((top 3)
-            (bottom (- height 3))
-            (state-color {Color Green alpha: .8}))
-        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Yellow alpha: .8})))))
-
-
-;;;
-;;;; Receiver
-;;;
-
-
-(class Receiver-Visualizer extends View
-  
-  
   (slot panel initialize #f accessors generate)
   
   
   (method override (draw self surface context)
-    (let ((channel (get-channel panel))
-          (ring (get-ring panel))
-          (giveup-window (get-giveup-window panel))
-          (late-window (get-late-window panel)))
-      (when channel
-        (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
-              (width (get-width size))
-              (height (get-height size)))
-          (with-boundaries self
-            (lambda (left-x right-x present-x before-x)
-              (let ((after-h (fxround (interpolate visualizer-after 0. total left-x right-x)))
-                    (freeze-h (fxround (interpolate (+ visualizer-after giveup-window (- late-window)) 0. total left-x right-x)))
-                    (present-h (fxround present-x))
-                    (before-h (fxround (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
-                    (top 3)
-                    (bottom (- height 3))
-                    (state-color (case (get-state ring)
-                                   ((ok) {Color Green alpha: .8})
-                                   ((late) {Color Light-Blue alpha: .8})
-                                   ((waiting) {Color Red alpha: .8}))))
-                @w
-                (when (eq? (active-focus) self)
-                  (frame-rect surface (new Rect 0 (- top 3) width (+ bottom 3)) state-color))
-                (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-                (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-                (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
-                (fill-rect surface (new Rect after-h top freeze-h bottom) {Color Orange alpha: .8})
-                (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
-                (fill-rect surface (new Rect present-h top before-h bottom) {Color Yellow alpha: .8})
-                (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
-                (draw-ring self surface left-x right-x present-x before-x))))))))
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((state-color {Color Light-Blue alpha: .8}))
+        (when (eq? (active-focus) self)
+          (frame-rect surface (new Rect 0 0 width height) state-color))
+        (frame-rect surface (new Rect 1 1 (- width 1) (- height 1)) state-color)
+        (fill-rect surface (new Rect 2 2 (- width 2) (- height 2)) {Color Gray alpha: .1}))))
   
   
-  (method (draw-ring self surface left-x right-x present-x before-x)
-    (let ((replay (get-replay panel))
-          (ring (get-ring panel))
-          (now (get-now panel))
-          (visualizer (get-visualizer panel))
-          (selection (get-selection panel)))
-      (when (and ring now)
-        (let ((base-time (get-base-time replay))
-              (drawn (make-table test: eqv?)))
-          (iterate-table-safe (get-removes visualizer)
-            (lambda (sequence info)
-              (bind (packet time complete?) info
-                (let ((full .015))
-                  (let ((age (- now time)))
-                    (if (>= age full)
-                        (begin
-                          (table-clear (get-adds visualizer) sequence)
-                          (table-clear (get-removes visualizer) sequence))
-                      (with-packet self left-x right-x present-x before-x packet
-                        (lambda (selection-frame? h v)
-                          (let ((size (interpolate age 0. full 4. 1.)))
-                            (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
-                              (let ((frame (get-frame packet))
-                                    (header? (get-header? packet)))
-                                (let ((color (if header?
-                                                 {Color Purple}
-                                               {Color Blue})))
-                                  (cond ((not frame)
-                                         (ellipse$fl$ surface rect color #f))
-                                        ((not selection-frame?)
-                                         (ellipse$fl$ surface rect color (and complete? color)))
-                                        (else
-                                         (ellipse$fl$ surface rect color (and (get-data packet) color))))))
-                              (when (and selection (eq? (get-sequence packet) selection))
-                                (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
-          (iterate-packets self left-x right-x present-x before-x
-            (lambda (index packet selection-frame? h v)
-              (let ((full .015))
-                (let ((age (- now (table-ref (get-adds visualizer) (get-sequence packet) #f))))
-                  (let ((size (cond ((<= age 0.) 1.)
-                                    ((>= age full) 4.)
-                                    (else (interpolate age 0. full 1. 4.)))))
-                    (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
-                      (let ((frame (get-frame packet))
-                            (header? (get-header? packet)))
-                        (let ((color (if header?
-                                         {Color Purple}
-                                       {Color Blue})))
-                          (cond ((not frame)
-                                 (ellipse$fl$ surface rect color #f))
-                                ((not selection-frame?)
-                                 (unless (table-ref drawn frame #f)
-                                   (ellipse$fl$ surface rect color (and (frame-complete? ring index) color))
-                                   (table-set! drawn frame #t)))
-                                (else
-                                 (ellipse$fl$ surface rect color (and (get-data packet) color))))))
-                      (when (and selection (eq? (get-sequence packet) selection))
-                        (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
+  (method override (focus-gained self)
+    (nextmethod self)
+    (invalidate-view self))
   
   
-  (method (with-boundaries self proc)
-    (let ((giveup-window (get-giveup-window panel)))
-      (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
-            (left-x 3.)
-            (right-x (cast <fl> (- (get-width size) 3))))
-        (let ((present-x (interpolate (+ visualizer-after giveup-window) 0. total left-x right-x))
-              (before-x (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
-          (proc left-x right-x present-x before-x)))))
+  (method override (focus-lost self)
+    (nextmethod self)
+    (invalidate-view self))
   
   
-  (method (with-packet self left-x right-x present-x before-x packet proc)
-    (let ((ring (get-ring panel))
-          (now (get-now panel))
-          (selection-frame (get-selection-frame panel)))
-      (let ((time (+ (get-time-base ring) (get-timestamp packet)))
-            (frame (get-frame packet)))
-        (let ((h (interpolate now (+ time udp-process-window) time present-x before-x))
-              (v 12.)
-              (selection-frame? (and frame selection-frame (= frame selection-frame))))
-          (define (call-proc h v)
-            (let ((h (max left-x (min h right-x))))
-              (proc selection-frame? h v)))
-          
-          (if selection-frame?
-              (let ((part (get-part packet))
-                    (total (get-total packet)))
-                (let ((width (- (* 10 total) 1)))
-                  (let ((h (+ (- h (quotient width 2)) (* 10 part))))
-                    (call-proc h v))))
-            (let ((width 8))
-              (let ((h (- h (quotient width 2))))
-                (call-proc h v))))))))
+  (method override (mouse-down self evt)
+    (acquire-focus self))
   
   
-  (method (iterate-packets self left-x right-x present-x before-x proc)
-    (let ((ring (get-ring panel)))
-      (define (collect-indexes)
-        (let ((queue (new-queue)))
-          (iterate-indexes ring
-            (lambda (index)
-              (enqueue queue index)))
-          (queue-list queue)))
-      
-      (for-each (lambda (index)
-                  (let ((packet (packet-ref ring index)))
-                    (with-packet self left-x right-x present-x before-x packet
-                      (lambda (selection-frame? h v)
-                        (proc index packet selection-frame? h v)))))
-                (collect-indexes))))
+  (method override (double-click self evt)
+    (toggle-playing self))
   
   
   (method (toggle-playing self)
@@ -533,55 +372,243 @@
   (method override (down-arrow-press self modifiers)
     (let ((timeline (brother panel 'timeline)))
       (play-slower timeline))
-    (invalidate-view panel))
+    (invalidate-view panel)))
+
+
+;;;
+;;;; Tier
+;;;
+
+
+(class Tier-Visualizer extends View
   
   
-  (method override (focus-gained self)
-    (nextmethod self)
-    (invalidate-view self))
+  (slot panel initialize #f accessors generate))
+
+
+;;;
+;;;; Sender
+;;;
+
+
+(class Sender-Visualizer extends Tier-Visualizer
   
   
-  (method override (focus-lost self)
-    (nextmethod self)
-    (invalidate-view self))
+  (method override (draw self surface context)
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((top 3)
+            (bottom (- height 3))
+            (state-color {Color Light-Blue alpha: .8}))
+        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Green alpha: .8})))))
+
+
+;;;
+;;;; Server
+;;;
+
+
+(class Server-Visualizer extends Tier-Visualizer
   
   
-  (method override (mouse-down self evt)
-    (acquire-focus self))
+  (method override (draw self surface context)
+    (let ((width (get-width size))
+          (height (get-height size)))
+      (let ((top 3)
+            (bottom (- height 3))
+            (state-color {Color Green alpha: .8}))
+        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Yellow alpha: .8})))))
+
+
+;;;
+;;;; Receiver
+;;;
+
+
+(class Receiver-Visualizer extends Tier-Visualizer
+  
+  
+  (method override (draw self surface context)
+    (let ((media-kind (get-media-kind panel))
+          (audio-ring (get-audio-ring panel))
+          (video-ring (get-video-ring panel))
+          (giveup-window (get-giveup-window panel))
+          (late-window (get-late-window panel))
+          (visualizer (get-visualizer panel)))
+      (when (and audio-ring video-ring)
+        (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
+              (width (get-width size))
+              (height (get-height size)))
+          (with-boundaries self
+            (lambda (left-x right-x present-x before-x)
+              (let ((after-h (fxround (interpolate visualizer-after 0. total left-x right-x)))
+                    (freeze-h (fxround (interpolate (+ visualizer-after giveup-window (- late-window)) 0. total left-x right-x)))
+                    (present-h (fxround present-x))
+                    (before-h (fxround (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
+                    (top 3)
+                    (bottom (- height 3))
+                    (state-color (case (get-state video-ring)
+                                   ((ok) {Color Green alpha: .8})
+                                   ((late) {Color Light-Blue alpha: .8})
+                                   ((waiting) {Color Red alpha: .8}))))
+                (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+                (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+                (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
+                (fill-rect surface (new Rect after-h top freeze-h bottom) {Color Orange alpha: .8})
+                (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
+                (fill-rect surface (new Rect present-h top before-h bottom) {Color Yellow alpha: .8})
+                (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
+                (ecase media-kind
+                  ((udp-audio)
+                   (draw-ring self surface left-x right-x present-x before-x audio-ring (get-audio-adds visualizer) (get-audio-removes visualizer) 8))
+                  ((udp-video)
+                   (draw-ring self surface left-x right-x present-x before-x video-ring (get-video-adds visualizer) (get-video-removes visualizer) 8))))))))))
+  
+  
+  (method (draw-ring self surface left-x right-x present-x before-x ring adds removes offset)
+    (let ((replay (get-replay panel))
+          (now (get-now panel))
+          (visualizer (get-visualizer panel))
+          (selection (get-selection panel)))
+      (when (and ring now)
+        (let ((base-time (get-base-time replay))
+              (drawn (make-table test: eqv?)))
+          (iterate-table-safe removes
+            (lambda (sequence info)
+              (bind (packet time complete?) info
+                (let ((full .015))
+                  (let ((age (- now time)))
+                    (if (>= age full)
+                        (begin
+                          (table-clear adds sequence)
+                          (table-clear removes sequence))
+                      (with-packet self left-x right-x present-x before-x ring offset packet
+                        (lambda (selection-frame? h v)
+                          (let ((size (interpolate age 0. full 4. 1.)))
+                            (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                              (let ((frame (get-frame packet))
+                                    (header? (get-header? packet)))
+                                (let ((color (if header?
+                                                 {Color Purple}
+                                               {Color Blue})))
+                                  (cond ((not frame)
+                                         (ellipse$fl$ surface rect color #f))
+                                        ((not selection-frame?)
+                                         (ellipse$fl$ surface rect color (and complete? color)))
+                                        (else
+                                         (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                              (when (and selection (eq? (get-sequence packet) selection))
+                                (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
+          (iterate-packets self left-x right-x present-x before-x ring offset
+            (lambda (index packet selection-frame? h v)
+              (let ((full .015))
+                (let ((age (- now (table-ref adds (get-sequence packet) #f))))
+                  (let ((size (cond ((<= age 0.) 1.)
+                                    ((>= age full) 4.)
+                                    (else (interpolate age 0. full 1. 4.)))))
+                    (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
+                      (let ((frame (get-frame packet))
+                            (header? (get-header? packet)))
+                        (let ((color (if header?
+                                         {Color Purple}
+                                       {Color Blue})))
+                          (cond ((not frame)
+                                 (ellipse$fl$ surface rect color #f))
+                                ((not selection-frame?)
+                                 (unless (table-ref drawn frame #f)
+                                   (ellipse$fl$ surface rect color (and (frame-complete? ring index) color))
+                                   (table-set! drawn frame #t)))
+                                (else
+                                 (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                      (when (and selection (eq? (get-sequence packet) selection))
+                        (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
+  
+  
+  (method (with-boundaries self proc)
+    (let ((giveup-window (get-giveup-window panel)))
+      (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
+            (left-x 3.)
+            (right-x (cast <fl> (- (get-width size) 3))))
+        (let ((present-x (interpolate (+ visualizer-after giveup-window) 0. total left-x right-x))
+              (before-x (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
+          (proc left-x right-x present-x before-x)))))
+  
+  
+  (method (with-packet self left-x right-x present-x before-x ring offset packet proc)
+    (let ((now (get-now panel))
+          (selection-frame (get-selection-frame panel))
+          (time-base (get-time-base ring)))
+      ;; quick test
+      (when time-base
+        (let ((time (+ time-base (get-timestamp packet)))
+            (frame (get-frame packet)))
+        (let ((h (interpolate now (+ time udp-process-window) time present-x before-x))
+              (v (+ offset 4.))
+              (selection-frame? (and frame selection-frame (= frame selection-frame))))
+          (define (call-proc h v)
+            (let ((h (max left-x (min h right-x))))
+              (proc selection-frame? h v)))
+          
+          (if selection-frame?
+              (let ((part (get-part packet))
+                    (total (get-total packet)))
+                (let ((width (- (* 10 total) 1)))
+                  (let ((h (+ (- h (quotient width 2)) (* 10 part))))
+                    (call-proc h v))))
+            (let ((width 8))
+              (let ((h (- h (quotient width 2))))
+                (call-proc h v)))))))))
+  
+  
+  (method (iterate-packets self left-x right-x present-x before-x ring offset proc)
+    (define (collect-indexes)
+      (let ((queue (new-queue)))
+        (iterate-indexes ring
+          (lambda (index)
+            (enqueue queue index)))
+        (queue-list queue)))
+    
+    (for-each (lambda (index)
+                (let ((packet (packet-ref ring index)))
+                  (with-packet self left-x right-x present-x before-x ring offset packet
+                    (lambda (selection-frame? h v)
+                      (proc index packet selection-frame? h v)))))
+              (collect-indexes)))
   
   
   (method override (mouse-up self evt)
-    (with-boundaries self
-      (lambda (left-x right-x present-x before-x)
-        (define (find-packet h)
-          (continuation-capture
-            (lambda (return)
-              (iterate-packets self left-x right-x present-x before-x
-                (lambda (index packet selection-frame? packet-h packet-v)
-                  (when (and (>= h (- packet-h 4))
-                             (<= h (+ packet-h 4)))
-                    (continuation-return return packet))))
-              #f)))
-        
-        (define (describe-packet packet)
-          (format "Header {a}, timestamp {r precision: 3}, duration {r precision: 3}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-                  (if (get-header? packet) 'yes 'no)
-                  (get-timestamp packet)
-                  (/ (get-duration packet) nanosecond)
-                  (get-sequence packet)
-                  (get-frame packet)
-                  (get-part packet)
-                  (get-total packet)
-                  (if (get-data packet) 'yes 'no)))
-        
-        (acquire-focus self)
-        (let ((packet (find-packet (get-h evt))))
-          (when (neq? packet (get-selection panel))
-            (set-selection panel (and packet (get-sequence packet)))
-            (set-selection-frame panel (and packet (get-frame packet)))
-            (set-selection-description panel (and packet (describe-packet packet)))
-            (invalidate-view panel))))))
-  
-  
-  (method override (double-click self evt)
-    (toggle-playing self))))
+    (let ((video-ring (get-video-ring panel)))
+      (with-boundaries self
+        (lambda (left-x right-x present-x before-x)
+          (define (find-packet h)
+            (continuation-capture
+              (lambda (return)
+                (iterate-packets self left-x right-x present-x before-x video-ring 8
+                  (lambda (index packet selection-frame? packet-h packet-v)
+                    (when (and (>= h (- packet-h 4))
+                               (<= h (+ packet-h 4)))
+                      (continuation-return return packet))))
+                #f)))
+          
+          (define (describe-packet packet)
+            (format "Header {a}, timestamp {r precision: 3}, duration {r precision: 3}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                    (if (get-header? packet) 'yes 'no)
+                    (get-timestamp packet)
+                    (/ (get-duration packet) nanosecond)
+                    (get-sequence packet)
+                    (get-frame packet)
+                    (get-part packet)
+                    (get-total packet)
+                    (if (get-data packet) 'yes 'no)))
+          
+          (acquire-focus self)
+          (let ((packet (find-packet (get-h evt))))
+            (when (neq? packet (get-selection panel))
+              (set-selection panel (and packet (get-sequence packet)))
+              (set-selection-frame panel (and packet (get-frame packet)))
+              (set-selection-description panel (and packet (describe-packet packet)))
+              (invalidate-view panel)))))))))
