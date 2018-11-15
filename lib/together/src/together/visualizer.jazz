@@ -74,6 +74,7 @@
   (slot replay                initialize #f accessors generate)
   (slot tier                  initialize #f accessors generate)
   (slot origin-audio          initialize #f getter generate)
+  (slot origin-audio-headers  initialize #f getter generate)
   (slot origin-video          initialize #f getter generate)
   (slot origin-evolution      initialize #f getter generate)
   (slot server-evolution      initialize #f getter generate)
@@ -122,17 +123,32 @@
       (and (not-null? channels)
            (car channels)))
     
+    (define (setup-audio)
+      (when origin
+        (let ((info (audio-ref replay origin)))
+          (when info
+            (bind (ring headers) info
+              (set! origin-audio ring)
+              (set! origin-audio-headers headers))))))
+    
+    (define (setup-video)
+      (when origin
+        (let ((info (video-ref replay origin)))
+          (when info
+            (bind (ring headers) info
+              (set! origin-video ring))))))
+    
     (set! channels (collect-channels))
     (let ((channel (determine-channel channels)))
       (set! origin (and channel (car channel)))
       (set! media-kind (and channel (cdr channel)))
-      (set! origin-audio (and origin (audio-ref replay origin)))
-      (set! origin-video (and origin (video-ref replay origin)))
       (set! origin-evolution (and origin (evolution-ref replay origin)))
       (set! server-evolution (evolution-ref replay server-no))
       (set! receiver-evolution (evolution-ref replay tier))
       (set! selection #f)
       (set! selection-description #f)
+      (setup-audio)
+      (setup-video)
       (setup-timeline self)
       (set-%y replay)
       (set-%p self)
@@ -154,7 +170,7 @@
       (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
       (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))
       (set! ring (get-process-ring channel))
-      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-video origin-evolution receiver-evolution
+      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-audio-headers origin-video origin-evolution receiver-evolution
                             (and origin-audio (visualizer-output (current-audio)))
                             (and origin-video (visualizer-output (current-video))))))
     (set-%c channel)
