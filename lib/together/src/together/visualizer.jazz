@@ -74,7 +74,7 @@
   (slot replay                initialize #f accessors generate)
   (slot tier                  initialize #f accessors generate)
   (slot origin-audio          initialize #f getter generate)
-  (slot origin-audio-headers  initialize #f getter generate)
+  (slot origin-audio-header   initialize #f getter generate)
   (slot origin-video          initialize #f getter generate)
   (slot origin-evolution      initialize #f getter generate)
   (slot server-evolution      initialize #f getter generate)
@@ -127,15 +127,15 @@
       (when origin
         (let ((info (audio-ref replay origin)))
           (when info
-            (bind (ring headers) info
+            (bind (ring header) info
               (set! origin-audio ring)
-              (set! origin-audio-headers headers))))))
+              (set! origin-audio-header header))))))
     
     (define (setup-video)
       (when origin
         (let ((info (video-ref replay origin)))
           (when info
-            (bind (ring headers) info
+            (bind (ring header) info
               (set! origin-video ring))))))
     
     (set! channels (collect-channels))
@@ -170,7 +170,7 @@
       (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
       (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))
       (set! ring (get-process-ring channel))
-      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-audio-headers origin-video origin-evolution receiver-evolution
+      (set! visualizer (new UDP-Visualizer call client origin media-kind channel ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution
                             (and origin-audio (visualizer-output (current-audio)))
                             (and origin-video (visualizer-output (current-video))))))
     (set-%c channel)
