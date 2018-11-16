@@ -609,13 +609,13 @@
   
   
   (method override (mouse-up self evt)
-    (let ((video-ring (get-video-ring panel)))
+    (let ((ring (if (= (get-media-kind panel) udp-audio) (get-audio-ring panel) (get-video-ring panel))))
       (with-boundaries self
         (lambda (left-x right-x present-x before-x)
           (define (find-packet h)
             (continuation-capture
               (lambda (return)
-                (iterate-packets self left-x right-x present-x before-x video-ring 8
+                (iterate-packets self left-x right-x present-x before-x ring 8
                   (lambda (index packet selection-frame? packet-h packet-v)
                     (when (and (>= h (- packet-h 4))
                                (<= h (+ packet-h 4)))
