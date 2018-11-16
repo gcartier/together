@@ -51,7 +51,8 @@
         (world.udp)
         (world.video)
         (together)
-        (together.emulation))
+        (together.emulation)
+        (together.zone))
 
 
 (definition protected visualizer-text-color
@@ -319,6 +320,9 @@
   (method (toggle-playing self)
     (let ((timeline (brother panel 'timeline)))
       (let ((playing? (not (get-playing? timeline))))
+        (if playing?
+            (uninstall-camera)
+          (install-camera))
         (set-playing? timeline playing?))))
   
   

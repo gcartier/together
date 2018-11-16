@@ -315,19 +315,21 @@
 (definition package (install-camera)
   (let ((window (current-window))
         (zone (current-zone)))
-    (set! camera-tick path-camera)
-    (register-tick zone camera-tick)
-    ;; removes tearing in the pathing
-    (enable-vsync window)
-    (path-camera 0.)))
+    (unless camera-tick
+      (set! camera-tick path-camera)
+      (register-tick zone camera-tick)
+      ;; removes tearing in the pathing
+      (enable-vsync window)
+      (path-camera 0.))))
 
 
 (definition package (uninstall-camera)
   (let ((window (current-window))
         (zone (current-zone)))
-    (unregister-tick zone camera-tick)
-    (disable-vsync window)
-    (set! camera-tick #f)))
+    (when camera-tick
+      (unregister-tick zone camera-tick)
+      (disable-vsync window)
+      (set! camera-tick #f))))
 
 
 (definition package (path-camera elapse)
