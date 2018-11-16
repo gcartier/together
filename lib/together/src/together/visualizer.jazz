@@ -90,6 +90,10 @@
   (slot late-window           initialize #f getter generate)
   (slot audio-ring            initialize #f getter generate)
   (slot video-ring            initialize #f getter generate)
+  (slot audio-output          initialize #f getter generate)
+  (slot video-output          initialize #f getter generate)
+  (slot video-position        initialize #f accessors generate)
+  (slot video-size            initialize #f accessors generate)
   (slot visualizer            initialize #f getter generate)
   (slot now                   initialize #f getter generate)
   (slot selection             initialize #f accessors generate)
@@ -147,6 +151,8 @@
     (set! receiver-evolution (evolution-ref replay tier))
     (set! selection #f)
     (set! selection-description #f)
+    (set! video-position {Point 184 43})
+    (set! video-size {Dimension 160 90})
     (setup-audio)
     (setup-video)
     (setup-timeline self)
@@ -178,9 +184,13 @@
       (set! video-channel (find-receive-channel client origin udp-video))
       (set! audio-ring (get-process-ring audio-channel))
       (set! video-ring (get-process-ring video-channel))
-      (set! visualizer (new UDP-Visualizer call client origin audio-ring video-ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution
-                            (and origin-audio (visualizer-output (current-audio)))
-                            (and origin-video (visualizer-output (current-video))))))
+      (when audio-output
+        (release audio-output))
+      (set! audio-output (and origin-audio (visualizer-output (current-audio))))
+      (when video-output
+        (release video-output))
+      (set! video-output (and origin-video (visualizer-output (current-video) video-position video-size)))
+      (set! visualizer (new UDP-Visualizer call client origin audio-ring video-ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-output video-output)))
     (set-%c video-channel)
     (set-%e receiver-evolution)
     (set-%r video-ring)
@@ -337,14 +347,32 @@
         (set-playing? timeline playing?))))
   
   
-  (method (toggle-fast-playing self)
+  (method (toggle-full-mode self)
     (let ((world (current-world)))
-      (let ((timeline (brother panel 'timeline)))
-        (let ((fast-playing? (not (get-fast-playing? timeline))))
-          (set-fast-playing? timeline fast-playing?)
+      (let ((timeline (brother panel 'timeline))
+            (sheet (get-sheet (get-video-output (get-visualizer panel)))))
+        (let ((full-mode? (not (get-full-mode? timeline))))
+          (set-full-mode? timeline full-mode?)
+          (cond (full-mode?
+                 (let ((width (cast <fl> (- (get-width panel) 2))))
+                   (let ((height (/ (* width 9.) 16.)))
+                     (let ((evolution (brother panel 'evolution)))
+                       (let ((position (new Point 156 (+ (get-v (get-position evolution)) (- (get-height evolution) (fxround height)) -1)))
+                             (size (new Dimension (fxround width) (fxround height))))
+                         (set-position sheet position)
+                         (set-size sheet size)
+                         (set-video-position panel position)
+                         (set-video-size panel size))))))
+                (else
+                 (let ((position {Point 184 43})
+                       (size {Dimension 160 90}))
+                   (set-position sheet position)
+                   (set-size sheet size)
+                   (set-video-position panel position)
+                   (set-video-size panel size))))
           (redraw timeline)
           (now-update timeline)
-          (display-on/off world "Fast playing" fast-playing?)))))
+          (display-on/off world "Full mode" full-mode?)))))
   
   
   (method override (key-press self evt)
@@ -352,7 +380,7 @@
       ((#\space)
        (toggle-playing self))
       ((#\f)
-       (toggle-fast-playing self))))
+       (toggle-full-mode self))))
   
   
   (method override (left-arrow-press self modifiers)
@@ -605,7 +633,6 @@
                     (get-total packet)
                     (if (get-data packet) 'yes 'no)))
           
-          (acquire-focus self)
           (let ((packet (find-packet (get-h evt))))
             (when (neq? packet (get-selection panel))
               (set-selection panel (and packet (get-sequence packet)))
