@@ -50,7 +50,8 @@
         (world.visualization)
         (world.udp)
         (world.video)
-        (together))
+        (together)
+        (together.emulation))
 
 
 (definition protected visualizer-text-color
@@ -80,21 +81,12 @@
   (slot server-evolution      initialize #f getter generate)
   (slot receiver-evolution    initialize #f getter generate)
   (slot call                  initialize #f getter generate)
-  (slot client                initialize #f getter generate)
   (slot origins               initialize #f getter generate)
   (slot origin                initialize #f getter generate)
   (slot media-kind            initialize #f getter generate)
-  (slot audio-channel         initialize #f getter generate)
-  (slot video-channel         initialize #f getter generate)
   (slot giveup-window         initialize #f getter generate)
   (slot late-window           initialize #f getter generate)
-  (slot audio-ring            initialize #f getter generate)
-  (slot video-ring            initialize #f getter generate)
-  (slot audio-output          initialize #f getter generate)
-  (slot video-output          initialize #f getter generate)
-  (slot video-position        initialize #f accessors generate)
-  (slot video-size            initialize #f accessors generate)
-  (slot visualizer            initialize #f getter generate)
+  (slot emulator              initialize #f getter generate)
   (slot now                   initialize #f getter generate)
   (slot selection             initialize #f accessors generate)
   (slot selection-frame       initialize #f accessors generate)
@@ -151,15 +143,13 @@
     (set! receiver-evolution (evolution-ref replay tier))
     (set! selection #f)
     (set! selection-description #f)
-    (set! video-position {Point 184 43})
-    (set! video-size {Dimension 160 90})
     (setup-audio)
     (setup-video)
     (setup-timeline self)
-    (set-%y replay)
-    (set-%p self)
     (reset-media-kind self)
-    (reset-visualizer self))
+    (reset-emulator self)
+    (set-%r replay)
+    (set-%v self))
   
   
   (method protected (reset-media-kind self)
@@ -168,46 +158,31 @@
   
   
   ;; quicky to setup everything again
-  (method protected (reset-visualizer self)
+  (method protected (reset-emulator self)
     (if (not origin)
         (begin
           (set! call #f)
-          (set! client #f)
-          (set! audio-channel #f)
-          (set! video-channel #f)
-          (set! audio-ring #f)
-          (set! video-ring #f)
-          (set! visualizer #f))
+          (set! emulator #f))
       (set! call (simulate-udp-call (get-names replay)))
-      (set! client (require-tier call tier))
-      (set! audio-channel (find-receive-channel client origin udp-audio))
-      (set! video-channel (find-receive-channel client origin udp-video))
-      (set! audio-ring (get-process-ring audio-channel))
-      (set! video-ring (get-process-ring video-channel))
-      (when audio-output
-        (release audio-output))
-      (set! audio-output (and origin-audio (visualizer-output (current-audio))))
-      (when video-output
-        (release video-output))
-      (set! video-output (and origin-video (visualizer-output (current-video) video-position video-size)))
-      (set! visualizer (new UDP-Visualizer call client origin audio-ring video-ring origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-output video-output)))
-    (set-%c video-channel)
-    (set-%e receiver-evolution)
-    (set-%r video-ring)
-    (set-%v visualizer))
+      (set! emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution))
+      (set-emulator (locate self 'receiver) emulator)))
   
   
   (method protected (visualize-time self time)
-    (parameterize ((visualization? #t))
+    (parameterize ((emulation? #t))
       (when origin
-        (let ((last-time (get-last-time visualizer))
-              (last-event (get-last-event visualizer)))
-          (if (and last-time (> time last-time))
-              (visualize-from visualizer (+ last-event 1) time)
-            (reset-visualizer self)
-            (visualize-from visualizer #f time)))
+        (emulate-time self time)
         (set! now time)
         (invalidate-view self))))
+  
+  
+  (method protected (emulate-time self time)
+    (let ((last-time (get-last-time emulator))
+          (last-event (get-last-event emulator)))
+      (if (and last-time (> time last-time))
+          (visualize-from emulator (+ last-event 1) time)
+        (reset-emulator self)
+        (visualize-from emulator #f time))))
   
   
   (method override (draw self surface context)
@@ -226,8 +201,8 @@
     (let ((zone (current-zone)))
       (when (and (is? zone together.community:Community-Zone)
                  (eq? (get-stage zone) 'replay)
-                 visualizer)
-        (let ((output (get-video-output visualizer)))
+                 emulator)
+        (let ((output (get-video-output emulator)))
           (when output
             (render output))))))
   
@@ -253,7 +228,7 @@
       (set! selection #f)
       (set! selection-description #f)
       (setup-timeline self)
-      (reset-visualizer self)
+      (reset-emulator self)
       (when now
         (visualize-time self now))
       (invalidate-view self))))
@@ -349,9 +324,10 @@
   
   (method (toggle-full-mode self)
     (let ((world (current-world)))
-      (let ((timeline (brother panel 'timeline))
-            (sheet (get-sheet (get-video-output (get-visualizer panel)))))
-        (let ((full-mode? (not (get-full-mode? timeline))))
+      (let ((emulator (get-emulator panel))
+            (timeline (brother panel 'timeline)))
+        (let ((full-mode? (not (get-full-mode? timeline)))
+              (sheet (get-sheet (get-video-output emulator))))
           (set-full-mode? timeline full-mode?)
           (cond (full-mode?
                  (let ((width (cast <fl> (- (get-width panel) 2))))
@@ -361,15 +337,15 @@
                              (size (new Dimension (fxround width) (fxround height))))
                          (set-position sheet position)
                          (set-size sheet size)
-                         (set-video-position panel position)
-                         (set-video-size panel size))))))
+                         (set-video-position position)
+                         (set-video-size size))))))
                 (else
                  (let ((position {Point 184 43})
                        (size {Dimension 160 90}))
                    (set-position sheet position)
                    (set-size sheet size)
-                   (set-video-position panel position)
-                   (set-video-size panel size))))
+                   (set-video-position position)
+                   (set-video-size size))))
           (redraw timeline)
           (now-update timeline)
           (display-on/off world "Full mode" full-mode?)))))
@@ -460,13 +436,16 @@
 (class Receiver-Visualizer extends Tier-Visualizer
   
   
+  (slot emulator initialize #f accessors generate)
+  
+  
   (method override (draw self surface context)
     (let ((media-kind (get-media-kind panel))
-          (audio-ring (get-audio-ring panel))
-          (video-ring (get-video-ring panel))
+          (audio-ring (get-audio-ring emulator))
+          (video-ring (get-video-ring emulator))
           (giveup-window (get-giveup-window panel))
           (late-window (get-late-window panel))
-          (visualizer (get-visualizer panel)))
+          (emulator (get-emulator panel)))
       (when (and audio-ring video-ring)
         (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
               (width (get-width size))
@@ -492,15 +471,14 @@
                 (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
                 (ecase media-kind
                   ((udp-audio)
-                   (draw-ring self surface left-x right-x present-x before-x audio-ring (get-audio-adds visualizer) (get-audio-removes visualizer) 8))
+                   (draw-ring self surface left-x right-x present-x before-x audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8))
                   ((udp-video)
-                   (draw-ring self surface left-x right-x present-x before-x video-ring (get-video-adds visualizer) (get-video-removes visualizer) 8))))))))))
+                   (draw-ring self surface left-x right-x present-x before-x video-ring (get-video-adds emulator) (get-video-removes emulator) 8))))))))))
   
   
   (method (draw-ring self surface left-x right-x present-x before-x ring adds removes offset)
     (let ((replay (get-replay panel))
           (now (get-now panel))
-          (visualizer (get-visualizer panel))
           (selection (get-selection panel)))
       (when (and ring now)
         (let ((base-time (get-base-time replay))
@@ -609,7 +587,7 @@
   
   
   (method override (mouse-up self evt)
-    (let ((ring (if (= (get-media-kind panel) udp-audio) (get-audio-ring panel) (get-video-ring panel))))
+    (let ((ring (if (= (get-media-kind panel) udp-audio) (get-audio-ring emulator) (get-video-ring emulator))))
       (with-boundaries self
         (lambda (left-x right-x present-x before-x)
           (define (find-packet h)

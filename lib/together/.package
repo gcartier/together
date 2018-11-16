@@ -20,6 +20,7 @@
                               together.debugger
                               together.devel
                               together.domain
+                              together.emulation
                               together.login
                               together.process
                               together.product
