@@ -173,7 +173,9 @@
                                     (write-udp-part data part)
                                     (write-udp-total data total)
                                     (write-udp-media-timestamp data nanostamp)
-                                    (write-udp-media-duration data nanoduration)
+                                    (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
+                                                                      18446744073709551615
+                                                                     nanoduration))
                                     (write-udp-media-header? data header?)
                                     (write-udp-media-off? data #f)
                                     (write-udp-resent data 0)

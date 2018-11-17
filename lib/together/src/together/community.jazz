@@ -1442,6 +1442,13 @@
       (display-on/off world "Capture screen" capture-screen?)))
   
   
+  (method (on-toggle-stream self evt)
+    @wait
+    (let ((world (current-world)))
+      (set-stream? (not stream?))
+      (display-on/off world "Stream" stream?)))
+  
+  
   (method (on-toggle-mode self evt)
     (let ((world (current-world)))
       (set-video-mode
