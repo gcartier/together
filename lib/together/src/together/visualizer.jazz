@@ -84,6 +84,7 @@
   (slot call                  initialize #f getter generate)
   (slot origins               initialize #f getter generate)
   (slot origin                initialize #f getter generate)
+  (slot media-kinds           initialize #f getter generate)
   (slot media-kind            initialize #f getter generate)
   (slot giveup-window         initialize #f getter generate)
   (slot late-window           initialize #f getter generate)
@@ -119,7 +120,20 @@
       (let ((metadata (metadata-ref replay tier)))
         (if (= (first metadata) server-no)
             '()
-          (sort nu<? (remove-duplicates (map car (fourth metadata)))))))
+          (let ((receive-channels (fourth metadata)))
+            (sort nu<? (remove-duplicates (map car receive-channels)))))))
+    
+    (define (collect-media-kinds origin)
+      (if (not origin)
+          '()
+        (let ((metadata (metadata-ref replay tier)))
+          (if (= (first metadata) server-no)
+              '()
+            (let ((receive-channels (fourth metadata)))
+              (sort nu<? (collect (lambda (key)
+                                    (and (= (car key) origin)
+                                         (cdr key)))
+                                  receive-channels)))))))
     
     (define (setup-audio)
       (when origin
@@ -138,7 +152,8 @@
     
     (set! origins (collect-origins))
     (set! origin (and (not-null? origins) (car origins)))
-    (set! media-kind udp-video)
+    (set! media-kinds (collect-media-kinds origin))
+    (set! media-kind (and (not-null? media-kinds) (car media-kinds)))
     (set! origin-evolution (and origin (evolution-ref replay origin)))
     (set! server-evolution (evolution-ref replay server-no))
     (set! receiver-evolution (evolution-ref replay tier))
@@ -154,8 +169,9 @@
   
   
   (method protected (reset-media-kind self)
-    (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
-    (set! late-window (if (= media-kind udp-audio) 0. udp-video-late)))
+    (when media-kind
+      (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
+      (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))))
   
   
   ;; quicky to setup everything again
@@ -189,9 +205,10 @@
   (method override (draw self surface context)
     (if (not origin)
         (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
-      (draw-text surface 5 3 (format "{a} {a}" (name-ref replay origin) (udp-name media-kind)) visualizer-text-color))
+      (draw-text surface 5 3 (format "{a}" (name-ref replay origin)) visualizer-text-color)
+      (draw-text surface 80 3 (format "{a}" (udp-name media-kind)) visualizer-text-color))
     (when selection-description
-      (draw-text surface 100 3 selection-description visualizer-text-color))
+      (draw-text surface 140 3 selection-description visualizer-text-color))
     (let ((title (format "{r precision: 1}x" visualizer-speed)))
       (let ((width (get-width self))
             (extent (get-text-extent surface title)))
@@ -217,11 +234,7 @@
   
   
   (method protected (cycle-origins self reversed?)
-    (set! media-kind (if (= media-kind udp-audio) udp-video udp-audio))
-    (reset-media-kind self)
-    (invalidate-view self)
-    @wait
-    (when origin
+    (when (not-null? origins)
       (set! origin (cycle-element origins origin reversed?: reversed?))
       (set! origin-evolution (evolution-ref replay origin))
       (set! server-evolution (evolution-ref replay server-no))
@@ -232,6 +245,13 @@
       (reset-emulator self)
       (when now
         (visualize-time self now))
+      (invalidate-view self)))
+  
+  
+  (method protected (cycle-media-kinds self reversed?)
+    (when (not-null? media-kinds)
+      (set! media-kind (cycle-element media-kinds media-kind reversed?: reversed?))
+      (reset-media-kind self)
       (invalidate-view self))))
 
 
@@ -268,12 +288,18 @@
   (method override (mouse-up self evt)
     (let ((h (get-h evt))
           (v (get-v evt)))
-      (define (in-tier?)
+      (define (in-origin?)
         (and (< v 25)
-             (between? h 0 90)))
+             (between? h 0 65)))
       
-      (cond ((in-tier?)
+      (define (in-media-kind?)
+        (and (< v 25)
+             (between? h 65 125)))
+      
+      (cond ((in-origin?)
              (cycle-origins panel (get-shift? evt)))
+            ((in-media-kind?)
+             (cycle-media-kinds panel (get-shift? evt)))
             (else
              (nextmethod self evt))))))
 
