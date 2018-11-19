@@ -594,7 +594,42 @@
                   (with-packet self left-x right-x after-x before-x span ring offset packet
                     (lambda (selection-frame? h v)
                       (proc index packet selection-frame? h v)))))
-              (collect-indexes))))
+              (collect-indexes)))
+  
+  
+  (method (visualizer-click self h ring)
+    (with-boundaries self
+      (lambda (left-x right-x after-x before-x span)
+        (define (find-packet h)
+          (continuation-capture
+            (lambda (return)
+              (iterate-packets self left-x right-x after-x before-x span ring 8
+                (lambda (index packet selection-frame? packet-h packet-v)
+                  (when (and (>= h (- packet-h 4))
+                             (<= h (+ packet-h 4)))
+                    (continuation-return return packet))))
+              #f)))
+        
+        (define (describe-packet packet)
+          (format "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                  (if (get-header? packet) 'yes 'no)
+                  (get-timestamp packet)
+                  (let ((duration (get-duration packet)))
+                    (if (not duration)
+                        (format "{a}" duration)
+                      (format "{r precision: 3}" (/ duration nanosecond))))
+                  (get-sequence packet)
+                  (get-frame packet)
+                  (get-part packet)
+                  (get-total packet)
+                  (if (get-data packet) 'yes 'no)))
+        
+        (let ((packet (find-packet h)))
+          (when (neq? packet (get-selection panel))
+            (set-selection panel (and packet (get-sequence packet)))
+            (set-selection-frame panel (and packet (get-frame packet)))
+            (set-selection-description panel (and packet (describe-packet packet)))
+            (invalidate-view panel)))))))
 
 
 ;;;
@@ -647,7 +682,15 @@
   
   
   (method override (draw self surface context)
-    (draw-retain self surface emulator)))
+    (draw-retain self surface emulator))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((h (get-h evt))
+          (ring (if (= (get-media-kind panel) udp-audio)
+                    (get-audio-ring emulator)
+                  (get-video-ring emulator))))
+      (visualizer-click self h ring))))
 
 
 ;;;
@@ -662,7 +705,15 @@
   
   
   (method override (draw self surface context)
-    (draw-retain self surface emulator)))
+    (draw-retain self surface emulator))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((h (get-h evt))
+          (ring (if (= (get-media-kind panel) udp-audio)
+                    (get-audio-ring emulator)
+                  (get-video-ring emulator))))
+      (visualizer-click self h ring))))
 
 
 ;;;
@@ -714,36 +765,8 @@
   
   
   (method override (mouse-up self evt)
-    (let ((ring (if (= (get-media-kind panel) udp-audio) (get-audio-ring emulator) (get-video-ring emulator))))
-      (with-boundaries self
-        (lambda (left-x right-x after-x before-x span)
-          (define (find-packet h)
-            (continuation-capture
-              (lambda (return)
-                (iterate-packets self left-x right-x after-x before-x span ring 8
-                  (lambda (index packet selection-frame? packet-h packet-v)
-                    (when (and (>= h (- packet-h 4))
-                               (<= h (+ packet-h 4)))
-                      (continuation-return return packet))))
-                #f)))
-          
-          (define (describe-packet packet)
-            (format "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-                    (if (get-header? packet) 'yes 'no)
-                    (get-timestamp packet)
-                    (let ((duration (get-duration packet)))
-                      (if (not duration)
-                          (format "{a}" duration)
-                        (format "{r precision: 3}" (/ duration nanosecond))))
-                    (get-sequence packet)
-                    (get-frame packet)
-                    (get-part packet)
-                    (get-total packet)
-                    (if (get-data packet) 'yes 'no)))
-          
-          (let ((packet (find-packet (get-h evt))))
-            (when (neq? packet (get-selection panel))
-              (set-selection panel (and packet (get-sequence packet)))
-              (set-selection-frame panel (and packet (get-frame packet)))
-              (set-selection-description panel (and packet (describe-packet packet)))
-              (invalidate-view panel)))))))))
+    (let ((h (get-h evt))
+          (ring (if (= (get-media-kind panel) udp-audio)
+                    (get-audio-ring emulator)
+                  (get-video-ring emulator))))
+      (visualizer-click self h ring)))))
