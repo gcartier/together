@@ -155,6 +155,14 @@
                          (let ((to (get-highest ring)))
                            (loop (for seq from (+ from 1) below to)
                                  (table-set! adds seq time))))))))))
+            ;; got
+            ((udp-id-got-packet)
+             (let ((sequence (evolutionary-udp-sequence evolution n)))
+               (let ((data (find-data sequence)))
+                 (when data
+                   (when show-visualize?
+                     (terminal 'got sequence))
+                   (visualizer-replace-got ring sequence data)))))
             ;; release
             ((udp-id-release-packet)
              (let ((sequence (evolutionary-udp-sequence evolution n)))
