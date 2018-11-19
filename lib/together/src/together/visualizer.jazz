@@ -86,8 +86,6 @@
   (slot origin                initialize #f getter generate)
   (slot media-kinds           initialize #f getter generate)
   (slot media-kind            initialize #f getter generate)
-  (slot giveup-window         initialize #f getter generate)
-  (slot late-window           initialize #f getter generate)
   (slot audio-datas           initialize #f getter generate)
   (slot video-datas           initialize #f getter generate)
   (slot sender-emulator       initialize #f getter generate)
@@ -170,8 +168,8 @@
     (set! video-datas (make-table test: eqv?))
     (setup-datas self)
     (setup-timeline self)
-    (reset-media-kind self)
     (reset-emulators self)
+    (reset-media-kind (locate self 'receiver))
     (set-%r replay)
     (set-%v self))
   
@@ -222,12 +220,6 @@
                                   video-datas)
                                 sequence
                                 data))))))))
-  
-  
-  (method protected (reset-media-kind self)
-    (when media-kind
-      (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
-      (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))))
   
   
   ;; quicky to setup everything again
@@ -316,7 +308,7 @@
   (method protected (cycle-media-kinds self reversed?)
     (when (not-null? media-kinds)
       (set! media-kind (cycle-element media-kinds media-kind reversed?: reversed?))
-      (reset-media-kind self)
+      (reset-media-kind (locate self 'receiver))
       (invalidate-view self))))
 
 
@@ -542,17 +534,20 @@
                                  (ellipse$fl$ surface rect color (and (get-data packet) color))))))
                       (when (and selection (eq? (get-sequence packet) selection))
                         (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
+  
+  
+  (method protected virtual (ring-span self)
+    )
     
   
   (method (with-boundaries self proc)
-    (let ((giveup-window (get-giveup-window panel)))
-      (let ((span (+ giveup-window udp-process-window)))
-        (let ((total (+ visualizer-after span visualizer-before))
-              (left-x 3.)
-              (right-x (cast <fl> (- (get-width size) 3))))
-          (let ((after-x (interpolate visualizer-after 0. total left-x right-x))
-                (before-x (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
-            (proc left-x right-x after-x before-x span))))))
+    (let ((span (ring-span self)))
+      (let ((total (+ visualizer-after span visualizer-before))
+            (left-x 3.)
+            (right-x (cast <fl> (- (get-width size) 3))))
+        (let ((after-x (interpolate visualizer-after 0. total left-x right-x))
+              (before-x (interpolate (+ visualizer-after span) 0. total left-x right-x)))
+          (proc left-x right-x after-x before-x span)))))
 
   
   (method (with-packet self left-x right-x after-x before-x span ring offset packet proc)
@@ -640,13 +635,15 @@
 (class Retain-Visualizer extends Tier-Visualizer
   
   
+  (method override (ring-span self)
+    udp-retain-window)
+  
+  
   (method (draw-retain self surface emulator)
     (when emulator
       (let ((media-kind (get-media-kind panel))
             (audio-ring (get-audio-ring emulator))
-            (video-ring (get-video-ring emulator))
-            (giveup-window (get-giveup-window panel))
-            (late-window (get-late-window panel)))
+            (video-ring (get-video-ring emulator)))
         (when (and audio-ring video-ring)
           (let ((width (get-width size))
                 (height (get-height size)))
@@ -724,16 +721,27 @@
 (class Receiver-Visualizer extends Tier-Visualizer
   
   
-  (slot emulator initialize #f accessors generate)
+  (slot giveup-window initialize #f getter generate)
+  (slot late-window   initialize #f getter generate)
+  (slot emulator      initialize #f accessors generate)
+  
+  
+  (method protected (reset-media-kind self)
+    (let ((media-kind (get-media-kind panel)))
+      (when media-kind
+        (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))
+        (set! late-window (if (= media-kind udp-audio) 0. udp-video-late)))))
+  
+  
+  (method override (ring-span self)
+    (+ giveup-window udp-process-window))
   
   
   (method override (draw self surface context)
     (when emulator
       (let ((media-kind (get-media-kind panel))
             (audio-ring (get-audio-ring emulator))
-            (video-ring (get-video-ring emulator))
-            (giveup-window (get-giveup-window panel))
-            (late-window (get-late-window panel)))
+            (video-ring (get-video-ring emulator)))
         (when (and audio-ring video-ring)
           (let ((width (get-width size))
                 (height (get-height size)))
