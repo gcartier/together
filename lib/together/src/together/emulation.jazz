@@ -37,17 +37,81 @@
 
 
 (definition protected video-position
-  {Point 184 43})
+  {Point 176 39})
 
 (definition protected (set-video-position position)
   (set! video-position position))
 
 
 (definition protected video-size
-  {Dimension 160 90})
+  {Dimension 178 100})
 
 (definition protected (set-video-size size)
   (set! video-size size))
+
+
+;;;
+;;;; Ring
+;;;
+
+
+(class Ring-Emulator extends Object
+  
+  
+  (slot call                      getter generate)
+  (slot origin                    getter generate)
+  (slot evolution                 getter generate)
+  (slot audio-channel             getter generate)
+  (slot video-channel             getter generate)
+  (slot audio-ring                getter generate)
+  (slot video-ring                getter generate)
+  (slot audio-datas               getter generate)
+  (slot video-datas               getter generate)
+  (slot audio-adds                getter generate)
+  (slot video-adds                getter generate)
+  (slot audio-removes             getter generate)
+  (slot video-removes             getter generate)
+  (slot last-time   initialize #f accessors generate)
+  (slot last-event  initialize #f accessors generate)
+  
+  
+  (method override (initialize self call origin evolution audio-datas video-datas)
+    (nextmethod self)
+    (set! self.call call)
+    (set! self.origin origin)
+    (set! self.evolution evolution)
+    (set! self.audio-datas audio-datas)
+    (set! self.video-datas video-datas)
+    (set! self.audio-adds (make-table test: eqv?))
+    (set! self.video-adds (make-table test: eqv?))
+    (set! self.audio-removes (make-table test: eqv?))
+    (set! self.video-removes (make-table test: eqv?)))
+  
+  
+  (method protected (emulate self to-time)
+    (emulate-from self #f to-time))
+  
+  
+  (method protected (emulate-from-last self to-time)
+    (emulate-from self (and last-event (+ last-event 1)) to-time))
+  
+  
+  (method protected (emulate-from self from-event to-time)
+    (declare (proper-tail-calls))
+    (let ((first (first-position evolution))
+          (last (last-position evolution)))
+      (let (loop (n (or from-event first)))
+        (when (<= n last)
+          (let ((time (evolutionary-udp-time evolution n)))
+            (when (<= time to-time)
+              (emulate-event self n)
+              (set! last-time time)
+              (set! last-event n)
+              (loop (+ n 1))))))))
+  
+  
+  (method protected virtual (emulate-event self n)
+    ))
 
 
 ;;;
@@ -55,7 +119,52 @@
 ;;;
 
 
-(class Retain-Emulator extends Object)
+(class Retain-Emulator extends Ring-Emulator
+  
+  
+  (method override (emulate-event self n)
+    (when (= (evolutionary-udp-origin evolution n) origin)
+      (let ((id (evolutionary-udp-id evolution n))
+            (kind (flonum->fixnum (evolutionary-udp-kind evolution n))))
+        (let ((ring (if (= kind udp-audio) audio-ring video-ring))
+              (datas (if (= kind udp-audio) audio-datas video-datas))
+              (adds (if (= kind udp-audio) audio-adds video-adds))
+              (removes (if (= kind udp-audio) audio-removes video-removes)))
+          (define (find-data sequence)
+            (table-ref datas sequence #f))
+          
+          (ecase id
+            ;; retain
+            ((udp-id-retain-packet)
+             (let ((time (evolutionary-udp-time evolution n))
+                   (sequence (evolutionary-udp-sequence evolution n)))
+               (let ((time-base (let ((time-base (evolutionary-udp-data5 evolution n)))
+                                  ;; quick hack for timeless
+                                  (if (= time-base -1.)
+                                      (- time (evolutionary-udp-data4 evolution n))
+                                    time-base))))
+                 (let ((data (find-data sequence)))
+                   (when data
+                     (when show-visualize?
+                       (terminal 'retain sequence))
+                     (visualizer-update-time ring time-base)
+                     (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
+                       (insert ring data)
+                       (table-set! adds sequence time)
+                       (when from
+                         (let ((to (get-highest ring)))
+                           (loop (for seq from (+ from 1) below to)
+                                 (table-set! adds seq time))))))))))
+            ;; release
+            ((udp-id-release-packet)
+             (let ((sequence (evolutionary-udp-sequence evolution n)))
+               (when show-visualize?
+                 (terminal 'release sequence))
+               (let ((packet (earliest-packet ring)))
+                 (let ((consistent? (and packet (eqv? (get-sequence packet) sequence))))
+                   (when (if debug-visualize? (assert consistent? #t) consistent?)
+                     (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) #f))
+                     (remove-packet ring))))))))))))
 
 
 ;;;
@@ -63,7 +172,16 @@
 ;;;
 
 
-(class Sender-Emulator extends Retain-Emulator)
+(class Sender-Emulator extends Retain-Emulator
+  
+  
+  (method override (initialize self call tier origin evolution audio-datas video-datas)
+    (nextmethod self call origin evolution audio-datas video-datas)
+    (let ((sender (require-tier call tier)))
+      (set! audio-channel (find-send-channel sender udp-audio))
+      (set! video-channel (find-send-channel sender udp-video)))
+    (set! self.audio-ring (get-retain-ring audio-channel))
+    (set! self.video-ring (get-retain-ring video-channel))))
 
 
 ;;;
@@ -71,7 +189,16 @@
 ;;;
 
 
-(class Server-Emulator extends Retain-Emulator)
+(class Server-Emulator extends Retain-Emulator
+  
+  
+  (method override (initialize self call tier origin evolution audio-datas video-datas)
+    (nextmethod self call origin evolution audio-datas video-datas)
+    (let ((server (require-tier call tier)))
+      (set! audio-channel (find-server-channel server origin udp-audio))
+      (set! video-channel (find-server-channel server origin udp-video)))
+    (set! self.audio-ring (get-retain-ring audio-channel))
+    (set! self.video-ring (get-retain-ring video-channel))))
 
 
 ;;;
@@ -79,49 +206,30 @@
 ;;;
 
 
-(class Receiver-Emulator extends Object
+(class Receiver-Emulator extends Ring-Emulator
   
   
-  (slot call                             getter generate)
-  (slot client                           getter generate)
-  (slot origin                           getter generate)
-  (slot audio-channel                    getter generate)
-  (slot video-channel                    getter generate)
-  (slot audio-ring                       getter generate)
-  (slot video-ring                       getter generate)
   (slot origin-audio                     getter generate)
   (slot origin-audio-header              getter generate)
   (slot origin-video                     getter generate)
   (slot origin-evolution                 getter generate)
-  (slot receiver-evolution               getter generate)
   (slot audio-header-played?             getter generate)
   (slot video-header-played?             getter generate)
-  (slot audio-datas                      getter generate)
-  (slot video-datas                      getter generate)
-  (slot audio-adds                       getter generate)
-  (slot video-adds                       getter generate)
-  (slot audio-removes                    getter generate)
-  (slot video-removes                    getter generate)
   (slot audio-output       initialize #f getter generate)
   (slot video-output       initialize #f getter generate)
-  (slot last-time          initialize #f accessors generate)
-  (slot last-event         initialize #f accessors generate)
   
   
-  (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution)
-    (nextmethod self)
-    (set! self.call call)
-    (set! self.client (require-tier call tier))
-    (set! self.origin origin)
-    (set! audio-channel (find-receive-channel client origin udp-audio))
-    (set! video-channel (find-receive-channel client origin udp-video))
+  (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution evolution audio-datas video-datas)
+    (nextmethod self call origin evolution audio-datas video-datas)
+    (let ((receiver (require-tier call tier)))
+      (set! audio-channel (find-receive-channel receiver origin udp-audio))
+      (set! video-channel (find-receive-channel receiver origin udp-video)))
     (set! self.audio-ring (get-process-ring audio-channel))
     (set! self.video-ring (get-process-ring video-channel))
     (set! self.origin-audio origin-audio)
     (set! self.origin-audio-header origin-audio-header)
     (set! self.origin-video origin-video)
     (set! self.origin-evolution origin-evolution)
-    (set! self.receiver-evolution receiver-evolution)
     (when audio-output
       (release audio-output))
     (set! self.audio-output (and origin-audio (visualizer-output (current-audio))))
@@ -129,82 +237,13 @@
       (release video-output))
     (set! self.video-output (and origin-video (visualizer-output (current-video) video-position video-size)))
     (set! self.audio-header-played? #f)
-    (set! self.video-header-played? #f)
-    (set! self.audio-datas (make-table test: eqv?))
-    (set! self.video-datas (make-table test: eqv?))
-    (set! self.audio-adds (make-table test: eqv?))
-    (set! self.video-adds (make-table test: eqv?))
-    (set! self.audio-removes (make-table test: eqv?))
-    (set! self.video-removes (make-table test: eqv?))
-    (setup-datas self))
+    (set! self.video-header-played? #f))
   
   
-  (method (setup-datas self)
-    (define (locate-info create kind sequence)
-      (loop (for info from (+ create 1) to (last-position origin-evolution))
-            (when (and (= (evolutionary-udp-id origin-evolution info) udp-id-create-info)
-                       (= (evolutionary-udp-kind origin-evolution info) kind)
-                       (= (evolutionary-udp-sequence origin-evolution info) sequence))
-              (return info))
-            (finally #f)))
-    
-    (loop (for create from (first-position origin-evolution) to (last-position origin-evolution))
-          (when (= (evolutionary-udp-id origin-evolution create) udp-id-create-packet)
-            (let ((kind (evolutionary-udp-kind origin-evolution create))
-                  (sequence (evolutionary-udp-sequence origin-evolution create)))
-              (let ((info (locate-info create kind sequence)))
-                (when info
-                  (let ((data (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
-                                (let ((origin (flonum->fixnum (evolutionary-udp-origin origin-evolution create)))
-                                      (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution create)))
-                                      (frame (evolutionary-udp-frame origin-evolution create))
-                                      (part (flonum->fixnum (evolutionary-udp-data2 origin-evolution info)))
-                                      (total (flonum->fixnum (evolutionary-udp-data3 origin-evolution info)))
-                                      (header? (= (evolutionary-udp-data3 origin-evolution create) 123456.))
-                                      (timestamp (evolutionary-udp-data4 origin-evolution create))
-                                      (duration (evolutionary-udp-data4 origin-evolution info)))
-                                  (let ((data (make-u8vector header-size))
-                                        (nanostamp (flonum->timestamp timestamp))
-                                        (nanoduration (flonum->timestamp duration)))
-                                    (write-udp-kind data kind)
-                                    (write-udp-origin data origin)
-                                    (write-udp-sequence data sequence)
-                                    (write-udp-frame data frame)
-                                    (write-udp-part data part)
-                                    (write-udp-total data total)
-                                    (write-udp-media-timestamp data nanostamp)
-                                    (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
-                                                                      18446744073709551615
-                                                                     nanoduration))
-                                    (write-udp-media-header? data header?)
-                                    (write-udp-media-off? data #f)
-                                    (write-udp-resent data 0)
-                                    data)))))
-                    (table-set! (if (= kind udp-audio)
-                                    audio-datas
-                                  video-datas)
-                                sequence
-                                data))))))))
-  
-  
-  (method protected (visualize-from self from-event to-time)
-    (declare (proper-tail-calls))
-    (let ((first (first-position receiver-evolution))
-          (last (last-position receiver-evolution)))
-      (let (loop (n (or from-event first)))
-        (when (<= n last)
-          (let ((time (evolutionary-udp-time receiver-evolution n)))
-            (when (<= time to-time)
-              (visualize-event self n)
-              (set! last-time time)
-              (set! last-event n)
-              (loop (+ n 1))))))))
-  
-  
-  (method protected (visualize-event self n)
-    (when (= (evolutionary-udp-origin receiver-evolution n) origin)
-      (let ((id (evolutionary-udp-id receiver-evolution n))
-            (kind (flonum->fixnum (evolutionary-udp-kind receiver-evolution n))))
+  (method override (emulate-event self n)
+    (when (= (evolutionary-udp-origin evolution n) origin)
+      (let ((id (evolutionary-udp-id evolution n))
+            (kind (flonum->fixnum (evolutionary-udp-kind evolution n))))
         (let ((ring (if (= kind udp-audio) audio-ring video-ring))
               (datas (if (= kind udp-audio) audio-datas video-datas))
               (adds (if (= kind udp-audio) audio-adds video-adds))
@@ -225,12 +264,12 @@
             ((udp-id-update-time))
             ;; insert
             ((udp-id-insert-packet)
-             (let ((time (evolutionary-udp-time receiver-evolution n))
-                   (sequence (evolutionary-udp-sequence receiver-evolution n)))
-               (let ((time-base (let ((time-base (evolutionary-udp-data5 receiver-evolution n)))
+             (let ((time (evolutionary-udp-time evolution n))
+                   (sequence (evolutionary-udp-sequence evolution n)))
+               (let ((time-base (let ((time-base (evolutionary-udp-data5 evolution n)))
                                   ;; quick hack for timeless
                                   (if (= time-base -1.)
-                                      (- time (evolutionary-udp-data4 receiver-evolution n))
+                                      (- time (evolutionary-udp-data4 evolution n))
                                     time-base))))
                  (let ((data (find-data sequence)))
                    (when data
@@ -250,7 +289,7 @@
             ((udp-id-packet-gap))
             ;; got
             ((udp-id-got-packet)
-             (let ((sequence (evolutionary-udp-sequence receiver-evolution n)))
+             (let ((sequence (evolutionary-udp-sequence evolution n)))
                (let ((data (find-data sequence)))
                  (when data
                    (when show-visualize?
@@ -262,7 +301,7 @@
             ((udp-id-reject-packet))
             ;; play / freeze
             ((udp-id-play-frame udp-id-freeze-frame)
-             (let ((frame (evolutionary-udp-frame receiver-evolution n)))
+             (let ((frame (evolutionary-udp-frame evolution n)))
                (when show-visualize?
                  (terminal 'play frame))
                (let ((packet (earliest-packet ring)))
@@ -276,7 +315,7 @@
                      (let ((complete? (frame-complete? ring 0)))
                        (visualizer-iterate-frame ring
                          (lambda (packet)
-                           (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time receiver-evolution n) complete?))))
+                           (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) complete?))))
                        (when complete?
                          (let ((origin-media (if (= kind udp-audio) origin-audio origin-video)))
                            (when origin-media
@@ -323,25 +362,25 @@
                      (visualizer-remove-frame ring))))))
             ;; missing
             ((udp-id-missing-packet)
-             (let ((sequence (evolutionary-udp-sequence receiver-evolution n)))
+             (let ((sequence (evolutionary-udp-sequence evolution n)))
                (when show-visualize?
                  (terminal 'missing sequence))
                (let ((packet (earliest-packet ring)))
                  (let ((consistent? (and packet (eqv? (get-sequence packet) sequence))))
                    (when (if debug-visualize? (assert consistent? #t) consistent?)
                      (assert (not (get-data packet))
-                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time receiver-evolution n) #f))
+                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) #f))
                        (remove-packet ring)))))))
             ;; discard
             ((udp-id-discard-packet)
-             (let ((sequence (evolutionary-udp-sequence receiver-evolution n)))
+             (let ((sequence (evolutionary-udp-sequence evolution n)))
                (when show-visualize?
                  (terminal 'discard sequence))
                (let ((packet (earliest-packet ring)))
                  (let ((consistent? (and packet (eqv? (get-sequence packet) sequence))))
                    (when (if debug-visualize? (assert consistent? #t) consistent?)
                      (assert (get-data packet)
-                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time receiver-evolution n) (frame-complete? ring 0)))
+                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) (frame-complete? ring 0)))
                        (remove-packet ring)))))))
             ;; ok
             ((udp-id-state-ok)

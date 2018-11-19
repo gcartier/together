@@ -88,8 +88,13 @@
   (slot media-kind            initialize #f getter generate)
   (slot giveup-window         initialize #f getter generate)
   (slot late-window           initialize #f getter generate)
-  (slot emulator              initialize #f getter generate)
+  (slot audio-datas           initialize #f getter generate)
+  (slot video-datas           initialize #f getter generate)
+  (slot sender-emulator       initialize #f getter generate)
+  (slot server-emulator       initialize #f getter generate)
+  (slot receiver-emulator     initialize #f getter generate)
   (slot now                   initialize #f getter generate)
+  (slot last-now              initialize #f accessors generate)
   (slot selection             initialize #f accessors generate)
   (slot selection-frame       initialize #f accessors generate)
   (slot selection-description initialize #f accessors generate)
@@ -99,10 +104,10 @@
     (<install>                                  background: {Color red: .000 green: .000 blue: .000 alpha: .450} layout-type: fill
       (<Border-View>             name: border   border-type: solid border-color: {Color Dark-Gray}
         (<Stream-Visualizer>     name: stream
-          (<Video-Visualizer>    name: video    position: {Point 26 30} size: {Dimension 164 94})
-          (<Sender-Visualizer>   name: sender   position: {Point 218 25} size: {Dimension 552 24})
-          (<Server-Visualizer>   name: server   position: {Point 218 65} size: {Dimension 552 24})
-          (<Receiver-Visualizer> name: receiver position: {Point 218 105} size: {Dimension 552 24})))))
+          (<Video-Visualizer>    name: video    position: {Point 18 26} size: {Dimension 182 104})
+          (<Sender-Visualizer>   name: sender   position: {Point 218 26} size: {Dimension 552 24})
+          (<Server-Visualizer>   name: server   position: {Point 218 66} size: {Dimension 552 24})
+          (<Receiver-Visualizer> name: receiver position: {Point 218 106} size: {Dimension 552 24})))))
   
   
   (method override (conclude self initargs)
@@ -161,11 +166,62 @@
     (set! selection-description #f)
     (setup-audio)
     (setup-video)
+    (set! audio-datas (make-table test: eqv?))
+    (set! video-datas (make-table test: eqv?))
+    (setup-datas self)
     (setup-timeline self)
     (reset-media-kind self)
-    (reset-emulator self)
+    (reset-emulators self)
     (set-%r replay)
     (set-%v self))
+  
+  
+  (method (setup-datas self)
+    (define (locate-info create kind sequence)
+      (loop (for info from (+ create 1) to (last-position origin-evolution))
+            (when (and (= (evolutionary-udp-id origin-evolution info) udp-id-create-info)
+                       (= (evolutionary-udp-kind origin-evolution info) kind)
+                       (= (evolutionary-udp-sequence origin-evolution info) sequence))
+              (return info))
+            (finally #f)))
+    
+    (loop (for create from (first-position origin-evolution) to (last-position origin-evolution))
+          (when (= (evolutionary-udp-id origin-evolution create) udp-id-create-packet)
+            (let ((kind (evolutionary-udp-kind origin-evolution create))
+                  (sequence (evolutionary-udp-sequence origin-evolution create)))
+              (let ((info (locate-info create kind sequence)))
+                (when info
+                  (let ((data (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
+                                (let ((origin (flonum->fixnum (evolutionary-udp-origin origin-evolution create)))
+                                      (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution create)))
+                                      (frame (evolutionary-udp-frame origin-evolution create))
+                                      (part (flonum->fixnum (evolutionary-udp-data2 origin-evolution info)))
+                                      (total (flonum->fixnum (evolutionary-udp-data3 origin-evolution info)))
+                                      (header? (= (evolutionary-udp-data3 origin-evolution create) 123456.))
+                                      (timestamp (evolutionary-udp-data4 origin-evolution create))
+                                      (duration (evolutionary-udp-data4 origin-evolution info)))
+                                  (let ((data (make-u8vector header-size))
+                                        (nanostamp (flonum->timestamp timestamp))
+                                        (nanoduration (flonum->timestamp duration)))
+                                    (write-udp-kind data kind)
+                                    (write-udp-origin data origin)
+                                    (write-udp-sequence data sequence)
+                                    (write-udp-frame data frame)
+                                    (write-udp-part data part)
+                                    (write-udp-total data total)
+                                    (write-udp-media-timestamp data nanostamp)
+                                    (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
+                                                                      18446744073709551615
+                                                                     nanoduration))
+                                    (write-udp-media-header? data header?)
+                                    (write-udp-media-off? data #f)
+                                    (write-udp-resent data 0)
+                                    data)))))
+                    (table-set! (if (= kind udp-audio)
+                                    audio-datas
+                                  video-datas)
+                                sequence
+                                data))))))))
   
   
   (method protected (reset-media-kind self)
@@ -175,14 +231,19 @@
   
   
   ;; quicky to setup everything again
-  (method protected (reset-emulator self)
+  (method protected (reset-emulators self)
     (if (not origin)
         (begin
           (set! call #f)
-          (set! emulator #f))
+          (set! receiver-emulator #f))
       (set! call (simulate-udp-call (get-names replay)))
-      (set! emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution))
-      (set-emulator (locate self 'receiver) emulator)))
+      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-datas video-datas))
+      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-datas video-datas))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-datas video-datas))
+      (set-emulator (locate self 'sender) sender-emulator)
+      (set-emulator (locate self 'server) server-emulator)
+      (set-emulator (locate self 'receiver) receiver-emulator)
+      (set! last-now #f)))
   
   
   (method protected (visualize-time self time)
@@ -194,12 +255,16 @@
   
   
   (method protected (emulate-time self time)
-    (let ((last-time (get-last-time emulator))
-          (last-event (get-last-event emulator)))
-      (if (and last-time (> time last-time))
-          (visualize-from emulator (+ last-event 1) time)
-        (reset-emulator self)
-        (visualize-from emulator #f time))))
+    (cond ((and last-now (> time last-now))
+           (emulate-from-last sender-emulator time)
+           (emulate-from-last server-emulator time)
+           (emulate-from-last receiver-emulator time))
+          (else
+           (reset-emulators self)
+           (emulate sender-emulator time)
+           (emulate server-emulator time)
+           (emulate receiver-emulator time)))
+    (set! last-now time))
   
   
   (method override (draw self surface context)
@@ -219,8 +284,8 @@
     (let ((zone (current-zone)))
       (when (and (is? zone together.community:Community-Zone)
                  (eq? (get-stage zone) 'replay)
-                 emulator)
-        (let ((output (get-video-output emulator)))
+                 receiver-emulator)
+        (let ((output (get-video-output receiver-emulator)))
           (when output
             (render output))))))
   
@@ -242,7 +307,7 @@
       (set! selection #f)
       (set! selection-description #f)
       (setup-timeline self)
-      (reset-emulator self)
+      (reset-emulators self)
       (when now
         (visualize-time self now))
       (invalidate-view self)))
@@ -266,6 +331,7 @@
   (slot panel initialize #f accessors generate)
   
   
+  @network-visualizer
   (method override (draw self surface context)
     (let ((h 300.)
           (v 57.)
@@ -318,9 +384,9 @@
   (method override (draw self surface context)
     (let ((width (get-width size))
           (height (get-height size)))
-      (let ((state-color {Color Light-Blue alpha: .8}))
-        (when (eq? (active-focus) self)
-          (frame-rect surface (new Rect 0 0 width height) state-color))
+      (let ((state-color (if (eq? (active-focus) self)
+                             {Color Light-Blue alpha: .8}
+                           {Color red: 180 green: 180 blue: 180 alpha: .8})))
         (frame-rect surface (new Rect 1 1 (- width 1) (- height 1)) state-color)
         (fill-rect surface (new Rect 2 2 (- width 2) (- height 2)) {Color Gray alpha: .1}))))
   
@@ -354,7 +420,7 @@
   
   (method (toggle-full-mode self)
     (let ((world (current-world)))
-      (let ((emulator (get-emulator panel))
+      (let ((emulator (get-receiver-emulator panel))
             (timeline (brother panel 'timeline)))
         (let ((full-mode? (not (get-full-mode? timeline)))
               (sheet (get-sheet (get-video-output emulator))))
@@ -370,8 +436,8 @@
                          (set-video-position position)
                          (set-video-size size))))))
                 (else
-                 (let ((position {Point 184 43})
-                       (size {Dimension 160 90}))
+                 (let ((position {Point 176 39})
+                       (size {Dimension 178 100}))
                    (set-position sheet position)
                    (set-size sheet size)
                    (set-video-position position)
@@ -417,96 +483,10 @@
 (class Tier-Visualizer extends View
   
   
-  (slot panel initialize #f accessors generate))
-
-
-;;;
-;;;; Sender
-;;;
-
-
-(class Sender-Visualizer extends Tier-Visualizer
+  (slot panel initialize #f accessors generate)
   
   
-  (method override (draw self surface context)
-    (let ((width (get-width size))
-          (height (get-height size)))
-      (let ((top 3)
-            (bottom (- height 3))
-            (state-color {Color Light-Blue alpha: .8}))
-        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Green alpha: .8})))))
-
-
-;;;
-;;;; Server
-;;;
-
-
-(class Server-Visualizer extends Tier-Visualizer
-  
-  
-  (method override (draw self surface context)
-    (let ((width (get-width size))
-          (height (get-height size)))
-      (let ((top 3)
-            (bottom (- height 3))
-            (state-color {Color Green alpha: .8}))
-        (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-        (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-        (fill-rect surface (new Rect 3 (- top 0) (- width 3) (+ bottom 0)) {Color Yellow alpha: .8})))))
-
-
-;;;
-;;;; Receiver
-;;;
-
-
-(class Receiver-Visualizer extends Tier-Visualizer
-  
-  
-  (slot emulator initialize #f accessors generate)
-  
-  
-  (method override (draw self surface context)
-    (when emulator
-      (let ((media-kind (get-media-kind panel))
-            (audio-ring (get-audio-ring emulator))
-            (video-ring (get-video-ring emulator))
-            (giveup-window (get-giveup-window panel))
-            (late-window (get-late-window panel)))
-        (when (and audio-ring video-ring)
-          (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
-                (width (get-width size))
-                (height (get-height size)))
-            (with-boundaries self
-              (lambda (left-x right-x present-x before-x)
-                (let ((after-h (fxround (interpolate visualizer-after 0. total left-x right-x)))
-                      (freeze-h (fxround (interpolate (+ visualizer-after giveup-window (- late-window)) 0. total left-x right-x)))
-                      (present-h (fxround present-x))
-                      (before-h (fxround (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
-                      (top 3)
-                      (bottom (- height 3))
-                      (state-color (case (get-state video-ring)
-                                     ((ok) {Color Green alpha: .8})
-                                     ((late) {Color Light-Blue alpha: .8})
-                                     ((waiting) {Color Red alpha: .8}))))
-                  (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-                  (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-                  (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
-                  (fill-rect surface (new Rect after-h top freeze-h bottom) {Color Orange alpha: .8})
-                  (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
-                  (fill-rect surface (new Rect present-h top before-h bottom) {Color Yellow alpha: .8})
-                  (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
-                  (ecase media-kind
-                    ((udp-audio)
-                     (draw-ring self surface left-x right-x present-x before-x audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8))
-                    ((udp-video)
-                     (draw-ring self surface left-x right-x present-x before-x video-ring (get-video-adds emulator) (get-video-removes emulator) 8)))))))))))
-  
-  
-  (method (draw-ring self surface left-x right-x present-x before-x ring adds removes offset)
+  (method (draw-ring self surface left-x right-x after-x before-x span ring adds removes offset)
     (let ((replay (get-replay panel))
           (now (get-now panel))
           (selection (get-selection panel)))
@@ -522,7 +502,7 @@
                         (begin
                           (table-clear adds sequence)
                           (table-clear removes sequence))
-                      (with-packet self left-x right-x present-x before-x ring offset packet
+                      (with-packet self left-x right-x after-x before-x span ring offset packet
                         (lambda (selection-frame? h v)
                           (let ((size (interpolate age 0. full 4. 1.)))
                             (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
@@ -539,7 +519,7 @@
                                          (ellipse$fl$ surface rect color (and (get-data packet) color))))))
                               (when (and selection (eq? (get-sequence packet) selection))
                                 (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
-          (iterate-packets self left-x right-x present-x before-x ring offset
+          (iterate-packets self left-x right-x after-x before-x span ring offset
             (lambda (index packet selection-frame? h v)
               (let ((full .015))
                 (let ((age (- now (table-ref adds (get-sequence packet) #f))))
@@ -562,45 +542,46 @@
                                  (ellipse$fl$ surface rect color (and (get-data packet) color))))))
                       (when (and selection (eq? (get-sequence packet) selection))
                         (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
-  
+    
   
   (method (with-boundaries self proc)
     (let ((giveup-window (get-giveup-window panel)))
-      (let ((total (+ visualizer-after giveup-window udp-process-window visualizer-before))
-            (left-x 3.)
-            (right-x (cast <fl> (- (get-width size) 3))))
-        (let ((present-x (interpolate (+ visualizer-after giveup-window) 0. total left-x right-x))
-              (before-x (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
-          (proc left-x right-x present-x before-x)))))
+      (let ((span (+ giveup-window udp-process-window)))
+        (let ((total (+ visualizer-after span visualizer-before))
+              (left-x 3.)
+              (right-x (cast <fl> (- (get-width size) 3))))
+          (let ((after-x (interpolate visualizer-after 0. total left-x right-x))
+                (before-x (interpolate (+ visualizer-after giveup-window udp-process-window) 0. total left-x right-x)))
+            (proc left-x right-x after-x before-x span))))))
+
   
-  
-  (method (with-packet self left-x right-x present-x before-x ring offset packet proc)
+  (method (with-packet self left-x right-x after-x before-x span ring offset packet proc)
     (let ((now (get-now panel))
           (selection-frame (get-selection-frame panel))
           (time-base (get-time-base ring)))
       ;; quick test
       (when time-base
         (let ((time (+ time-base (get-timestamp packet)))
-            (frame (get-frame packet)))
-        (let ((h (interpolate now (+ time udp-process-window) time present-x before-x))
-              (v (+ offset 4.))
-              (selection-frame? (and frame selection-frame (= frame selection-frame))))
-          (define (call-proc h v)
-            (let ((h (max left-x (min h right-x))))
-              (proc selection-frame? h v)))
-          
-          (if selection-frame?
-              (let ((part (get-part packet))
-                    (total (get-total packet)))
-                (let ((width (- (* 10 total) 1)))
-                  (let ((h (+ (- h (quotient width 2)) (* 10 part))))
-                    (call-proc h v))))
-            (let ((width 8))
-              (let ((h (- h (quotient width 2))))
-                (call-proc h v)))))))))
+              (frame (get-frame packet)))
+          (let ((h (interpolate now (+ time span) time after-x before-x))
+                (v (+ offset 4.))
+                (selection-frame? (and frame selection-frame (= frame selection-frame))))
+            (define (call-proc h v)
+              (let ((h (max left-x (min h right-x))))
+                (proc selection-frame? h v)))
+            
+            (if selection-frame?
+                (let ((part (get-part packet))
+                      (total (get-total packet)))
+                  (let ((width (- (* 10 total) 1)))
+                    (let ((h (+ (- h (quotient width 2)) (* 10 part))))
+                      (call-proc h v))))
+              (let ((width 8))
+                (let ((h (- h (quotient width 2))))
+                  (call-proc h v)))))))))
   
   
-  (method (iterate-packets self left-x right-x present-x before-x ring offset proc)
+  (method (iterate-packets self left-x right-x after-x before-x span ring offset proc)
     (define (collect-indexes)
       (let ((queue (new-queue)))
         (iterate-indexes ring
@@ -610,20 +591,136 @@
     
     (for-each (lambda (index)
                 (let ((packet (packet-ref ring index)))
-                  (with-packet self left-x right-x present-x before-x ring offset packet
+                  (with-packet self left-x right-x after-x before-x span ring offset packet
                     (lambda (selection-frame? h v)
                       (proc index packet selection-frame? h v)))))
-              (collect-indexes)))
+              (collect-indexes))))
+
+
+;;;
+;;;; Retain
+;;;
+
+
+(class Retain-Visualizer extends Tier-Visualizer
+  
+  
+  (method (draw-retain self surface emulator)
+    (when emulator
+      (let ((media-kind (get-media-kind panel))
+            (audio-ring (get-audio-ring emulator))
+            (video-ring (get-video-ring emulator))
+            (giveup-window (get-giveup-window panel))
+            (late-window (get-late-window panel)))
+        (when (and audio-ring video-ring)
+          (let ((width (get-width size))
+                (height (get-height size)))
+            (with-boundaries self
+              (lambda (left-x right-x after-x before-x span)
+                (let ((total (+ visualizer-after span visualizer-before)))
+                  (let ((after-h (fxround after-x))
+                        (before-h (fxround before-x))
+                        (top 3)
+                        (bottom (- height 3))
+                        (state-color {Color Green alpha: .8}))
+                    (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+                    (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+                    (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
+                    (fill-rect surface (new Rect after-h top before-h bottom) {Color Green alpha: .8})
+                    (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
+                    (ecase media-kind
+                      ((udp-audio)
+                       (draw-ring self surface left-x right-x after-x before-x span audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8))
+                      ((udp-video)
+                       (draw-ring self surface left-x right-x after-x before-x span video-ring (get-video-adds emulator) (get-video-removes emulator) 8)))))))))))))
+
+
+;;;
+;;;; Sender
+;;;
+
+
+(class Sender-Visualizer extends Retain-Visualizer
+  
+  
+  (slot emulator initialize #f accessors generate)
+  
+  
+  (method override (draw self surface context)
+    (draw-retain self surface emulator)))
+
+
+;;;
+;;;; Server
+;;;
+
+
+(class Server-Visualizer extends Retain-Visualizer
+  
+  
+  (slot emulator initialize #f accessors generate)
+  
+  
+  (method override (draw self surface context)
+    (draw-retain self surface emulator)))
+
+
+;;;
+;;;; Receiver
+;;;
+
+
+(class Receiver-Visualizer extends Tier-Visualizer
+  
+  
+  (slot emulator initialize #f accessors generate)
+  
+  
+  (method override (draw self surface context)
+    (when emulator
+      (let ((media-kind (get-media-kind panel))
+            (audio-ring (get-audio-ring emulator))
+            (video-ring (get-video-ring emulator))
+            (giveup-window (get-giveup-window panel))
+            (late-window (get-late-window panel)))
+        (when (and audio-ring video-ring)
+          (let ((width (get-width size))
+                (height (get-height size)))
+            (with-boundaries self
+              (lambda (left-x right-x after-x before-x span)
+                (let ((total (+ visualizer-after span visualizer-before)))
+                  (let ((after-h (fxround after-x))
+                        (freeze-h (fxround (interpolate (+ visualizer-after giveup-window (- late-window)) 0. total left-x right-x)))
+                        (present-h (fxround (interpolate (+ visualizer-after giveup-window) 0. total left-x right-x)))
+                        (before-h (fxround before-x))
+                        (top 3)
+                        (bottom (- height 3))
+                        (state-color (case (get-state video-ring)
+                                       ((ok) {Color Green alpha: .8})
+                                       ((late) {Color Light-Blue alpha: .8})
+                                       ((waiting) {Color Red alpha: .8}))))
+                    (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+                    (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+                    (fill-rect surface (new Rect 3 top after-h bottom) {Color Red alpha: .8})
+                    (fill-rect surface (new Rect after-h top freeze-h bottom) {Color Orange alpha: .8})
+                    (fill-rect surface (new Rect freeze-h top present-h bottom) {Color Green alpha: .8})
+                    (fill-rect surface (new Rect present-h top before-h bottom) {Color Yellow alpha: .8})
+                    (fill-rect surface (new Rect before-h top (- width 3) bottom) {Color Gray alpha: .8})
+                    (ecase media-kind
+                      ((udp-audio)
+                       (draw-ring self surface left-x right-x after-x before-x span audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8))
+                      ((udp-video)
+                       (draw-ring self surface left-x right-x after-x before-x span video-ring (get-video-adds emulator) (get-video-removes emulator) 8))))))))))))
   
   
   (method override (mouse-up self evt)
     (let ((ring (if (= (get-media-kind panel) udp-audio) (get-audio-ring emulator) (get-video-ring emulator))))
       (with-boundaries self
-        (lambda (left-x right-x present-x before-x)
+        (lambda (left-x right-x after-x before-x span)
           (define (find-packet h)
             (continuation-capture
               (lambda (return)
-                (iterate-packets self left-x right-x present-x before-x ring 8
+                (iterate-packets self left-x right-x after-x before-x span ring 8
                   (lambda (index packet selection-frame? packet-h packet-v)
                     (when (and (>= h (- packet-h 4))
                                (<= h (+ packet-h 4)))
@@ -631,10 +728,13 @@
                 #f)))
           
           (define (describe-packet packet)
-            (format "Header {a}, timestamp {r precision: 3}, duration {r precision: 3}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+            (format "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                     (if (get-header? packet) 'yes 'no)
                     (get-timestamp packet)
-                    (/ (get-duration packet) nanosecond)
+                    (let ((duration (get-duration packet)))
+                      (if (not duration)
+                          (format "{a}" duration)
+                        (format "{r precision: 3}" (/ duration nanosecond))))
                     (get-sequence packet)
                     (get-frame packet)
                     (get-part packet)
