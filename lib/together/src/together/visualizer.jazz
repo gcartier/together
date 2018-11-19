@@ -62,7 +62,7 @@
   (world-setting 'world.visualizer-after .05))
 
 (definition protected visualizer-before
-  (world-setting 'world.visualizer-before .1))
+  (world-setting 'world.visualizer-before .05))
 
 
 ;;;
