@@ -276,9 +276,7 @@
   
   (method (install-gathering self)
     (let ((interface (current-interface))
-          (world (current-world))
-          (audio (current-audio))
-          (video (current-video)))
+          (world (current-world)))
       (define (show parent name)
         (set-visible? (child parent name) #t))
       
@@ -298,8 +296,6 @@
         (set-proportion (child parent name) prop))
       
       (set! root (child interface 'gathering))
-      (stop-audio audio feedback?: #f)
-      (stop-video video feedback?: #f)
       (show root 'together)
       (show root 'version)
       (show root 'release)
@@ -332,9 +328,7 @@
   
   (method (install-circle self)
     (let ((interface (current-interface))
-          (world (current-world))
-          (audio (current-audio))
-          (video (current-video)))
+          (world (current-world)))
       (define (show parent name)
         (set-visible? (child parent name) #t))
       
@@ -373,10 +367,6 @@
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
-      (when auto-audio?
-        (start-audio audio))
-      (when auto-video?
-        (start-video video))
       (update-audio self)
       (update-video self)
       (update-layouts self)
@@ -776,12 +766,23 @@
   (method (join-circle self name)
     (let ((tier (current-client))
           (world (current-world))
-          (zone (current-zone)))
+          (zone (current-zone))
+          (audio (current-audio))
+          (video (current-video)))
       (reset-chronology)
       (reset-evolution)
       (let ((exception (join-group tier name)))
         (if exception
             (display-error world exception)
+          (let ((udp-client (get-udp-client tier)))
+            (require-send-channel udp-client udp-audio)
+            (require-send-channel udp-client udp-video)
+            (start udp-client))
+          (when auto-audio?
+            (start-audio audio))
+          (when auto-video?
+            (start-video video))
+          (player-output video #f player: (current-me))
           (clear-message world)
           (uninstall-camera)
           (remove-skybox zone)
@@ -793,7 +794,18 @@
   
   (method (leave-circle self)
     (let ((tier (current-client))
-          (zone (current-zone)))
+          (zone (current-zone))
+          (audio (current-audio))
+          (video (current-video)))
+      (stop-audio audio feedback?: #f)
+      (stop-video video feedback?: #f)
+      (let ((self-output (get-self-output video)))
+        (when self-output
+          (close-output video #f self-output)))
+      (let ((udp-client (get-udp-client tier)))
+        (stop udp-client)
+        (close-send-channel udp-client udp-audio)
+        (close-send-channel udp-client udp-video))
       (leave-group tier joined-circle)
       (install-camera)
       (install-skybox zone (find-skybox together-skybox))
