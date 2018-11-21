@@ -239,24 +239,24 @@
       (set! last-now #f)))
   
   
-  (method protected (visualize-time self time)
+  (method protected (visualize-time self time playing?)
     (parameterize ((emulation? #t))
-      (when origin
-        (emulate-time self time)
+      (when (and origin (/= time now))
+        (emulate-time self time playing?)
         (set! now time)
         (invalidate-view self))))
   
   
-  (method protected (emulate-time self time)
+  (method protected (emulate-time self time playing?)
     (cond ((and last-now (> time last-now))
-           (emulate-from-last sender-emulator time)
-           (emulate-from-last server-emulator time)
-           (emulate-from-last receiver-emulator time))
+           (emulate-from-last sender-emulator time playing?)
+           (emulate-from-last server-emulator time playing?)
+           (emulate-from-last receiver-emulator time playing?))
           (else
            (reset-emulators self)
-           (emulate sender-emulator time)
-           (emulate server-emulator time)
-           (emulate receiver-emulator time)))
+           (emulate sender-emulator time playing?)
+           (emulate server-emulator time playing?)
+           (emulate receiver-emulator time playing?)))
     (set! last-now time))
   
   
@@ -302,7 +302,7 @@
       (setup-timeline self)
       (reset-emulators self)
       (when now
-        (visualize-time self now))
+        (visualize-time self now #f))
       (invalidate-view self)))
   
   

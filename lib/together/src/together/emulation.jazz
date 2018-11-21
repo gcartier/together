@@ -88,15 +88,15 @@
     (set! self.video-removes (make-table test: eqv?)))
   
   
-  (method protected (emulate self to-time)
-    (emulate-from self #f to-time))
+  (method protected (emulate self to-time playing?)
+    (emulate-from self #f to-time playing?))
   
   
-  (method protected (emulate-from-last self to-time)
-    (emulate-from self (and last-event (+ last-event 1)) to-time))
+  (method protected (emulate-from-last self to-time playing?)
+    (emulate-from self (and last-event (+ last-event 1)) to-time playing?))
   
   
-  (method protected (emulate-from self from-event to-time)
+  (method protected (emulate-from self from-event to-time playing?)
     (declare (proper-tail-calls))
     (let ((first (first-position evolution))
           (last (last-position evolution)))
@@ -104,13 +104,13 @@
         (when (<= n last)
           (let ((time (evolutionary-udp-time evolution n)))
             (when (<= time to-time)
-              (emulate-event self n)
+              (emulate-event self n playing?)
               (set! last-time time)
               (set! last-event n)
               (loop (+ n 1))))))))
   
   
-  (method protected virtual (emulate-event self n)
+  (method protected virtual (emulate-event self n playing?)
     ))
 
 
@@ -122,7 +122,7 @@
 (class Retain-Emulator extends Ring-Emulator
   
   
-  (method override (emulate-event self n)
+  (method override (emulate-event self n playing?)
     (when (= (evolutionary-udp-origin evolution n) origin)
       (let ((id (evolutionary-udp-id evolution n))
             (kind (flonum->fixnum (evolutionary-udp-kind evolution n))))
@@ -248,7 +248,7 @@
     (set! self.video-header-played? #f))
   
   
-  (method override (emulate-event self n)
+  (method override (emulate-event self n playing?)
     (when (= (evolutionary-udp-origin evolution n) origin)
       (let ((id (evolutionary-udp-id evolution n))
             (kind (flonum->fixnum (evolutionary-udp-kind evolution n))))
@@ -354,12 +354,13 @@
                                                             headers)
                                                   (set! audio-header-played? #t))))
                                             
-                                            (if (and header? (eq? audio-codec 'vorbis))
-                                                (play-header buffer)
-                                              (when (and origin-audio-header
-                                                         (not audio-header-played?))
-                                                (play-header origin-audio-header))
-                                              (receive-visualizer-audio (current-audio) audio-output buffer timestamp duration))))
+                                            (when (or playing? header?)
+                                              (if (and header? (eq? audio-codec 'vorbis))
+                                                  (play-header buffer)
+                                                (when (and origin-audio-header
+                                                           (not audio-header-played?))
+                                                  (play-header origin-audio-header))
+                                                (receive-visualizer-audio (current-audio) audio-output buffer timestamp duration)))))
                                          ((udp-video)
                                           (if header?
                                               (begin
