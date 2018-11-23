@@ -42,6 +42,8 @@
         (world.interface.timeline)
         (world.manager)
         (world.settings)
+        (world.task)
+        (world.time)
         (world.timeline)
         (world.udp)
         (together)
@@ -248,6 +250,9 @@
   (slot highlighted-values  initialize '() accessors generate)
   
   
+  (slot time-base initialize #f getter generate)
+  
+  
   ;; quicky
   (method override (together-timeline? self)
     #t)
@@ -281,6 +286,26 @@
                      (not (empty? evolution)))
             (enqueue queue evolution))))
       (queue-list queue)))
+  
+  
+  (method override (start-playing self)
+    (set! time-base (new Time-Base))
+    (nextmethod self))
+  
+  
+  (method override (play-loop self)
+    (declare (proper-tail-calls))
+    (let ((visualizer (child (get-root (current-zone)) 'visualizer)))
+      (let (loop)
+        (with-task-mutex
+          (lambda ()
+            (let ((local (current-seconds))
+                  (remote (+ now .01)))
+              (update-time time-base local remote)
+              (let ((playtime (remote->local time-base remote)))
+                (step-forward self .01)
+                (sleep (- playtime local))))))
+        (loop))))
   
   
   (method override (mouse-up self evt)
