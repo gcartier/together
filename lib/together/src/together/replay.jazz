@@ -301,7 +301,7 @@
           (lambda ()
             (let ((local (current-seconds))
                   (remote (+ now .01)))
-              (update-time time-base local remote)
+              (update-start time-base local remote)
               (let ((playtime (remote->local time-base remote)))
                 (step-forward self .01)
                 (sleep (- playtime local))))))
