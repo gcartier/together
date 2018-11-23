@@ -241,7 +241,7 @@
   
   (method protected (visualize-time self time playing?)
     (parameterize ((emulation? #t))
-      (when (and origin (/= time now))
+      (when (and origin (or (not now) (/= time now)))
         (emulate-time self time playing?)
         (set! now time)
         (invalidate-view self))))
