@@ -142,12 +142,13 @@
                                   ;; quick hack for timeless
                                   (if (= time-base -1.)
                                       (- time (evolutionary-udp-data4 evolution n))
-                                    time-base))))
+                                    time-base)))
+                     (time-latency (evolutionary-udp-data3 evolution n)))
                  (let ((data (find-data sequence)))
                    (when data
                      (when show-visualize?
                        (terminal 'retain sequence))
-                     (visualizer-update-time ring time-base)
+                     (visualizer-update-time ring time-base time-latency)
                      (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
                        (insert ring data)
                        (table-set! adds sequence time)
@@ -269,7 +270,7 @@
             ;; resend / absent
             ((udp-id-resend-packet udp-id-absent-packet))
             ;; time
-            ((udp-id-update-time))
+            ((udp-id-update-time udp-id-latency))
             ;; insert
             ((udp-id-insert-packet)
              (let ((time (evolutionary-udp-time evolution n))
@@ -278,12 +279,13 @@
                                   ;; quick hack for timeless
                                   (if (= time-base -1.)
                                       (- time (evolutionary-udp-data4 evolution n))
-                                    time-base))))
+                                    time-base)))
+                     (time-latency (evolutionary-udp-data3 evolution n)))
                  (let ((data (find-data sequence)))
                    (when data
                      (when show-visualize?
                        (terminal 'insert sequence))
-                     (visualizer-update-time ring time-base)
+                     (visualizer-update-time ring time-base time-latency)
                      (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
                        (insert ring data)
                        (table-set! adds sequence time)
@@ -416,4 +418,4 @@
             ((udp-id-paint-event udp-id-reshape-event udp-id-close-event udp-id-key-event udp-id-char-event udp-id-button-event udp-id-moved-event udp-id-wheel-event udp-id-file-event udp-id-drop-event udp-id-enter-event udp-id-leave-event udp-id-activate-event udp-id-deactivate-event udp-id-quit-event udp-id-user-event udp-id-other-event))
             ;; other
             (else
-             (terminal 'unvisualized (evolution-id->abbrev id))))))))))
+             (terminal 'unemulated (evolution-id->abbrev id))))))))))

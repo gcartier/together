@@ -46,6 +46,7 @@
         (world.manager)
         (world.settings)
         (world.simulation)
+        (world.time)
         (world.timeline)
         (world.visualization)
         (world.udp)
@@ -557,7 +558,7 @@
           (time-base (get-time-base ring)))
       ;; quick test
       (when time-base
-        (let ((time (+ time-base (get-timestamp packet)))
+        (let ((time (remote->local time-base (get-timestamp packet)))
               (frame (get-frame packet)))
           (let ((h (interpolate now (+ time span) time after-x before-x))
                 (v (+ offset 4.))

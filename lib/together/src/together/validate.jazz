@@ -113,7 +113,7 @@
                             events))
                 
                 (when time-base
-                  (visualizer-update-time receiver-ring time-base))
+                  (visualizer-update-time receiver-ring time-base 0.))
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)
