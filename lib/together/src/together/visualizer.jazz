@@ -286,10 +286,14 @@
   
   (method (setup-timeline self)
     (let ((timeline (brother self 'timeline)))
+      (set-origin timeline origin)
+      (set-media-kind timeline media-kind)
       (let ((start (evolutionary-time receiver-evolution (first-position receiver-evolution)))
             (end (evolutionary-time receiver-evolution (last-position receiver-evolution))))
         (set-visualizer-start timeline start)
-        (set-visualizer-end timeline end))))
+        (set-visualizer-end timeline end))
+      @wait
+      (invalidate-view timeline)))
   
   
   (method protected (cycle-origins self reversed?)
@@ -311,6 +315,7 @@
     (when (not-null? media-kinds)
       (set! media-kind (cycle-element media-kinds media-kind reversed?: reversed?))
       (reset-media-kind (locate self 'receiver))
+      (setup-timeline self)
       (invalidate-view self))))
 
 
