@@ -270,7 +270,7 @@
             ;; resend / absent
             ((udp-id-resend-packet udp-id-absent-packet))
             ;; time
-            ((udp-id-update-time udp-id-latency))
+            ((udp-id-update-time))
             ;; insert
             ((udp-id-insert-packet)
              (let ((time (evolutionary-udp-time evolution n))
