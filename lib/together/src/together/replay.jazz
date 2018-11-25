@@ -322,7 +322,8 @@
                (between? h 75 225))))
       
       (define (in-graph?)
-        (and title
+        (and (< v 25)
+             title
              graph-button
              (between? h (- graph-button 10) (+ graph-button 45))))
       

@@ -292,8 +292,8 @@
             (end (evolutionary-time receiver-evolution (last-position receiver-evolution))))
         (set-visualizer-start timeline start)
         (set-visualizer-end timeline end))
-      @wait
-      (invalidate-view timeline)))
+      (when graph-latency?
+        (invalidate-view timeline))))
   
   
   (method protected (cycle-origins self reversed?)
