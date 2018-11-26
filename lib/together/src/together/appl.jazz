@@ -235,6 +235,12 @@
         (on-toggle-admin zone evt))))
   
   
+  (method (on-toggle-timeline self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-timeline zone evt))))
+  
+  
   (method (on-toggle-visualizer self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -465,7 +471,6 @@
           (<!>                 name: toggle-info               visible?: #t)
           (<!>                 name: toggle-profiler           visible?: #t)
           (<!>                 name: reset-profiling           visible?: #t)
-          (<!>                 name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T})
           (<!>                 name: toggle-evolution          visible?: #t)
           (<!>                 name: view-workspace            visible?: #t)
           (<!>                 name: view-console              visible?: #t)
@@ -489,6 +494,7 @@
           (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
+          (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
           (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
