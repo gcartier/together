@@ -358,7 +358,7 @@
                                             
                                             (when (or playing? header?)
                                               (if (and header? (eq? audio-codec 'vorbis))
-                                                  (play-header buffer)
+                                                  (play-header origin-audio-header @mega-quick-hack-for-simulation buffer)
                                                 (when (and origin-audio-header
                                                            (not audio-header-played?))
                                                   (play-header origin-audio-header))

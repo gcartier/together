@@ -316,7 +316,11 @@
       (set! media-kind (cycle-element media-kinds media-kind reversed?: reversed?))
       (reset-media-kind (locate self 'receiver))
       (setup-timeline self)
-      (invalidate-view self))))
+      (invalidate-view self)))
+  
+  
+  (method protected (replay-simulation self)
+    (together.simulation:run-simulation origin origin-audio origin-audio-header origin-video origin-evolution server-no tier)))
 
 
 ;;;
@@ -451,7 +455,9 @@
       ((#\space)
        (toggle-playing self))
       ((#\f)
-       (toggle-full-mode self))))
+       (toggle-full-mode self))
+      ((#\r)
+       (replay-simulation panel))))
   
   
   (method override (left-arrow-press self modifiers)

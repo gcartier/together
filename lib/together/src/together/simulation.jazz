@@ -14,128 +14,216 @@
 (module together.simulation jazz
 
 
-;;;
-;;;; Simulate
-;;;
+(import (jazz.component)
+        (jazz.math)
+        (jazz.stream)
+        (world)
+        (world.audio)
+        (world.chronology)
+        (world.client.udp)
+        (world.context)
+        (world.event)
+        (world.evolution)
+        (world.interface.timeline)
+        (world.settings)
+        (world.simulation)
+        (world.udp)
+        (together.community)
+        (together.replay))
 
 
-@w
-(thread-start!
-  (new-thread
-    (lambda ()
-      (let ((ring (new Time-Ring 256 max-size: 4096 key-proc: identity))
-            (now (current-seconds))
-            (base (second (car error-list))))
-        (define (dbg (data #f))
-          (terminal data
-                    (get-size ring)
-                    (get-head ring)
-                    (get-tail ring)
-                    (get-count ring)
+(definition protected debug-insert?
+  (world-setting 'together.debug-insert? #f))
+
+(definition protected debug-process?
+  (world-setting 'together.debug-process? #f))
+
+
+(definition public (run-simulation origin origin-audio origin-audio-header origin-video origin-evolution server receiver)
+  (declare (proper-tail-calls))
+  (let ((world (current-world)))
+    (let ((names (list->table (list (cons origin "Origin")
+                                    (cons server "<server>")
+                                    (cons receiver "Receiver")))))
+      (let ((call (simulate-udp-call names)))
+        (let ((receiver-client (require-tier call receiver)))
+          (let ((receiver-audio-channel (require-receive-channel receiver-client origin udp-audio))
+                (receiver-video-channel (require-receive-channel receiver-client origin udp-video)))
+            (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
+                  (receiver-video-ring (get-process-ring receiver-video-channel))
+                  (average (new Average .05 1.))
+                  (sender-evolution (new Evolution 10000))
+                  (server-evolution (new Evolution 10000))
+                  (receiver-evolution (new Evolution 10000))
+                  (base #f)
+                  (start-time #f))
+              (define (need-data kind sequence)
+                (let ((ring (if (= kind udp-audio) origin-audio origin-video)))
+                  (let ((packet (locate-packet ring sequence)))
+                    (and packet (get-data packet)))))
+              
+              ;; mega quicky to test
+              (define (need-data2 kind origin sequence frame part total buffer timestamp header?)
+                (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4 (u8vector-length buffer))))
+                  (let ((data (make-u8vector header-size)))
+                    (write-udp-kind data kind)
+                    (write-udp-origin data origin)
+                    (write-udp-sequence data sequence)
+                    (write-udp-frame data frame)
+                    (write-udp-part data part)
+                    (write-udp-total data total)
+                    (write-udp-media-timestamp data timestamp)
+                    (write-udp-media-payload data buffer)
+                    (write-udp-media-header? data header?)
+                    data)))
+              
+              (define (record-data data)
+                (parameterize ((simulation-evolution sender-evolution))
+                  (let ((origin (read-udp-origin data))
+                        (kind (read-udp-kind data))
+                        (sequence (read-udp-sequence data))
+                        (frame (read-udp-frame data))
+                        (part (read-udp-part data))
+                        (total (read-udp-total data))
+                        (header? (read-udp-media-header? data))
+                        (timestamp (read-udp-media-timestamp data))
+                        (duration (read-udp-media-duration data)))
+                    (record-event udp-id-create-packet
+                                  (fixnum->flonum origin)
+                                  (fixnum->flonum kind)
+                                  (fixnum->flonum sequence)
+                                  (fixnum->flonum frame)
+                                  (barbara-header-hack header?)
+                                  (if (= timestamp -1)
+                                      -1.
+                                    (timestamp->flonum timestamp)))
+                    (record-event udp-id-create-info
+                                  (fixnum->flonum origin)
+                                  (fixnum->flonum kind)
+                                  (fixnum->flonum sequence)
+                                  (fixnum->flonum part)
+                                  (fixnum->flonum total)
+                                  (if (= duration -1)
+                                      -1.
+                                    (timestamp->flonum duration)))
+                    data)))
+              
+              (let ((insert (new-thread
+                              (lambda ()
+                                (parameterize ((simulation? #t)
+                                               (simulation-evolution receiver-evolution))
+                                  ;; header mega hack
+                                  (let ((first-sequence (loop (for n from (first-position origin-evolution) to (last-position origin-evolution))
+                                                              (when (= (flonum->fixnum (evolutionary-udp-id origin-evolution n)) udp-id-create-packet)
+                                                                (return (evolutionary-udp-sequence origin-evolution n)))))
+                                        (first-frame (loop (for n from (first-position origin-evolution) to (last-position origin-evolution))
+                                                           (when (= (flonum->fixnum (evolutionary-udp-id origin-evolution n)) udp-id-create-packet)
+                                                             (return (evolutionary-udp-frame origin-evolution n))))))
+                                    (let ((kind udp-audio)
+                                          (sequence-mega-hack (- first-sequence 1))
+                                          (frame-mega-hack (- first-frame 1))
+                                          (part 0)
+                                          (total 1)
+                                          (header? #t))
+                                      (let ((data (need-data2 kind origin sequence-mega-hack frame-mega-hack part total origin-audio-header -1 header?)))
+                                        (record-data data)
+                                        (receive-media receiver-client udp-audio data)
+                                        (increase! sequence-mega-hack)
+                                        (increase! part))))
+                                  
+                                  (let ()
+                                    (define (simulate kind sequence seconds)
+                                      (let ((now (current-seconds)))
+                                        (when (not start-time)
+                                          (set! base now)
+                                          (set! start-time seconds))
+                                        (let ((time (+ base (- seconds start-time))))
+                                          (sleep (- time now))
+                                          (let ((data (need-data kind sequence)))
+                                            (if (not data)
+                                                (terminal 'not-found kind sequence)
+                                              (record-data data)
+                                              (receive-media receiver-client kind data))))))
+                                    
+                                    (loop (for n from (first-position origin-evolution) to (last-position origin-evolution))
+                                          (let ((id (flonum->fixnum (evolutionary-udp-id origin-evolution n))))
+                                            (when (= id udp-id-create-packet)
+                                              (let ((time (evolutionary-udp-time origin-evolution n))
+                                                    (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution n)))
+                                                    (sequence (evolutionary-udp-sequence origin-evolution n)))
+                                                ;; quicky for test
+                                                (when (= kind udp-audio)
+                                                  (when #t @w (or (not start-time)
+                                                                  (< (- time start-time) 30.))
+                                                    ;(terminal 'insert time kind sequence)
+                                                    (simulate kind sequence (* 10. time))))))))))
+                                (set-$a receiver-audio-ring)
+                                (set-$v receiver-video-ring)
+                                ;; quicky give some time for process to finish
+                                (sleep 1.)
+                                (terminate receiver-audio-ring)
+                                (terminate receiver-video-ring))
+                              'insert))
+                    (audio (new-thread
+                             (lambda ()
+                               (parameterize ((simulation? #t)
+                                              (simulation-evolution receiver-evolution)
+                                              (simulation-audio (visualizer-output (current-audio))))
+                                 (let (looping)
+                                   (let ((info (process-wait receiver-audio-ring average debug-process?)))
+                                     ;(terminal 'process)
+                                     (when (neq? info 'terminate)
+                                       (present-frame receiver-audio-channel info)
+                                       (looping))))
+                                 (release (simulation-audio))))
+                             'audio))
                     @w
-                    (get-content ring)))
-        
-        (define (collect-times)
-          (let ((queue (new-queue)))
-            (iterate-content ring
-              (lambda (time obj)
-                (enqueue queue time)))
-            (queue-list queue)))
-        
-        (define (collect-ring)
-          (let ((queue (new-queue)))
-            (iterate-content ring
-              (lambda (time obj)
-                (enqueue queue obj)))
-            (queue-list queue)))
-        
-        (let ((n 1))
-          (for-each (lambda (info)
-                      (bind (what . rest) info
-                        (case what
-                          ((insert)
-                           (bind (time sequence) rest
-                             (let ((time (* n .01)))
-                               (increase! n)
-                               @w(terminal 'insert time sequence)
-                               @w(when (= sequence 251)
-                                 (terminal 'BEFORE (collect-ring)))
-                               (let ((problem (insert ring (+ now time) sequence)))
-                                 (when (= sequence 5)
-                                   (terminal (collect-times))
-                                   (terminal (collect-ring))
-                                   (exit))
-                                 @w(when (= sequence 251)
-                                   (terminal 'AFTER (collect-ring))
-                                   (exit))
-                                 @w(when problem
-                                   (terminal '******** problem))))))
-                          ((wait-all)
-                           @w
-                           (let ((lst (wait-all ring)))
-                             (terminal 'wait-all lst))))))
-                    error-list))
-        (let ((times (collect-times))
-              (content (collect-ring)))
-          (assert (equal? (sort < times) times))
-          (assert (equal? (sort < content) content)))
-        (terminal 'ring
-                  (get-size ring)
-                  (get-head ring)
-                  (get-tail ring)
-                  (get-count ring)
-                  (collect-times)
-                  (collect-ring))
-        (terminal 'wait-all (wait-all ring))))))
+                    (video (new-thread
+                             (lambda ()
+                               (parameterize ((simulation? #t)
+                                              (simulation-evolution receiver-evolution))
+                                 (let (looping)
+                                   (let ((info (process-wait receiver-video-ring average debug-process?)))
+                                     (when (neq? info 'terminate)
+                                       (present-frame receiver-video-channel info)
+                                       (looping))))))
+                             'video)))
+                (display-message world "Simulating..." duration: +inf.0)
+                (thread-start! insert)
+                (thread-start! audio)
+                @w
+                (thread-start! video)
+                (thread-join! insert)
+                (thread-join! audio)
+                @w
+                (thread-join! video)
+                @wait
+                (compare-events)
+                (clear-message world)
+                @w
+                (view-simulation origin server receiver names sender-evolution server-evolution receiver-evolution base)))))))))
 
 
-@w
-(sleep 200000)
-
-
-@w
-(thread-start!
-  (new-thread
-    (lambda ()
-      (let ((ring (new Time-Ring 10 max-size: 4096 key-proc: identity))
-            (now (current-seconds)))
-        (define (dbg (data #f))
-          (terminal data
-                    (get-size ring)
-                    (get-head ring)
-                    (get-tail ring)
-                    (get-count ring)
-                    @w
-                    (get-content ring)))
-        
-        (define (dbg-insert ring time obj)
-          (let ((problem (insert ring time obj)))
-            (when problem
-              (terminal '******** problem))))
-        
-        (dbg)
-        (insert-earliest ring 1)
-        (wait ring)
-        (dbg)
-        (insert-earliest ring 1)
-        (wait ring)
-        (dbg)
-        (loop (for n from 1 to 50)
-              (let ()
-                (if (= n 10)
-                    (begin
-                      (dbg-insert ring (+ now (/ n 100.)) n)
-                      (dbg-insert ring (+ now (/ n 100.)) n)
-                      (dbg-insert ring (+ now (/ n 100.)) n))
-                  (if (= n 20)
-                      (dbg-insert ring now n)
-                    (dbg-insert ring (+ now (/ n 100.)) n))))
-              (dbg))
-        (sleep .195)
-        (loop (repeat 50)
-              (let ((data (wait-all ring)))
-                (dbg data)))))))
-
-
-@w
-(sleep 2))
+(definition public (view-simulation origin server receiver names origin-evolution server-evolution receiver-evolution base-time)
+  (let ((zone (current-zone)))
+    (let ((metadatas (list->table (list (cons origin (list origin "Origin" (list udp-audio udp-video) (list)))
+                                        (cons server (list server "<server>"))
+                                        (cons receiver (list receiver "Receiver" (list) (list (cons origin udp-audio) (cons origin udp-video)))))))
+          (chronologies (list->table (list (cons origin (new Chronology 10))
+                                           (cons server (new Chronology 10))
+                                           (cons receiver (new Chronology 10)))))
+          (evolutions (list->table (list (cons origin origin-evolution)
+                                         (cons server server-evolution)
+                                         (cons receiver receiver-evolution))))
+          (audios #f)
+          (videos #f))
+      (let ((replay (new Replay "simulate" #f receiver names metadatas chronologies evolutions audios videos base-time)))
+        (view-replay zone replay)
+        (let ((root (get-root zone)))
+          (let ((panel (child root 'timeline)))
+            (let ((start (timeline-start panel))
+                  (end (timeline-end panel)))
+              (set-bounds panel start end)
+              (update-span panel)
+              (set-now panel start)
+              (now-update panel)))))))))
