@@ -381,7 +381,52 @@
     {Color Dark-Gray})
   
   
+  (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
+    (nextmethod self surface from to)
+    (let ((visualizer (brother self 'visualizer)))
+      (let ((evolution (get-origin-evolution visualizer)))
+        (when evolution
+          (let ((width (cast <fl> (get-width self)))
+                (latency-scale 15.)
+                (previous-latency-h #f)
+                (previous-latency-v #f)
+                (first (first-position evolution))
+                (last (last-position evolution)))
+            (define (find-previous head <fx> id <fl>) <fx+>
+              (loop (for n from (- head 1) downto first)
+                    (when (= (evolutionary-udp-id evolution n) id)
+                      (return n))
+                    (finally #f)))
+            
+            (loop (for n from first to last)
+                  (let ((time (evolutionary-udp-time evolution n))
+                        (id (evolutionary-udp-id evolution n)))
+                      (ecase id
+                        ((udp-id-retain-packet)
+                         (when (and graph-latency?
+                                    (eqv? (flonum->fixnum (evolutionary-udp-origin evolution n)) origin)
+                                    (eqv? (flonum->fixnum (evolutionary-udp-kind evolution n)) media-kind))
+                           (let ((h (fxround (* (/ (- time from) span) width)))
+                                 (v 21))
+                             (set-color surface {Color red: .005 green: .642 blue: .995})
+                             (let ((latency (evolutionary-udp-data6 evolution n)))
+                               (let ((v (fxround (- 55. (* latency latency-scale)))))
+                                 (when (not previous-latency-h)
+                                   (let ((n (find-previous n id)))
+                                     (when n
+                                       (let ((h (when->h self from to span (evolutionary-udp-time evolution n)))
+                                             (v (fxround (- 55. (* (evolutionary-udp-data6 evolution n) latency-scale)))))
+                                         (set! previous-latency-h h)
+                                         (set! previous-latency-v v)))))
+                                 (when previous-latency-h
+                                   (move-to surface previous-latency-h previous-latency-v)
+                                   (line-to surface h v))
+                                 (set! previous-latency-h h)
+                                 (set! previous-latency-v v))))))))))))))
+  
+  
   (method override (plot-highlight self surface <Surface> from <fl> to <fl>)
+    (nextmethod self surface from to)
     (let ((width (cast <fl> (get-width self)))
           (now-h (and now (when->h self from to span now))))
       (cond (highlighted-markers
