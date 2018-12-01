@@ -320,7 +320,7 @@
   
   
   (method protected (replay-simulation self)
-    (together.simulation:run-simulation origin origin-audio origin-audio-header origin-video origin-evolution server-no tier)))
+    (together.simulation:simulate-replay origin origin-audio origin-audio-header origin-video origin-evolution server-no tier)))
 
 
 ;;;

@@ -1,0 +1,59 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Simulator
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.simulator jazz
+
+
+(import (jazz.application)
+        (jazz.clipboard)
+        (jazz.component)
+        (jazz.event)
+        (jazz.geometry)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.markup)
+        (jazz.outline)
+        (jazz.platform)
+        (jazz.resource)
+        (jazz.stream)
+        (jazz.text)
+        (jazz.tree)
+        (jazz.ui)
+        (jazz.view)
+        (jazz.window)
+        (world)
+        (world.audio)
+        (world.chronology)
+        (world.client.udp)
+        (world.context)
+        (world.event)
+        (world.evolution)
+        (world.geometry)
+        (world.interface.evolution)
+        (world.interface.panel)
+        (world.interface.text)
+        (world.interface.timeline)
+        (world.manager)
+        (world.settings)
+        (world.simulation)
+        (world.time)
+        (world.timeline)
+        (world.visualization)
+        (world.udp)
+        (world.video)
+        (together)
+        (together.emulation)
+        (together.zone))
+
+
+(class Together-Simulator-Panel extends World-Panel))

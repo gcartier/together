@@ -79,6 +79,7 @@
         (together.replay)
         (together.script)
         (together.settings)
+        (together.simulator)
         (together.visualizer)
         (together.zone))
 
@@ -250,6 +251,10 @@
           (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
           (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
+        ;; simulate
+        (let ((root (new Together-Root name: 'simulate parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+          (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
+          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         ;; hide all
         (for-each (lambda (child)
                     (set-visible? child #f))
@@ -266,7 +271,9 @@
         ((script)
          (install-script self))
         ((replay)
-         (install-replay self)))
+         (install-replay self))
+        ((simulate)
+         (install-simulate self)))
       (show root)
       (send-to-back root)
       (when (developer?)
@@ -420,6 +427,27 @@
       (layout-view root)))
   
   
+  (method (install-simulate self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (set! root (child interface 'simulate))
+      (show root 'simulator)
+      (show root 'back)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root)))
+  
+  
   (method (uninstall-stage self)
     (let ((interface (current-interface)))
       (case stage
@@ -446,6 +474,7 @@
       (close (child interface 'gathering))
       (close (child interface 'circle))
       (close (child interface 'replay))
+      (close (child interface 'simulate))
       (close (child interface 'exception))))
   
   
@@ -1463,6 +1492,19 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
+  
+  
+  (method (on-goto-simulate self evt)
+    (case stage
+      ((simulate))
+      ((circle)
+       (bell))
+      (else
+       (goto-simulate self))))
+  
+  
+  (method (goto-simulate self)
+    (goto-stage self 'simulate))
   
   
   (method (on-toggle-capture self evt)

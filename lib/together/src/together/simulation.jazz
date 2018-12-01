@@ -15,6 +15,7 @@
 
 
 (import (jazz.component)
+        (jazz.io)
         (jazz.math)
         (jazz.stream)
         (world)
@@ -27,6 +28,8 @@
         (world.interface.timeline)
         (world.settings)
         (world.simulation)
+        (world.stream)
+        (world.time)
         (world.udp)
         (together.community)
         (together.replay))
@@ -39,7 +42,106 @@
   (world-setting 'together.debug-process? #f))
 
 
-(definition public (run-simulation origin origin-audio origin-audio-header origin-video origin-evolution server receiver)
+;;;
+;;;; Audio
+;;;
+
+
+(definition public (simulate-audio location)
+  (declare (proper-tail-calls))
+  (let ((world (current-world)))
+    (let ((server 0)
+          (origin 1)
+          (receiver 2))
+      (let ((names (list->table (list (cons origin "Origin")
+                                      (cons server "<server>")
+                                      (cons receiver "Receiver")))))
+        (let ((call (simulate-udp-call names)))
+          (let ((origin-client (require-tier call origin))
+                (receiver-client (require-tier call receiver)))
+            (let ((receiver-audio-channel (require-receive-channel receiver-client origin udp-audio)))
+              (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
+                    (average (new Average .05 1.))
+                    (sender-evolution (new Evolution 10000))
+                    (server-evolution (new Evolution 10000))
+                    (receiver-evolution (new Evolution 10000))
+                    (base #f)
+                    (start-time #f)
+                    (audio-headers '())
+                    (audio-header #f)
+                    (time-base (new Time-Base))
+                    (origin-simulator (new UDP-Simulator #f #f #f
+                                           (lambda (data drop?)
+                                             (receive-media receiver-client udp-audio data)))))
+                (set-simulator origin-client origin-simulator)
+                (let ((insert (new-thread
+                                (lambda ()
+                                  (parameterize ((simulation? #t)
+                                                 (simulation-evolution receiver-evolution))
+                                    (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
+                                      (let ((port (open-input-file (path-settings file))))
+                                        (define (consume buffer header? timestamp duration proc)
+                                          (case audio-codec
+                                            ;; opus has no headers
+                                            ((opus)
+                                             (proc buffer header? timestamp duration))
+                                            ((vorbis)
+                                             (if header?
+                                                 (begin
+                                                   (set! audio-headers (append! audio-headers (list (list buffer timestamp duration))))
+                                                   (when (= (length audio-headers) 3)
+                                                     (set! audio-header (object->u8vector audio-headers))
+                                                     (proc audio-header #t -1 GST_CLOCK_TIME_NONE)))
+                                               (proc buffer #f timestamp duration)))))
+                                        
+                                        (let (loop (count 0))
+                                          (receive (buffer timestamp duration) (read-frame port)
+                                            (when (and buffer (< count 500))
+                                              (let ((header? (audio-buffer-header? buffer)))
+                                                (consume buffer header? timestamp duration
+                                                  (lambda (buffer header? timestamp duration)
+                                                    (if header?
+                                                        (send-media origin-client udp-audio buffer header? timestamp duration)
+                                                      (let ((time (current-seconds))
+                                                            (nanostamp (timestamp->flonum timestamp)))
+                                                        (when (not base)
+                                                          (set! base time))
+                                                        (update-start time-base time nanostamp)
+                                                        (let ((sendtime (remote->local time-base nanostamp)))
+                                                          (sleep (- sendtime time))
+                                                          (send-media origin-client udp-audio buffer header? timestamp duration))))))
+                                                (loop (+ count 1)))))))))
+                                  ;; quicky give some time for process to finish
+                                  (sleep 1.)
+                                  (terminate receiver-audio-ring))
+                                'insert))
+                      (audio (new-thread
+                               (lambda ()
+                                 (parameterize ((simulation? #t)
+                                                (simulation-evolution receiver-evolution)
+                                                (simulation-audio (visualizer-output (current-audio))))
+                                   (let (looping (count 0))
+                                     (let ((info (process-wait receiver-audio-ring average debug-process?)))
+                                       (when (neq? info 'terminate)
+                                         (present-frame receiver-audio-channel info)
+                                         (looping (+ count 1)))))
+                                   (release (simulation-audio))))
+                               'audio)))
+                  (display-message world "Simulating..." duration: +inf.0)
+                  (thread-start! insert)
+                  (thread-start! audio)
+                  (thread-join! insert)
+                  (thread-join! audio)
+                  (clear-message world)
+                  (view-simulation origin server receiver names sender-evolution server-evolution receiver-evolution base))))))))))
+
+
+;;;
+;;;; Replay
+;;;
+
+
+(definition public (simulate-replay origin origin-audio origin-audio-header origin-video origin-evolution server receiver)
   (declare (proper-tail-calls))
   (let ((world (current-world)))
     (let ((names (list->table (list (cons origin "Origin")

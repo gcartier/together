@@ -265,6 +265,13 @@
         (on-goto-replay zone evt))))
   
   
+  @wait
+  (method (on-goto-simulate self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-goto-simulate zone evt))))
+  
+  
   (method (on-request-replays self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -499,6 +506,8 @@
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
+          @wait
+          (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
