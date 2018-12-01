@@ -74,29 +74,29 @@
 (class Together-Visualizer-Panel extends World-Panel
   
   
-  (slot replay                initialize #f accessors generate)
-  (slot tier                  initialize #f accessors generate)
-  (slot origin-audio          initialize #f getter generate)
-  (slot origin-audio-header   initialize #f getter generate)
-  (slot origin-video          initialize #f getter generate)
-  (slot origin-evolution      initialize #f getter generate)
-  (slot server-evolution      initialize #f getter generate)
-  (slot receiver-evolution    initialize #f getter generate)
-  (slot call                  initialize #f getter generate)
-  (slot origins               initialize #f getter generate)
-  (slot origin                initialize #f getter generate)
-  (slot media-kinds           initialize #f getter generate)
-  (slot media-kind            initialize #f getter generate)
-  (slot audio-datas           initialize #f getter generate)
-  (slot video-datas           initialize #f getter generate)
-  (slot sender-emulator       initialize #f getter generate)
-  (slot server-emulator       initialize #f getter generate)
-  (slot receiver-emulator     initialize #f getter generate)
-  (slot now                   initialize #f getter generate)
-  (slot last-now              initialize #f accessors generate)
-  (slot selection             initialize #f accessors generate)
-  (slot selection-frame       initialize #f accessors generate)
-  (slot selection-description initialize #f accessors generate)
+  (slot replay                initialize #f  accessors generate)
+  (slot tier                  initialize #f  accessors generate)
+  (slot origin-audio          initialize #f  getter generate)
+  (slot origin-audio-header   initialize #f  getter generate)
+  (slot origin-video          initialize #f  getter generate)
+  (slot origin-evolution      initialize #f  getter generate)
+  (slot server-evolution      initialize #f  getter generate)
+  (slot receiver-evolution    initialize #f  getter generate)
+  (slot call                  initialize #f  getter generate)
+  (slot origins               initialize '() getter generate)
+  (slot origin                initialize #f  getter generate)
+  (slot media-kinds           initialize '() getter generate)
+  (slot media-kind            initialize #f  getter generate)
+  (slot audio-datas           initialize #f  getter generate)
+  (slot video-datas           initialize #f  getter generate)
+  (slot sender-emulator       initialize #f  getter generate)
+  (slot server-emulator       initialize #f  getter generate)
+  (slot receiver-emulator     initialize #f  getter generate)
+  (slot now                   initialize #f  getter generate)
+  (slot last-now              initialize #f  accessors generate)
+  (slot selection             initialize #f  accessors generate)
+  (slot selection-frame       initialize #f  accessors generate)
+  (slot selection-description initialize #f  accessors generate)
   
   
   (form
@@ -405,7 +405,8 @@
   
   
   (method override (mouse-down self evt)
-    (acquire-focus self))
+    (when (get-replay panel)
+      (acquire-focus self)))
   
   
   (method override (double-click self evt)
@@ -696,11 +697,13 @@
   
   
   (method override (mouse-up self evt)
-    (let ((h (get-h evt))
-          (ring (if (= (get-media-kind panel) udp-audio)
-                    (get-audio-ring emulator)
-                  (get-video-ring emulator))))
-      (visualizer-click self h ring))))
+    (let ((media-kind (get-media-kind panel)))
+      (when media-kind
+        (let ((h (get-h evt))
+              (ring (if (= media-kind udp-audio)
+                        (get-audio-ring emulator)
+                      (get-video-ring emulator))))
+          (visualizer-click self h ring))))))
 
 
 ;;;
@@ -719,11 +722,13 @@
   
   
   (method override (mouse-up self evt)
-    (let ((h (get-h evt))
-          (ring (if (= (get-media-kind panel) udp-audio)
-                    (get-audio-ring emulator)
-                  (get-video-ring emulator))))
-      (visualizer-click self h ring))))
+    (let ((media-kind (get-media-kind panel)))
+      (when media-kind
+        (let ((h (get-h evt))
+              (ring (if (= media-kind udp-audio)
+                        (get-audio-ring emulator)
+                      (get-video-ring emulator))))
+          (visualizer-click self h ring))))))
 
 
 ;;;
@@ -786,8 +791,10 @@
   
   
   (method override (mouse-up self evt)
-    (let ((h (get-h evt))
-          (ring (if (= (get-media-kind panel) udp-audio)
-                    (get-audio-ring emulator)
-                  (get-video-ring emulator))))
-      (visualizer-click self h ring)))))
+    (let ((media-kind (get-media-kind panel)))
+      (when media-kind
+        (let ((h (get-h evt))
+              (ring (if (= media-kind udp-audio)
+                        (get-audio-ring emulator)
+                      (get-video-ring emulator))))
+          (visualizer-click self h ring)))))))
