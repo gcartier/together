@@ -253,6 +253,11 @@
   (slot time-base initialize #f getter generate)
   
   
+  (method override (prepare self rest)
+    (nextmethod self rest)
+    (set! live? #f))
+  
+  
   ;; quicky
   (method override (together-timeline? self)
     #t)
