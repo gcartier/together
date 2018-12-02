@@ -305,10 +305,12 @@
         (with-task-mutex
           (lambda ()
             (let ((local (current-seconds))
-                  (remote (+ now .01)))
+                  (remote (+ now visualizer-quantum)))
               (update-start time-base local remote)
               (let ((playtime (remote->local time-base remote)))
-                (step-forward self .01)
+                (step-forward self visualizer-quantum
+                  (lambda ()
+                    (reset time-base)))
                 (sleep (- playtime local))))))
         (loop))))
   
