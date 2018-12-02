@@ -410,7 +410,8 @@
   
   
   (method override (double-click self evt)
-    (toggle-playing self))
+    (when (get-replay panel)
+      (toggle-playing self)))
   
   
   (method (toggle-playing self)
