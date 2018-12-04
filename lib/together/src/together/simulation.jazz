@@ -15,9 +15,12 @@
 
 
 (import (jazz.component)
+        (jazz.geometry)
         (jazz.io)
         (jazz.math)
         (jazz.stream)
+        (jazz.syntax (phase syntax))
+        (jazz.zlib)
         (world)
         (world.audio)
         (world.chronology)
@@ -25,7 +28,10 @@
         (world.context)
         (world.event)
         (world.evolution)
+        (world.interface.evolution)
         (world.interface.timeline)
+        (world.math)
+        (world.server.udp)
         (world.settings)
         (world.simulation)
         (world.stream)
@@ -43,74 +49,175 @@
 
 
 ;;;
+;;;; Output
+;;;
+
+
+;; NOTES
+;; - why volume different than gst-play & quicktime
+;;   - it is the panorama method=0
+;; - buffering takes care of small glitches?
+;;   - if I add .01 on each buffer I hear correct audio
+;;     and then a big gap
+;; - I don't understand why but it would seem we need
+;;   buffer-time > time of gc * 2 for imperceptible gcs
+;; - duration seems totally ignored
+;; - maybe it is the time to test opus
+
+;; TODO
+;; - test durations
+;; - how does gstreamer play at 2x or .5x
+;; - add audiorate element
+;;   - can i do it simply for only 1 lib
+;; - scaletempo element
+;; - save audio somehow or using soundflower and look
+;;   at it in-depth using audacity!?
+
+
+;;;
+;;;; Stream
+;;;
+
+
+(class Test-Audio-Sink extends Audio-Sink
+
+
+  (method override (setup-element self)
+    (nextmethod self)
+    (let ((pipeline (gst-launch (tie "appsrc name=src")
+                                (and (eq? codec 'opus) "opusdec name=dec")
+                                (and (eq? codec 'vorbis) "vorbisdec name=dec")
+                                "osxaudiosink name=sink")))
+      (gst_object_set_name pipeline "output")
+      (let ((appsrc (gst_bin_get_by_name pipeline "src")))
+        (case codec
+          ((opus)
+           (gst_app_src_set_caps appsrc
+                                 (gst_caps "audio/x-opus"
+                                           "channel-mapping-family" (g_value_int 0))))
+          ((vorbis)
+           (gst_app_src_set_caps appsrc
+                                 (gst_caps "audio/x-vorbis"))))
+        (g_object_set appsrc
+                      "is-live"     (g_value_boolean #t)
+                      "stream-type" (g_value_int GST_APP_STREAM_TYPE_STREAM)
+                      "format"      (g_value_int GST_FORMAT_TIME))
+        (gst_element_set_state pipeline GST_STATE_READY)
+        (set! self.pipeline pipeline)
+        (set! self.appsrc appsrc)))))
+
+
+(definition (test-output)
+  (let ((output (new Test-Audio-Sink codec: audio-codec)))
+    (setup output)
+    (start output)
+    output))
+
+
+(definition public (stream-local location (max #f))
+  (let ((audio (current-audio)))
+    (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
+      (let ((port (open-input-file (path-settings file))))
+        (let ((time-base (new Time-Base))
+              (output (test-output) @w (visualizer-output audio))
+              (max (or max 500)))
+          (let (loop (count 0))
+            (receive (buffer timestamp duration) (read-frame port)
+              (when (and buffer (< count max))
+                (if (audio-buffer-header? buffer)
+                    (receive-audio audio output buffer timestamp duration)
+                  (let ((time (current-seconds))
+                        (nanostamp (+ (timestamp->flonum timestamp) 0. @w (* count .01))))
+                    (update-start time-base time nanostamp)
+                    (let ((sendtime (remote->local time-base nanostamp)))
+                      (sleep (- sendtime time))
+                      (receive-audio audio output buffer timestamp (+ 1000000000 duration)))))
+                (loop (+ count 1)))))
+          (release output))))))
+
+
+;;;
 ;;;; Audio
 ;;;
 
 
-(definition public (simulate-audio location)
+(definition public (simulate-audio location (end: end #f))
   (declare (proper-tail-calls))
   (let ((world (current-world)))
-    (let ((server 0)
-          (origin 1)
+    (let ((origin 1)
+          (server 0)
           (receiver 2))
       (let ((names (list->table (list (cons origin "Origin")
                                       (cons server "<server>")
                                       (cons receiver "Receiver")))))
         (let ((call (simulate-udp-call names)))
-          (let ((origin-client (require-tier call origin))
-                (receiver-client (require-tier call receiver)))
-            (let ((receiver-audio-channel (require-receive-channel receiver-client origin udp-audio)))
+          (let ((origin-tier (require-tier call origin))
+                (server-tier (require-tier call server))
+                (receiver-tier (require-tier call receiver)))
+            (let ((receiver-audio-channel (require-receive-channel receiver-tier origin udp-audio)))
               (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
                     (average (new Average .05 1.))
-                    (sender-evolution (new Evolution 10000))
+                    (origin-evolution (new Evolution 10000))
                     (server-evolution (new Evolution 10000))
                     (receiver-evolution (new Evolution 10000))
-                    (base #f)
-                    (start-time #f)
-                    (audio-headers '())
+                    (chronology (new Chronology 10000))
+                    (base-time #f)
+                    (base-nanostamp #f)
                     (audio-header #f)
-                    (time-base (new Time-Base))
-                    (origin-simulator (new UDP-Simulator #f #f #f
-                                           (lambda (data drop?)
-                                             (receive-media receiver-client udp-audio data)))))
-                (set-simulator origin-client origin-simulator)
+                    (time-base (new Time-Base)))
+                (define (determine-latency nanostamp)
+                  (let ((elapse (- nanostamp base-nanostamp)))
+                    @w
+                    (cond ((< elapse 1.)
+                           0.)
+                          ((< elapse 3.)
+                           (interpolate elapse 1. 3. 0. .4))
+                          ((< elapse 5.)
+                           (interpolate elapse 3. 5. .4 0.))
+                          (else
+                           0.))
+                    @w
+                    (if (< elapse 1.)
+                        0.
+                      .15)
+                    (/ (+ (sin elapse) 1.) 5.)))
+                
+                (define (latencer data)
+                  (if (read-udp-media-header? data)
+                      0.
+                    (let ((elapse (- (read-udp-sent data) base-time)))
+                      (/ (+ (sin (* elapse 8.)) 1.) 8.))))
+                
+                (define (writer data drop?)
+                  (parameterize ((simulation-evolution receiver-evolution))
+                    (receive-media receiver-tier udp-audio data)))
+                
+                (set-simulator origin-tier (new UDP-Simulator #f @w latencer #f #f writer))
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)
-                                                 (simulation-evolution receiver-evolution))
+                                                 (simulation-evolution origin-evolution))
                                     (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
-                                      (let ((port (open-input-file (path-settings file))))
-                                        (define (consume buffer header? timestamp duration proc)
-                                          (case audio-codec
-                                            ;; opus has no headers
-                                            ((opus)
-                                             (proc buffer header? timestamp duration))
-                                            ((vorbis)
-                                             (if header?
-                                                 (begin
-                                                   (set! audio-headers (append! audio-headers (list (list buffer timestamp duration))))
-                                                   (when (= (length audio-headers) 3)
-                                                     (set! audio-header (object->u8vector audio-headers))
-                                                     (proc audio-header #t -1 GST_CLOCK_TIME_NONE)))
-                                               (proc buffer #f timestamp duration)))))
-                                        
-                                        (let (loop (count 0))
-                                          (receive (buffer timestamp duration) (read-frame port)
-                                            (when (and buffer (< count 500))
-                                              (let ((header? (audio-buffer-header? buffer)))
-                                                (consume buffer header? timestamp duration
-                                                  (lambda (buffer header? timestamp duration)
-                                                    (if header?
-                                                        (send-media origin-client udp-audio buffer header? timestamp duration)
-                                                      (let ((time (current-seconds))
-                                                            (nanostamp (timestamp->flonum timestamp)))
-                                                        (when (not base)
-                                                          (set! base time))
-                                                        (update-start time-base time nanostamp)
-                                                        (let ((sendtime (remote->local time-base nanostamp)))
-                                                          (sleep (- sendtime time))
-                                                          (send-media origin-client udp-audio buffer header? timestamp duration))))))
-                                                (loop (+ count 1)))))))))
+                                      (call-with-input-file (path-settings file)
+                                        (lambda (port)
+                                          (set! audio-header (read-audio-header audio-codec port))
+                                          (when audio-header
+                                            (send-media origin-tier udp-audio audio-header #t -1 GST_CLOCK_TIME_NONE))
+                                          (let (loop (count 0))
+                                            (let ((time (current-seconds)))
+                                              (receive (buffer timestamp duration) (read-frame port)
+                                                (when (and buffer (or (not base-time) (not end) (< (- time base-time) end)))
+                                                  (let ((nanostamp (timestamp->flonum timestamp)))
+                                                    (when (not base-time)
+                                                      (set! base-time time)
+                                                      (set! base-nanostamp nanostamp))
+                                                    (update-start time-base time nanostamp)
+                                                    (let ((sendtime (+ (remote->local time-base nanostamp)
+                                                                       (determine-latency nanostamp))))
+                                                      (sleep (- sendtime time))
+                                                      (send-media origin-tier udp-audio buffer #f timestamp duration)
+                                                      (thread-yield!)))
+                                                  (loop (+ count 1))))))))))
                                   ;; quicky give some time for process to finish
                                   (sleep 1.)
                                   (terminate receiver-audio-ring))
@@ -132,8 +239,71 @@
                   (thread-start! audio)
                   (thread-join! insert)
                   (thread-join! audio)
-                  (clear-message world)
-                  (view-simulation origin server receiver names sender-evolution server-evolution receiver-evolution base))))))))))
+                  (save/view-simulation base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
+                  (clear-message world))))))))))
+
+
+(definition (save/view-simulation base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
+  (let ((directory (timestamped-directory {Directory Settings "work" "simulations"} "replay")))
+    (define (save-client no client evolution)
+      (define (metadata name)
+        (define (send-channels)
+          (table-keys (get-send-channels client)))
+        
+        (define (receive-channels)
+          (table-keys (get-receive-channels client)))
+        
+        (list no name (send-channels) (receive-channels)))
+      
+      (let ((name (table-ref names no)))
+        (let ((metadata (metadata name)))
+          (let ((file (new-file directory (add-extension name "replay")))
+                (deflated (zlib-deflate (object->u8vector (list metadata chronology evolution) serialize))))
+            (save-binary file deflated)))))
+    
+    (define (save-server no server evolution)
+      (define (metadata name)
+        (define (start-time)
+          base-time)
+        
+        (define (server-channels)
+          (table-keys (get-server-channels server)))
+        
+        (list no name (start-time) (server-channels)))
+      
+      (let ((name (table-ref names no)))
+        (let ((metadata (metadata name)))
+          (let ((file (new-file directory (add-extension name "replay")))
+                (deflated (zlib-deflate (object->u8vector (list metadata chronology evolution) serialize))))
+            (save-binary file deflated)))))
+    
+    (define (save-audio)
+      (let ((kind udp-audio))
+        (let ((channel (find-send-channel origin-tier kind)))
+          (let ((ring (get-replay-ring channel))
+                (header audio-header))
+            (unless (= (get-count ring) 0)
+              (let ((file (new-file directory "Origin.replayaudio"))
+                    (content (object->u8vector (list ring header) serialize)))
+                (save-binary file content)))))))
+    
+    (define (save-video)
+      (let ((kind udp-video))
+        (let ((channel (find-send-channel origin-tier kind)))
+          (let ((ring (get-replay-ring channel))
+                (header #f))
+            (unless (= (get-count ring) 0)
+              (let ((file (new-file directory "Origin.replayvideo"))
+                    (content (object->u8vector (list ring header) serialize)))
+                (save-binary file content)))))))
+  
+    (create-directories directory)
+    (save-client origin origin-tier origin-evolution)
+    (save-server server server-tier server-evolution)
+    (save-client receiver receiver-tier receiver-evolution)
+    (save-audio)
+    (save-video)
+    (view-replay-directory directory)))
 
 
 ;;;
@@ -148,16 +318,16 @@
                                     (cons server "<server>")
                                     (cons receiver "Receiver")))))
       (let ((call (simulate-udp-call names)))
-        (let ((receiver-client (require-tier call receiver)))
-          (let ((receiver-audio-channel (require-receive-channel receiver-client origin udp-audio))
-                (receiver-video-channel (require-receive-channel receiver-client origin udp-video)))
+        (let ((receiver-tier (require-tier call receiver)))
+          (let ((receiver-audio-channel (require-receive-channel receiver-tier origin udp-audio))
+                (receiver-video-channel (require-receive-channel receiver-tier origin udp-video)))
             (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
                   (receiver-video-ring (get-process-ring receiver-video-channel))
                   (average (new Average .05 1.))
                   (sender-evolution (new Evolution 10000))
                   (server-evolution (new Evolution 10000))
                   (receiver-evolution (new Evolution 10000))
-                  (base #f)
+                  (base-time #f)
                   (start-time #f))
               (define (need-data kind sequence)
                 (let ((ring (if (= kind udp-audio) origin-audio origin-video)))
@@ -229,7 +399,7 @@
                                           (header? #t))
                                       (let ((data (need-data2 kind origin sequence-mega-hack frame-mega-hack part total origin-audio-header -1 header?)))
                                         (record-data data)
-                                        (receive-media receiver-client udp-audio data)
+                                        (receive-media receiver-tier udp-audio data)
                                         (increase! sequence-mega-hack)
                                         (increase! part))))
                                   
@@ -237,15 +407,15 @@
                                     (define (simulate kind sequence seconds)
                                       (let ((now (current-seconds)))
                                         (when (not start-time)
-                                          (set! base now)
+                                          (set! base-time now)
                                           (set! start-time seconds))
-                                        (let ((time (+ base (- seconds start-time))))
+                                        (let ((time (+ base-time (- seconds start-time))))
                                           (sleep (- time now))
                                           (let ((data (need-data kind sequence)))
                                             (if (not data)
                                                 (terminal 'not-found kind sequence)
                                               (record-data data)
-                                              (receive-media receiver-client kind data))))))
+                                              (receive-media receiver-tier kind data))))))
                                     
                                     (loop (for n from (first-position origin-evolution) to (last-position origin-evolution))
                                           (let ((id (flonum->fixnum (evolutionary-udp-id origin-evolution n))))
@@ -257,7 +427,6 @@
                                                 (when (= kind udp-audio)
                                                   (when #t @w (or (not start-time)
                                                                   (< (- time start-time) 30.))
-                                                    ;(terminal 'insert time kind sequence)
                                                     (simulate kind sequence (* 10. time))))))))))
                                 (set-$a receiver-audio-ring)
                                 (set-$v receiver-video-ring)
@@ -273,7 +442,6 @@
                                               (simulation-audio (visualizer-output (current-audio))))
                                  (let (looping)
                                    (let ((info (process-wait receiver-audio-ring average debug-process?)))
-                                     ;(terminal 'process)
                                      (when (neq? info 'terminate)
                                        (present-frame receiver-audio-channel info)
                                        (looping))))
@@ -303,7 +471,7 @@
                 (compare-events)
                 (clear-message world)
                 @w
-                (view-simulation origin server receiver names sender-evolution server-evolution receiver-evolution base)))))))))
+                (view-simulation origin server receiver names sender-evolution server-evolution receiver-evolution base-time)))))))))
 
 
 (definition public (view-simulation origin server receiver names origin-evolution server-evolution receiver-evolution base-time)
