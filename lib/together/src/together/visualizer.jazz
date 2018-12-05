@@ -764,7 +764,7 @@
       (let ((media-kind (get-media-kind panel))
             (audio-ring (get-audio-ring emulator))
             (video-ring (get-video-ring emulator)))
-        (when (and audio-ring video-ring)
+        (when (and media-kind audio-ring video-ring)
           (let ((width (get-width size))
                 (height (get-height size)))
             (with-boundaries self
