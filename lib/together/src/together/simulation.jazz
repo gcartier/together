@@ -141,7 +141,40 @@
 ;;;
 
 
-(definition public (simulate-audio location (end: end #f))
+(definition (real-modulo x m)
+  (- x (* (floor (/ x m)) m)))
+
+
+(definition public (rise-latency)
+  (lambda (elapse)
+    (/ elapse 25.)))
+
+
+(definition public (updown-latency (bottom: bottom 5.) (top: top 5.) (slope: slope 1.) (min: min 0.) (max: max .4))
+  (lambda (elapse)
+    (let ((a bottom)
+          (b (+ bottom slope))
+          (c (+ bottom slope top))
+          (d (+ bottom slope top slope)))
+      (let ((elapse (real-modulo elapse d)))
+        (cond ((< elapse a)
+               min)
+              ((< elapse b)
+               (interpolate elapse a b min max))
+              ((< elapse c)
+               max)
+              ((< elapse d)
+               (interpolate elapse c d max min))
+              (else
+               min))))))
+
+
+(definition public (sin-latency max)
+  (lambda (elapse)
+    (/ (* (+ (sin elapse) 1.) max) 2.)))
+
+
+(definition public (simulate-audio location (name: name #f) (start: start #f) (end: end #f) (duration: duration #f) (latency: latency #f) (update-time: update-time #f) (visualize?: visualize? #t))
   (declare (proper-tail-calls))
   (let ((world (current-world)))
     (let ((origin 1)
@@ -164,23 +197,13 @@
                     (base-time #f)
                     (base-nanostamp #f)
                     (audio-header #f)
-                    (time-base (new Time-Base)))
+                    (time-base (new Time-Base))
+                    (end (or end (and start duration (+ start duration)))))
                 (define (determine-latency nanostamp)
                   (let ((elapse (- nanostamp base-nanostamp)))
-                    @w
-                    (cond ((< elapse 1.)
-                           0.)
-                          ((< elapse 3.)
-                           (interpolate elapse 1. 3. 0. .4))
-                          ((< elapse 5.)
-                           (interpolate elapse 3. 5. .4 0.))
-                          (else
-                           0.))
-                    @w
-                    (if (< elapse 1.)
-                        0.
-                      .15)
-                    (/ (+ (sin elapse) 1.) 5.)))
+                    (if latency
+                        (latency elapse)
+                      0.)))
                 
                 (define (latencer data)
                   (if (read-udp-media-header? data)
@@ -196,6 +219,7 @@
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)
+                                                 (simulation-update-time update-time)
                                                  (simulation-evolution origin-evolution))
                                     (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
                                       (call-with-input-file (path-settings file)
@@ -206,18 +230,19 @@
                                           (let (loop (count 0))
                                             (let ((time (current-seconds)))
                                               (receive (buffer timestamp duration) (read-frame port)
-                                                (when (and buffer (or (not base-time) (not end) (< (- time base-time) end)))
+                                                (when buffer
                                                   (let ((nanostamp (timestamp->flonum timestamp)))
-                                                    (when (not base-time)
-                                                      (set! base-time time)
-                                                      (set! base-nanostamp nanostamp))
-                                                    (update-start time-base time nanostamp)
-                                                    (let ((sendtime (+ (remote->local time-base nanostamp)
-                                                                       (determine-latency nanostamp))))
-                                                      (sleep (- sendtime time))
-                                                      (send-media origin-tier udp-audio buffer #f timestamp duration)
-                                                      (thread-yield!)))
-                                                  (loop (+ count 1))))))))))
+                                                    (when (or (not base-nanostamp) (not end) (< (- nanostamp base-nanostamp) end))
+                                                      (when (not base-time)
+                                                        (set! base-time time)
+                                                        (set! base-nanostamp nanostamp))
+                                                      (when (or (not start) (>= (- nanostamp base-nanostamp) start))
+                                                        (update-start time-base time nanostamp)
+                                                        (let ((sendtime (+ (remote->local time-base nanostamp)
+                                                                           (determine-latency nanostamp))))
+                                                          (sleep (- sendtime time))
+                                                          (send-media origin-tier udp-audio buffer #f timestamp duration)))
+                                                      (loop (+ count 1))))))))))))
                                   ;; quicky give some time for process to finish
                                   (sleep 1.)
                                   (terminate receiver-audio-ring))
@@ -226,12 +251,13 @@
                                (lambda ()
                                  (parameterize ((simulation? #t)
                                                 (simulation-evolution receiver-evolution)
-                                                (simulation-audio (visualizer-output (current-audio))))
+                                                (simulation-audio (simulation-output (current-audio))))
                                    (let (looping (count 0))
                                      (let ((info (process-wait receiver-audio-ring average debug-process?)))
                                        (when (neq? info 'terminate)
                                          (present-frame receiver-audio-channel info)
                                          (looping (+ count 1)))))
+                                   (sleep 1.)
                                    (release (simulation-audio))))
                                'audio)))
                   (display-message world "Simulating..." duration: +inf.0)
@@ -239,12 +265,13 @@
                   (thread-start! audio)
                   (thread-join! insert)
                   (thread-join! audio)
-                  (save/view-simulation base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
+                  (when visualize?
+                    (save/view-simulation name base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header))
                   (clear-message world))))))))))
 
 
-(definition (save/view-simulation base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
-  (let ((directory (timestamped-directory {Directory Settings "work" "simulations"} "replay")))
+(definition (save/view-simulation name base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
+  (let ((directory (timestamped-directory {Directory Settings "work" "simulations"} (if name (string-append "replay_" name) "replay"))))
     (define (save-client no client evolution)
       (define (metadata name)
         (define (send-channels)
@@ -439,7 +466,7 @@
                              (lambda ()
                                (parameterize ((simulation? #t)
                                               (simulation-evolution receiver-evolution)
-                                              (simulation-audio (visualizer-output (current-audio))))
+                                              (simulation-audio (simulation-output (current-audio))))
                                  (let (looping)
                                    (let ((info (process-wait receiver-audio-ring average debug-process?)))
                                      (when (neq? info 'terminate)
