@@ -398,7 +398,7 @@
       (let ((evolution (get-origin-evolution visualizer)))
         (when evolution
           (let ((width (cast <fl> (get-width self)))
-                (latency-scale 100.)
+                (latency-scale (* 100. graph-scale))
                 (previous-latency-h #f)
                 (previous-latency-v #f)
                 (previous-timestamp-latency-h #f)
