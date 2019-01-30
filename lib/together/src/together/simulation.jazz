@@ -116,7 +116,7 @@
 
 (definition public (stream-local location (max #f))
   (let ((audio (current-audio)))
-    (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
+    (let ((file (new-file {Directory Settings} (list "streams" (add-extension location "streamaudio")))))
       (let ((port (open-input-file (path-settings file))))
         (let ((time-base (new Time-Base))
               (output (test-output) @w (visualizer-output audio))
@@ -221,7 +221,7 @@
                                   (parameterize ((simulation? #t)
                                                  (simulation-update-time update-time)
                                                  (simulation-evolution origin-evolution))
-                                    (let ((file (new-file {Directory Settings} (list "stream" (add-extension location "streamaudio")))))
+                                    (let ((file (new-file {Directory Settings} (list "streams" (add-extension location "streamaudio")))))
                                       (call-with-input-file (path-settings file)
                                         (lambda (port)
                                           (set! audio-header (read-audio-header audio-codec port))

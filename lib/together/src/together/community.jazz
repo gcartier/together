@@ -814,6 +814,7 @@
           (player-output video #f player: (current-me))
           (clear-message world)
           (uninstall-camera)
+          (setup-circle-camera self)
           (remove-skybox zone)
           (set! joined-circle name)
           (set! circle-start (current-seconds))
@@ -855,6 +856,15 @@
   
   (method (on-back self evt)
     (goto-stage self 'gathering))
+  
+  
+  (method (setup-circle-camera self)
+    (let ((world (current-world)))
+      (let ((eye (get-eye world)))
+        (set-lookat eye (horizon-lookat (vertex .876061253840627 -.264609644387585 .4031109222239757)))
+        (set-position eye (vertex 70.1143119499319 .39325215441015315 39.22667113734516))
+        (derive-target eye)
+        (camera-update eye))))
   
   
   ;;;
@@ -932,7 +942,9 @@
   
   
   (method (render-video self video)
-    (neq? stage 'circle))
+    (if (eq? world.video:video-layout 'circle)
+        #f
+      (neq? stage 'circle)))
   
   
   (method (draw-sheets self surface)

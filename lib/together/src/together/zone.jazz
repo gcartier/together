@@ -126,9 +126,12 @@
   
   
   (method override (player-task self task <Task>)
-    (with-task task
-      (lambda (exit)
-        (task-wait task +infinity 0. exit))))
+    ;; to test 3d circles
+    (if (developer?)
+        (nextmethod self task)
+      (with-task task
+        (lambda (exit)
+          (task-wait task +infinity 0. exit)))))
   
   
   (method (close-frame self)
@@ -193,6 +196,10 @@
 
 
 (class Together-Root extends Layout-View
+  
+  
+  (method override (get-transparent? self)
+    #t)
   
   
   (method override (mouse-down self evt)
