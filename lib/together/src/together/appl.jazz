@@ -461,6 +461,8 @@
           (<!>                 name: one/no-space              visible?: #t))
         (<code-text!>
           (<!>                 name: evaluate                  visible?: #t))
+        (<lisp-text!>
+          (<!>                 name: tabulate                  visible?: #t))
         (<search-mode!>
           (<!>                 name: whole-words               visible?: #t)
           (<!>                 name: ignore-case               visible?: #t)
