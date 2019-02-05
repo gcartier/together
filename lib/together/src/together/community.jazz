@@ -861,8 +861,8 @@
   (method (setup-circle-camera self)
     (let ((world (current-world)))
       (let ((eye (get-eye world)))
-        (set-lookat eye (horizon-lookat (vertex .876061253840627 -.264609644387585 .4031109222239757)))
-        (set-position eye (vertex 70.1143119499319 .39325215441015315 39.22667113734516))
+        (set-lookat eye (horizon-lookat (vertex -.0015332002301058339 -.4696357685108169 -.8828589322379361)))
+        (set-position eye (vertex .012694333518153704 8.010187840629088 31.663224308176325))
         (derive-target eye)
         (camera-update eye))))
   
@@ -954,6 +954,7 @@
           (video (current-video)))
       (define (draw-output output)
         (when (is? output Sheet-Video-Sink)
+          (maybe-update-layouts output)
           (let ((id (get-id output)))
             (let ((name (if (not id) "Me" (let ((member (find-group-member-by-id client id)))
                                             ;; quick temporary hack
