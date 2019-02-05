@@ -205,6 +205,7 @@
                                           (nanoduration (flonum->timestamp duration)))
                                       (write-udp-kind data kind)
                                       (write-udp-origin data origin)
+                                      (write-udp-channel data -1)
                                       (write-udp-sequence data sequence)
                                       (write-udp-frame data frame)
                                       (write-udp-part data part)
