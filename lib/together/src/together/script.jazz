@@ -74,11 +74,14 @@
   
   
   (method override (evaluate-selection self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (when edited-entity
-        (let ((panel (child interface 'script)))
-          (let ((manager (locate panel 'manager))
-                (asset (get-asset edited-entity)))
-            (save-script manager)
-            (execute-script world (get-path asset)))))))))
+    ;; quicky for now
+    (if (and edited-entity (equal? (car (get-root (get-asset edited-entity))) "module"))
+        (nextmethod self)
+      (let ((interface (current-interface))
+            (world (current-world)))
+        (when edited-entity
+          (let ((panel (child interface 'script)))
+            (let ((manager (locate panel 'manager))
+                  (asset (get-asset edited-entity)))
+              (save-script manager)
+              (execute-script world (get-path asset))))))))))

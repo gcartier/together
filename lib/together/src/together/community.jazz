@@ -1333,6 +1333,10 @@
         (set-visible? (child root 'circle) #t))))
   
   
+  (method (on-toggle-script self evt)
+    (toggle-script self))
+  
+  
   (method (on-toggle-timeline self evt)
     (let ((interface (current-interface))
           (world (current-world))
@@ -1384,6 +1388,27 @@
        (goto-script/last self))))
   
   
+  (method (toggle-script self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (let ((panel (child interface 'script)))
+        (if (get-visible? panel)
+            (begin
+              (set-visible? panel #f)
+              (focus-world))
+          (let ((manager (locate panel 'manager)))
+            (let ((text (locate manager '(script text))))
+              (when (not edited-entity)
+                (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
+                  (when script
+                    (let ((entity (register-asset-script script)))
+                      (set-edited-entity entity)
+                      (set-edited manager entity)
+                      (set-moniker text (get-file script))))))
+              (acquire-focus text)))
+          (set-visible? panel #t)))))
+  
+  
   (method (goto-script/last self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -1396,7 +1421,7 @@
                   (let ((entity (register-asset-script script)))
                     (set-edited-entity entity)
                     (set-edited manager entity)
-                    (set-string-content text (get-text (get-script entity)))))))
+                    (set-moniker text (get-file script))))))
             (goto-script self)
             (acquire-focus text))))))
   
@@ -1544,7 +1569,64 @@
   
   
   (method (on-configure-settings self evt)
-    ))
+    )
+  
+  
+  (method (on-edit-script1 self evt)
+    (edit-script self (world-setting 'world.test1-script "test/test1")))
+  
+  
+  (method (on-edit-script2 self evt)
+    (edit-script self (world-setting 'world.test2-script "test/test2")))
+  
+  
+  (method (on-edit-script3 self evt)
+    (edit-script self (world-setting 'world.test3-script "test/test3")))
+  
+  
+  (method (on-edit-script4 self evt)
+    (edit-script self (world-setting 'world.test4-script "test/test4")))
+  
+  
+  (method (on-edit-script5 self evt)
+    (edit-script self (world-setting 'world.test5-script "test/test5")))
+  
+  
+  (method (on-edit-script6 self evt)
+    (edit-script self (world-setting 'world.test6-script "test/test6")))
+  
+  
+  (method (on-edit-script7 self evt)
+    (edit-script self (world-setting 'world.test7-script "test/test7")))
+  
+  
+  (method (on-edit-script8 self evt)
+    (edit-script self (world-setting 'world.test8-script "test/test8")))
+  
+  
+  (method (on-edit-script9 self evt)
+    (edit-script self (world-setting 'world.test9-script "test/test9")))
+  
+  
+  (method (on-edit-script0 self evt)
+    (edit-script self (world-setting 'world.test0-script "test/test0")))
+  
+  
+  (method (edit-script self script)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (let ((panel (child interface 'script)))
+        (let ((manager (locate panel 'manager)))
+          (let ((text (locate manager '(script text))))
+            (let ((script (find-script world script)))
+              (when script
+                (save-script manager)
+                (let ((entity (register-asset-script script)))
+                  (set-edited-entity entity)
+                  (set-edited manager entity)
+                  (set-moniker text (get-file script)))))
+            (acquire-focus text)))
+        (set-visible? panel #t)))))
 
 
 ;;;

@@ -123,18 +123,19 @@
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
           (let ((script (find-script world edited-path)))
-            (let ((content (load-asset-text script)))
-              (when (not (equal? (digest-string content 'SHA-1)
-                                 (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
-                (let ((panel (child interface 'script)))
-                  (let ((manager (locate panel 'manager)))
-                    (let ((text (locate manager '(script text))))
-                      (let ((entity (register-asset-script script)))
-                        (set-edited-entity entity)
-                        (set-edited manager entity)
-                        (set-string-content text content)
-                        (set-text (get-script entity) content)
-                        (execute-script world edited-path)))))))))))
+            (when script
+              (let ((content (load-asset-text script)))
+                (when (not (equal? (digest-string content 'SHA-1)
+                                   (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
+                  (let ((panel (child interface 'script)))
+                    (let ((manager (locate panel 'manager)))
+                      (let ((text (locate manager '(script text))))
+                        (let ((entity (register-asset-script script)))
+                          (set-edited-entity entity)
+                          (set-edited manager entity)
+                          (set-string-content text content)
+                          (set-text (get-script entity) content)
+                          (execute-script world edited-path))))))))))))
     (nextmethod self))
 
   
@@ -235,6 +236,12 @@
         (on-toggle-admin zone evt))))
   
   
+  (method (on-toggle-script self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-script zone evt))))
+  
+  
   (method (on-toggle-timeline self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -306,6 +313,66 @@
     (let ((world (current-world)))
       (let ((duration (estimate-garbage-collect)))
         (display-message world (format "Garbage collect {a}ms" (seconds->milliseconds duration))))))
+  
+  
+  (method (on-edit-script1 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script1 zone evt))))
+  
+  
+  (method (on-edit-script2 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script2 zone evt))))
+  
+  
+  (method (on-edit-script3 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script3 zone evt))))
+  
+  
+  (method (on-edit-script4 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script4 zone evt))))
+  
+  
+  (method (on-edit-script5 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script5 zone evt))))
+  
+  
+  (method (on-edit-script6 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script6 zone evt))))
+  
+  
+  (method (on-edit-script7 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script7 zone evt))))
+  
+  
+  (method (on-edit-script8 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script8 zone evt))))
+  
+  
+  (method (on-edit-script9 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script9 zone evt))))
+  
+  
+  (method (on-edit-script0 self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-edit-script0 zone evt))))
   
   
   ;;;
@@ -498,6 +565,17 @@
           (<!>                 name: test8                     visible?: #t shortcut: {Shortcut :alt #\8})
           (<!>                 name: test9                     visible?: #t shortcut: {Shortcut :alt #\9})
           (<!>                 name: test0                     visible?: #t shortcut: {Shortcut :alt #\0})
+          (<World-Action-Item> name: edit-script1              visible?: #t shortcut: {Shortcut :control :alt #\1} title: "Edit script #1" action-handler: {Event-Handler :application on-edit-script1})
+          (<World-Action-Item> name: edit-script2              visible?: #t shortcut: {Shortcut :control :alt #\2} title: "Edit script #2" action-handler: {Event-Handler :application on-edit-script2})
+          (<World-Action-Item> name: edit-script3              visible?: #t shortcut: {Shortcut :control :alt #\3} title: "Edit script #3" action-handler: {Event-Handler :application on-edit-script3})
+          (<World-Action-Item> name: edit-script4              visible?: #t shortcut: {Shortcut :control :alt #\4} title: "Edit script #4" action-handler: {Event-Handler :application on-edit-script4})
+          (<World-Action-Item> name: edit-script5              visible?: #t shortcut: {Shortcut :control :alt #\5} title: "Edit script #5" action-handler: {Event-Handler :application on-edit-script5})
+          (<World-Action-Item> name: edit-script6              visible?: #t shortcut: {Shortcut :control :alt #\6} title: "Edit script #6" action-handler: {Event-Handler :application on-edit-script6})
+          (<World-Action-Item> name: edit-script7              visible?: #t shortcut: {Shortcut :control :alt #\7} title: "Edit script #7" action-handler: {Event-Handler :application on-edit-script7})
+          (<World-Action-Item> name: edit-script8              visible?: #t shortcut: {Shortcut :control :alt #\8} title: "Edit script #8" action-handler: {Event-Handler :application on-edit-script8})
+          (<World-Action-Item> name: edit-script9              visible?: #t shortcut: {Shortcut :control :alt #\9} title: "Edit script #9" action-handler: {Event-Handler :application on-edit-script9})
+          (<World-Action-Item> name: edit-script0              visible?: #t shortcut: {Shortcut :control :alt #\0} title: "Edit script #0" action-handler: {Event-Handler :application on-edit-script0})
+          (<World-Action-Item> name: toggle-script             visible?: #t shortcut: {Shortcut :control :alt #\S} title: "Toggle script" action-handler: {Event-Handler :application on-toggle-script} description: "Toggle script.")
           (<World-Action-Item> name: toggle-capture            visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
           (<World-Action-Item> name: toggle-stream             visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle stream" action-handler: {Event-Handler :application on-toggle-stream} description: "Toggle stream.")
           (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
@@ -506,7 +584,7 @@
           (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
           (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
-          (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
+          (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\W} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
           @wait
           (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
