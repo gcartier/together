@@ -127,7 +127,7 @@
   
   (method override (player-task self task <Task>)
     ;; to test 3d circles
-    (if (developer?)
+    (if circle?
         (nextmethod self task)
       (with-task task
         (lambda (exit)
