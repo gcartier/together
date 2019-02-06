@@ -57,7 +57,7 @@
                      '(;; role
                        world.role                 user
                        ;; media
-                       world.video-layout         gallery
+                       world.video-layout         circle
                        ;; test
                        world.init-script          #f
                        world.test-script          #f
