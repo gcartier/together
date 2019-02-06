@@ -549,10 +549,11 @@
   
   
   (method override (mouse-moved self x y)
-    (when (eq? stage 'circle)
-      (show-interface self))
-    (when (developer?)
-      (show/hide-debug self (fxround x) (fxround y))))
+    (unless (script-visible? self)
+      (when (eq? stage 'circle)
+        (show-interface self))
+      (when (developer?)
+        (show/hide-debug self (fxround x) (fxround y)))))
   
   
   (method override (mouse-down self h v)
@@ -565,8 +566,9 @@
   
   
   (method override (mouse-action self h v)
-    (when (eq? stage 'circle)
-      (show-interface self)))
+    (unless (script-visible? self)
+      (when (eq? stage 'circle)
+        (show-interface self))))
   
   
   (method override (double-click self h v)
@@ -1412,6 +1414,12 @@
                       (set-moniker text (get-file script))))))
               (acquire-focus text)))
           (set-visible? panel #t)))))
+  
+  
+  (method (script-visible? self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (get-visible? panel))))
   
   
   (method (goto-script/last self)
