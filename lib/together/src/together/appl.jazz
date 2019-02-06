@@ -107,6 +107,14 @@
     (set-exceeds-tooltips? #f))
   
   
+  (method override (close-environment self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (let ((manager (locate panel 'manager)))
+          (save-script manager))))
+    (nextmethod self))
+  
+  
   ;;;
   ;;;; Activation
   ;;;
