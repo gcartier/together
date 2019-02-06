@@ -23,6 +23,10 @@
         (world.settings))
 
 
+(definition protected together-debugger?
+  (world-setting 'together.debugger? #f))
+
+
 (definition protected (together-file)
   (let ((user (string-argument "user" "Together")))
     (new-file {Directory Settings} (list "clients" user ".client"))))

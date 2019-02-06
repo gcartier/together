@@ -1401,11 +1401,12 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((panel (child interface 'script)))
-        (if (get-visible? panel)
-            (begin
-              (set-visible? panel #f)
-              (focus-world))
-          (let ((manager (locate panel 'manager)))
+        (let ((manager (locate panel 'manager)))
+          (if (get-visible? panel)
+              (begin
+                (save-script manager)
+                (set-visible? panel #f)
+                (focus-world))
             (let ((text (locate manager '(script text))))
               (when (not edited-entity)
                 (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
@@ -1414,8 +1415,8 @@
                       (set-edited-entity entity)
                       (set-edited manager entity)
                       (set-moniker text (get-file script))))))
-              (acquire-focus text)))
-          (set-visible? panel #t)))))
+              (acquire-focus text))
+            (set-visible? panel #t))))))
   
   
   (method (script-visible? self)

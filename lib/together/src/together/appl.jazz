@@ -61,8 +61,19 @@
         (together.window)
         (together.zone))
 
+;@wait-debugger!?
+(import (jazz.debuggee)
+        (jazz.debugger)
+        (jazz.debugger.stub)
+        (jazz.remote)
+        (together.debugger))
+
 
 (class Together-Application extends World-Application
+  
+  
+  ;@wait-debugger!?
+  (slot local-debugger initialize #f)
 
   
   (method override (process-name self)
@@ -100,6 +111,22 @@
   
   (method override (default-bindings self)
     (new Together-Bindings))
+  
+  
+  ;; copy-pasted from IDE
+  ;@wait-debugger!?
+  (method override (get-local-debugger self)
+    (if together-debugger?
+        local-debugger
+      (nextmethod self)))
+  
+  
+  ;; copy-pasted from IDE
+  ;@wait-debugger!?
+  (method override (install-process self)
+    (nextmethod self)
+    (when together-debugger?
+      (start-debuggers self)))
   
   
   (method override (finish-process self)
@@ -444,6 +471,44 @@
   
   
   ;;;
+  ;;;; Register
+  ;;;
+  
+  
+  ;; copy-pasted from IDE
+  ;@wait-debugger!?
+  (method override (register-base-objects self)
+    (nextmethod self)
+    (when together-debugger?
+      (register-object (get-local-register) 'debugger (new Jazz-Debugger-Local-Proxy local-debugger))))
+  
+  
+  ;;;
+  ;;;; Debugger
+  ;;;
+  
+  
+  ;@wait-debugger!?
+  (method override (start-console self)
+    (if (or (remote-proxy? (get-controller-debugger))
+            (not together-debugger?))
+        (nextmethod self)
+      ;; no REPL until Together internal consoles
+      (select-console self)))
+  
+  
+  ;; copy-pasted from IDE
+  ;@wait-debugger!?
+  (method (start-debuggers self)
+    (when together-debugger?
+      (when (not local-debugger)
+        (set! local-debugger (new Together-Debugger))
+        (start-debugger local-debugger)
+        (register-debugger local-debugger)
+        (set-current-debugger local-debugger))))
+  
+  
+  ;;;
   ;;;; Sites
   ;;;
   
@@ -644,6 +709,30 @@
 
 
 ;;;
+;;;; Debugger
+;;;
+
+
+(class Together-Debugger-Manager extends Debugger-Manager
+  
+  
+  (method override (report-message self format-string . rest)
+    (let ((world (current-world)))
+      (let ((message (apply format format-string rest)))
+        (display-message world message))))
+  
+  
+  (method override (report-status self format-string . rest)
+    (let ((world (current-world)))
+      (let ((message (apply format format-string rest)))
+        (display-status world message))))
+  
+  
+  (method override (process-evaluate-when self process)
+    'always))
+
+
+;;;
 ;;;; Debug
 ;;;
 
@@ -675,7 +764,11 @@
       (<documents~>
         ;; Scripting
         (<Jazz-Text-Preferences>    name: jazz-text)
-        (<Command-Text-Preferences> name: command-text)))))
+        (<Command-Text-Preferences> name: command-text))
+      ;@wait-debugger!?
+      (<Debug-Preferences>          name: debug evaluate-when: always)
+      ;@wait-debugger!?
+      (<Inspector-Preferences>      name: inspector))))
 
 
 ;;;
