@@ -816,7 +816,9 @@
           (player-output video #f player: (current-me))
           (clear-message world)
           (uninstall-camera)
-          (setup-circle-camera self)
+          (delay-event
+            (lambda ()
+              (setup-circle-camera self)))
           (remove-skybox zone)
           (set! joined-circle name)
           (set! circle-start (current-seconds))
