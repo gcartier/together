@@ -43,6 +43,7 @@
         (world.context)
         (world.event)
         (world.evolution)
+        (world.hook)
         (world.interface)
         (world.interface.actions)
         (world.interface.bars)
@@ -104,10 +105,35 @@
   (method override (finish-process self)
     (nextmethod self)
     (set-safe-explore-action 'ignore)
-    (set-exceeds-tooltips? #f))
+    (set-exceeds-tooltips? #f)
+    (set-shortcut-hook self (~ call-shortcut-hook self))
+    ;; a try
+    ;@wait-debugger!?
+    (when together-debugger?
+      (set-debugger-manager (new Together-Debugger-Manager))))
+  
+  
+  ;; copy-pasted from IDE
+  ;@wait-debugger!?
+  (method override (conclude-environment self)
+    (nextmethod self)
+    (when together-debugger?
+      ;; do this at the last moment possible because any error beyond this point
+      ;; will be handled by the IDE itself which must thus be fully functional
+      (if (get-controller-debugger)
+          (attach-process local-debugger (get-local-process) #t)
+        (when #t;(and kernel-source-access? (world-setting 'world.debugger? #f))
+          (attach-to-controller (get-local-register) #t)
+          (with-system-exception-debugger
+            (lambda ()
+              (ready-to-controller)
+              (transmit-runtime-information (get-local-process) 'all)
+              (current-input-port (console-input-port))
+              (current-output-port (console-output-port))))))))
   
   
   (method override (close-environment self)
+    (set-shortcut-hook self #f)
     (let ((interface (current-interface)))
       (let ((panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
@@ -145,6 +171,19 @@
                           (set-text (get-script entity) content)
                           (execute-script world edited-path))))))))))))
     (nextmethod self))
+
+  
+  ;;;
+  ;;;; Shortcuts
+  ;;;
+  
+  
+  (method (call-shortcut-hook self shortcut)
+    (if shortcut-press-hook
+        (with-safe-hook shortcut-press-hook
+          (lambda (procedure)
+            (procedure shortcut)))
+      #f))
 
   
   ;;;
