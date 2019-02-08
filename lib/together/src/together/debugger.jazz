@@ -51,6 +51,15 @@
     (clear-terminal))
   
   
+  (method override (evaluate-code self thunk)
+    (with-exception-catcher
+      (lambda (exc)
+        (let ((world (current-world)))
+          (display-message world (split-string (exception-reason exc) #\newline)
+            duration: 60.)))
+      thunk))
+  
+  
   (method override (report-walk-problems self process reason detail cookie)
     (let ((world (current-world)))
       (display-message world (let ((all (split-string reason #\newline)))
