@@ -14,7 +14,8 @@
 (module together.debugger jazz
 
 
-(import (jazz.debugger.jazz)
+(import (jazz.debugger)
+        (jazz.debugger.jazz)
         (world)
         (world.context))
 
@@ -50,22 +51,11 @@
     (clear-terminal))
   
   
-  (method override (report-walk-problems self process detail cookie)
+  (method override (report-walk-problems self process reason detail cookie)
     (let ((world (current-world)))
-      (display-message world "Walk problems"))
-    @w
-    (when (or (not cookie) (not (eqv? cookie last-reported-cookie)))
-      (set! last-reported-cookie cookie)
-      (let ((problems-view (get-problems-view)))
-        (when problems-view
-          (execute-event
-            (lambda ()
-              (let ((code (message-box (walk-problems-message detail)
-                                       type: 'question
-                                       title: "Problems"
-                                       yes: "Highlight"
-                                       no: "Ignore")))
-                (case code
-                  ((yes)
-                   (report-problems problems-view detail highlight?: #t)
-                   (ensure-focusable problems-view))))))))))))
+      (display-message world (let ((all (split-string reason #\newline)))
+                               (if (and (>= (length all) 3)
+                                        (equal? (car all) "Walk problems encountered"))
+                                   (subseq all 2 (length all))
+                                 all))
+        duration: 60.)))))
