@@ -14,7 +14,9 @@
 (module together.debugger jazz
 
 
-(import (jazz.debugger.jazz))
+(import (jazz.debugger.jazz)
+        (world)
+        (world.context))
 
 
 (class Together-Debugger extends Jazz-Debugger
@@ -45,4 +47,25 @@
   
   
   (method override (clear-console self resource)
-    (clear-terminal))))
+    (clear-terminal))
+  
+  
+  (method override (report-walk-problems self process detail cookie)
+    (let ((world (current-world)))
+      (display-message world "Walk problems"))
+    @w
+    (when (or (not cookie) (not (eqv? cookie last-reported-cookie)))
+      (set! last-reported-cookie cookie)
+      (let ((problems-view (get-problems-view)))
+        (when problems-view
+          (execute-event
+            (lambda ()
+              (let ((code (message-box (walk-problems-message detail)
+                                       type: 'question
+                                       title: "Problems"
+                                       yes: "Highlight"
+                                       no: "Ignore")))
+                (case code
+                  ((yes)
+                   (report-problems problems-view detail highlight?: #t)
+                   (ensure-focusable problems-view))))))))))))
