@@ -18,6 +18,7 @@
         (jazz.stream)
         (world)
         (world.audio)
+        (world.client.tier)
         (world.context)
         (world.event)
         (world.evolution)
@@ -187,8 +188,8 @@
   (method override (initialize self call tier origin evolution audio-datas video-datas)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((sender (require-tier call tier)))
-      (set! audio-channel (find-send-channel sender -1 udp-audio))
-      (set! video-channel (find-send-channel sender -1 udp-video)))
+      (set! audio-channel (require-mic-channel sender))
+      (set! video-channel (require-camera-channel sender)))
     (set! self.audio-ring (get-retain-ring audio-channel))
     (set! self.video-ring (get-retain-ring video-channel))))
 

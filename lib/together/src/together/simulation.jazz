@@ -187,7 +187,7 @@
           (let ((origin-tier (require-tier call origin))
                 (server-tier (require-tier call server))
                 (receiver-tier (require-tier call receiver)))
-            (let ((receiver-audio-channel (require-receive-channel receiver-tier origin udp-audio)))
+            (let ((receiver-audio-channel #f @convert-channels (require-receive-channel receiver-tier origin udp-audio)))
               (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
                     (average (new Average .05 1.))
                     (origin-evolution (new Evolution 10000))
@@ -226,6 +226,7 @@
                                         (lambda (port)
                                           (set! audio-header (read-audio-header audio-codec port))
                                           (when audio-header
+                                            @convert-channels
                                             (send-media origin-tier -1 udp-audio audio-header #t -1 GST_CLOCK_TIME_NONE))
                                           (let (loop (count 0))
                                             (let ((time (current-seconds)))
@@ -241,6 +242,7 @@
                                                         (let ((sendtime (+ (remote->local time-base nanostamp)
                                                                            (determine-latency nanostamp))))
                                                           (sleep (- sendtime time))
+                                                          @convert-channels
                                                           (send-media origin-tier udp-audio buffer #f timestamp duration)))
                                                       (loop (+ count 1))))))))))))
                                   ;; quicky give some time for process to finish
@@ -346,8 +348,8 @@
                                     (cons receiver "Receiver")))))
       (let ((call (simulate-udp-call names)))
         (let ((receiver-tier (require-tier call receiver)))
-          (let ((receiver-audio-channel (require-receive-channel receiver-tier origin udp-audio))
-                (receiver-video-channel (require-receive-channel receiver-tier origin udp-video)))
+          (let ((receiver-audio-channel #f @convert-channels (require-receive-channel receiver-tier origin udp-audio))
+                (receiver-video-channel #f @convert-channels (require-receive-channel receiver-tier origin udp-video)))
             (let ((receiver-audio-ring (get-process-ring receiver-audio-channel))
                   (receiver-video-ring (get-process-ring receiver-video-channel))
                   (average (new Average .05 1.))

@@ -52,7 +52,7 @@
                                       (cons receiver "Receiver")))))
         (let ((call (simulate-udp-call names)))
           (let ((receiver-client (require-tier call receiver)))
-            (let ((receiver-channel (require-receive-channel receiver-client origin media-kind)))
+            (let ((receiver-channel #f @w (require-receive-channel receiver-client origin media-kind)))
               (let ((receiver-ring (get-process-ring receiver-channel))
                     (average (new Average .05 1.))
                     (datas (make-table test: eqv?))

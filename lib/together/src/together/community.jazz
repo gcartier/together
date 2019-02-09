@@ -806,8 +806,8 @@
         (if exception
             (display-error world exception)
           (let ((udp-client (get-udp-client tier)))
-            (require-send-channel udp-client udp-audio)
-            (require-send-channel udp-client udp-video)
+            (require-mic-channel tier)
+            (require-camera-channel tier)
             (start udp-client))
           (when auto-audio?
             (start-audio audio))
