@@ -101,7 +101,9 @@
   (world-setting 'together.auto-video? #t))
 
 (definition auto-channel?
-  (world-setting 'together.auto-channel? #t))
+  (if (developer?)
+      (world-setting 'together.auto-channel? #t)
+    #t))
 
 (definition hide-people?
   (world-setting 'together.hide-people? #t))
