@@ -100,6 +100,9 @@
 (definition auto-video?
   (world-setting 'together.auto-video? #t))
 
+(definition auto-channel?
+  (world-setting 'together.auto-channel? #t))
+
 (definition hide-people?
   (world-setting 'together.hide-people? #t))
 
@@ -806,14 +809,16 @@
         (if exception
             (display-error world exception)
           (let ((udp-client (get-udp-client tier)))
-            (require-mic-channel tier)
-            (require-camera-channel tier)
+            (when auto-channel?
+              (require-mic-channel tier)
+              (require-camera-channel tier))
             (start udp-client))
-          (when auto-audio?
-            (start-audio audio))
-          (when auto-video?
-            (start-video video))
-          (player-output video #f player: (current-me))
+          (when auto-channel?
+            (when auto-audio?
+              (start-audio audio))
+            (when auto-video?
+              (start-video video))
+            (player-output video #f player: (current-me)))
           (clear-message world)
           (uninstall-camera)
           (delay-event
@@ -838,8 +843,8 @@
           (close-output video #f self-output)))
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
-        (close-send-channel udp-client udp-audio)
-        (close-send-channel udp-client udp-video))
+        (close-mic-channel tier)
+        (close-camera-channel tier))
       (leave-group tier joined-circle)
       (install-camera)
       (install-skybox zone (find-skybox together-skybox))
