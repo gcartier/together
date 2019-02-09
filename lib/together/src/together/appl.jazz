@@ -666,6 +666,7 @@
           (<!>                 name: clear-console             visible?: #t)
           (<!>                 name: clear-terminal            visible?: #t)
           (<!>                 name: explore-interface         visible?: #t)
+          (<!>                 name: toggle-axes               visible?: #t)
           (<!>                 name: test                      visible?: #t)
           (<!>                 name: test1                     visible?: #t shortcut: {Shortcut :alt #\1})
           (<!>                 name: test2                     visible?: #t shortcut: {Shortcut :alt #\2})
