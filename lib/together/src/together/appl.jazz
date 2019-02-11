@@ -643,7 +643,9 @@
           (<!>                 name: backward-outline          visible?: #t)
           (<!>                 name: forward-outline           visible?: #t))
         (<lisp-text!>
-          (<!>                 name: tabulate                  visible?: #t))
+          (<!>                 name: tabulate                  visible?: #t)
+          (<!>                 name: highlight-declaration     visible?: #t)
+          (<!>                 name: remove-highlights         visible?: #t))
         (<search-mode!>
           (<!>                 name: whole-words               visible?: #t)
           (<!>                 name: ignore-case               visible?: #t)
@@ -655,8 +657,11 @@
           (<!>                 name: center-caret              visible?: #t)
           (<!>                 name: home                      visible?: #t)
           (<!>                 name: end                       visible?: #t)
+          (<!>                 name: highlight                 visible?: #t)
           (<!>                 name: finish                    visible?: #t)
           (<!>                 name: cancel                    visible?: #t))
+        (<highlight-mode!>
+          (<!>                 name: highlight                 visible?: #t))
         (<world-debug!>
           (<!>                 name: toggle-info               visible?: #t)
           (<!>                 name: toggle-profiler           visible?: #t)
