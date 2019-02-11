@@ -188,8 +188,8 @@
   (method override (initialize self call tier origin evolution audio-datas video-datas)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((sender (require-tier call tier)))
-      (set! audio-channel (require-mic-channel sender))
-      (set! video-channel (require-camera-channel sender)))
+      (set! audio-channel (require-send-channel sender "Mic" udp-audio))
+      (set! video-channel (require-send-channel sender "Camera" udp-video)))
     (set! self.audio-ring (get-retain-ring audio-channel))
     (set! self.video-ring (get-retain-ring video-channel))))
 
@@ -205,8 +205,8 @@
   (method override (initialize self call tier origin evolution audio-datas video-datas)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((server (require-tier call tier)))
-      (set! audio-channel (find-server-channel server -1 origin udp-audio))
-      (set! video-channel (find-server-channel server -1 origin udp-video)))
+      (set! audio-channel (require-server-channel server "Mic" origin udp-audio))
+      (set! video-channel (require-server-channel server "Camera" origin udp-video)))
     (set! self.audio-ring (get-retain-ring audio-channel))
     (set! self.video-ring (get-retain-ring video-channel))))
 
@@ -232,8 +232,8 @@
   (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution evolution audio-datas video-datas)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((receiver (require-tier call tier)))
-      (set! audio-channel (find-receive-channel receiver -1 origin udp-audio))
-      (set! video-channel (find-receive-channel receiver -1 origin udp-video)))
+      (set! audio-channel (require-receive-channel receiver "Mic" origin udp-audio))
+      (set! video-channel (require-receive-channel receiver "Camera" origin udp-video)))
     (set! self.audio-ring (get-process-ring audio-channel))
     (set! self.video-ring (get-process-ring video-channel))
     (set! self.origin-audio origin-audio)
@@ -419,4 +419,44 @@
             ((udp-id-paint-event udp-id-reshape-event udp-id-close-event udp-id-key-event udp-id-char-event udp-id-button-event udp-id-moved-event udp-id-wheel-event udp-id-file-event udp-id-drop-event udp-id-enter-event udp-id-leave-event udp-id-activate-event udp-id-deactivate-event udp-id-quit-event udp-id-user-event udp-id-other-event))
             ;; other
             (else
-             (terminal 'unemulated (evolution-id->abbrev id))))))))))
+             (terminal 'unemulated (evolution-id->abbrev id)))))))))
+
+
+;;;
+;;;; Utility
+;;;
+
+
+(definition (require-send-channel tier name kind)
+  (continuation-capture
+    (lambda (return)
+      (iterate-table (get-send-channels tier)
+        (lambda (no channel)
+          (when (and (equal? (get-name channel) name)
+                     (= (get-media-kind channel) kind))
+            (continuation-return return channel))))
+      (error "Unable to find channel"))))
+
+
+(definition (require-server-channel tier name origin kind)
+  (continuation-capture
+    (lambda (return)
+      (iterate-table (get-server-channels tier)
+        (lambda (no channel)
+          (when (and (equal? (get-name channel) name)
+                     (= (get-origin channel) origin)
+                     (= (get-media-kind channel) kind))
+            (continuation-return return channel))))
+      (error "Unable to find channel"))))
+
+
+(definition (require-receive-channel tier name origin kind)
+  (continuation-capture
+    (lambda (return)
+      (iterate-table (get-receive-channels tier)
+        (lambda (no channel)
+          (when (and (equal? (get-name channel) name)
+                     (= (get-origin channel) origin)
+                     (= (get-media-kind channel) kind))
+            (continuation-return return channel))))
+      (error "Unable to find channel")))))

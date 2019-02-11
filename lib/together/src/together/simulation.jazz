@@ -292,9 +292,12 @@
           base-time)
         
         (define (server-channels)
-          (table-keys (get-server-channels server)))
+          (channels-metadata (get-server-channels server)))
         
-        (list no name (start-time) (server-channels)))
+        (define (send-channels)
+          (channels-metadata (get-send-channels server)))
+        
+        (list no name (start-time) (server-channels) (send-channels)))
       
       (let ((name (table-ref names no)))
         (let ((metadata (metadata name)))
