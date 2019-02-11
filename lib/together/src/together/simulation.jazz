@@ -141,10 +141,6 @@
 ;;;
 
 
-(definition (real-modulo x m)
-  (- x (* (floor (/ x m)) m)))
-
-
 (definition public (rise-latency)
   (lambda (elapse)
     (/ elapse 25.)))
@@ -156,7 +152,7 @@
           (b (+ bottom slope))
           (c (+ bottom slope top))
           (d (+ bottom slope top slope)))
-      (let ((elapse (real-modulo elapse d)))
+      (let ((elapse (flmodulo elapse d)))
         (cond ((< elapse a)
                min)
               ((< elapse b)
