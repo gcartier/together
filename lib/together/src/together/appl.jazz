@@ -639,7 +639,9 @@
           (<!>                 name: top-caret                 visible?: #t)
           (<!>                 name: one/no-space              visible?: #t))
         (<code-text!>
-          (<!>                 name: evaluate                  visible?: #t))
+          (<!>                 name: evaluate                  visible?: #t)
+          (<!>                 name: backward-outline          visible?: #t)
+          (<!>                 name: forward-outline           visible?: #t))
         (<lisp-text!>
           (<!>                 name: tabulate                  visible?: #t))
         (<search-mode!>
