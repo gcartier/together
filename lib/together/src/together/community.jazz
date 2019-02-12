@@ -979,7 +979,7 @@
           (video (current-video)))
       (define (draw-output output)
         (when (and (is? output Circle-Video-Sink)
-                   (sheet? output))
+                   (memq? video-layout '(gallery fullscreen)))
           (maybe-update-layouts output)
           (let ((id (get-id output)))
             (let ((name (if (not id) "Me" (let ((member (find-group-member-by-id client id)))
