@@ -85,6 +85,8 @@
   (slot call                  initialize #f  getter generate)
   (slot origins               initialize '() getter generate)
   (slot origin                initialize #f  getter generate)
+  (slot channel-names         initialize '() getter generate)
+  (slot channel-name          initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
   (slot media-kind            initialize #f  getter generate)
   (slot audio-datas           initialize #f  getter generate)
@@ -127,8 +129,24 @@
           (let ((receive-channels (fourth metadata)))
             (sort nu<? (remove-duplicates (map third receive-channels)))))))
     
-    (define (collect-media-kinds target-origin)
+    (define (collect-channel-names target-origin)
       (if (not target-origin)
+          '()
+        (let ((metadata (metadata-ref replay tier)))
+          (if (= (first metadata) server-no)
+              '()
+            (let ((receive-channels (fourth metadata)))
+              (sort nu<? (remove-duplicates
+                           (collect (lambda (info)
+                                      (bind (name no origin kind) info
+                                        (and (= origin target-origin)
+                                             name)))
+                                    receive-channels)
+                           test: equal?)))))))
+    
+    (define (collect-media-kinds target-origin channel-name)
+      (if (or (not target-origin)
+              (not channel-name))
           '()
         (let ((metadata (metadata-ref replay tier)))
           (if (= (first metadata) server-no)
@@ -137,6 +155,7 @@
               (sort nu<? (collect (lambda (info)
                                     (bind (name no origin kind) info
                                       (and (= origin target-origin)
+                                           (equal? name channel-name)
                                            kind)))
                                   receive-channels)))))))
     
@@ -157,7 +176,9 @@
     
     (set! origins (collect-origins))
     (set! origin (and (not-null? origins) (car origins)))
-    (set! media-kinds (collect-media-kinds origin))
+    (set! channel-names (collect-channel-names origin))
+    (set! channel-name (and (not-null? channel-names) (car channel-names)))
+    (set! media-kinds (collect-media-kinds origin channel-name))
     (set! media-kind (and (not-null? media-kinds) (car media-kinds)))
     (set! origin-evolution (and origin (evolution-ref replay origin)))
     (set! server-evolution (evolution-ref replay server-no))
@@ -233,9 +254,9 @@
           (set! call #f)
           (set! receiver-emulator #f))
       (set! call (simulate-udp-call (get-metadatas replay)))
-      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-datas video-datas))
-      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-datas video-datas))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-datas video-datas))
+      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-datas video-datas channel-name))
+      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-datas video-datas channel-name))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-datas video-datas channel-name))
       (set-emulator (locate self 'sender) sender-emulator)
       (set-emulator (locate self 'server) server-emulator)
       (set-emulator (locate self 'receiver) receiver-emulator)
@@ -265,9 +286,12 @@
   
   (method override (draw self surface context)
     (if (not origin)
-        (draw-text surface 5 3 "<no channel found>" visualizer-text-color)
+        (draw-text surface 5 3 "<no origin found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a}" (name-ref replay origin)) visualizer-text-color)
-      (draw-text surface 80 3 (format "{a}" (udp-name media-kind)) visualizer-text-color))
+      (if (not channel-name)
+          (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
+        (draw-text surface 80 3 channel-name visualizer-text-color)
+        (draw-text surface 165 3 (format "{a}" (udp-name media-kind)) visualizer-text-color)))
     (when selection-description
       (draw-text surface 140 3 selection-description visualizer-text-color))
     (let ((title (format "{r precision: 1}x" visualizer-speed)))
@@ -310,6 +334,13 @@
       (reset-emulators self)
       (when now
         (visualize-time self now #f))
+      (invalidate-view self)))
+  
+  
+  (method protected (cycle-channel-names self reversed?)
+    (when (not-null? channel-names)
+      (set! channel-name (cycle-element channel-names channel-name reversed?: reversed?))
+      (setup-timeline self)
       (invalidate-view self)))
   
   
@@ -363,12 +394,18 @@
         (and (< v 25)
              (between? h 0 65)))
       
+      (define (in-channel-name?)
+        (and (< v 25)
+             (between? h 65 150)))
+      
       (define (in-media-kind?)
         (and (< v 25)
-             (between? h 65 125)))
+             (between? h 150 210)))
       
       (cond ((in-origin?)
              (cycle-origins panel (get-shift? evt)))
+            ((in-channel-name?)
+             (cycle-channel-names panel (get-shift? evt)))
             ((in-media-kind?)
              (cycle-media-kinds panel (get-shift? evt)))
             (else

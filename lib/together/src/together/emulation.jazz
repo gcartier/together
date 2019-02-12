@@ -185,11 +185,11 @@
 (class Sender-Emulator extends Retain-Emulator
   
   
-  (method override (initialize self call tier origin evolution audio-datas video-datas)
+  (method override (initialize self call tier origin evolution audio-datas video-datas channel-name)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((sender (require-tier call tier)))
-      (set! audio-channel (require-send-channel sender "Mic" udp-audio))
-      (set! video-channel (require-send-channel sender "Camera" udp-video)))
+      (set! audio-channel (require-send-channel sender channel-name udp-audio))
+      (set! video-channel (require-send-channel sender channel-name udp-video)))
     (set! self.audio-ring (get-retain-ring audio-channel))
     (set! self.video-ring (get-retain-ring video-channel))))
 
@@ -202,11 +202,11 @@
 (class Server-Emulator extends Retain-Emulator
   
   
-  (method override (initialize self call tier origin evolution audio-datas video-datas)
+  (method override (initialize self call tier origin evolution audio-datas video-datas channel-name)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((server (require-tier call tier)))
-      (set! audio-channel (require-server-channel server "Mic" origin udp-audio))
-      (set! video-channel (require-server-channel server "Camera" origin udp-video)))
+      (set! audio-channel (require-server-channel server channel-name origin udp-audio))
+      (set! video-channel (require-server-channel server channel-name origin udp-video)))
     (set! self.audio-ring (get-retain-ring audio-channel))
     (set! self.video-ring (get-retain-ring video-channel))))
 
@@ -229,11 +229,11 @@
   (slot video-output       initialize #f getter generate)
   
   
-  (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution evolution audio-datas video-datas)
+  (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution evolution audio-datas video-datas channel-name)
     (nextmethod self call origin evolution audio-datas video-datas)
     (let ((receiver (require-tier call tier)))
-      (set! audio-channel (require-receive-channel receiver "Mic" origin udp-audio))
-      (set! video-channel (require-receive-channel receiver "Camera" origin udp-video)))
+      (set! audio-channel (require-receive-channel receiver channel-name origin udp-audio))
+      (set! video-channel (require-receive-channel receiver channel-name origin udp-video)))
     (set! self.audio-ring (get-process-ring audio-channel))
     (set! self.video-ring (get-process-ring video-channel))
     (set! self.origin-audio origin-audio)
