@@ -1627,6 +1627,7 @@
   
   
   (method (on-toggle-capture self evt)
+    @wait
     (let ((world (current-world)))
       (set-capture-screen? (not capture-screen?))
       (display-on/off world "Capture screen" capture-screen?)))
