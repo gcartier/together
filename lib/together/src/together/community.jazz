@@ -43,6 +43,7 @@
         (world.audio)
         (world.autoload)
         (world.chronology)
+        (world.circle)
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
@@ -899,6 +900,9 @@
       (set-server-exited-hook tier (~ server-exited self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
+      (set-layout-circle-hook (~ layout-circle self))
+      (set-mouse-down-hook (~ mouse-down-circle self))
+      (set-shortcut-press-hook (~ shortcut-press-circle self))
       (set! draw-hook (~ draw-sheets self))
       (register-draw-hook interface draw-hook)
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
@@ -916,6 +920,9 @@
       (set-server-exited-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
+      (set-layout-circle-hook #f)
+      (set-mouse-down-hook #f)
+      (set-shortcut-press-hook #f)
       (unregister-draw-hook interface draw-hook)
       (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
@@ -1313,6 +1320,49 @@
                    ((gallery) "Fullscreen")
                    (else "Gallery")))))
   
+  
+  ;;;
+  ;;;; Circle
+  ;;;
+  
+  
+  (method (layout-circle self ordered-outputs)
+    (let ((count (length ordered-outputs)))
+      (circle-update-camera count)
+      (circle-matrices count)))
+  
+  
+  (method (mouse-down-circle self h v)
+    (if (not (world-focused?))
+        #f
+      (let ((rank (find-output-rank h v)))
+        (when rank
+          (circle-switch-focus rank))
+        #f)))
+  
+  
+  (method (shortcut-press-circle self shortcut)
+    (if (not (world-focused?))
+        #f
+      (nucase shortcut
+        (({Shortcut Left})
+         (circle-left-rotation)
+         #t)
+        (({Shortcut Right})
+         (circle-left-rotation)
+         #t)
+        (({Shortcut Up})
+         (circle-left-rotation)
+         #t)
+        (({Shortcut Down})
+         (circle-left-rotation)
+         #t)
+        (({Shortcut Backspace})
+         (circle-toggle-camera)
+         #t)
+        (else
+         #f))))
+
   
   ;;;
   ;;;; Debug
