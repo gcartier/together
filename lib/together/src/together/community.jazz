@@ -42,6 +42,7 @@
         (world)
         (world.audio)
         (world.autoload)
+        (world.camera)
         (world.chronology)
         (world.circle)
         (world.client.text)
@@ -71,6 +72,7 @@
         (world.script.asset)
         (world.settings)
         (world.skybox)
+        (world.sound)
         (world.task)
         (world.timeline)
         (world.udp)
@@ -888,6 +890,7 @@
   
   (method (install-hooks self)
     (let ((interface (current-interface))
+          (world (current-world))
           (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
@@ -900,6 +903,8 @@
       (set-shortcut-press-hook (~ shortcut-press-circle self))
       (set! draw-hook (~ draw-sheets self))
       (register-draw-hook interface draw-hook)
+      @wait
+      (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))
@@ -908,6 +913,7 @@
   
   (method (uninstall-hooks self)
     (let ((interface (current-interface))
+          (world (current-world))
           (tier (current-client))
           (audio (current-audio))
           (video (current-video)))
@@ -919,6 +925,8 @@
       (set-mouse-down-hook #f)
       (set-shortcut-press-hook #f)
       (unregister-draw-hook interface draw-hook)
+      @wait
+      (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
       (set-escape-handler (child interface 'command) #f)
@@ -1079,8 +1087,8 @@
               "N/A"
             (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
       
-      (let ((self-output (find-output video #f)))
-        (when (eq? stage 'circle)
+      (when (eq? stage 'circle)
+        (let ((self-output (find-output video #f)))
           (for-each (lambda (output)
                       (unless (eq? output self-output)
                         (draw-output output)))
@@ -1116,6 +1124,32 @@
           (when mini
             (set-fullscreen-output video mini)
             (update-layouts video))))))
+  
+  
+  ;;;
+  ;;;; Camera
+  ;;;
+  
+  
+  @wait
+  (method (eye-matrix self camera stable?)
+    (when (eq? stage 'circle)
+      (let ((position (get-position camera))
+            (sight (get-sight camera)))
+        (updating-3d-audio position sight
+          (lambda ()
+            (let ((udp-client (get-udp-client (current-client))))
+              (iterate-table (get-receive-channels udp-client)
+                (lambda (channel-no channel)
+                  (when (= (get-media-kind channel) udp-audio)
+                    (receive (audio video) (find-media-channels udp-client (get-name channel))
+                      (when (and audio video)
+                        (let ((audio-output (find-output (current-audio) (get-no audio)))
+                              (video-output (find-output (current-video) (get-no video))))
+                          (when (and audio-output video-output)
+                            (when (is? video-output Circle-Video-Sink)
+                              (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
+                                (update-3d-output audio-output position))))))))))))))))
   
   
   ;;;
