@@ -805,9 +805,9 @@
                       channels/exception)
             (start udp-client))
           (when auto-audio?
-            (start-mic tier))
+            (play-mic tier))
           (when auto-video?
-            (start-camera tier))
+            (play-camera tier))
           (clear-message world)
           (uninstall-camera)
           (delay-event

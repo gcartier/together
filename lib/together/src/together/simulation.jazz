@@ -109,8 +109,7 @@
 
 (definition (test-output)
   (let ((output (new Test-Audio-Sink codec: audio-codec)))
-    (setup output)
-    (start output)
+    (play output)
     output))
 
 
