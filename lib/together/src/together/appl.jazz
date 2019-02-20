@@ -31,6 +31,7 @@
         (jazz.reference)
         (jazz.resource)
         (jazz.search)
+        (jazz.stream)
         (jazz.text)
         (jazz.tree)
         (jazz.view)
@@ -125,6 +126,7 @@
   ;@wait-debugger!?
   (method override (install-process self)
     (nextmethod self)
+    (empty-fifo-directory feedback?: (developer?))
     (when together-debugger?
       (start-debuggers self)))
   
