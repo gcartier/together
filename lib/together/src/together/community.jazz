@@ -1648,7 +1648,7 @@
                (play screen-channel)
                (display-on/off world "Screen sharing" #t))
               (else
-               (release screen-channel)
+               (close-send-channel (get-udp-client (current-client)) (get-no screen-channel))
                (set! screen-channel #f)
                (display-on/off world "Screen sharing" #f))))))
   
