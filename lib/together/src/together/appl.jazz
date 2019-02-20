@@ -359,16 +359,10 @@
         (on-request-replays zone evt))))
   
   
-  (method (on-toggle-capture self evt)
+  (method (on-toggle-screen-share self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
-        (on-toggle-capture zone evt))))
-  
-  
-  (method (on-toggle-stream self evt)
-    (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
-        (on-toggle-stream zone evt))))
+        (on-toggle-screen-share zone evt))))
   
   
   (method (on-toggle-mode self evt)
@@ -696,8 +690,7 @@
           (<World-Action-Item> name: edit-script9              visible?: #t shortcut: {Shortcut :control :alt #\9} title: "Edit script #9" action-handler: {Event-Handler :application on-edit-script9})
           (<World-Action-Item> name: edit-script0              visible?: #t shortcut: {Shortcut :control :alt #\0} title: "Edit script #0" action-handler: {Event-Handler :application on-edit-script0})
           (<World-Action-Item> name: toggle-script             visible?: #t shortcut: {Shortcut :control :alt #\S} title: "Toggle script" action-handler: {Event-Handler :application on-toggle-script} description: "Toggle script.")
-          (<World-Action-Item> name: toggle-capture            visible?: #t shortcut: {Shortcut :alt #\R} title: "Toggle capture" action-handler: {Event-Handler :application on-toggle-capture} description: "Toggle capture.")
-          (<World-Action-Item> name: toggle-stream             visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle stream" action-handler: {Event-Handler :application on-toggle-stream} description: "Toggle stream.")
+          (<World-Action-Item> name: toggle-screen-share       visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle screen share" action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
           (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")

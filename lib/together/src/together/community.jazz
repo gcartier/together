@@ -33,6 +33,7 @@
         (jazz.platform)
         (jazz.process)
         (jazz.resource)
+        (jazz.stream)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -73,6 +74,7 @@
         (world.settings)
         (world.skybox)
         (world.sound)
+        (world.streaming)
         (world.task)
         (world.timeline)
         (world.udp)
@@ -126,6 +128,7 @@
   (slot draw-hook       initialize #f getter generate)
   (slot hide-ring       initialize #f getter generate)
   (slot hide-thread     initialize #f getter generate)
+  (slot screen-channel  initialize #f getter generate)
   (slot replay          initialize #f getter generate)
   
   
@@ -154,6 +157,7 @@
             (client (current-client)))
         (let ((udp-client (get-udp-client client)))
           (stop udp-client)
+          (close-screen-channel self)
           (close-send-channels udp-client)
           (close-receive-channels udp-client))
         (release-mic client feedback?: #f)
@@ -830,6 +834,7 @@
         (stop udp-client)
         (close-mic-channel tier)
         (close-camera-channel tier)
+        (close-screen-channel self)
         (close-send-channels udp-client)
         (close-receive-channels udp-client))
       (leave-group tier joined-circle)
@@ -1635,18 +1640,23 @@
     (goto-stage self 'simulate))
   
   
-  (method (on-toggle-capture self evt)
-    @wait
-    (let ((world (current-world)))
-      (set-capture-screen? (not capture-screen?))
-      (display-on/off world "Capture screen" capture-screen?)))
+  (method (on-toggle-screen-share self evt)
+    (when (eq? stage 'circle)
+      (let ((world (current-world)))
+        (cond ((not screen-channel)
+               (set! screen-channel (make-screen-share-channel "Screen"))
+               (play screen-channel)
+               (display-on/off world "Screen sharing" #t))
+              (else
+               (release screen-channel)
+               (set! screen-channel #f)
+               (display-on/off world "Screen sharing" #f))))))
   
   
-  (method (on-toggle-stream self evt)
-    @wait
-    (let ((world (current-world)))
-      (set-stream? (not stream?))
-      (display-on/off world "Stream" stream?)))
+  (method (close-screen-channel self)
+    (when screen-channel
+      (release screen-channel)
+      (set! screen-channel #f)))
   
   
   (method (on-toggle-mode self evt)
