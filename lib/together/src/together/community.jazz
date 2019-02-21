@@ -105,6 +105,11 @@
 (definition auto-video?
   (world-setting 'together.auto-video? #t))
 
+(definition auto-channel?
+  (if (developer?)
+      (world-setting 'together.auto-channel? #t)
+    #t))
+
 (definition hide-people?
   (world-setting 'together.hide-people? #t))
 
@@ -801,17 +806,19 @@
         (if (string? channels/exception)
             (display-error world channels/exception)
           (let ((udp-client (get-udp-client tier)))
-            (require-mic-channel tier)
-            (require-camera-channel tier)
+            (when auto-channel?
+              (require-mic-channel tier)
+              (require-camera-channel tier))
             (for-each (lambda (info)
                         (bind (name no origin media-kind resolution) info
                           (add-channel tier name no origin media-kind resolution)))
                       channels/exception)
             (start udp-client))
-          (when auto-audio?
-            (play-mic tier))
-          (when auto-video?
-            (play-camera tier))
+          (when auto-channel?
+            (when auto-audio?
+              (play-mic tier))
+            (when auto-video?
+              (play-camera tier)))
           (clear-message world)
           (uninstall-camera)
           (delay-event
