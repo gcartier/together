@@ -1651,7 +1651,7 @@
     (when (eq? stage 'circle)
       (let ((world (current-world)))
         (cond ((not screen-channel)
-               (set! screen-channel (make-screen-share-channel "Screen"))
+               (set! screen-channel (make-screen-channel "Screen"))
                (play screen-channel)
                (display-on/off world "Screen sharing" #t))
               (else
