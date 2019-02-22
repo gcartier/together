@@ -1394,6 +1394,8 @@
            (when (> count 3)
              (circle-toggle-camera))
            #t)
+          (({Shortcut Space})
+           (circle-update-camera count))
           (else
            #f)))))
 
