@@ -629,13 +629,22 @@
   
   
   (method protected (update-catalogs self)
-    (let ((world (current-world)))
-      (setup-catalogs self)
-      (for-each-active-catalog (get-cataloguer) #f
-        (lambda (catalog)
-          (post-catalog
+    (delay-event
+      (lambda ()
+        (let ((world (current-world)))
+          (with-task-mutex
             (lambda ()
-              (update catalog)))))))
+              (display-message world "Updating catalogs...")))
+          (sleep .1)
+          (with-task-mutex
+            (lambda ()
+              (setup-catalogs self)
+              (for-each-active-catalog (get-cataloguer) #f
+                (lambda (catalog)
+                  (post-catalog
+                    (lambda ()
+                      (update catalog)))))
+              (display-message world "Done")))))))
   
   
   ;;;
