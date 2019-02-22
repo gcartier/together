@@ -73,7 +73,7 @@
   
   
   (form
-    (<install> sun-cycle?: #f draw-grid?: #f))
+    (<install> sun-cycle?: #f))
   
   
   (method override (destroy self)

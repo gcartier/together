@@ -801,6 +801,8 @@
           (<!>                 name: cancel                    visible?: #t))
         (<highlight-mode!>
           (<!>                 name: highlight                 visible?: #t))
+        (<world-edition!>
+          (<!>                 name: toggle-grid               visible?: #t shortcut: {Shortcut :alt #\G}))
         (<world-debug!>
           (<!>                 name: toggle-info               visible?: #t)
           (<!>                 name: toggle-profiler           visible?: #t)
