@@ -78,7 +78,11 @@
           (world (current-world)))
       (clear-message world)
       ;; quicky for now
-      (if (and edited-entity (equal? (car (get-root (get-asset edited-entity))) "module"))
+      (if (and edited-entity
+               ;; quick hack
+               (let ((root (get-root (get-asset edited-entity))))
+                 (or (null? root)
+                     (equal? (car root) "module"))))
           (let ((manager (find-ascendant self Script-Manager)))
             (save-script manager)
             (nextmethod self))

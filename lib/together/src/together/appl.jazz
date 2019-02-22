@@ -23,14 +23,17 @@
         (jazz.debugger)
         (jazz.debugger.stub)
         (jazz.editor)
+        (jazz.editor.commonlisp)
         (jazz.editor.jazz)
         (jazz.editor.lisp)
+        (jazz.editor.scheme)
         (jazz.event)
         (jazz.graphic)
         (jazz.handler)
         (jazz.io)
         (jazz.markup)
         (jazz.opengl.window)
+        (jazz.project)
         (jazz.reference)
         (jazz.remote)
         (jazz.resource)
@@ -41,6 +44,8 @@
         (jazz.view)
         (world)
         (world.appl)
+        (world.asset)
+        (world.assets)
         (world.capabilities)
         (world.client.actions)
         (world.client.bars)
@@ -63,6 +68,7 @@
         (together)
         (together.community)
         (together.debugger)
+        (together.script)
         (together.settings)
         (together.window)
         (together.zone))
@@ -131,6 +137,7 @@
     (set-safe-explore-action 'ignore)
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
+    (set-setup-catalogs-hook (~ setup-catalogs self))
     ;; a try
     (when (developer?)
       (set-debugger-manager (new Together-Debugger-Manager))))
@@ -160,6 +167,10 @@
       (let ((panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (save-script manager))))
+    (when (developer?)
+      (let ((cataloguer (get-cataloguer)))
+        (when cataloguer
+          (save-catalogs cataloguer))))
     (nextmethod self))
   
   
@@ -378,6 +389,29 @@
         (display-message world (format "Garbage collect {a}ms" (seconds->milliseconds duration))))))
   
   
+  (method (on-update-catalogs self evt)
+    (update-catalogs self))
+  
+  
+  (method (on-edit-definition self evt)
+    (let ((world (current-world))
+          (zone (current-zone)))
+      (let ((focus (active-focus)))
+        (when (is? focus Together-Script-Text-View)
+          (let ((form (current-expr focus)))
+            (when (symbol? form)
+              (let ((target (standardize-form focus form #t)))
+                (let ((definitions (get-coalesced-definitions (get-cataloguer) target)))
+                  (if (null? definitions)
+                      (bell)
+                    (case (length definitions)
+                      ((1) (let ((file (get-moniker (car definitions))))
+                             (let ((assets (new Assets #f #f (get-parent file))))
+                               (let ((asset (new Asset assets '() (list (get-name file)))))
+                                 (edit-script zone asset)))))
+                      (else (display-message world (format "Ambiguous definition: {a}" target)))))))))))))
+  
+  
   (method (on-edit-script1 self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -460,6 +494,65 @@
   
   
   ;;;
+  ;;;; Services
+  ;;;
+  
+  
+  (method override (provide-services self)
+    (nextmethod self)
+    ;; feedback
+    (provide-service 'user-message (~ user-message-service self))
+    (provide-service 'user-feedback (~ user-feedback-service self))
+    (provide-service 'clear-user-message (~ clear-user-message-service self))
+    (provide-service 'clear-user-feedback (~ clear-user-feedback-service self))
+    (provide-service 'console-feedback (~ console-feedback-service self))
+    (provide-service 'modal-feedback (~ modal-feedback-service self))
+    ;; edition
+    @comment
+    (provide-service 'edit-document (~ edit-document-service self)))
+  
+  
+  (method (user-message-service self obj . rest)
+    @wait
+    (let ((world (current-world)))
+      (with-reentrant-task-mutex
+        (lambda ()
+          (display-status world (apply format obj rest))))))
+  
+  
+  (method (user-feedback-service self obj . rest)
+    @wait
+    (let ((world (current-world)))
+      (with-reentrant-task-mutex
+        (lambda ()
+          (display-status world (apply format obj rest))))))
+  
+  
+  (method (clear-user-message-service self)
+    @wait
+    (let ((world (current-world)))
+      (with-reentrant-task-mutex
+        (lambda ()
+          (clear-message world)))))
+  
+  
+  (method (clear-user-feedback-service self)
+    @wait
+    (let ((world (current-world)))
+      (with-reentrant-task-mutex
+        (lambda ()
+          (clear-message world)))))
+  
+  
+  (method (console-feedback-service self . rest)
+    (apply format :console rest))
+  
+  
+  (method (modal-feedback-service self text . rest)
+    (terminal text))
+  
+  
+  ;;;
   ;;;; Register
   ;;;
   
@@ -492,6 +585,57 @@
         (start-debugger local-debugger)
         (register-debugger local-debugger)
         (set-current-debugger local-debugger))))
+  
+  
+  ;;;
+  ;;;; Catalog
+  ;;;
+  
+  
+  (method protected (setup-catalogs self)
+    (define (world-catalog)
+      (let ((output {File Settings "work" "catalogs" "world.jcat"})
+            (directories {Directory Application-World})
+            (extensions :jazz))
+        (new Filing-Catalog 'world output directories extensions #f #f #t)))
+    
+    (define (user-catalog)
+      (let ((output {File Settings "work" "catalogs" "user.jcat"})
+            (directories {Directory Settings})
+            (extensions :jazz))
+        (new Filing-Catalog 'user output directories extensions #f #f #t)))
+    
+    (unless (get-cataloguer)
+      (let ((cataloguer (new Cataloguer)))
+        (define (add-project-catalogs file)
+          (let ((project (instantiate-file file)))
+            (for-each-project project
+              (lambda (project)
+                (let ((catalog (require-catalog project)))
+                  (add-catalog cataloguer catalog))))))
+        
+        (set-cataloguer cataloguer)
+        (add-catalog cataloguer (world-catalog))
+        (add-catalog cataloguer (user-catalog))
+        (when kernel-source-access?
+          ;; quicky to test
+          (register-alias 'Profile '(Settings "work"))
+          (add-project-catalogs {File Together "lib" ".project"})
+          (add-project-catalogs {File World "lib" ".project"})
+          (add-project-catalogs {File Jazz "lib" ".project"}))
+        (for-each-active-catalog cataloguer #f
+          (lambda (catalog)
+            (load-content catalog report?: #f))))))
+  
+  
+  (method protected (update-catalogs self)
+    (let ((world (current-world)))
+      (setup-catalogs self)
+      (for-each-active-catalog (get-cataloguer) #f
+        (lambda (catalog)
+          (post-catalog
+            (lambda ()
+              (update catalog)))))))
   
   
   ;;;
@@ -671,6 +815,8 @@
           (<!>                 name: test8                     visible?: #t shortcut: {Shortcut :alt #\8})
           (<!>                 name: test9                     visible?: #t shortcut: {Shortcut :alt #\9})
           (<!>                 name: test0                     visible?: #t shortcut: {Shortcut :alt #\0})
+          (<World-Action-Item> name: update-catalogs           visible?: #t shortcut: {Shortcut :control :alt #\U} title: "Update catalogs" action-handler: {Event-Handler :application on-update-catalogs})
+          (<World-Action-Item> name: edit-definition           visible?: #t shortcut: {Shortcut F12} alternate-shortcut: {Shortcut :alt #\.} title: "Edit definition" action-handler: {Event-Handler :application on-edit-definition})
           (<World-Action-Item> name: edit-script1              visible?: #t shortcut: {Shortcut :control :alt #\1} title: "Edit script #1" action-handler: {Event-Handler :application on-edit-script1})
           (<World-Action-Item> name: edit-script2              visible?: #t shortcut: {Shortcut :control :alt #\2} title: "Edit script #2" action-handler: {Event-Handler :application on-edit-script2})
           (<World-Action-Item> name: edit-script3              visible?: #t shortcut: {Shortcut :control :alt #\3} title: "Edit script #3" action-handler: {Event-Handler :application on-edit-script3})
@@ -756,10 +902,12 @@
     (<install>                                         toplevel-state: restored toolbar-classes: ((:menubar . {Reference World-Menubar}) (:toolbar . {Reference World-Toolbar}) (:status . {Reference World-Status}))
       (<documents~>
         ;; Scripting
-        (<Jazz-Text-Preferences>    name: jazz-text)
-        (<Command-Text-Preferences> name: command-text))
-      (<Debug-Preferences>          name: debug evaluate-when: always)
-      (<Inspector-Preferences>      name: inspector))))
+        (<Jazz-Text-Preferences>       name: jazz-text)
+        (<Scheme-Text-Preferences>     name: scheme-text)
+        (<CommonLisp-Text-Preferences> name: commonlisp-text)
+        (<Command-Text-Preferences>    name: command-text))
+      (<Debug-Preferences>             name: debug evaluate-when: always)
+      (<Inspector-Preferences>         name: inspector))))
 
 
 ;;;

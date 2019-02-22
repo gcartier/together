@@ -41,6 +41,7 @@
         (jazz.window)
         (time)
         (world)
+        (world.asset)
         (world.audio)
         (world.autoload)
         (world.camera)
@@ -1492,6 +1493,7 @@
                 (save-script manager)
                 (set-visible? panel #f)
                 (focus-world))
+            (call-setup-catalogs)
             (let ((text (locate manager '(script text))))
               (when (not edited-entity)
                 (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
@@ -1519,6 +1521,7 @@
             (when (not edited-entity)
               (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
                 (when script
+                  (call-setup-catalogs)
                   (let ((entity (register-asset-script script)))
                     (set-edited-entity entity)
                     (set-edited manager entity)
@@ -1719,15 +1722,18 @@
     (edit-script self (world-setting 'world.test0-script "test/test0")))
   
   
-  (method (edit-script self script)
+  (method protected (edit-script self script/name)
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (let ((text (locate manager '(script text))))
-            (let ((script (find-script world script)))
+            (let ((script (if (is? script/name Asset)
+                              script/name
+                            (find-script world script/name))))
               (when script
                 (save-script manager)
+                (call-setup-catalogs)
                 (let ((entity (register-asset-script script)))
                   (set-edited-entity entity)
                   (set-edited manager entity)
