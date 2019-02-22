@@ -19,6 +19,9 @@
         (jazz.catalog)
         (jazz.command)
         (jazz.component)
+        (jazz.debuggee)
+        (jazz.debugger)
+        (jazz.debugger.stub)
         (jazz.editor)
         (jazz.editor.jazz)
         (jazz.editor.lisp)
@@ -29,6 +32,7 @@
         (jazz.markup)
         (jazz.opengl.window)
         (jazz.reference)
+        (jazz.remote)
         (jazz.resource)
         (jazz.search)
         (jazz.stream)
@@ -58,22 +62,15 @@
         (world.window)
         (together)
         (together.community)
+        (together.debugger)
         (together.settings)
         (together.window)
         (together.zone))
-
-;@wait-debugger!?
-(import (jazz.debuggee)
-        (jazz.debugger)
-        (jazz.debugger.stub)
-        (jazz.remote)
-        (together.debugger))
 
 
 (class Together-Application extends World-Application
   
   
-  ;@wait-debugger!?
   (slot local-debugger initialize #f)
 
   
@@ -115,19 +112,17 @@
   
   
   ;; copy-pasted from IDE
-  ;@wait-debugger!?
   (method override (get-local-debugger self)
-    (if together-debugger?
+    (if (developer?)
         local-debugger
       (nextmethod self)))
   
   
   ;; copy-pasted from IDE
-  ;@wait-debugger!?
   (method override (install-process self)
     (nextmethod self)
     (empty-fifo-directory feedback?: (developer?))
-    (when together-debugger?
+    (when (developer?)
       (start-debuggers self)))
   
   
@@ -137,16 +132,14 @@
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
     ;; a try
-    ;@wait-debugger!?
-    (when together-debugger?
+    (when (developer?)
       (set-debugger-manager (new Together-Debugger-Manager))))
   
   
   ;; copy-pasted from IDE
-  ;@wait-debugger!?
   (method override (conclude-environment self)
     (nextmethod self)
-    (when together-debugger?
+    (when (developer?)
       ;; do this at the last moment possible because any error beyond this point
       ;; will be handled by the IDE itself which must thus be fully functional
       (if (get-controller-debugger)
@@ -472,10 +465,9 @@
   
   
   ;; copy-pasted from IDE
-  ;@wait-debugger!?
   (method override (register-base-objects self)
     (nextmethod self)
-    (when together-debugger?
+    (when (developer?)
       (register-object (get-local-register) 'debugger (new Jazz-Debugger-Local-Proxy local-debugger))))
   
   
@@ -484,19 +476,17 @@
   ;;;
   
   
-  ;@wait-debugger!?
   (method override (start-console self)
     (if (or (remote-proxy? (get-controller-debugger))
-            (not together-debugger?))
+            (not (developer?)))
         (nextmethod self)
       ;; no REPL until Together internal consoles
       (select-console self)))
   
   
   ;; copy-pasted from IDE
-  ;@wait-debugger!?
   (method (start-debuggers self)
-    (when together-debugger?
+    (when (developer?)
       (when (not local-debugger)
         (set! local-debugger (new Together-Debugger))
         (start-debugger local-debugger)
@@ -768,9 +758,7 @@
         ;; Scripting
         (<Jazz-Text-Preferences>    name: jazz-text)
         (<Command-Text-Preferences> name: command-text))
-      ;@wait-debugger!?
       (<Debug-Preferences>          name: debug evaluate-when: always)
-      ;@wait-debugger!?
       (<Inspector-Preferences>      name: inspector))))
 
 
