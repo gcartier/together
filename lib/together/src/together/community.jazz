@@ -1390,7 +1390,7 @@
            (when (> count 3)
              (circle-decrease-speed))
            #t)
-          (({Shortcut Backspace})
+          (({Shortcut Return})
            (when (> count 3)
              (circle-toggle-camera))
            #t)
