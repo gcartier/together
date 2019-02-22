@@ -56,6 +56,9 @@
                        (set-setting settings property value))
                      '(;; role
                        world.role                 user
+                       ;; configure
+                       world.render-rate          30.
+                       world.render-rate-inactive 30.
                        ;; media
                        world.video-layout         circle
                        ;; test
@@ -86,9 +89,6 @@
                        ;; video
                        world.sun-cycle?           #f
                        world.start-time           day
-                       ;; configure
-                       world.render-rate          30.
-                       world.render-rate-inactive 30.
                        ;; generation
                        world.tile-pack            "minecraft"
                        world.tile-resolution      16
