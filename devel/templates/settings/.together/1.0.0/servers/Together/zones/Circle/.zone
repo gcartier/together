@@ -15,4 +15,4 @@
 
 
 (form
-  (<Circle-Zone> start-mode: free-camera start-grid?: #t start-distance: 3.5 seed: 7311317077975474655 first-time?: #f)))
+  (<Circle-Zone> start-mode: free-camera start-distance: 3.5 seed: 7311317077975474655 first-time?: #f)))
