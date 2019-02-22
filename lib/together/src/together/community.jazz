@@ -1359,33 +1359,41 @@
   (method (mouse-down-circle self h v)
     (if (not (world-focused?))
         #f
-      (let ((rank (find-output-rank h v)))
-        (when rank
-          (circle-switch-focus rank))
+      (let ((count (video-count)))
+        (when (> count 3)
+          (let ((rank (find-output-rank h v)))
+            (when rank
+              (circle-switch-focus rank))))
         #f)))
   
   
   (method (shortcut-press-circle self shortcut)
     (if (not (world-focused?))
         #f
-      (nucase shortcut
-        (({Shortcut Left})
-         (circle-left-rotation)
-         #t)
-        (({Shortcut Right})
-         (circle-right-rotation)
-         #t)
-        (({Shortcut Up})
-         (circle-increase-speed)
-         #t)
-        (({Shortcut Down})
-         (circle-decrease-speed)
-         #t)
-        (({Shortcut Backspace})
-         (circle-toggle-camera)
-         #t)
-        (else
-         #f))))
+      (let ((count (video-count)))
+        (nucase shortcut
+          (({Shortcut Left})
+           (when (> count 3)
+             (circle-left-rotation))
+           #t)
+          (({Shortcut Right})
+           (when (> count 3)
+             (circle-right-rotation))
+           #t)
+          (({Shortcut Up})
+           (when (> count 3)
+             (circle-increase-speed))
+           #t)
+          (({Shortcut Down})
+           (when (> count 3)
+             (circle-decrease-speed))
+           #t)
+          (({Shortcut Backspace})
+           (when (> count 3)
+             (circle-toggle-camera))
+           #t)
+          (else
+           #f)))))
 
   
   ;;;
