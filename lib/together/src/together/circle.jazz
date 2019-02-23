@@ -53,4 +53,8 @@
         (together.community))
 
 
-(class Circle-Zone extends Community-Zone))
+(class Circle-Zone extends Community-Zone
+  
+  
+  (form
+    (<install> start-grid?: #t))))
