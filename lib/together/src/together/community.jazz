@@ -985,7 +985,7 @@
             (let ((name (if (not id) "Me" (let ((member (find-group-member-by-id client id)))
                                             ;; quick temporary hack
                                             (if (not member)
-                                                ""
+                                                "Unknown"
                                               (first member))))))
               (if (eq? (get-stream-state output) 'drawn)
                   (let ((view (if (eq? video-mode 'fit) (get-sheet output) interface)))
