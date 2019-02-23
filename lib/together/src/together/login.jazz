@@ -73,6 +73,10 @@
   (slot view-focused   initialize #f getter generate)
   
   
+  (form
+    (<install> start-grid?: #t))
+  
+  
   (method override (zone-ready self)
     (nextmethod self)
     (let ((world (current-world)))
