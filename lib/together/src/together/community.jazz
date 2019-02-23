@@ -1395,6 +1395,7 @@
              (circle-toggle-camera))
            #t)
           (({Shortcut Space})
+           (circle-uninstall-camera)
            (circle-update-camera count))
           (else
            #f)))))
