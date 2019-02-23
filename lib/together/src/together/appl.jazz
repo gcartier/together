@@ -200,6 +200,7 @@
                   (let ((panel (child interface 'script)))
                     (let ((manager (locate panel 'manager)))
                       (let ((text (locate manager '(script text))))
+                        (call-setup-catalogs)
                         (let ((entity (register-asset-script script)))
                           (set-edited-entity entity)
                           (set-edited manager entity)
