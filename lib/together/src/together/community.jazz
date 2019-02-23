@@ -824,9 +824,6 @@
               (play-camera tier)))
           (clear-message world)
           (uninstall-camera)
-          (delay-event
-            (lambda ()
-              (setup-circle-camera self)))
           (remove-skybox zone)
           (set! joined-circle name)
           (set! circle-start (current-seconds))
@@ -869,15 +866,6 @@
   
   (method (on-back self evt)
     (goto-stage self 'gathering))
-  
-  
-  (method (setup-circle-camera self)
-    (let ((world (current-world)))
-      (let ((eye (get-eye world)))
-        (set-lookat eye (horizon-lookat (vertex -.0015332002301058339 -.4696357685108169 -.8828589322379361)))
-        (set-position eye (vertex .012694333518153704 80.010187840629088 310.663224308176325))
-        (derive-target eye)
-        (camera-update eye))))
   
   
   ;;;
