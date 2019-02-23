@@ -125,15 +125,6 @@
                    skybox)))
   
   
-  (method override (player-task self task <Task>)
-    ;; to test 3d circles
-    (if circle?
-        (nextmethod self task)
-      (with-task task
-        (lambda (exit)
-          (task-wait task +infinity 0. exit)))))
-  
-  
   (method (close-frame self)
     (let ((frame (top-frame)))
       (when frame
