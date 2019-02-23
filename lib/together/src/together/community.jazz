@@ -1739,7 +1739,7 @@
     (edit-script self (world-setting 'world.test0-script "test/test0")))
   
   
-  (method protected (edit-script self script/name)
+  (method protected (edit-script self script/name (selection: selection #f))
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((panel (child interface 'script)))
@@ -1754,7 +1754,10 @@
                 (let ((entity (register-asset-script script)))
                   (set-edited-entity entity)
                   (set-edited manager entity)
-                  (set-moniker text (get-file script)))))
+                  (set-moniker text (get-file script))
+                  (when selection
+                    (set-selection-safe text selection reposition: 'vertical ensure-displayed?: 'center-caret)
+                    (set-selection text selection)))))
             (acquire-focus text)))
         (set-visible? panel #t)))))
 

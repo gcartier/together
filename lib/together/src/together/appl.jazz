@@ -414,9 +414,11 @@
                       (bell)
                     (case (length definitions)
                       ((1) (let ((history-item (current-history-item text))
-                                 (file (get-moniker (car definitions))))
-                             (add-history self history-item)
-                             (edit-document self file)))
+                                 (entry (car definitions)))
+                             (let ((file (get-moniker entry))
+                                   (range (get-range entry)))
+                               (add-history self history-item)
+                               (edit-document self file selection: range))))
                       (else (display-message world (format "Ambiguous definition: {a}" target)))))))))))))
   
   
@@ -486,11 +488,12 @@
   
   
   (method override (edit-document self moniker . rest)
-    (let ((zone (current-zone)))
-      ;; quick hack
-      (let ((assets (new Assets #f #f (get-parent moniker))))
-        (let ((asset (new Asset assets '() (list (get-name moniker)))))
-          (edit-script zone asset)))))
+    (bind-keywords ((selection #f)) rest
+      (let ((zone (current-zone)))
+        ;; quick hack
+        (let ((assets (new Assets #f #f (get-parent moniker))))
+          (let ((asset (new Asset assets '() (list (get-name moniker)))))
+            (edit-script zone asset selection: selection))))))
   
   
   ;;;
