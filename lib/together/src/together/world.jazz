@@ -33,6 +33,10 @@
   (slot circlebar-sheet <object> initialize #f getter generate)
   
   
+  (method override (floor-level self)
+    0.)
+  
+  
   (method override (prepare-sounds self)
     (nextmethod self)
     (register-sound 'message "sound/message"))
