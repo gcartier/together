@@ -1394,7 +1394,7 @@
            (when (> count 3)
              (circle-toggle-camera))
            #t)
-          (({Shortcut Space})
+          (({Shortcut Backspace})
            (circle-uninstall-camera)
            (circle-update-camera count))
           (else
