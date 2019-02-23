@@ -231,6 +231,11 @@
   (method override (class-actions self)
     (append (list (find-actions 'together))
             (nextmethod self)))
+  
+  
+  ;; a try
+  (method override (allow-orphaned-action? self action-item)
+    #t)
 
   
   ;;;
