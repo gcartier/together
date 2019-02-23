@@ -403,21 +403,20 @@
   
   
   (method (on-edit-definition self evt)
-    (let ((world (current-world))
-          (zone (current-zone)))
-      (let ((focus (active-focus)))
-        (when (is? focus Together-Script-Text-View)
-          (let ((form (current-expr focus)))
+    (let ((world (current-world)))
+      (let ((text (active-focus)))
+        (when (is? text Together-Script-Text-View)
+          (let ((form (current-expr text)))
             (when (symbol? form)
-              (let ((target (standardize-form focus form #t)))
+              (let ((target (standardize-form text form #t)))
                 (let ((definitions (get-coalesced-definitions (get-cataloguer) target)))
                   (if (null? definitions)
                       (bell)
                     (case (length definitions)
-                      ((1) (let ((file (get-moniker (car definitions))))
-                             (let ((assets (new Assets #f #f (get-parent file))))
-                               (let ((asset (new Asset assets '() (list (get-name file)))))
-                                 (edit-script zone asset)))))
+                      ((1) (let ((history-item (current-history-item text))
+                                 (file (get-moniker (car definitions))))
+                             (add-history self history-item)
+                             (edit-document self file)))
                       (else (display-message world (format "Ambiguous definition: {a}" target)))))))))))))
   
   
@@ -479,6 +478,33 @@
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
         (on-edit-script0 zone evt))))
+  
+  
+  ;;;
+  ;;;; Edition
+  ;;;
+  
+  
+  (method override (edit-document self moniker . rest)
+    (let ((zone (current-zone)))
+      ;; quick hack
+      (let ((assets (new Assets #f #f (get-parent moniker))))
+        (let ((asset (new Asset assets '() (list (get-name moniker)))))
+          (edit-script zone asset)))))
+  
+  
+  ;;;
+  ;;;; History
+  ;;;
+  
+  
+  (method override (current-history-item self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (and (get-visible? panel)
+             (let ((manager (locate panel 'manager)))
+               (let ((text (locate manager '(script text))))
+                 (current-history-item text)))))))
   
   
   ;;;
@@ -761,7 +787,9 @@
         ;; paste-cycle-ring should of course be a text action...
         (<application!>
           (<!>                 name: paste-cycle-ring          visible?: #t shortcut: {Shortcut :alt #\V})
-          (<!>                 name: paste-cycle-ring-reversed visible?: #t shortcut: {Shortcut :alt :shift #\V}))
+          (<!>                 name: paste-cycle-ring-reversed visible?: #t shortcut: {Shortcut :alt :shift #\V})
+          (<!>                 name: backward-history          visible?: #t)
+          (<!>                 name: forward-history           visible?: #t))
         (<view!>
           (<!>                 name: select-all                visible?: #t shortcut: {Shortcut :control :alt #\A}))
         (<text!>
