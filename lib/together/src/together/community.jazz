@@ -243,6 +243,7 @@
             (new Circlebar-Button name: 'audio parent: circlebar location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
             (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
             (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
+            (new Circlebar-Button name: 'focus parent: circlebar location: '(700 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self))
             (layout-view circlebar)))
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
@@ -383,6 +384,7 @@
       (update-audio self)
       (update-video self)
       (update-layouts self)
+      (update-focus self)
       (update-buttons self)
       (when auto-hide?
         (install-hider self)
@@ -969,7 +971,7 @@
           (video (current-video)))
       (define (draw-output output)
         (when (and (is? output Circle-Video-Sink)
-                   (memq? video-layout '(gallery fullscreen)))
+                   (eq? video-layout 'gallery))
           (maybe-update-layouts output)
           (let ((id (get-id output)))
             (let ((name (if (not id) "Me" (let ((member (find-group-member-by-id client id)))
@@ -1097,11 +1099,12 @@
                   (when (in-rect? pos (get-rect sheet))
                     (continuation-return return output))))
               
-              (when (eq? (get-video-layout) 'fullscreen)
+              (when (and (eq? video-layout 'gallery)
+                         video-focus?)
                 (let ((ordered-outputs (get-ordered-outputs video))
-                      (fullscreen-output (effective-fullscreen-output video)))
+                      (focused-output (effective-focused-output video)))
                   (for-each (lambda (output)
-                              (unless (eq? output fullscreen-output)
+                              (unless (eq? output focused-output)
                                 (try output)))
                             ordered-outputs)))
               #f))))
@@ -1109,7 +1112,7 @@
       (when (eq? stage 'circle)
         (let ((mini (clicked-mini)))
           (when mini
-            (set-fullscreen-output video mini)
+            (change-focused-output video mini)
             (update-layouts video))))))
   
   
@@ -1303,6 +1306,29 @@
   
   
   ;;;
+  ;;;; Focus
+  ;;;
+  
+  
+  (method (on-toggle-focus self evt)
+    (let ((world (current-world))
+          (video (current-video)))
+      (toggle-focus video)
+      (update-focus self)
+      (if video-focus?
+          (display-message world "Focused")
+        (display-message world "Unfocused"))))
+  
+  
+  (method (update-focus self)
+    (let ((interface (current-interface)))
+      (set-title (child root '(circlebar focus))
+                 (if video-focus?
+                     "Unfocus"
+                   "Focus"))))
+  
+  
+  ;;;
   ;;;; Layouts
   ;;;
 
@@ -1312,16 +1338,13 @@
       (when (eq? stage 'circle)
         (cycle-layouts self)
         (update-layouts self)
-        (display-message world (capitalize (symbol->string (get-video-layout)))))))
+        (display-message world (capitalize (symbol->string video-layout))))))
   
   
   (method (cycle-layouts self)
     (let ((video (current-video)))
-      (case (get-video-layout)
+      (case video-layout
         ((gallery)
-         (fullscreen-layout video)
-         (invalidate-interface))
-        ((fullscreen)
          (circle-layout video)
          (invalidate-interface))
         ((circle)
@@ -1332,8 +1355,8 @@
   (method (update-layouts self)
     (let ((interface (current-interface)))
       (set-title (child root '(circlebar layouts))
-                 (case (get-video-layout)
-                   ((gallery) "Fullscreen")
+                 (case video-layout
+                   ((gallery) "Circle")
                    (else "Gallery")))))
   
   
