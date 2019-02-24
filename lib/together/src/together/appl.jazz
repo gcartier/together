@@ -762,10 +762,11 @@
   
   
   (method override (role-traits self role)
-    (case role
-      ((user) user-role)
-      ((developer) developer-role)
-      (else (nextmethod self role))))
+    (let ((sphere (if sphere? (list sphere-bindings) '())))
+      (case role
+        ((user) `((:bindings ,user-bindings ,@sphere)))
+        ((developer) `((:bindings ,developer-bindings ,@sphere)))
+        (else (nextmethod self role)))))
 
 
   ;;;
@@ -776,9 +777,6 @@
   (define-trait user-bindings Bindings
     (<Role-Trait>        name: user
       (<install>)))
-
-  (definition user-role
-    `((:bindings ,user-bindings)))
 
 
   ;;;
@@ -901,8 +899,19 @@
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
-  (definition developer-role
-    `((:bindings ,developer-bindings))))
+
+  ;;;
+  ;;;; Sphere
+  ;;;
+
+
+  (define-trait sphere-bindings Bindings
+    (<Role-Trait>        name: sphere
+      (<install>
+        (<world-camera!>
+          (<!>                 name: person-motion visible?: #t)
+          (<!>                 name: orbit-motion  visible?: #t)
+          (<!>                 name: free-motion   visible?: #t))))))
 
 
 ;;;
