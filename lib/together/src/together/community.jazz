@@ -851,6 +851,7 @@
       (circle-restore-fov)
       (install-camera)
       (install-skybox zone (find-skybox together-skybox))
+      (set! draw-grid? #f)
       (set! joined-circle #f)
       (goto-stage self 'gathering)
       (invalidate-interface)))
@@ -1458,6 +1459,11 @@
   
   (method (on-toggle-script self evt)
     (toggle-script self))
+  
+  
+  (method (on-toggle-grid self evt)
+    (when (eq? stage 'circle)
+      (set! draw-grid? (not draw-grid?))))
   
   
   (method (on-toggle-timeline self evt)
