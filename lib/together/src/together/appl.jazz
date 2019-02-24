@@ -78,6 +78,7 @@
   
   
   (slot local-debugger initialize #f)
+  (slot catalogs-mutex initialize (make-mutex 'catalogs))
 
   
   (method override (process-name self)
@@ -141,6 +142,14 @@
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
     (set-setup-catalogs-hook (~ setup-catalogs self))
+    (when (developer?)
+      (let ((thread
+              (new-thread
+                (lambda ()
+                  (setup-catalogs self))
+                'catalogs)))
+        (thread-base-priority-set! thread background-priority)
+        (thread-start! thread)))
     ;; a try
     (when (developer?)
       (set-debugger-manager (new Together-Debugger-Manager))))
@@ -630,7 +639,7 @@
   ;;;
   
   
-  (method protected (setup-catalogs self (feedback?: feedback? #t))
+  (method protected (setup-catalogs self)
     (define (world-catalog)
       (let ((output {File Settings "work" "catalogs" "world.jcat"})
             (directories {Directory Application-World})
@@ -643,35 +652,29 @@
             (extensions :jazz))
         (new Filing-Catalog 'user output directories extensions #f #f #t)))
     
+    (mutex-lock! catalogs-mutex)
     (unless (get-cataloguer)
-      (let ((window (current-window))
-            (world (current-world)))
-        (let ((cataloguer (new Cataloguer)))
-          (define (add-project-catalogs file)
-            (let ((project (instantiate-file file)))
-              (for-each-project project
-                (lambda (project)
-                  (let ((catalog (require-catalog project)))
-                    (add-catalog cataloguer catalog))))))
-          
-          (when feedback?
-            (display-message world "Setting up catalogs...")
-            (render-scene window))
-          (set-cataloguer cataloguer)
-          (add-catalog cataloguer (world-catalog))
-          (add-catalog cataloguer (user-catalog))
-          (when kernel-source-access?
-            ;; quicky to test
-            (register-alias 'Profile '(Settings "work"))
-            (add-project-catalogs {File Together "lib" ".project"})
-            (add-project-catalogs {File World "lib" ".project"})
-            (add-project-catalogs {File Jazz "lib" ".project"}))
-          (for-each-active-catalog cataloguer #f
-            (lambda (catalog)
-              (load-content catalog report?: #f)))
-          (when feedback?
-            (display-message world "Done")
-            (render-scene window))))))
+      (let ((cataloguer (new Cataloguer)))
+        (define (add-project-catalogs file)
+          (let ((project (instantiate-file file)))
+            (for-each-project project
+              (lambda (project)
+                (let ((catalog (require-catalog project)))
+                  (add-catalog cataloguer catalog))))))
+        
+        (set-cataloguer cataloguer)
+        (add-catalog cataloguer (world-catalog))
+        (add-catalog cataloguer (user-catalog))
+        (when kernel-source-access?
+          ;; quicky to test
+          (register-alias 'Profile '(Settings "work"))
+          (add-project-catalogs {File Together "lib" ".project"})
+          (add-project-catalogs {File World "lib" ".project"})
+          (add-project-catalogs {File Jazz "lib" ".project"}))
+        (for-each-active-catalog cataloguer #f
+          (lambda (catalog)
+            (load-content catalog report?: #f)))))
+    (mutex-unlock! catalogs-mutex))
   
   
   (method protected (update-catalogs self)
@@ -679,7 +682,7 @@
           (world (current-world)))
       (display-message world "Updating catalogs...")
       (render-scene window)
-      (setup-catalogs self feedback?: #f)
+      (setup-catalogs self)
       (for-each-active-catalog (get-cataloguer) #f
         (lambda (catalog)
           (post-catalog
