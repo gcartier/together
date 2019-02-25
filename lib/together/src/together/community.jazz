@@ -1605,7 +1605,7 @@
                 (car (table-keys names))))
           
           (define (determine-base-time)
-            (third (table-ref metadatas 0)))
+            (fifth (table-ref metadatas server-no)))
           
           (let ((character-name (get-character-name (current-client))))
             (let ((tier (determine-tier character-name)))
