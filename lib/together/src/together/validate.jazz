@@ -81,6 +81,7 @@
                           (table-set! datas sequence data)
                           (parameterize ((simulation-evolution origin-evolution))
                             (record-event udp-id-create-packet
+                                          -1. ;; CHANNELTODO
                                           (fixnum->flonum origin)
                                           (fixnum->flonum kind)
                                           (fixnum->flonum sequence)
@@ -88,6 +89,7 @@
                                           (barbara-header-hack header?)
                                           timestamp)
                             (record-event udp-id-create-info
+                                          -1. ;; CHANNELTODO
                                           (fixnum->flonum origin)
                                           (fixnum->flonum kind)
                                           (fixnum->flonum sequence)
@@ -104,6 +106,7 @@
                                                (simulation-evolution expected))
                                   (let ((id (evolution-abbrev->id abbrev)))
                                     (record-event id
+                                                  -1. ;; CHANNELTODO
                                                   (fixnum->flonum origin)
                                                   (fixnum->flonum media-kind)
                                                   data1
