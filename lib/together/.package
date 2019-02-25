@@ -43,6 +43,7 @@
                               together.world
                               together.zone)
                       (dependencies gambit.walk
+                                    jazz.editor.commonlisp
                                     jazz.editor.jazz
                                     jazz.fonts
                                     jazz.git
