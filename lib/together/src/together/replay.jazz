@@ -636,7 +636,8 @@
                   (case column
                     ((2) (process (evolutionary-udp-id evolution n) present-event))
                     ((3) (process (evolutionary-udp-origin evolution n) present-origin))
-                    ((4) (process (evolutionary-udp-kind evolution n) present-kind))))))
+                    ((4) (process (evolutionary-udp-channel evolution n) present-channel))
+                    ((5) (process (evolutionary-udp-kind evolution n) present-kind))))))
         (sort ci<? (table->list entries) key: cdr))))
   
   
@@ -702,7 +703,7 @@
       (unless (and view (eq? (get-column view) column))
         (let ((panel (find-ascendant self Together-Evolution-Panel))
               (header (find-ascendant self Tree-Header))
-              (enumerated? (between? rank 1 4)))
+              (enumerated? (between? rank 1 5)))
           (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
             (let ((view (make-filter-view self column enumerated? entries))
                   (rect (header-rect header column)))
@@ -725,7 +726,7 @@
       (unless (and view (eq? (get-column view) column))
         (let ((panel (find-ascendant self Together-Evolution-Panel))
               (header (find-ascendant self Tree-Header))
-              (enumerated? (between? rank 1 4)))
+              (enumerated? (between? rank 1 5)))
           (let ((entries (and enumerated? (collect-entries panel (get-rank column)))))
             (let ((view (make-highlight-view self column enumerated? entries))
                   (rect (header-rect header column)))
