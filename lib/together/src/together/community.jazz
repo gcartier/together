@@ -1314,11 +1314,12 @@
   (method (on-toggle-focus self evt)
     (let ((world (current-world))
           (video (current-video)))
-      (toggle-focus video)
-      (update-focus self)
-      (if video-focus?
-          (display-message world "Focused")
-        (display-message world "Unfocused"))))
+      (when (eq? stage 'circle)
+        (toggle-focus video)
+        (update-focus self)
+        (if video-focus?
+            (display-message world "Focused")
+          (display-message world "Unfocused")))))
   
   
   (method (update-focus self)
