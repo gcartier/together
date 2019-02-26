@@ -283,9 +283,10 @@
          (install-simulate self)))
       (show root)
       (send-to-back root)
-      (when (developer?)
-        (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
-          (focus-world)))))
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
   
   
   (method (install-gathering self)
