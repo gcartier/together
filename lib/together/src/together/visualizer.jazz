@@ -123,6 +123,11 @@
     (set-visualizer-render (~ render-video self)))
   
   
+  (method override (destroy self)
+    (close-emulators self)
+    (nextmethod self))
+  
+  
   (method protected (setup-visualizer self)
     (setup-origins self)
     (setup-channel-names self)
@@ -301,8 +306,18 @@
     (set! selection-description #f))
   
   
+  (method (close-emulators self)
+    (when sender-emulator
+      (close sender-emulator))
+    (when server-emulator
+      (close server-emulator))
+    (when receiver-emulator
+      (close receiver-emulator)))
+  
+  
   ;; quicky to setup everything again
   (method protected (reset-emulators self)
+    (close-emulators self)
     (if (not origin)
         (begin
           (set! call #f)
