@@ -1377,12 +1377,10 @@
   (method (switch-circle-focus self h v)
     (if (not (world-focused?))
         #f
-      (let ((count (video-count)))
-        (when (> count 3)
-          (let ((rank (find-output-rank h v)))
-            (when rank
-              (circle-switch-focus rank))))
-        #f)))
+      (let ((rank (find-output-rank h v)))
+        (when rank
+          (circle-switch-focus rank)))
+      #f))
   
   
   (method (shortcut-press-circle self shortcut)
