@@ -87,10 +87,12 @@
   (slot origin                initialize #f  getter generate)
   (slot channel-names         initialize '() getter generate)
   (slot channel-name          initialize #f  getter generate)
+  (slot channel-audio         initialize #f  getter generate)
+  (slot channel-video         initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
   (slot media-kind            initialize #f  getter generate)
-  (slot audio-datas           initialize #f  getter generate)
-  (slot video-datas           initialize #f  getter generate)
+  (slot audio-creates         initialize #f  getter generate)
+  (slot video-creates         initialize #f  getter generate)
   (slot sender-emulator       initialize #f  getter generate)
   (slot server-emulator       initialize #f  getter generate)
   (slot receiver-emulator     initialize #f  getter generate)
@@ -122,6 +124,22 @@
   
   
   (method protected (setup-visualizer self)
+    (setup-origins self)
+    (setup-channel-names self)
+    (setup-channel-nos self)
+    (setup-channel-rings self)
+    (setup-media-kinds self)
+    (setup-evolutions self)
+    (setup-selection self)
+    (setup-creates self)
+    (setup-timeline self)
+    (reset-emulators self)
+    (reset-media-kind (locate self 'receiver))
+    (set-%r replay)
+    (set-%v self))
+  
+  
+  (method (setup-origins self)
     (define (collect-origins)
       (let ((metadata (metadata-ref replay tier)))
         (if (= (first metadata) server-no)
@@ -129,6 +147,11 @@
           (let ((receive-channels (fourth metadata)))
             (sort nu<? (remove-duplicates (map third receive-channels)))))))
     
+    (set! origins (collect-origins))
+    (set! origin (and (not-null? origins) (car origins))))
+  
+  
+  (method (setup-channel-names self)
     (define (collect-channel-names target-origin)
       (if (not target-origin)
           '()
@@ -144,6 +167,55 @@
                                     receive-channels)
                            test: equal?)))))))
     
+    (set! channel-names (collect-channel-names origin))
+    (set! channel-name (and (not-null? channel-names) (car channel-names))))
+  
+  
+  (method (setup-channel-nos self)
+    (let ((audio #f)
+          (video #f))
+      (when channel-name
+        (let ((metadata (metadata-ref replay tier)))
+          (unless (= (first metadata) server-no)
+            (let ((receive-channels (fourth metadata)))
+              (for-each (lambda (info)
+                          (bind (name no origin kind) info
+                            (when (equal? name channel-name)
+                              (ecase kind
+                                ((udp-audio) (set! audio no))
+                                ((udp-video) (set! video no))))))
+                        receive-channels)))))
+      (set! channel-audio audio)
+      (set! channel-video video)))
+  
+  
+  (method (setup-channel-rings self)
+    (define (audio-info)
+      (if (not channel-audio)
+          (values #f #f)
+        (let ((info (audio-ref replay channel-audio)))
+          (if (not info)
+              (values #f #f)
+            (bind (ring header) info
+              (values ring header))))))
+    
+    (define (video-info)
+      (if (not channel-video)
+          (values #f #f)
+        (let ((info (video-ref replay channel-video)))
+          (if (not info)
+              (values #f #f)
+            (bind (ring header) info
+              (values ring header))))))
+    
+    (receive (ring header) (audio-info)
+      (set! origin-audio ring)
+      (set! origin-audio-header header))
+    (receive (ring header) (video-info)
+      (set! origin-video ring)))
+  
+  
+  (method (setup-media-kinds self)
     (define (collect-media-kinds target-origin channel-name)
       (if (or (not target-origin)
               (not channel-name))
@@ -159,45 +231,11 @@
                                            kind)))
                                   receive-channels)))))))
     
-    (define (setup-audio)
-      (when origin
-        (let ((info (audio-ref replay origin)))
-          (when info
-            (bind (ring header) info
-              (set! origin-audio ring)
-              (set! origin-audio-header header))))))
-    
-    (define (setup-video)
-      (when origin
-        (let ((info (video-ref replay origin)))
-          (when info
-            (bind (ring header) info
-              (set! origin-video ring))))))
-    
-    (set! origins (collect-origins))
-    (set! origin (and (not-null? origins) (car origins)))
-    (set! channel-names (collect-channel-names origin))
-    (set! channel-name (and (not-null? channel-names) (car channel-names)))
     (set! media-kinds (collect-media-kinds origin channel-name))
-    (set! media-kind (and (not-null? media-kinds) (car media-kinds)))
-    (set! origin-evolution (and origin (evolution-ref replay origin)))
-    (set! server-evolution (evolution-ref replay server-no))
-    (set! receiver-evolution (evolution-ref replay tier))
-    (set! selection #f)
-    (set! selection-description #f)
-    (setup-audio)
-    (setup-video)
-    (set! audio-datas (make-table test: eqv?))
-    (set! video-datas (make-table test: eqv?))
-    (setup-datas self)
-    (setup-timeline self)
-    (reset-emulators self)
-    (reset-media-kind (locate self 'receiver))
-    (set-%r replay)
-    (set-%v self))
+    (set! media-kind (and (not-null? media-kinds) (car media-kinds))))
   
   
-  (method (setup-datas self)
+  (method (setup-creates self)
     (define (locate-info create kind sequence)
       (loop (for info from (+ create 1) to (last-position origin-evolution))
             (when (and (= (evolutionary-udp-id origin-evolution info) udp-id-create-info)
@@ -206,45 +244,61 @@
               (return info))
             (finally #f)))
     
+    (set! audio-creates (make-table test: eqv?))
+    (set! video-creates (make-table test: eqv?))
     (when origin-evolution
       (loop (for create from (first-position origin-evolution) to (last-position origin-evolution))
             (when (= (evolutionary-udp-id origin-evolution create) udp-id-create-packet)
-              (let ((kind (evolutionary-udp-kind origin-evolution create))
-                    (sequence (evolutionary-udp-sequence origin-evolution create)))
-                (let ((info (locate-info create kind sequence)))
-                  (when info
-                    (let ((data (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
-                                  (let ((origin (flonum->fixnum (evolutionary-udp-origin origin-evolution create)))
-                                        (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution create)))
-                                        (frame (evolutionary-udp-frame origin-evolution create))
-                                        (part (flonum->fixnum (evolutionary-udp-data2 origin-evolution info)))
-                                        (total (flonum->fixnum (evolutionary-udp-data3 origin-evolution info)))
-                                        (header? (= (evolutionary-udp-data3 origin-evolution create) 123456.))
-                                        (timestamp (evolutionary-udp-data4 origin-evolution create))
-                                        (duration (evolutionary-udp-data4 origin-evolution info)))
-                                    (let ((data (make-u8vector header-size))
-                                          (nanostamp (flonum->timestamp timestamp))
-                                          (nanoduration (flonum->timestamp duration)))
-                                      (write-udp-kind data kind)
-                                      (write-udp-origin data origin)
-                                      (write-udp-channel data -1)
-                                      (write-udp-sequence data sequence)
-                                      (write-udp-frame data frame)
-                                      (write-udp-part data part)
-                                      (write-udp-total data total)
-                                      (write-udp-media-timestamp data nanostamp)
-                                      (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
-                                                                         18446744073709551615
-                                                                       nanoduration))
-                                      (write-udp-media-header? data header?)
-                                      (write-udp-media-off? data #f)
-                                      (write-udp-resent data 0)
-                                      data)))))
-                      (table-set! (if (= kind udp-audio)
-                                      audio-datas
-                                    video-datas)
-                                  sequence
-                                  data)))))))))
+              (let ((no (flonum->fixnum (evolutionary-udp-channel origin-evolution create))))
+                (when (or (eqv? no channel-audio)
+                          (eqv? no channel-video))
+                  (let ((kind (evolutionary-udp-kind origin-evolution create))
+                        (sequence (evolutionary-udp-sequence origin-evolution create)))
+                    (let ((info (locate-info create kind sequence)))
+                      (when info
+                        (let ((data (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
+                                      (let ((origin (flonum->fixnum (evolutionary-udp-origin origin-evolution create)))
+                                            (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution create)))
+                                            (frame (evolutionary-udp-frame origin-evolution create))
+                                            (part (flonum->fixnum (evolutionary-udp-data2 origin-evolution info)))
+                                            (total (flonum->fixnum (evolutionary-udp-data3 origin-evolution info)))
+                                            (header? (= (evolutionary-udp-data3 origin-evolution create) 123456.))
+                                            (timestamp (evolutionary-udp-data4 origin-evolution create))
+                                            (duration (evolutionary-udp-data4 origin-evolution info)))
+                                        (let ((data (make-u8vector header-size))
+                                              (nanostamp (flonum->timestamp timestamp))
+                                              (nanoduration (flonum->timestamp duration)))
+                                          (write-udp-kind data kind)
+                                          (write-udp-origin data origin)
+                                          (write-udp-channel data no)
+                                          (write-udp-sequence data sequence)
+                                          (write-udp-frame data frame)
+                                          (write-udp-part data part)
+                                          (write-udp-total data total)
+                                          (write-udp-media-timestamp data nanostamp)
+                                          (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
+                                                                             18446744073709551615
+                                                                           nanoduration))
+                                          (write-udp-media-header? data header?)
+                                          (write-udp-media-off? data #f)
+                                          (write-udp-resent data 0)
+                                          data)))))
+                          (table-set! (if (= kind udp-audio)
+                                          audio-creates
+                                        video-creates)
+                                      sequence
+                                      data)))))))))))
+  
+  
+  (method (setup-evolutions self)
+    (set! origin-evolution (evolution-ref replay origin))
+    (set! server-evolution (evolution-ref replay server-no))
+    (set! receiver-evolution (evolution-ref replay tier)))
+  
+  
+  (method (setup-selection self)
+    (set! selection #f)
+    (set! selection-description #f))
   
   
   ;; quicky to setup everything again
@@ -254,9 +308,9 @@
           (set! call #f)
           (set! receiver-emulator #f))
       (set! call (simulate-udp-call (get-metadatas replay)))
-      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-datas video-datas channel-name))
-      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-datas video-datas channel-name))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-datas video-datas channel-name))
+      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates channel-name channel-audio channel-video))
+      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates channel-name channel-audio channel-video))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-creates video-creates channel-name channel-audio channel-video))
       (set-emulator (locate self 'sender) sender-emulator)
       (set-emulator (locate self 'server) server-emulator)
       (set-emulator (locate self 'receiver) receiver-emulator)
@@ -325,11 +379,13 @@
   (method protected (cycle-origins self reversed?)
     (when (not-null? origins)
       (set! origin (cycle-element origins origin reversed?: reversed?))
-      (set! origin-evolution (evolution-ref replay origin))
-      (set! server-evolution (evolution-ref replay server-no))
-      (set! receiver-evolution (evolution-ref replay tier))
-      (set! selection #f)
-      (set! selection-description #f)
+      (setup-channel-names self)
+      (setup-channel-nos self)
+      (setup-channel-rings self)
+      (setup-media-kinds self)
+      (setup-evolutions self)
+      (setup-selection self)
+      (setup-creates self)
       (setup-timeline self)
       (reset-emulators self)
       (when now
@@ -340,7 +396,16 @@
   (method protected (cycle-channel-names self reversed?)
     (when (not-null? channel-names)
       (set! channel-name (cycle-element channel-names channel-name reversed?: reversed?))
+      (setup-channel-nos self)
+      (setup-channel-rings self)
+      (setup-media-kinds self)
+      (setup-evolutions self)
+      (setup-selection self)
+      (setup-creates self)
       (setup-timeline self)
+      (reset-emulators self)
+      (when now
+        (visualize-time self now #f))
       (invalidate-view self)))
   
   
