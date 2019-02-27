@@ -408,6 +408,30 @@
         (on-toggle-mode zone evt))))
   
   
+  (method (on-add-image self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-add-image zone evt))))
+  
+  
+  (method (on-add-video self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-add-video zone evt))))
+  
+  
+  (method (on-add-music self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-add-music zone evt))))
+  
+  
+  (method (on-remove-stream self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-remove-stream zone evt))))
+  
+  
   (method (on-configure-settings self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -907,6 +931,10 @@
           @wait
           (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
+          (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :application on-add-image} description: "Add image.")
+          (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
+          (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
+          (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 

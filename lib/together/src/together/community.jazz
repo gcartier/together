@@ -75,6 +75,7 @@
         (world.settings)
         (world.skybox)
         (world.sound)
+        (world.streamer)
         (world.streaming)
         (world.task)
         (world.timeline)
@@ -1712,6 +1713,22 @@
             'fill
           'fit))
       (display-message world (format "Video mode: {a}" video-mode))))
+  
+  
+  (method (on-add-image self evt)
+    (add-image))
+  
+  
+  (method (on-add-video self evt)
+    (add-video))
+  
+  
+  (method (on-add-music self evt)
+    (add-music))
+  
+  
+  (method (on-remove-stream self evt)
+    (remove-stream))
   
   
   (method (on-configure-settings self evt)
