@@ -388,7 +388,7 @@
                         (timestamp (read-udp-media-timestamp data))
                         (duration (read-udp-media-duration data)))
                     (record-event udp-id-create-packet
-                                  -1. ;; CHANNELTODO
+                                  -1.
                                   (fixnum->flonum origin)
                                   (fixnum->flonum kind)
                                   (fixnum->flonum sequence)
@@ -398,7 +398,7 @@
                                       -1.
                                     (timestamp->flonum timestamp)))
                     (record-event udp-id-create-info
-                                  -1. ;; CHANNELTODO
+                                  -1.
                                   (fixnum->flonum origin)
                                   (fixnum->flonum kind)
                                   (fixnum->flonum sequence)
