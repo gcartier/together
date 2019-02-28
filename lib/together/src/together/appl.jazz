@@ -40,6 +40,7 @@
         (jazz.search)
         (jazz.stream)
         (jazz.text)
+        (jazz.time)
         (jazz.tree)
         (jazz.view)
         (world)
@@ -430,6 +431,13 @@
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
         (on-remove-stream zone evt))))
+  
+  
+  (method (on-garbage-collect self evt)
+    (let ((world (current-world)))
+      (let ((timer (new Timer)))
+        (gc)
+        (display-message world (format "Garbage collect ({a}ms)" (real-duration-in-milliseconds timer))))))
   
   
   (method (on-configure-settings self evt)
@@ -935,6 +943,7 @@
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
           (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
           (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
+          (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
 
