@@ -143,6 +143,10 @@
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
     (set-setup-catalogs-hook (~ setup-catalogs self))
+    @wait
+    ;; this takes a lot of memory and thus has a large
+    ;; impact on garbage collect times so i think that
+    ;; cataloging should be offloaded to the worker...
     (when (developer?)
       (let ((thread
               (new-thread
