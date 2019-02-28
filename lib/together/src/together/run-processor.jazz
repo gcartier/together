@@ -51,9 +51,7 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role user
-                       ;; worker
-                       world.worker? #f)))
+                       world.role user)))
 
 
 (definition (override-settings settings)
