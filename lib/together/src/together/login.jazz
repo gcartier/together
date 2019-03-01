@@ -83,8 +83,7 @@
       (setup-stage self)
       (setup-configuration self)
       (install-stage self)
-      (set-escape-hook world (~ escape-press self))
-      (set-draw-me? self #f)))
+      (set-escape-hook world (~ escape-press self))))
   
   
   (method override (destroy self)
@@ -93,7 +92,6 @@
       (no-showcase world)
       (set-enter-hook world #f)
       (set-escape-hook world #f)
-      (set-draw-me? self #t)
       (uninstall-camera))
     (nextmethod self))
   

@@ -149,8 +149,6 @@
         (install-stage self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
-        (unless sphere?
-          (set-draw-me? self #f))
         (view-people self)
         (when guillaume?
           (let ((circle "Circle"))
@@ -175,8 +173,6 @@
         (uninstall-zone self)
         (set! stage #f)
         (no-showcase world)
-        (unless sphere?
-          (set-draw-me? self #t))
         (uninstall-camera)))
     (nextmethod self))
   
@@ -188,6 +184,10 @@
   (method (setup-configuration self)
     (let ((file (together-file)))
       (set! configuration (instantiate (read-form file)))))
+  
+  
+  (method override (show-me? self)
+    (and sphere? (eq? stage 'circle)))
   
   
   (method override (mute-audio? self)
