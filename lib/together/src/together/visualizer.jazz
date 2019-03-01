@@ -360,9 +360,9 @@
       (if (not channel-name)
           (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
         (draw-text surface 80 3 channel-name visualizer-text-color)
-        (draw-text surface 165 3 (format "{a}" (udp-name media-kind)) visualizer-text-color)))
+        (draw-text surface 155 3 (format "{a}" (udp-name media-kind)) visualizer-text-color)))
     (when selection-description
-      (draw-text surface 140 3 selection-description visualizer-text-color))
+      (draw-text surface 210 3 selection-description visualizer-text-color))
     (let ((title (format "{r precision: 1}x" visualizer-speed)))
       (let ((width (get-width self))
             (extent (get-text-extent surface title)))
