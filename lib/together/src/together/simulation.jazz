@@ -82,8 +82,7 @@
 (class Test-Audio-Sink extends Audio-Sink
 
 
-  (method override (setup-element self)
-    (nextmethod self)
+  (method override (setup-pipeline self)
     (let ((pipeline (gst-launch (tie "appsrc name=src")
                                 (and (eq? codec 'opus) "opusdec name=dec")
                                 (and (eq? codec 'vorbis) "vorbisdec name=dec")
