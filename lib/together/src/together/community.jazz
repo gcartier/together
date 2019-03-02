@@ -1375,7 +1375,8 @@
   
   
   (method (switch-circle-focus self h v)
-    (if (not (world-focused?))
+    (if (or (not (world-focused?))
+            (neq? stage 'circle))
         #f
       (let ((rank (find-output-rank h v)))
         (when rank
@@ -1384,7 +1385,8 @@
   
   
   (method (shortcut-press-circle self shortcut)
-    (if (not (world-focused?))
+    (if (or (not (world-focused?))
+            (neq? stage 'circle))
         #f
       (let ((count (video-count)))
         (nucase shortcut
