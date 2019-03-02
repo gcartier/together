@@ -1715,19 +1715,23 @@
   
   
   (method (on-add-image self evt)
-    (add-image))
+    (when (eq? stage 'circle)
+      (add-image)))
   
   
   (method (on-add-video self evt)
-    (add-video))
+    (when (eq? stage 'circle)
+      (add-video)))
   
   
   (method (on-add-music self evt)
-    (add-music))
+    (when (eq? stage 'circle)
+      (add-music)))
   
   
   (method (on-remove-stream self evt)
-    (remove-stream))
+    (when (eq? stage 'circle)
+      (remove-stream)))
   
   
   (method (on-configure-settings self evt)
