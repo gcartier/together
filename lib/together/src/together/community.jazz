@@ -243,8 +243,8 @@
             (new Circlebar-Button name: 'leave parent: circlebar title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
             (new Circlebar-Button name: 'audio parent: circlebar location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
             (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
-            (new Circlebar-Button name: 'layouts parent: circlebar location: '(540 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
-            (new Circlebar-Button name: 'focus parent: circlebar location: '(700 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self))
+            (new Circlebar-Button name: 'layouts parent: circlebar location: '(-190 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
+            (new Circlebar-Button name: 'focus parent: circlebar location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self))
             (layout-view circlebar)))
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
