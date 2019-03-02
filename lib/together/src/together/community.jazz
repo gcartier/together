@@ -627,6 +627,7 @@
       (set-visible? (child root 'toggle-chat) #t)
       (set-visible? (child root 'circlebar) #t)
       (set-uptodate? (child root 'circlebar) #f)
+      (set-render-minis? #t)
       (delay-hide-interface self)))
   
   
@@ -646,7 +647,8 @@
                                               (set-visible? (child root 'toggle-people) #f)
                                               (set-visible? (child root 'toggle-chat) #f)
                                               (set-visible? (child root 'circlebar) #f)
-                                              (set-uptodate? (child root 'circlebar) #f))))))))))
+                                              (set-uptodate? (child root 'circlebar) #f)
+                                              (set-render-minis? #f))))))))))
   
   
   (method (show/hide-debug self h v)
