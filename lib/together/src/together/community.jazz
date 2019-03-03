@@ -982,7 +982,7 @@
           (maybe-update-layouts output)
           (let ((name (determine-output-name client output)))
             (if (eq? (get-stream-state output) 'drawn)
-                (let ((view (if (eq? video-mode 'fit) (get-sheet output) interface)))
+                (let ((view (if (and video-focus? (eq? video-mode 'fill)) interface (get-sheet output))))
                   (set-font surface {Font font-name: tahoma point-size: 15.5})
                   (let ((extent (get-text-extent surface name)))
                     (let ((pos (get-position view))
