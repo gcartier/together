@@ -1713,7 +1713,9 @@
         (if (eq? video-mode 'fit)
             'fill
           'fit))
-      (display-message world (format "Video mode: {a}" video-mode))))
+      (display-message world (case video-mode
+                               ((fit) "Fit")
+                               ((fill) "Fill")))))
   
   
   (method (on-add-image self evt)
