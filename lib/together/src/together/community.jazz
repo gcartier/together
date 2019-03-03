@@ -891,13 +891,9 @@
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
-      (set-mouse-down-hook (~ switch-circle-focus self))
-      (set-double-click-hook (~ switch-circle-focus self))
-      (set-multiple-click-hook (~ switch-circle-focus self))
       (set-shortcut-press-hook (~ shortcut-press-circle self))
       (set! draw-hook (~ draw-sheets self))
       (register-draw-hook interface draw-hook)
-      @wait
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-return-handler (child interface 'command) (~ command-return self))
@@ -916,10 +912,8 @@
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
-      (set-mouse-down-hook #f)
       (set-shortcut-press-hook #f)
       (unregister-draw-hook interface draw-hook)
-      @wait
       (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
@@ -983,7 +977,7 @@
           (let ((name (determine-output-name client output)))
             (if (eq? (get-stream-state output) 'drawn)
                 (when video-interface?
-                  (let ((view (if (and video-focus? (eq? video-mode 'fill)) interface (get-sheet output))))
+                  (let ((view (if (and video-focus? (eq? video-mode 'fill)) interface (get-sheet (get-media-pane output)))))
                     (set-font surface {Font font-name: tahoma point-size: 15.5})
                     (let ((extent (get-text-extent surface name)))
                       (let ((pos (get-position view))
@@ -995,7 +989,7 @@
                             (set-color surface {Color Dark-Red})
                             (set-line-width surface 2)
                             (line surface h (+ v (get-height extent)) (+ h (get-width extent)) v)))))))
-              (let ((sheet (get-sheet output)))
+              (let ((sheet (get-sheet (get-media-pane output))))
                 (let ((pos (get-position sheet))
                       (rect (get-rect sheet)))
                   (fill-rect surface (inflate-rect rect -1 -1) {Color red: 30 green: 30 blue: 30})
@@ -1098,7 +1092,7 @@
           (continuation-capture
             (lambda (return)
               (define (try output)
-                (let ((sheet (get-sheet output)))
+                (let ((sheet (get-sheet (get-media-pane output))))
                   (when (in-rect? pos (get-rect sheet))
                     (continuation-return return output))))
               
@@ -1124,9 +1118,15 @@
   ;;;
   
   
-  @wait
   (method (eye-matrix self camera stable?)
     (when (eq? stage 'circle)
+      (let ((video (current-video)))
+        (let ((ordered-outputs (get-ordered-outputs video)))
+          (let ((count (length ordered-outputs)))
+            (for-each (lambda (output)
+                        (update-interface-matrix output count))
+                      ordered-outputs))))
+      @wait
       (let ((position (get-position camera))
             (sight (get-sight camera)))
         (updating-3d-audio position sight
@@ -1372,17 +1372,7 @@
   (method (layout-circle self ordered-outputs)
     (let ((count (length ordered-outputs)))
       (circle-update-camera count)
-      (circle-matrices count)))
-  
-  
-  (method (switch-circle-focus self h v)
-    (if (or (not (world-focused?))
-            (neq? stage 'circle))
-        #f
-      (let ((rank (find-output-rank h v)))
-        (when rank
-          (circle-switch-focus rank)))
-      #f))
+      (circle-placements count)))
   
   
   (method (shortcut-press-circle self shortcut)
@@ -1942,6 +1932,10 @@
   
   (form
     (<install> layout-type: justify))
+  
+  
+  (method override (get-transparent? self)
+    #t)
   
   
   (method override (with-clipping-self-transformation self surface thunk)
