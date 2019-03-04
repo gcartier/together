@@ -150,7 +150,7 @@
         (if (= (first metadata) server-no)
             '()
           (let ((receive-channels (fourth metadata)))
-            (sort nu<? (remove-duplicates (map third receive-channels)))))))
+            (sort nu<? (remove-duplicates (map fourth receive-channels)))))))
     
     (set! origins (collect-origins))
     (set! origin (and (not-null? origins) (car origins))))
@@ -166,7 +166,7 @@
             (let ((receive-channels (fourth metadata)))
               (sort nu<? (remove-duplicates
                            (collect (lambda (info)
-                                      (bind (name no origin kind) info
+                                      (bind (sender name no origin kind) info
                                         (and (= origin target-origin)
                                              name)))
                                     receive-channels)
@@ -184,7 +184,7 @@
           (unless (= (first metadata) server-no)
             (let ((receive-channels (fourth metadata)))
               (for-each (lambda (info)
-                          (bind (name no origin kind) info
+                          (bind (sender name no origin kind) info
                             (when (equal? name channel-name)
                               (ecase kind
                                 ((udp-audio) (set! audio no))
@@ -230,7 +230,7 @@
               '()
             (let ((receive-channels (fourth metadata)))
               (sort nu<? (collect (lambda (info)
-                                    (bind (name no origin kind) info
+                                    (bind (sender name no origin kind) info
                                       (and (= origin target-origin)
                                            (equal? name channel-name)
                                            kind)))
