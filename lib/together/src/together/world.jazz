@@ -30,9 +30,6 @@
 (class Together-World extends World
   
   
-  (slot circlebar-sheet <object> initialize #f getter generate)
-  
-  
   (method override (floor-level self)
     0.)
   
@@ -42,29 +39,8 @@
     (register-sound 'message "sound/message"))
   
   
-  (method override (prepare-sheets self)
-    (nextmethod self)
-    (set! circlebar-sheet (make-world-sheet 'circlebar World-Sheet {Dimension 4000 60})))
-  
-  
-  (method override (resize-sheets self)
-    (nextmethod self)
-    (make-orthographic-matrix! (get-projection-matrix circlebar-sheet) 0. width 0. height 0. 10.))
-  
-  
   (method override (script-panel-class self)
     Together-Script-Panel)
-  
-  
-  (method override (destroy self)
-    (glDeleteTextures* (get-id (get-texture circlebar-sheet)))
-    (nextmethod self))
-  
-  
-  (method override (render-top self)
-    (let ((zone (current-zone+)))
-      (when (and (is? zone Community-Zone) (eq? (get-stage zone) 'circle))
-        (draw-circlebar-sheet))))
   
   
   (method override (draw-message-offset self)

@@ -239,13 +239,11 @@
           (new Kind-Label name: 'circle-name parent: root title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
           (new Push-Button name: 'toggle-people parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self))
           (new Push-Button name: 'toggle-chat parent: root location: '(210 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self))
-          (let ((circlebar (new Circlebar-View name: 'circlebar parent: root location: '(0 tail) proportion: '(bounds 60))))
-            (new Circlebar-Button name: 'leave parent: circlebar title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
-            (new Circlebar-Button name: 'audio parent: circlebar location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
-            (new Circlebar-Button name: 'video parent: circlebar location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
-            (new Circlebar-Button name: 'layouts parent: circlebar location: '(-190 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
-            (new Circlebar-Button name: 'focus parent: circlebar location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self))
-            (layout-view circlebar)))
+          (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
+          (new Push-Button name: 'audio parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
+          (new Push-Button name: 'video parent: root location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
+          (new Push-Button name: 'layouts parent: root location: '(-190 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
+          (new Push-Button name: 'focus parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self)))
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
@@ -368,7 +366,11 @@
       (title root 'circle-name joined-circle)
       (show root 'toggle-people)
       (show root 'toggle-chat)
-      (show root 'circlebar)
+      (show root 'leave)
+      (show root 'audio)
+      (show root 'video)
+      (show root 'layouts)
+      (show root 'focus)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
       (proportion interface 'chat '(220 (bounds -354)))
@@ -625,8 +627,11 @@
       (set-visible? (child root 'circle-name) #t)
       (set-visible? (child root 'toggle-people) #t)
       (set-visible? (child root 'toggle-chat) #t)
-      (set-visible? (child root 'circlebar) #t)
-      (set-uptodate? (child root 'circlebar) #f)
+      (set-visible? (child root 'leave) #t)
+      (set-visible? (child root 'audio) #t)
+      (set-visible? (child root 'video) #t)
+      (set-visible? (child root 'layouts) #t)
+      (set-visible? (child root 'focus) #t)
       (set-video-interface? #t)
       (delay-hide-interface self)))
   
@@ -646,8 +651,11 @@
                                               (set-visible? (child root 'circle-name) #f)
                                               (set-visible? (child root 'toggle-people) #f)
                                               (set-visible? (child root 'toggle-chat) #f)
-                                              (set-visible? (child root 'circlebar) #f)
-                                              (set-uptodate? (child root 'circlebar) #f)
+                                              (set-visible? (child root 'leave) #f)
+                                              (set-visible? (child root 'audio) #f)
+                                              (set-visible? (child root 'video) #f)
+                                              (set-visible? (child root 'layouts) #f)
+                                              (set-visible? (child root 'focus) #f)
                                               (set-video-interface? #f))))))))))
   
   
@@ -722,7 +730,7 @@
   
   (method (update-audio self)
     (let ((client (current-client)))
-      (set-title (child root '(circlebar audio))
+      (set-title (child root 'audio)
                  (if (mic-playing? client)
                      "Stop Audio"
                    "Start Audio"))))
@@ -738,7 +746,7 @@
   
   (method (update-video self)
     (let ((client (current-client)))
-      (set-title (child root '(circlebar video))
+      (set-title (child root 'video)
                  (if (camera-playing? client)
                      "Stop Video"
                    "Start Video"))))
@@ -1272,7 +1280,7 @@
   
   (method (update-focus self)
     (let ((interface (current-interface)))
-      (set-title (child root '(circlebar focus))
+      (set-title (child root 'focus)
                  (if video-focus?
                      "Unfocus"
                    "Focus"))))
@@ -1304,7 +1312,7 @@
   
   (method (update-layouts self)
     (let ((interface (current-interface)))
-      (set-title (child root '(circlebar layouts))
+      (set-title (child root 'layouts)
                  (case video-layout
                    ((gallery) "Circle")
                    (else "Gallery")))))
@@ -1830,68 +1838,4 @@
   (form
     (<install>
       (<!>                 name: content
-        (<Admin-Text-View> name: text    background: #f)))))
-
-
-;;;
-;;;; Circlebar
-;;;
-
-
-;; clearly I don't need 2 distinct World-Sheet and Circlebar-View views
-;; investigate or do the foundation work of using world panes everywhere!
-
-
-(definition hack-transformation?
-  (make-parameter #f))
-
-
-(definition protected (draw-circlebar-sheet)
-  (let ((interface (current-interface))
-        (world (current-world))
-        (zone (current-zone)))
-    (let ((view (child (get-root zone) 'circlebar))
-          (sheet (get-circlebar-sheet world)))
-      (unless (get-uptodate? view)
-        (let ((texture (get-texture sheet)))
-          (let ((surface (get-surface texture))
-                (data (get-data texture)))
-            (clear surface)
-            (set-clipper surface (new Rect 0 0 2000 2000) @w (get-box (get-offscreen-invalid-region handle)))
-            (when (get-visible? view)
-              (parameterize ((hack-transformation? #t))
-                (paint-drawing view surface '())))
-            (map-texture texture)
-            (set-uptodate? view #t))))
-      (let ((x (cast <fl> (get-left view)))
-            (y (cast <fl> (get-top view)))
-            (h (cast <fl> (get-height view))))
-        (let ((matrix (make-translation-matrix (vertex x (- (get-height world) y h) 0.))))
-          (render-sheet sheet matrix))))))
-
-
-(class Circlebar-View extends Layout-View
-  
-  
-  (slot uptodate? initialize #f accessors generate)
-  
-  
-  (form
-    (<install> layout-type: justify))
-  
-  
-  (method override (get-transparent? self)
-    #t)
-  
-  
-  (method override (with-clipping-self-transformation self surface thunk)
-    (let ((hack? (hack-transformation?)))
-      (with-clipping-transformation surface (if hack? 0 (get-h position)) (if hack? 0 (get-v position)) (get-width size) (get-height size) (get-transformation self)
-        thunk))))
-
-
-(class Circlebar-Button extends Push-Button
-  
-  
-  (method override (invalidate-hook self)
-    (set-uptodate? (find-ascendant self Circlebar-View) #f))))
+        (<Admin-Text-View> name: text    background: #f))))))
