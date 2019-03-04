@@ -1069,12 +1069,7 @@
   
   (method (eye-matrix self camera stable?)
     (when (eq? stage 'circle)
-      (let ((video (current-video)))
-        (let ((ordered-outputs (get-ordered-outputs video)))
-          (let ((count (length ordered-outputs)))
-            (for-each (lambda (output)
-                        (update-interface-matrix output count))
-                      ordered-outputs))))
+      (update-interface-matrices (current-video))
       @wait
       (let ((position (get-position camera))
             (sight (get-sight camera)))
