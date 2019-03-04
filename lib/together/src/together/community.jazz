@@ -740,8 +740,7 @@
     (let ((client (current-client)))
       (when (eq? stage 'circle)
         (toggle-camera client)
-        (update-video self)
-        (invalidate-interface))))
+        (update-video self))))
   
   
   (method (update-video self)
@@ -842,8 +841,7 @@
           (set! joined-circle name)
           (set! circle-start (current-seconds))
           (goto-stage self 'circle)
-          (update-layouts video)
-          (invalidate-interface)))))
+          (update-layouts video)))))
   
   
   (method (leave-circle self)
@@ -865,8 +863,7 @@
       (install-skybox zone (find-skybox together-skybox))
       (set! draw-grid? #f)
       (set! joined-circle #f)
-      (goto-stage self 'gathering)
-      (invalidate-interface)))
+      (goto-stage self 'gathering)))
   
   
   (method (goto-stage self what)
@@ -955,9 +952,7 @@
         generate-event?: #t)
       (when guillaume?
         (when (not (get-single-selection tree))
-          (select-user-data-row tree '(group "Circle") test: equal? error?: #f))))
-    (when (eq? stage 'circle)
-      (invalidate-interface)))
+          (select-user-data-row tree '(group "Circle") test: equal? error?: #f)))))
   
   
   ;;;
@@ -1303,11 +1298,9 @@
     (let ((video (current-video)))
       (case video-layout
         ((gallery)
-         (circle-layout video)
-         (invalidate-interface))
+         (circle-layout video))
         ((circle)
-         (gallery-layout video)
-         (invalidate-interface)))))
+         (gallery-layout video)))))
   
   
   (method (update-layouts self)
