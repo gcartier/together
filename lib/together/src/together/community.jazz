@@ -827,8 +827,8 @@
               (require-mic-channel tier)
               (require-camera-channel tier))
             (for-each (lambda (info)
-                        (bind (name no origin media-kind resolution) info
-                          (add-channel tier name no origin media-kind resolution)))
+                        (bind (sender name no origin media-kind resolution) info
+                          (add-channel tier sender name no origin media-kind resolution)))
                       channels/exception)
             (start udp-client))
           (when auto-channel?
