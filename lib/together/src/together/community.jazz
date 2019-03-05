@@ -1052,7 +1052,9 @@
                     (continuation-return return output))))
               
               (when (and (eq? video-layout 'gallery)
-                         video-focus?)
+                         (if speakers-xp?
+                             #t
+                           video-focus?))
                 (let ((ordered-outputs (get-ordered-outputs video))
                       (focused-output (effective-focused-output video)))
                   (for-each (lambda (output)
