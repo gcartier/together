@@ -724,6 +724,7 @@
   (method (on-toggle-audio self evt)
     (let ((client (current-client)))
       (when (eq? stage 'circle)
+        (require-mic-channel client)
         (toggle-mic client)
         (update-audio self))))
   
@@ -739,8 +740,13 @@
   (method (on-toggle-video self evt)
     (let ((client (current-client)))
       (when (eq? stage 'circle)
-        (toggle-camera client)
-        (update-video self))))
+        (let ((camera (get-camera-channel client)))
+          (when (not camera)
+            (require-camera-channel client))
+          (toggle-camera client)
+          (update-video self)
+          (when (not camera)
+            (update-layouts (current-video)))))))
   
   
   (method (update-video self)
