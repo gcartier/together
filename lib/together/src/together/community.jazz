@@ -569,8 +569,7 @@
   
   
   (method override (mouse-down self h v)
-    (mouse-action self h v)
-    (click-sheet self h v))
+    (mouse-action self h v))
   
   
   (method override (mouse-up self h v)
@@ -584,13 +583,11 @@
   
   
   (method override (double-click self h v)
-    (mouse-action self h v)
-    (click-sheet self h v))
+    (mouse-action self h v))
   
   
   (method override (multiple-click self h v)
-    (mouse-action self h v)
-    (click-sheet self h v))
+    (mouse-action self h v))
   
   
   (method (install-hider self)
@@ -1038,36 +1035,6 @@
       (when (eq? stage 'circle)
         (when show-debug?
           (draw-debugging)))))
-  
-  
-  (method (click-sheet self h v)
-    (let ((video (current-video)))
-      (define (clicked-mini)
-        (let ((pos (new Point h v)))
-          (continuation-capture
-            (lambda (return)
-              (define (try output)
-                (let ((sheet (get-sheet (get-media-pane output))))
-                  (when (in-rect? pos (get-rect sheet))
-                    (continuation-return return output))))
-              
-              (when (and (eq? video-layout 'gallery)
-                         (if speakers-xp?
-                             #t
-                           video-focus?))
-                (let ((ordered-outputs (get-ordered-outputs video))
-                      (focused-output (effective-focused-output video)))
-                  (for-each (lambda (output)
-                              (unless (eq? output focused-output)
-                                (try output)))
-                            ordered-outputs)))
-              #f))))
-      
-      (when (eq? stage 'circle)
-        (let ((mini (clicked-mini)))
-          (when mini
-            (change-focused-output video mini)
-            (update-layouts video))))))
   
   
   ;;;
