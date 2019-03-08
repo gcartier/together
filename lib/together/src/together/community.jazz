@@ -1230,6 +1230,7 @@
           (video (current-video)))
       (when (eq? stage 'circle)
         (goto-layout video (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt)))
+        (show-interface self)
         (update-layouts self)
         (display-message world (capitalize (symbol->string video-layout))))))
   
