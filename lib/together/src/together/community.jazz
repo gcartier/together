@@ -237,12 +237,12 @@
         ;; circle
         (let ((root (new Together-Root name: 'circle parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Kind-Label name: 'circle-name parent: root title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-          (new Push-Button name: 'toggle-people parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self))
-          (new Push-Button name: 'toggle-chat parent: root location: '(210 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self))
+          (new Push-Button name: 'audio parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
+          (new Push-Button name: 'video parent: root location: '(190 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
           (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
-          (new Push-Button name: 'audio parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
-          (new Push-Button name: 'video parent: root location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
-          (new Push-Button name: 'layouts parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self)))
+          (new Push-Button name: 'layouts parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
+          (new Push-Button name: 'toggle-people parent: root location: '(-210 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self))
+          (new Push-Button name: 'toggle-chat parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self)))
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
