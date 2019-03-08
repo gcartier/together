@@ -1119,7 +1119,7 @@
       (<World-Action-Item> name: toggle-denoise       title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
-      (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt #\S} action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
+      (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
       (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")
       (<World-Action-Item> name: add-bookmark         title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
       ;; window
