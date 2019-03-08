@@ -894,7 +894,6 @@
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
-      (set-shortcut-press-hook (~ shortcut-press-circle self))
       (set! draw-hook (~ draw-sheets self))
       (register-draw-hook interface draw-hook)
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
@@ -915,7 +914,6 @@
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
-      (set-shortcut-press-hook #f)
       (unregister-draw-hook interface draw-hook)
       (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
@@ -1256,7 +1254,7 @@
       (circle-placements count)))
   
   
-  (method (shortcut-press-circle self shortcut)
+  (method package (shortcut-press-circle self shortcut)
     (if (or (not (world-focused?))
             (neq? stage 'circle))
         #f

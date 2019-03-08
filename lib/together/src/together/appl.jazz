@@ -230,11 +230,9 @@
   
   
   (method (call-shortcut-hook self shortcut)
-    (if shortcut-press-hook
-        (with-safe-hook shortcut-press-hook
-          (lambda (procedure)
-            (procedure shortcut)))
-      #f))
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (shortcut-press-circle zone shortcut))))
 
   
   ;;;
