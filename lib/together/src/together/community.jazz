@@ -242,8 +242,7 @@
           (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
           (new Push-Button name: 'audio parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
           (new Push-Button name: 'video parent: root location: '(340 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
-          (new Push-Button name: 'layouts parent: root location: '(-190 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
-          (new Push-Button name: 'focus parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-focus self)))
+          (new Push-Button name: 'layouts parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self)))
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
@@ -370,7 +369,6 @@
       (show root 'audio)
       (show root 'video)
       (show root 'layouts)
-      (show root 'focus)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
       (proportion interface 'chat '(220 (bounds -354)))
@@ -388,7 +386,6 @@
       (update-audio self)
       (update-video self)
       (update-layouts self)
-      (update-focus self)
       (update-buttons self)
       (when auto-hide?
         (install-hider self)
@@ -628,7 +625,6 @@
       (set-visible? (child root 'audio) #t)
       (set-visible? (child root 'video) #t)
       (set-visible? (child root 'layouts) #t)
-      (set-visible? (child root 'focus) #t)
       (set-video-interface? #t)
       (delay-hide-interface self)))
   
@@ -652,7 +648,6 @@
                                               (set-visible? (child root 'audio) #f)
                                               (set-visible? (child root 'video) #f)
                                               (set-visible? (child root 'layouts) #f)
-                                              (set-visible? (child root 'focus) #f)
                                               (set-video-interface? #f))))))))))
   
   
@@ -1228,57 +1223,26 @@
   
   
   ;;;
-  ;;;; Focus
-  ;;;
-  
-  
-  (method (on-toggle-focus self evt)
-    (let ((world (current-world))
-          (video (current-video)))
-      (when (eq? stage 'circle)
-        (toggle-focus video)
-        (update-focus self)
-        (if video-focus?
-            (display-message world "Focused")
-          (display-message world "Unfocused")))))
-  
-  
-  (method (update-focus self)
-    (let ((interface (current-interface)))
-      (set-title (child root 'focus)
-                 (if video-focus?
-                     "Unfocus"
-                   "Focus"))))
-  
-  
-  ;;;
   ;;;; Layouts
   ;;;
 
 
   (method (on-cycle-layouts self evt)
-    (let ((world (current-world)))
+    (let ((world (current-world))
+          (video (current-video)))
       (when (eq? stage 'circle)
-        (cycle-layouts self)
+        (goto-layout video (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt)))
         (update-layouts self)
         (display-message world (capitalize (symbol->string video-layout))))))
-  
-  
-  (method (cycle-layouts self)
-    (let ((video (current-video)))
-      (case video-layout
-        ((gallery)
-         (circle-layout video))
-        ((circle)
-         (gallery-layout video)))))
   
   
   (method (update-layouts self)
     (let ((interface (current-interface)))
       (set-title (child root 'layouts)
                  (case video-layout
-                   ((gallery) "Circle")
-                   (else "Gallery")))))
+                   ((circle) "Focus")
+                   ((focus) "Gallery")
+                   ((gallery) "Circle")))))
   
   
   ;;;
