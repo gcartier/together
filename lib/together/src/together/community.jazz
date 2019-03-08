@@ -1231,12 +1231,17 @@
       (when (eq? stage 'circle)
         (goto-layout video (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt)))
         (when (eq? video-layout 'focus)
-          (let ((focused-output (effective-focused-output video)))
-            (when focused-output
-              (circle-goto-focus focused-output))))
+          (goto-focused self))
         (show-interface self)
         (update-layouts self)
         (display-message world (capitalize (symbol->string video-layout))))))
+  
+  
+  (method (goto-focused self)
+    (let ((video (current-video)))
+      (let ((focused-output (effective-focused-output video)))
+        (when focused-output
+          (circle-goto-focus focused-output)))))
   
   
   (method (update-layouts self)
@@ -1256,6 +1261,9 @@
   (method (layout-circle self ordered-outputs)
     (let ((count (length ordered-outputs)))
       (circle-update-camera count)
+      (when (eq? video-layout 'focus)
+        (goto-focused self)
+        (show-interface self))
       (circle-placements count)))
   
   
