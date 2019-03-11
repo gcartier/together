@@ -45,6 +45,7 @@
         (jazz.settings)
         (jazz.skin)
         (jazz.snapshot)
+        (jazz.stream)
         (jazz.syntax (phase syntax))
         (jazz.tracker)
         (jazz.tree)
