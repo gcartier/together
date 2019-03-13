@@ -283,12 +283,6 @@
         (on-message zone evt))))
   
   
-  (method (on-leave-circle self evt)
-    (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
-        (on-leave-circle zone evt))))
-  
-  
   (method (on-toggle-denoise self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -1115,7 +1109,6 @@
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
       (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       ;; media
-      (<World-Action-Item> name: leave-circle         title: "Leave circle" visible?: #t action-handler: {Event-Handler :application on-leave-circle} shortcut: {Shortcut :alt Backspace} description: "Leave circle.")
       (<World-Action-Item> name: toggle-denoise       title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")

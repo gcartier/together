@@ -701,11 +701,6 @@
                      "Show Chat")))))
   
   
-  (method (on-leave-circle self evt)
-    (when (eq? stage 'circle)
-      (leave-circle self)))
-  
-  
   (method (on-toggle-denoise self evt)
     (let ((world (current-world)))
       (when (eq? stage 'circle)
