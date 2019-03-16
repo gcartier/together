@@ -246,10 +246,6 @@
         ;; script
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
-        (let ((panel (child interface 'script)))
-          (let ((border (locate panel 'border)))
-            (set-border-type border 'solid)
-            (set-border-color border {Color Dark-Gray})))
         ;; replay
         (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
