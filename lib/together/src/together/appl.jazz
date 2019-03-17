@@ -139,6 +139,7 @@
   
   (method override (finish-process self)
     (nextmethod self)
+    (start-socket-server)
     (set-safe-explore-action 'ignore)
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
