@@ -321,6 +321,12 @@
       (display-message world "Bookmarked!")))
   
   
+  (method (on-toggle-hide self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-hide zone evt))))
+  
+  
   (method (on-toggle-debug self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -920,6 +926,7 @@
           (<World-Action-Item> name: toggle-script             visible?: #t shortcut: {Shortcut :control :alt #\S} title: "Toggle script" action-handler: {Event-Handler :application on-toggle-script} description: "Toggle script.")
           (<World-Action-Item> name: toggle-grid               visible?: #t shortcut: {Shortcut :alt #\G} title: "Grid" action-handler: {Event-Handler :application on-toggle-grid} description: "Display a grid that will be used to position elements added to the world.")
           (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
+          (<World-Action-Item> name: toggle-hide               visible?: #t shortcut: {Shortcut :alt :shift #\H} title: "Toggle hide" action-handler: {Event-Handler :application on-toggle-hide} description: "Toggle hide.")
           (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")

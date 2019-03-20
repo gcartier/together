@@ -609,7 +609,7 @@
   
   ;; we probably need a tolerance so moving
   ;; only 1 pixel doesn't show the interface
-  (method (show-interface self)
+  (method protected (show-interface self)
     (let ((window (current-window))
           (interface (current-interface)))
       @wait-later-version-as-it-needs-debugging
@@ -1292,6 +1292,15 @@
   ;;;
   ;;;; Debug
   ;;;
+  
+  
+  (method (on-toggle-hide self evt)
+    (when (eq? stage 'circle)
+      (let ((world (current-world)))
+        (set! auto-hide? (not auto-hide?))
+        (when (not auto-hide?)
+          (show-interface self))
+        (display-on/off world "Auto hide" auto-hide?))))
   
   
   (method (on-toggle-debug self evt)
