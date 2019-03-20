@@ -129,6 +129,7 @@
   ;; copy-pasted from IDE
   (method override (install-process self)
     (nextmethod self)
+    (start-socket-server)
     ;; quick hack for starting two togethers locally
     (unless (and (developer?)
                  (world-setting 'world.inhibit-empty-fifos? #f))
@@ -139,7 +140,6 @@
   
   (method override (finish-process self)
     (nextmethod self)
-    (start-socket-server)
     (set-safe-explore-action 'ignore)
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
