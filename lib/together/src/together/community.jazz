@@ -119,8 +119,11 @@
   (world-setting 'together.hide-chat? #t))
 
 
-(definition show-debug?
-  (world-setting 'together.show-debug? #f))
+(definition protected show-debug?
+  #f)
+
+(definition protected (set-show-debug? flag)
+  (set! show-debug? flag))
 
 
 (class Community-Zone extends Together-Zone
@@ -883,7 +886,7 @@
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
-      (set! draw-hook (~ draw-sheets self))
+      (set! draw-hook (~ draw-debug self))
       (register-draw-hook interface draw-hook)
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
@@ -951,16 +954,8 @@
       (neq? stage 'circle)))
   
   
-  (method (draw-sheets self surface)
+  (method (draw-debug self surface)
     (let ((client (current-client)))
-      (define (draw-debugging)
-        (set-font surface {Font font-name: tahoma point-size: 24 hint-style: slight hint-metrics: on})
-        (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
-        (draw-text surface 20 115 (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-        (draw-text surface 20 150 (format "Drop: {a} {a}" (outgoing-drop) (incoming-drop)) {Color World-Red})
-        (draw-text surface 20 185 (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
-        (draw-text surface 20 220 (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
-      
       (define (media-quality kind)
         (let ((total 0.)
               (channels 0))
@@ -1016,7 +1011,12 @@
       
       (when (eq? stage 'circle)
         (when show-debug?
-          (draw-debugging)))))
+          (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
+          (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
+          (draw-text surface 20 110 (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
+          (draw-text surface 20 138 (format "Drop: {a} {a}" (outgoing-drop) (incoming-drop)) {Color World-Red})
+          (draw-text surface 20 166 (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
+          (draw-text surface 20 194 (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})))))
   
   
   ;;;
@@ -1305,8 +1305,17 @@
   
   (method (on-toggle-debug self evt)
     (when (eq? stage 'circle)
-      (set! show-debug? (not show-debug?))
+      (set-show-debug? (not show-debug?))
       (invalidate-interface)))
+  
+  
+  (method (on-toggle-debug-media self evt)
+    (when (eq? stage 'circle)
+      (let ((video (current-video)))
+        (set-debug-media? (not debug-media?))
+        (redraw-outputs video)
+        (when debug-media?
+          (show-interface self)))))
   
   
   (method (on-toggle-admin self evt)
