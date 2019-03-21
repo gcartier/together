@@ -387,7 +387,7 @@
       (update-buttons self)
       (when auto-hide?
         (install-hider self)
-        (delay-hide-interface self))))
+        (delay-hide-interface self #t))))
   
   
   (method (install-script self)
@@ -558,31 +558,34 @@
   (method override (mouse-moved self x y)
     (unless (script-visible? self)
       (when (eq? stage 'circle)
-        (show-interface self))
+        (show-interface self #t))
       (when (developer?)
         (show/hide-debug self (fxround x) (fxround y)))))
   
   
   (method override (mouse-down self h v)
-    (mouse-action self h v))
+    (mouse-up-or-down self #f))
   
   
   (method override (mouse-up self h v)
-    (mouse-action self h v))
+    (mouse-up-or-down self #t))
   
   
   (method override (mouse-action self h v)
-    (unless (script-visible? self)
-      (when (eq? stage 'circle)
-        (show-interface self))))
+    (mouse-up-or-down self #t))
   
   
   (method override (double-click self h v)
-    (mouse-action self h v))
+    (mouse-up-or-down self #t))
   
   
   (method override (multiple-click self h v)
-    (mouse-action self h v))
+    (mouse-up-or-down self #t))
+  
+  (method (mouse-up-or-down self hide-interface?)
+    (unless (script-visible? self)
+      (when (eq? stage 'circle)
+        (show-interface self hide-interface?))))
   
   
   (method (install-hider self)
@@ -611,7 +614,7 @@
   
   ;; we probably need a tolerance so moving
   ;; only 1 pixel doesn't show the interface
-  (method protected (show-interface self)
+  (method protected (show-interface self hide-interface?)
     (let ((window (current-window))
           (interface (current-interface)))
       @wait-later-version-as-it-needs-debugging
@@ -623,30 +626,31 @@
       (set-visible? (child root 'audio) #t)
       (set-visible? (child root 'video) #t)
       (set-visible? (child root 'layouts) #t)
-      (set-video-interface? #t)
-      (delay-hide-interface self)))
+      (set-video-interface? #t) 
+      (delay-hide-interface self hide-interface?)))
   
   
-  (method (delay-hide-interface self)
+  (method (delay-hide-interface self hide-interface?)
     (when auto-hide?
       (let ((hide-time (+ (current-seconds) 2.)))
         (empty hide-ring)
-        (insert hide-ring hide-time (lambda ()
-                                      (with-task-mutex
-                                        (lambda ()
-                                          (when (eq? stage 'circle)
-                                            (let ((window (current-window))
-                                                  (interface (current-interface)))
-                                              @wait-later-version-as-it-needs-debugging
-                                              (hide-cursor window)
-                                              (set-visible? (child root 'circle-name) #f)
-                                              (set-visible? (child root 'toggle-people) #f)
-                                              (set-visible? (child root 'toggle-chat) #f)
-                                              (set-visible? (child root 'leave) #f)
-                                              (set-visible? (child root 'audio) #f)
-                                              (set-visible? (child root 'video) #f)
-                                              (set-visible? (child root 'layouts) #f)
-                                              (set-video-interface? #f))))))))))
+        (when hide-interface?
+          (insert hide-ring hide-time (lambda ()
+                                        (with-task-mutex
+                                          (lambda ()
+                                            (when (eq? stage 'circle)
+                                              (let ((window (current-window))
+                                                    (interface (current-interface)))
+                                                @wait-later-version-as-it-needs-debugging
+                                                (hide-cursor window)
+                                                (set-visible? (child root 'circle-name) #f)
+                                                (set-visible? (child root 'toggle-people) #f)
+                                                (set-visible? (child root 'toggle-chat) #f)
+                                                (set-visible? (child root 'leave) #f)
+                                                (set-visible? (child root 'audio) #f)
+                                                (set-visible? (child root 'video) #f)
+                                                (set-visible? (child root 'layouts) #f)
+                                                (set-video-interface? #f)))))))))))
   
   
   (method (show/hide-debug self h v)
@@ -1224,7 +1228,7 @@
         (goto-layout video (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt)))
         (when (eq? video-layout 'focus)
           (goto-focused self))
-        (show-interface self)
+        (show-interface self #t)
         (update-layouts self)
         (display-message world (capitalize (symbol->string video-layout))))))
   
@@ -1255,7 +1259,7 @@
       (circle-update-camera count)
       (when (eq? video-layout 'focus)
         (goto-focused self)
-        (show-interface self))
+        (show-interface self #t))
       (circle-placements count)))
   
   
@@ -1302,7 +1306,7 @@
       (let ((world (current-world)))
         (set! auto-hide? (not auto-hide?))
         (when (not auto-hide?)
-          (show-interface self))
+          (show-interface self #t))
         (display-on/off world "Auto hide" auto-hide?))))
   
   
@@ -1318,7 +1322,7 @@
         (set-debug-media? (not debug-media?))
         (redraw-outputs video)
         (when debug-media?
-          (show-interface self)))))
+          (show-interface self #t)))))
   
   
   (method (on-toggle-admin self evt)
