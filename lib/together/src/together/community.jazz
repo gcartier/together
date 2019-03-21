@@ -1305,8 +1305,9 @@
     (when (eq? stage 'circle)
       (let ((world (current-world)))
         (set! auto-hide? (not auto-hide?))
-        (when (not auto-hide?)
-          (show-interface self #t))
+        (if auto-hide?
+            (show-interface self #t)
+          (show-interface self #f))
         (display-on/off world "Auto hide" auto-hide?))))
   
   
