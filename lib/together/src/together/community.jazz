@@ -138,7 +138,7 @@
   (slot draw-hook       initialize #f getter generate)
   (slot hide-ring       initialize #f getter generate)
   (slot hide-thread     initialize #f getter generate)
-  (slot screen-channel  initialize #f getter generate)
+  (slot screen-stream   initialize #f getter generate)
   (slot replay          initialize #f getter generate)
   
   
@@ -166,11 +166,10 @@
             (client (current-client)))
         (let ((udp-client (get-udp-client client)))
           (stop udp-client)
-          (close-mic-channel client)
-          (close-camera-channel client)
-          (close-screen-channel self)
-          (close-send-channels udp-client)
-          (close-receive-channels udp-client))
+          (close-live-stream client)
+          (close-screen-stream self)
+          (close-send-streams udp-client)
+          (close-receive-streams udp-client))
         (uninstall-hooks self)
         (uninstall-stage self)
         (uninstall-zone self)
@@ -818,8 +817,12 @@
               (require-mic-channel tier)
               (require-camera-channel tier))
             (for-each (lambda (info)
-                        (bind (sender name no origin media-kind source-kind resolution framerate bitrate codec) info
-                          (add-channel tier sender name no origin media-kind source-kind resolution framerate bitrate codec)))
+                        (bind (sender name stream-no origin source-kind channels) info
+                          (add-stream tier sender name stream-no origin source-kind)
+                          (for-each (lambda (info)
+                                      (bind (channel-no origin media-kind source-kind resolution framerate bitrate codec) info
+                                        (add-channel tier stream-no channel-no origin media-kind source-kind resolution framerate bitrate codec)))
+                                    channels)))
                       channels/exception)
             (start udp-client))
           (when auto-channel?
@@ -841,11 +844,10 @@
           (zone (current-zone)))
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
-        (close-mic-channel tier)
-        (close-camera-channel tier)
-        (close-screen-channel self)
-        (close-send-channels udp-client)
-        (close-receive-channels udp-client))
+        (close-live-stream tier)
+        (close-screen-stream self)
+        (close-send-streams udp-client)
+        (close-receive-streams udp-client))
       (leave-group tier joined-circle)
       (circle-uninstall-camera)
       (circle-restore-fov)
@@ -1033,17 +1035,18 @@
         (updating-3d-audio position sight
           (lambda ()
             (let ((udp-client (get-udp-client (current-client))))
-              (iterate-table (get-receive-channels udp-client)
-                (lambda (channel-no channel)
-                  (when (= (get-media-kind channel) udp-audio)
-                    (receive (audio video) (find-receive-channels udp-client (get-name channel))
-                      (when (and audio video)
-                        (let ((audio-output (find-output (current-audio) (get-no audio)))
-                              (video-output (find-output (current-video) (get-no video))))
-                          (when (and audio-output video-output)
-                            (when (is? video-output Circle-Video-Sink)
-                              (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
-                                (update-3d-output audio-output position))))))))))))))))
+              (iterate-table (get-receive-streams udp-client)
+                (lambda (stream-no stream)
+                  (let ((audio-channel (locate-audio-channel stream)))
+                    (when audio-channel
+                      (let ((video-channel (locate-video-channel stream)))
+                        (when video-channel
+                          (let ((audio-output (find-output (current-audio) (get-no audio-channel)))
+                                (video-output (find-output (current-video) (get-no video-channel))))
+                            (when (and audio-output video-output)
+                              (when (is? video-output Circle-Video-Sink)
+                                (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
+                                  (update-3d-output audio-output position)))))))))))))))))
   
   
   ;;;
@@ -1581,20 +1584,19 @@
   (method (on-toggle-screen-share self evt)
     (when (eq? stage 'circle)
       (let ((world (current-world)))
-        (cond ((not screen-channel)
-               (set! screen-channel (make-screen-channel "Screen"))
-               (play screen-channel)
+        (cond ((not screen-stream)
+               (set! screen-stream (stream-screen "Screen"))
+               (play screen-stream)
                (display-on/off world "Screen sharing" #t))
               (else
-               (close-send-channel (get-udp-client (current-client)) (get-no screen-channel))
-               (set! screen-channel #f)
+               (close-screen-stream self)
                (display-on/off world "Screen sharing" #f))))))
   
   
-  (method (close-screen-channel self)
-    (when screen-channel
-      (release screen-channel)
-      (set! screen-channel #f)))
+  (method (close-screen-stream self)
+    (when screen-stream
+      (close-send-stream (get-udp-client (current-client)) screen-stream)
+      (set! screen-stream #f)))
   
   
   (method (on-toggle-mode self evt)
@@ -1625,7 +1627,7 @@
   
   (method (on-remove-stream self evt)
     (when (eq? stage 'circle)
-      (remove-stream)))
+      (remove-random-stream)))
   
   
   (method (on-configure-settings self evt)
