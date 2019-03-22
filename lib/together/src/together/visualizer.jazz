@@ -85,8 +85,9 @@
   (slot call                  initialize #f  getter generate)
   (slot origins               initialize '() getter generate)
   (slot origin                initialize #f  getter generate)
-  (slot channel-names         initialize '() getter generate)
-  (slot channel-name          initialize #f  getter generate)
+  (slot streams               initialize #f  getter generate)
+  (slot stream                initialize #f  getter generate)
+  (slot stream-name           initialize #f  getter generate)
   (slot channel-audio         initialize #f  getter generate)
   (slot channel-video         initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
@@ -130,8 +131,8 @@
   
   (method protected (setup-visualizer self)
     (setup-origins self)
-    (setup-channel-names self)
-    (setup-channel-nos self)
+    (setup-streams self)
+    (setup-channels self)
     (setup-channel-rings self)
     (setup-media-kinds self)
     (setup-evolutions self)
@@ -149,47 +150,44 @@
       (let ((metadata (metadata-ref replay tier)))
         (if (= (first metadata) server-no)
             '()
-          (let ((receive-channels (fourth metadata)))
-            (sort nu<? (remove-duplicates (map fourth receive-channels)))))))
+          (let ((receive-streams (fourth metadata)))
+            (sort nu<? (remove-duplicates (map fourth receive-streams)))))))
     
     (set! origins (collect-origins))
     (set! origin (and (not-null? origins) (car origins))))
   
   
-  (method (setup-channel-names self)
-    (define (collect-channel-names target-origin)
+  (method (setup-streams self)
+    (define (collect-streams target-origin)
       (if (not target-origin)
           '()
         (let ((metadata (metadata-ref replay tier)))
           (if (= (first metadata) server-no)
               '()
-            (let ((receive-channels (fourth metadata)))
-              (sort nu<? (remove-duplicates
-                           (collect (lambda (info)
-                                      (bind (sender name no origin kind) info
-                                        (and (= origin target-origin)
-                                             name)))
-                                    receive-channels)
-                           test: equal?)))))))
+            (let ((receive-streams (fourth metadata)))
+              (sort nu<? (collect (lambda (stream)
+                                    (bind (sender name no origin source-kind channels) stream
+                                      (and (= origin target-origin)
+                                           stream)))
+                                  receive-streams)
+                key: second))))))
     
-    (set! channel-names (collect-channel-names origin))
-    (set! channel-name (and (not-null? channel-names) (car channel-names))))
+    (set! streams (collect-streams origin))
+    (set! stream (and (not-null? streams) (car streams)))
+    (set! stream-name (and stream (second stream))))
   
   
-  (method (setup-channel-nos self)
+  (method (setup-channels self)
     (let ((audio #f)
           (video #f))
-      (when channel-name
-        (let ((metadata (metadata-ref replay tier)))
-          (unless (= (first metadata) server-no)
-            (let ((receive-channels (fourth metadata)))
-              (for-each (lambda (info)
-                          (bind (sender name no origin kind) info
-                            (when (equal? name channel-name)
-                              (ecase kind
-                                ((udp-audio) (set! audio no))
-                                ((udp-video) (set! video no))))))
-                        receive-channels)))))
+      (when stream
+        (bind (sender name no origin source-kind channels) stream
+          (for-each (lambda (channel)
+                      (bind (no origin media-kind) channel
+                        (ecase media-kind
+                          ((udp-audio) (set! audio no))
+                          ((udp-video) (set! video no)))))
+                    channels)))
       (set! channel-audio audio)
       (set! channel-video video)))
   
@@ -221,22 +219,18 @@
   
   
   (method (setup-media-kinds self)
-    (define (collect-media-kinds target-origin channel-name)
+    (define (collect-media-kinds target-origin stream)
       (if (or (not target-origin)
-              (not channel-name))
+              (not stream))
           '()
-        (let ((metadata (metadata-ref replay tier)))
-          (if (= (first metadata) server-no)
-              '()
-            (let ((receive-channels (fourth metadata)))
-              (sort nu<? (collect (lambda (info)
-                                    (bind (sender name no origin kind) info
-                                      (and (= origin target-origin)
-                                           (equal? name channel-name)
-                                           kind)))
-                                  receive-channels)))))))
+        (bind (sender name no origin source-kind channels) stream
+          (sort nu<? (collect (lambda (channel)
+                                (bind (no origin media-kind) channel
+                                  (and (= origin target-origin)
+                                       media-kind)))
+                              channels)))))
     
-    (set! media-kinds (collect-media-kinds origin channel-name))
+    (set! media-kinds (collect-media-kinds origin stream))
     (set! media-kind (and (not-null? media-kinds) (car media-kinds))))
   
   
@@ -323,9 +317,9 @@
           (set! call #f)
           (set! receiver-emulator #f))
       (set! call (simulate-udp-call (get-metadatas replay)))
-      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates channel-name channel-audio channel-video))
-      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates channel-name channel-audio channel-video))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-creates video-creates channel-name channel-audio channel-video))
+      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates stream-name channel-audio channel-video))
+      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates stream-name channel-audio channel-video))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
       (set-emulator (locate self 'sender) sender-emulator)
       (set-emulator (locate self 'server) server-emulator)
       (set-emulator (locate self 'receiver) receiver-emulator)
@@ -355,11 +349,11 @@
   
   (method override (draw self surface context)
     (if (not origin)
-        (draw-text surface 5 3 "<no origin found>" visualizer-text-color)
+        (draw-text surface 5 3 "<no stream found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a}" (name-ref replay origin)) visualizer-text-color)
-      (if (not channel-name)
+      (if (not stream-name)
           (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
-        (draw-text surface 80 3 channel-name visualizer-text-color)
+        (draw-text surface 80 3 stream-name visualizer-text-color)
         (draw-text surface 155 3 (format "{a}" (udp-name media-kind)) visualizer-text-color)))
     (when selection-description
       (draw-text surface 210 3 selection-description visualizer-text-color))
@@ -394,8 +388,8 @@
   (method protected (cycle-origins self reversed?)
     (when (not-null? origins)
       (set! origin (cycle-element origins origin reversed?: reversed?))
-      (setup-channel-names self)
-      (setup-channel-nos self)
+      (setup-streams self)
+      (setup-channels self)
       (setup-channel-rings self)
       (setup-media-kinds self)
       (setup-evolutions self)
@@ -408,10 +402,11 @@
       (invalidate-view self)))
   
   
-  (method protected (cycle-channel-names self reversed?)
-    (when (not-null? channel-names)
-      (set! channel-name (cycle-element channel-names channel-name reversed?: reversed?))
-      (setup-channel-nos self)
+  (method protected (cycle-streams self reversed?)
+    (when (not-null? streams)
+      (set! stream (cycle-element streams stream reversed?: reversed?))
+      (set! stream-name (second stream))
+      (setup-channels self)
       (setup-channel-rings self)
       (setup-media-kinds self)
       (setup-evolutions self)
@@ -474,7 +469,7 @@
         (and (< v 25)
              (between? h 0 65)))
       
-      (define (in-channel-name?)
+      (define (in-stream?)
         (and (< v 25)
              (between? h 65 150)))
       
@@ -484,8 +479,8 @@
       
       (cond ((in-origin?)
              (cycle-origins panel (get-shift? evt)))
-            ((in-channel-name?)
-             (cycle-channel-names panel (get-shift? evt)))
+            ((in-stream?)
+             (cycle-streams panel (get-shift? evt)))
             ((in-media-kind?)
              (cycle-media-kinds panel (get-shift? evt)))
             (else

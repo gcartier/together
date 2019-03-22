@@ -270,13 +270,13 @@
   (let ((directory (timestamped-directory {Directory Settings "work" "simulations"} (if name (string-append "replay_" name) "replay"))))
     (define (save-client no client evolution)
       (define (metadata name)
-        (define (send-channels)
-          (table-keys (get-send-channels client)))
+        (define (send-streams)
+          (table-keys (get-send-streams client)))
         
-        (define (receive-channels)
-          (table-keys (get-receive-channels client)))
+        (define (receive-streams)
+          (table-keys (get-receive-streams client)))
         
-        (list no name (send-channels) (receive-channels)))
+        (list no name (send-streams) (receive-streams)))
       
       (let ((name (table-ref names no)))
         (let ((metadata (metadata name)))
@@ -289,13 +289,13 @@
         (define (start-time)
           base-time)
         
-        (define (server-channels)
-          (channels-metadata (get-server-channels server)))
+        (define (server-streams)
+          (streams-metadata (get-server-streams server)))
         
-        (define (send-channels)
-          (channels-metadata (get-send-channels server)))
+        (define (send-streams)
+          (streams-metadata (get-send-streams server)))
         
-        (list no name (start-time) (server-channels) (send-channels)))
+        (list no name (start-time) (server-streams) (send-streams)))
       
       (let ((name (table-ref names no)))
         (let ((metadata (metadata name)))
