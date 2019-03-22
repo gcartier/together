@@ -18,6 +18,7 @@
         (jazz.application)
         (jazz.component)
         (jazz.console)
+        (jazz.editor)
         (jazz.event)
         (jazz.exemplar)
         (jazz.figure)
@@ -1429,7 +1430,8 @@
                 (focus-world))
             (call-setup-catalogs)
             (let ((text (locate manager '(script text))))
-              (when (not edited-entity)
+              (if edited-entity
+                  (recolorize-syntax text)
                 (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
                   (when script
                     (let ((entity (register-asset-script script)))
