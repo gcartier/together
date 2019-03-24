@@ -1042,9 +1042,9 @@
             (let ((udp-client (get-udp-client (current-client))))
               (iterate-table (get-receive-streams udp-client)
                 (lambda (stream-no stream)
-                  (let ((audio-channel (locate-audio-channel stream)))
+                  (let ((audio-channel (locate-stream-audio-channel stream)))
                     (when audio-channel
-                      (let ((video-channel (locate-video-channel stream)))
+                      (let ((video-channel (locate-stream-video-channel stream)))
                         (when video-channel
                           (let ((audio-output (find-output (current-audio) (get-no audio-channel)))
                                 (video-output (find-output (current-video) (get-no video-channel))))
