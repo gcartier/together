@@ -232,8 +232,9 @@
   
   (method (call-shortcut-hook self shortcut)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
-        (shortcut-press-circle zone shortcut))))
+      (if (is? zone Community-Zone)
+          (shortcut-press-circle zone shortcut)
+        #f)))
 
   
   ;;;
