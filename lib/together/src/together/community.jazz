@@ -639,7 +639,8 @@
           (insert hide-ring hide-time (lambda ()
                                         (with-task-mutex
                                           (lambda ()
-                                            (when (eq? stage 'circle)
+                                            (when (and (eq? stage 'circle)
+                                                       auto-hide?)
                                               (let ((window (current-window))
                                                     (interface (current-interface)))
                                                 @wait-later-version-as-it-needs-debugging
