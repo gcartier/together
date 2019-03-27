@@ -92,13 +92,6 @@
         (together.zone))
 
 
-(definition guillaume?
-  (world-setting 'together.guillaume? #f))
-
-
-(definition auto-join?
-  (world-setting 'together.auto-join? #f))
-
 (definition auto-hide?
   (world-setting 'together.auto-hide? #t))
 
@@ -120,6 +113,13 @@
   (world-setting 'together.hide-chat? #t))
 
 
+(definition auto-create
+  (world-setting 'together.auto-create #f))
+
+(definition auto-join
+  (world-setting 'together.auto-join #f))
+
+
 (definition protected show-debug?
   #f)
 
@@ -130,23 +130,25 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot configuration   initialize #f getter generate)
-  (slot selected-group  initialize #f getter generate)
-  (slot selected-player initialize #f getter generate)
-  (slot joined-circle   initialize #f getter generate)
-  (slot circle-start    initialize #f getter generate)
-  (slot view-focused    initialize #f getter generate)
-  (slot draw-hook       initialize #f getter generate)
-  (slot hide-ring       initialize #f getter generate)
-  (slot hide-thread     initialize #f getter generate)
-  (slot screen-stream   initialize #f getter generate)
-  (slot replay          initialize #f getter generate)
+  (slot configuration    initialize #f getter generate)
+  (slot selected-group   initialize #f getter generate)
+  (slot selected-player  initialize #f getter generate)
+  (slot joined-circle    initialize #f getter generate)
+  (slot circle-start     initialize #f getter generate)
+  (slot view-focused     initialize #f getter generate)
+  (slot draw-hook        initialize #f getter generate)
+  (slot hide-ring        initialize #f getter generate)
+  (slot hide-thread      initialize #f getter generate)
+  (slot screen-stream    initialize #f getter generate)
+  (slot replay           initialize #f getter generate)
+  (slot first-hierarchy? initialize #t getter generate)
   
   
   (method override (zone-ready self)
     (nextmethod self)
     (when (window?)
-      (let ((world (current-world)))
+      (let ((world (current-world))
+            (client (current-client)))
         (setup-stage self)
         (setup-configuration self)
         (install-zone self)
@@ -154,11 +156,12 @@
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
         (view-people self)
-        (when guillaume?
-          (let ((circle "Circle"))
-            (create-group (current-tier) circle)
-            (when auto-join?
-              (join-circle self circle)))))))
+        (when auto-create
+          (for-each (lambda (name)
+                      (create-group client name #t))
+                    (listify auto-create)))
+        (when auto-join
+          (join-circle self auto-join)))))
   
   
   (method override (destroy self)
@@ -755,7 +758,7 @@
       (let ((frame (top-frame)))
         (if frame
             (close frame)
-          (when (and guillaume? (eq? stage 'gathering))
+          (when (and developer? (eq? stage 'gathering))
             (delay-event
               (lambda ()
                 (with-task-mutex
@@ -800,7 +803,7 @@
         (let ((text (locate view 'text)))
           (let ((name (trim-whitespace (get-string-content text))))
             (unless (empty-string? name)
-              (let ((exception (create-group tier name)))
+              (let ((exception (create-group tier name #f)))
                 (if exception
                     (display-error world exception)
                   (clear-message world)
@@ -946,9 +949,11 @@
         use: 'data
         test: equal?
         generate-event?: #t)
-      (when guillaume?
-        (when (not (get-single-selection tree))
-          (select-user-data-row tree '(group "Circle") test: equal? error?: #f)))))
+      (when (and first-hierarchy?
+                 (not (get-single-selection tree))
+                 (> (get-visible-count tree) 3))
+        (set-single-selection tree 3)
+        (set! first-hierarchy? #f))))
   
   
   ;;;
