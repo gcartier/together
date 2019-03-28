@@ -634,7 +634,7 @@
       (set-visible? (child root 'audio) #t)
       (set-visible? (child root 'video) #t)
       (set-visible? (child root 'layouts) #t)
-      (set-video-interface? #t) 
+      (set-video-interface? #t)
       (delay-hide-interface self hide-interface?)))
   
   
