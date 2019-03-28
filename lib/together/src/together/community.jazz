@@ -949,7 +949,8 @@
         use: 'data
         test: equal?
         generate-event?: #t)
-      (when (and first-hierarchy?
+      (when (and auto-create
+                 first-hierarchy?
                  (not (get-single-selection tree))
                  (> (get-visible-count tree) 3))
         (set-single-selection tree 3)
