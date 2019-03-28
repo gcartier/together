@@ -38,6 +38,7 @@
         (jazz.remote)
         (jazz.resource)
         (jazz.search)
+        (jazz.snapshot)
         (jazz.stream)
         (jazz.text)
         (jazz.time)
@@ -171,6 +172,10 @@
           (attach-process local-debugger (get-local-process) #t)
         (when #t;(and kernel-source-access? (world-setting 'world.debugger? #f))
           (attach-to-controller (get-local-register) #t)
+          ;; quicky until the local debugger is fully operational
+          ;; restore the exception debugger to a snapshot debugger
+          (when (not (controlling-terminal?))
+            (set-exception-debugger (snapshot-exception-debugger)))
           (with-system-exception-debugger
             (lambda ()
               (ready-to-controller)
@@ -677,6 +682,9 @@
   (method (start-debuggers self)
     (when (developer?)
       (when (not local-debugger)
+        ;; quicky until the local debugger is fully operational
+        (when (not (get-controller-debugger))
+          (use-debugger? #f))
         (set! local-debugger (new Together-Debugger))
         (start-debugger local-debugger)
         (register-debugger local-debugger)
