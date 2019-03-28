@@ -120,6 +120,10 @@
   (world-setting 'together.auto-join #f))
 
 
+(definition protected show-dropped?
+  (world-setting 'together.show-dropped? #f))
+
+
 (definition protected show-debug?
   #f)
 
@@ -984,11 +988,19 @@
               "N/A"
             (format "{r precision: 1}% ({a})" (* 100. (/ total (cast <fl> channels))) (if (= kind udp-audio) 'audio 'video)))))
       
+      (define (outgoing-dropped)
+        (let ((dropped (get-outgoing-dropped (get-udp-client client))))
+          (format "{a} (outgoing)" dropped)))
+      
       (define (outgoing-drop)
         (let ((drop (get-outgoing-drop (get-udp-client client))))
           (if drop
               (format "{r precision: 1}% (outgoing)" drop)
             "N/A")))
+      
+      (define (incoming-dropped)
+        (let ((dropped (get-incoming-dropped (get-udp-client client))))
+          (format "{a} (incoming)" dropped)))
       
       (define (incoming-drop)
         (let ((drop (get-incoming-drop (get-udp-client client))))
@@ -1040,7 +1052,7 @@
           (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
           (draw-text surface 20 80 (format "{a}s" (fxround (- (current-seconds) circle-start))) {Color World-Ochre})
           (draw-text surface 20 110 (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-          (draw-text surface 20 138 (format "Drop: {a} {a}" (outgoing-drop) (incoming-drop)) {Color World-Red})
+          (draw-text surface 20 138 (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
           (draw-text surface 20 166 (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
           @comment (draw-text surface 20 194 (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
           (draw-text surface 20 194 (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})))))
