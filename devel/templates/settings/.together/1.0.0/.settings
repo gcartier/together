@@ -4,14 +4,3 @@
 ;;;
 ;;;; Together Settings
 ;;;
-
-
-;;;
-;;;; World
-;;;
-
-
-;; Window
-world.fullscreen?   default ;; #t
-world.position      default ;; {Point 150 50}
-world.size          default ;; {Dimension 1150 750}
