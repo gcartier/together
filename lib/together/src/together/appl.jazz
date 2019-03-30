@@ -104,7 +104,7 @@
     (let ((fullscreen? window-fullscreen?)
           (pos (world-setting 'world.position {Point 150 50}))
           (size (world-setting 'world.size {Dimension 1100 750})))
-      (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size render?: #f visible?: #f)))
+      (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size visible?: #f)))
   
   
   (method override (initialize-settings self)
