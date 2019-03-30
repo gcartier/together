@@ -20,6 +20,7 @@
         (world)
         (world.autoload)
         (world.io)
+        (world.profile)
         (world.settings))
 
 
@@ -108,7 +109,7 @@
 
 
 (definition protected together-skybox
-  (or (world-setting 'together.skybox #f)
+  (or (world-setting 'together.skybox (get-skybox (active-graphic-profile)))
       (if (world-setting 'together.first-use? #t)
           (begin
             (set-setting options-settings 'together.first-use? #f)
