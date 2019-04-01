@@ -831,10 +831,10 @@
               (require-camera-channel tier))
             (for-each (lambda (info)
                         (bind (sender name stream-no origin source-kind video-level channels) info
-                          (add-stream tier sender name stream-no origin source-kind video-level)
+                          (stream-add tier sender name stream-no origin source-kind video-level)
                           (for-each (lambda (info)
                                       (bind (channel-no origin media-kind source-kind level resolution framerate bitrate codec) info
-                                        (add-channel tier stream-no channel-no origin media-kind source-kind level resolution framerate bitrate codec)))
+                                        (channel-add tier stream-no channel-no origin media-kind source-kind level resolution framerate bitrate codec)))
                                     channels)))
                       channels/exception)
             (start udp-client))
