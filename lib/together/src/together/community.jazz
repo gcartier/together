@@ -597,27 +597,29 @@
   
   
   (method (install-hider self)
-    (let ((thread (new-thread
-                    (lambda ()
-                      (declare (proper-tail-calls))
-                      (let (loop)
-                        (let ((proc (wait hide-ring)))
-                          (when proc
-                            (delay-event
-                              (lambda ()
-                                (proc)))
-                            (loop)))))
-                    'hider)))
-      (set! hide-ring (new Time-Ring 1))
-      (set! hide-thread thread)
-      (thread-start! thread)))
+    (unless hide-thread
+      (let ((thread (new-thread
+                      (lambda ()
+                        (declare (proper-tail-calls))
+                        (let (loop)
+                          (let ((proc (wait hide-ring)))
+                            (when proc
+                              (delay-event
+                                (lambda ()
+                                  (proc)))
+                              (loop)))))
+                      'hider)))
+        (set! hide-ring (new Time-Ring 1))
+        (set! hide-thread thread)
+        (thread-start! thread))))
   
   
   (method (uninstall-hider self)
-    (terminate hide-ring)
-    (thread-join! hide-thread)
-    (set! hide-ring #f)
-    (set! hide-thread #f))
+    (when hide-thread
+      (terminate hide-ring)
+      (thread-join! hide-thread)
+      (set! hide-ring #f)
+      (set! hide-thread #f)))
   
   
   ;; we probably need a tolerance so moving
@@ -1340,7 +1342,9 @@
       (let ((world (current-world)))
         (set! auto-hide? (not auto-hide?))
         (if auto-hide?
-            (show-interface self #t)
+            (begin
+              (install-hider self)
+              (show-interface self #t))
           (show-interface self #f))
         (display-on/off world "Auto hide" auto-hide?))))
   
