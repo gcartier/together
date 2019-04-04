@@ -120,7 +120,7 @@
               (output (test-output) @w (visualizer-output audio))
               (max (or max 500)))
           (let (loop (count 0))
-            (receive (buffer timestamp duration) (read-frame port)
+            (receive (buffer timestamp duration) (read-frame-old port)
               (when (and buffer (< count max))
                 (if (audio-buffer-header? buffer)
                     (receive-audio audio -1 output buffer timestamp duration)
@@ -218,13 +218,13 @@
                                     (let ((file (new-file {Directory Settings} (list "streams" (add-extension location (audio-profile-extension))))))
                                       (call-with-input-file (path-settings file)
                                         (lambda (port)
-                                          (set! audio-header (read-audio-header audio-codec port))
+                                          (set! audio-header (read-audio-header-old audio-codec port))
                                           (when audio-header
                                             @convert-channels
                                             (send-media origin-tier -1 udp-audio audio-header #t -1 GST_CLOCK_TIME_NONE))
                                           (let (loop (count 0))
                                             (let ((time (current-seconds)))
-                                              (receive (buffer timestamp duration) (read-frame port)
+                                              (receive (buffer timestamp duration) (read-frame-old port)
                                                 (when buffer
                                                   (let ((nanostamp (timestamp->flonum timestamp)))
                                                     (when (or (not base-nanostamp) (not end) (< (- nanostamp base-nanostamp) end))
