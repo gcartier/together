@@ -91,6 +91,10 @@
     together-version)
   
   
+  (method override (process-email self)
+    "barbarasamson@gmail.com")
+  
+  
   (method override (process-release self)
     together-release)
   
