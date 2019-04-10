@@ -101,9 +101,9 @@
 (definition auto-video?
   (world-setting 'together.auto-video? #t))
 
-(definition auto-channel?
+(definition auto-live?
   (if (developer?)
-      (world-setting 'together.auto-channel? #t)
+      (world-setting 'together.auto-live? #t)
     #t))
 
 (definition hide-people?
@@ -722,7 +722,7 @@
   (method (on-toggle-audio self evt)
     (let ((client (current-client)))
       (when (eq? stage 'circle)
-        (require-mic-channel client)
+        (require-live-stream client)
         (toggle-mic client)
         (update-audio self))))
   
@@ -738,13 +738,10 @@
   (method (on-toggle-video self evt)
     (let ((client (current-client)))
       (when (eq? stage 'circle)
-        (let ((camera (get-camera-channel client)))
-          (when (not camera)
-            (require-camera-channel client))
-          (toggle-camera client)
-          (update-video self)
-          (when (not camera)
-            (update-layouts (current-video)))))))
+        (require-live-stream client)
+        (toggle-camera client)
+        (update-video self)
+        (update-layouts (current-video)))))
   
   
   (method (update-video self)
@@ -826,9 +823,8 @@
         (if (string? channels/exception)
             (display-error world channels/exception)
           (let ((udp-client (get-udp-client tier)))
-            (when auto-channel?
-              (require-mic-channel tier)
-              (require-camera-channel tier))
+            (when auto-live?
+              (require-live-stream tier))
             (for-each (lambda (info)
                         (bind (sender name stream-no origin source-kind video-level channels) info
                           (stream-add tier sender name stream-no origin source-kind video-level)
@@ -838,7 +834,7 @@
                                     channels)))
                       channels/exception)
             (start udp-client))
-          (when auto-channel?
+          (when auto-live?
             (when auto-audio?
               (play-mic tier))
             (when auto-video?
