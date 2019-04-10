@@ -143,7 +143,6 @@
   (slot draw-hook        initialize #f getter generate)
   (slot hide-ring        initialize #f getter generate)
   (slot hide-thread      initialize #f getter generate)
-  (slot screen-stream    initialize #f getter generate)
   (slot replay           initialize #f getter generate)
   (slot first-hierarchy? initialize #t getter generate)
   
@@ -175,7 +174,6 @@
         (let ((udp-client (get-udp-client client)))
           (stop udp-client)
           (close-live-stream client)
-          (close-screen-stream self)
           (close-send-streams udp-client)
           (close-receive-streams udp-client))
         (uninstall-hooks self)
@@ -860,7 +858,6 @@
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
         (close-live-stream tier)
-        (close-screen-stream self)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (leave-group tier joined-circle)
@@ -1626,21 +1623,25 @@
   
   
   (method (on-toggle-screen-share self evt)
-    (when (eq? stage 'circle)
-      (let ((world (current-world)))
-        (cond ((not screen-stream)
-               (set! screen-stream (stream-screen "Screen"))
-               (play screen-stream)
-               (display-on/off world "Screen sharing" #t))
-              (else
-               (close-screen-stream self)
-               (display-on/off world "Screen sharing" #f))))))
+    (toggle-screen-share self))
   
   
-  (method (close-screen-stream self)
-    (when screen-stream
-      (close-send-stream (get-udp-client (current-client)) screen-stream)
-      (set! screen-stream #f)))
+  (method (toggle-screen-share self)
+    (let ((world (current-world))
+          (udp (current-udp)))
+      (define (locate-screen-stream)
+        (locate-send-stream udp
+          (lambda (stream)
+            (eq? (get-source-kind stream) 'screen))))
+      
+      (when (eq? stage 'circle)
+        (let ((stream (locate-screen-stream)))
+          (cond ((not stream)
+                 (play (stream-screen "Screen"))
+                 (display-on/off world "Screen sharing" #t))
+                (else
+                 (close-send-stream udp stream)
+                 (display-on/off world "Screen sharing" #f)))))))
   
   
   (method (on-toggle-mode self evt)
