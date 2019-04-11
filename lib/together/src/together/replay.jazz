@@ -33,6 +33,7 @@
         (world)
         (world.chronology)
         (world.circle)
+        (world.client.udp)
         (world.context)
         (world.event)
         (world.evolution)
@@ -251,12 +252,16 @@
   
   
   (method override (draw self surface context)
-    (define (fill-border left right)
-      (fill-rect surface (new Rect left 20 right 700) {Color Dark-Blue alpha: .5}))
+    (define (fill-border left top right)
+      (fill-rect surface (new Rect left top right 700) {Color Dark-Blue alpha: .5}))
     
     (when in-circle?
-      (fill-border 0 64)
-      (fill-border 1216 1280)))
+      (fill-border 0 20 64)
+      (fill-border 1216 84 1280)
+      (fill-gradient surface (new Rect 1216 84 1280 20)
+       (new Gradient 'vertical
+            {Color Dark-Red alpha: .5}
+            {Color Dark-Blue alpha: .5}))))
   
   
   (method override (draw-children self surface nodes context)
@@ -265,10 +270,23 @@
       (draw-checkerboard-interface surface)))
   
   
+  (method (in-close? self evt)
+    (let ((pos (get-position evt)))
+      (in-rect? pos {Rect 1216 0 1280 64})))
+  
+  
   (method override (mouse-down self evt)
-    (when (memq? video-layout '(circle focus))
-      (circle-switch-focus output #t)
-      (change-focused-output (current-video) output)))
+    (unless (in-close? self evt)
+      (when (memq? video-layout '(circle focus))
+        (circle-switch-focus output #t)
+        (change-focused-output (current-video) output))))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((udp (current-udp)))
+      (when (in-close? self evt)
+        (let ((stream (get-stream (get-channel output))))
+          (close-send-stream udp stream)))))
   
   
   (method override (double-click self evt)
