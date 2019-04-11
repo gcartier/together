@@ -32,6 +32,7 @@
         (jazz.window)
         (world)
         (world.chronology)
+        (world.circle)
         (world.context)
         (world.event)
         (world.evolution)
@@ -46,13 +47,13 @@
         (world.time)
         (world.timeline)
         (world.udp)
+        (world.video)
         (together)
         (together.visualizer))
 
 
-(definition package (timeline-view/now-update zone from to now (update-evolution? #t) (playing? #f))
-  (let ((root (get-root zone))
-        (replay (get-replay zone)))
+(definition package (timeline-view/now-update root from to now (update-evolution? #t) (playing? #f))
+  (let ((replay (get-replay root)))
     (let ((panel (child root 'evolution)))
       (let ((names (get-names replay))
             (evolutions (get-evolutions replay))
@@ -67,17 +68,16 @@
             (visualize-time visualizer now playing?)))
         (when update-evolution?
           (when now
-            (display-evolutions zone now))
-          (highlight-replay-value zone)
+            (display-evolutions root now))
+          (highlight-replay-value root)
           (let ((dir (get-directory replay)))
             (when dir
               (set-setting options-settings 'world.last-replay (list (get-name dir) from to (or now (get-now replay))))
               (save-content options-settings))))))))
 
 
-(definition package (display-evolutions zone (now #f))
-  (let ((root (get-root zone))
-        (replay (get-replay zone)))
+(definition package (display-evolutions root (now #f))
+  (let ((replay (get-replay root)))
     (let ((evolution-panel (child root 'evolution))
           (timeline-panel (child root 'timeline))
           (now (or now (get-now replay))))
@@ -94,9 +94,8 @@
       (invalidate-view timeline-panel))))
 
 
-(definition package (highlight-replay-value zone)
-  (let ((root (get-root zone))
-        (replay (get-replay zone)))
+(definition package (highlight-replay-value root)
+  (let ((replay (get-replay root)))
     (let ((value (get-highlighted-value replay))
           (col (get-highlighted-column replay)))
       (when value
@@ -104,13 +103,12 @@
           (let ((origin (get-highlighted-origin replay))
                 (kind (get-highlighted-kind replay))
                 (tree (locate panel 'entries)))
-            (highlight-value zone tree origin kind value col)
+            (highlight-value root tree origin kind value col)
             (invalidate-view tree)))))))
 
 
-(definition package (evolution-selection-update zone selection)
-  (let ((root (get-root zone))
-        (replay (get-replay zone)))
+(definition package (evolution-selection-update root selection)
+  (let ((replay (get-replay root)))
     (when (not-null? selection)
       (let ((panel (child root 'evolution)))
         (let ((tree (locate panel 'entries)))
@@ -145,60 +143,59 @@
                   (let ((origin (and sequence? (vector-ref user-data (- col 2))))
                         (kind (and sequence? (vector-ref user-data (- col 1))))
                         (value (vector-ref user-data col)))
-                    (highlight-value zone tree origin kind value col))))))
+                    (highlight-value root tree origin kind value col))))))
           ;; invalidate
           (invalidate-view tree))))))
 
 
-(definition package (evolution-double-click zone selection)
-  (let ((root (get-root zone)))
-    (let ((timeline (child root 'timeline))
-          (panel (child root 'evolution)))
-      (let ((tree (locate panel 'entries)))
-        (let ((selection (get-selection tree)))
-          (if (null? selection)
-              (set-highlighted-values timeline '())
-            (let ((highlighted
-                    (let ((cell (car selection)))
-                      (let ((line (get-line cell))
-                            (col (get-col cell)))
-                        (cond ;; time
-                              ((= col 0)
-                               (let ((row (get-row tree line)))
-                                 (let ((user-data (get-user-data row)))
-                                   (let ((value (vector-ref user-data col)))
-                                     (list 0 value)))))
-                              ;; tier
-                              ((= col 1)
-                               (let ((row (get-row tree line)))
-                                 (let ((user-data (get-user-data row)))
-                                   (let ((value (vector-ref user-data col)))
-                                     ;; the -1 is a quick hack for server's #f
-                                     (list 1 (or value -1))))))
-                              ;; sequence
-                              ((= col 5)
-                               (let ((row (get-row tree line)))
-                                 (let ((user-data (get-user-data row)))
-                                   (let ((origin (vector-ref user-data (- col 2)))
-                                         (kind (vector-ref user-data (- col 1)))
-                                         (value (vector-ref user-data col)))
-                                     (list col value origin kind)))))
-                              ;; value
-                              (else
-                               (let ((row (get-row tree line)))
-                                 (let ((user-data (get-user-data row)))
-                                   (let ((value (vector-ref user-data col)))
-                                     (list col value))))))))))
-              (let ((highlighted-values (get-highlighted-values timeline)))
-                (if (member? highlighted highlighted-values)
-                    (set-highlighted-values timeline (remove highlighted highlighted-values test: equal?))
-                  (set-highlighted-values timeline (cons highlighted highlighted-values))))))
-          (invalidate-view timeline)
-          (invalidate-view panel))))))
+(definition package (evolution-double-click root selection)
+  (let ((timeline (child root 'timeline))
+        (panel (child root 'evolution)))
+    (let ((tree (locate panel 'entries)))
+      (let ((selection (get-selection tree)))
+        (if (null? selection)
+            (set-highlighted-values timeline '())
+          (let ((highlighted
+                  (let ((cell (car selection)))
+                    (let ((line (get-line cell))
+                          (col (get-col cell)))
+                      (cond ;; time
+                            ((= col 0)
+                             (let ((row (get-row tree line)))
+                               (let ((user-data (get-user-data row)))
+                                 (let ((value (vector-ref user-data col)))
+                                   (list 0 value)))))
+                            ;; tier
+                            ((= col 1)
+                             (let ((row (get-row tree line)))
+                               (let ((user-data (get-user-data row)))
+                                 (let ((value (vector-ref user-data col)))
+                                   ;; the -1 is a quick hack for server's #f
+                                   (list 1 (or value -1))))))
+                            ;; sequence
+                            ((= col 5)
+                             (let ((row (get-row tree line)))
+                               (let ((user-data (get-user-data row)))
+                                 (let ((origin (vector-ref user-data (- col 2)))
+                                       (kind (vector-ref user-data (- col 1)))
+                                       (value (vector-ref user-data col)))
+                                   (list col value origin kind)))))
+                            ;; value
+                            (else
+                             (let ((row (get-row tree line)))
+                               (let ((user-data (get-user-data row)))
+                                 (let ((value (vector-ref user-data col)))
+                                   (list col value))))))))))
+            (let ((highlighted-values (get-highlighted-values timeline)))
+              (if (member? highlighted highlighted-values)
+                  (set-highlighted-values timeline (remove highlighted highlighted-values test: equal?))
+                (set-highlighted-values timeline (cons highlighted highlighted-values))))))
+        (invalidate-view timeline)
+        (invalidate-view panel)))))
 
 
-(definition package (highlight-value zone tree origin kind value col)
-  (let ((replay (get-replay zone)))
+(definition package (highlight-value root tree origin kind value col)
+  (let ((replay (get-replay root)))
     (set-highlighted-origin replay origin)
     (set-highlighted-kind replay kind)
     (set-highlighted-value replay value)
@@ -237,6 +234,50 @@
 
 
 ;;;
+;;;; Replay
+;;;
+
+
+(class Together-Replay-Panel extends Layout-View implements Circleable
+  
+  
+  (property replay     initialize #f accessors generate)
+  (property output     initialize #f accessors generate)
+  (property in-circle? initialize #f accessors generate)
+  
+  
+  (method override (update self out)
+    (set! output out))
+  
+  
+  (method override (draw self surface context)
+    (define (fill-border left right)
+      (fill-rect surface (new Rect left 20 right 700) {Color Dark-Blue alpha: .5}))
+    
+    (when in-circle?
+      (fill-border 0 64)
+      (fill-border 1216 1280)))
+  
+  
+  (method override (draw-children self surface nodes context)
+    (nextmethod self surface nodes context)
+    (when checkerboard-interface?
+      (draw-checkerboard-interface surface)))
+  
+  
+  (method override (mouse-down self evt)
+    (when (memq? video-layout '(circle focus))
+      (circle-switch-focus output #t)
+      (change-focused-output (current-video) output)))
+  
+  
+  (method override (double-click self evt)
+    (when (memq? video-layout '(circle focus))
+      (circle-switch-focus output #f)
+      (change-focused-output (current-video) output))))
+
+
+;;;
 ;;;; Timeline
 ;;;
 
@@ -255,7 +296,8 @@
   
   (method override (prepare self rest)
     (nextmethod self rest)
-    (set! live? #f))
+    (set! live? #f)
+    (set! border-color {Color Dark-Gray}))
   
   
   ;; quicky
@@ -300,7 +342,7 @@
   
   (method override (play-loop self)
     (declare (proper-tail-calls))
-    (let ((visualizer (child (get-root (current-zone)) 'visualizer)))
+    (let ((visualizer (brother self 'visualizer)))
       (let (loop)
         (with-task-mutex
           (lambda ()
@@ -318,7 +360,8 @@
   (method override (mouse-up self evt)
     (when evolutions
       (let ((h (get-h evt))
-            (v (get-v evt)))
+            (v (get-v evt))
+            (root parent))
         (define (in-tier?)
           (and (< v 25)
                (between? h 0 75)))
@@ -337,7 +380,7 @@
         
         (cond ((in-tier?)
                ;; really quick code that needs cleanup
-               (let ((replay (get-replay (current-zone))))
+               (let ((replay (get-replay root)))
                  (let ((names (table-values (get-names replay))))
                    (let ((tiers (sort nu<? names)))
                      (let ((new-tier (if (get-shift? evt)
@@ -371,25 +414,19 @@
                        (invalidate-image self)
                        (invalidate-view self))))))
               ((in-range?)
-               (let ((world (current-world))
-                     (zone (current-zone)))
-                 (let ((values '(26 100 250 500)))
-                   (let ((max (if (get-shift? evt)
-                                  (previous-element values evolutions-max)
-                                (next-element values evolutions-max))))
-                     (set-evolutions-max max)
-                     (invalidate-image self)
-                     (timeline-view/now-update zone from to now)))))
+               (let ((values '(26 100 250 500)))
+                 (let ((max (if (get-shift? evt)
+                                (previous-element values evolutions-max)
+                              (next-element values evolutions-max))))
+                   (set-evolutions-max max)
+                   (invalidate-image self)
+                   (timeline-view/now-update root from to now))))
               ((in-graph?)
                (set-graph-latency? (not graph-latency?))
                (invalidate-image self)
                (invalidate-view self))
               (else
                (nextmethod self evt))))))
-  
-  
-  (method override (border-color self)
-    {Color Dark-Gray})
   
   
   (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
@@ -467,7 +504,8 @@
   
   (method override (plot-highlight self surface <Surface> from <fl> to <fl>)
     (nextmethod self surface from to)
-    (let ((width (cast <fl> (get-width self)))
+    (let ((root parent)
+          (width (cast <fl> (get-width self)))
           (now-h (and now (when->h self from to span now))))
       (cond (highlighted-markers
              (let ((first (first-position chronology))
@@ -502,7 +540,7 @@
                    (the-evolution evolution))
                (iterate-table evolutions
                  (lambda (id evolution)
-                   (let ((tier (get-tier (get-replay (current-zone))))
+                   (let ((tier (get-tier (get-replay root)))
                          (first (first-position evolution))
                          (last (last-position evolution))
                          (the-evolution? (eq? evolution the-evolution)))
@@ -589,14 +627,14 @@
   
   
   (method override (view-update self)
-    (let ((zone (current-zone)))
-      (timeline-view/now-update zone from to #f)))
+    (let ((root parent))
+      (timeline-view/now-update root from to #f)))
   
   
   (method override (now-update self)
-    (let ((zone (current-zone)))
+    (let ((root parent))
       (let ((update-evolution? (and (not visualize?) (not full-mode?))))
-        (timeline-view/now-update zone from to now update-evolution? playing?)))))
+        (timeline-view/now-update root from to now update-evolution? playing?)))))
 
 
 ;;;
@@ -642,29 +680,28 @@
   
   
   (method (on-selection-change self evt)
-    (let ((zone (current-zone)))
+    (let ((root parent))
       (let ((selection (get-selection evt)))
-        (evolution-selection-update zone selection))))
+        (evolution-selection-update root selection))))
   
   
   (method (on-double-click self evt)
-    (let ((zone (current-zone)))
+    (let ((root parent))
       (let ((selection (get-selection (get-sender evt))))
-        (evolution-double-click zone selection)))))
+        (evolution-double-click root selection)))))
 
 
 (class Together-Evolution-Header extends Tree-Header
   
   
   (method override (draw-button self surface width h v title column)
-    (let ((zone (current-zone)))
-      (let ((root (get-root zone)))
-        (let ((timeline (child root 'timeline))
-              (rank (get-rank column)))
-          (when (some? (lambda (highlight)
-                         (= (first highlight) rank))
-                       (get-highlighted-values timeline))
-            (draw-highlighted surface 0 h v title #t {Color World-Red}))))))
+    (let ((root (find-ascendant self Together-Replay-Panel)))
+      (let ((timeline (child root 'timeline))
+            (rank (get-rank column)))
+        (when (some? (lambda (highlight)
+                       (= (first highlight) rank))
+                     (get-highlighted-values timeline))
+          (draw-highlighted surface 0 h v title #t {Color World-Red})))))
   
   
   (method override (close-popups self (event: event #f) (all?: all? #f) (exclude: exclude #f) (initiator: initiator #f))
@@ -811,19 +848,19 @@
   
   
   (method (sort-column self new-direction)
-    (let ((zone (current-zone)))
+    (let ((root (find-ascendant tree Together-Replay-Panel)))
       (let ((current-direction (column-sorting tree column)))
         (unless (eq? current-direction new-direction)
           (sort-column tree column new-direction sort-rows?: #f)
-          (display-evolutions zone)
-          (highlight-replay-value zone)))))
+          (display-evolutions root)
+          (highlight-replay-value root)))))
   
   
   (method (unsort-column self)
-    (let ((zone (current-zone)))
+    (let ((root (find-ascendant tree Together-Replay-Panel)))
       (unsort-columns tree sort-rows?: #f)
-      (display-evolutions zone)
-      (highlight-replay-value zone)))
+      (display-evolutions root)
+      (highlight-replay-value root)))
   
   
   (method (on-sort-ascending self evt)
@@ -864,8 +901,8 @@
   
   
   (method protected (apply-filter self)
-    (let ((zone (current-zone)))
-      (set-highlighted-cells (get-replay zone) '())
+    (let ((root (find-ascendant tree Together-Replay-Panel)))
+      (set-highlighted-cells (get-replay root) '())
       (if enumerated?
           (let ((client (get-client (child self 'scroller))))
             (let ((all (get-children client)))
@@ -880,8 +917,8 @@
                 (unfilter-column tree column filter-rows?: #f)
               (let ((values (read-string-content content)))
                 (filter-column tree column values type: 'number filter-rows?: #f))))))
-      (display-evolutions zone)
-      (highlight-replay-value zone)))
+      (display-evolutions root)
+      (highlight-replay-value root)))
   
   
   (method (on-ok self evt)
@@ -894,41 +931,40 @@
 
 
 (definition (make-highlight-view tree column enumerated? entries)
-  (let ((zone (current-zone)))
-    (let ((root (get-root zone)))
-      (let ((timeline (child root 'timeline))
-            (view (new Highlight-View
-                    size: {Dimension 186 300}
-                    background: {Color red: .000 green: .000 blue: .000 alpha: .85}
-                    tree: tree
-                    column: column
-                    enumerated?: enumerated?)))
-        (let ((rank (get-rank column)))
-          (let ((highlighted (collect-if (lambda (highlight) (= (first highlight) rank)) (get-highlighted-values timeline))))
-            (if enumerated?
-                (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 23} size: {Dimension 176 241} vscroll?: #t style: 'tool)))
-                  (let ((content (get-content scroller)))
-                    (let ((v 0)
-                          (values (map second highlighted)))
-                      (let ((client (new View parent: content)))
-                        (for-each (lambda (entry)
-                                    (bind (value . title) entry
-                                      (let ((checked? (or (not values) (member? value values))))
-                                        (new Highlight-Label parent: client title: title position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked? value: value)))
-                                    (increase! v 20))
-                                  entries)
-                        (set-size client (new Dimension 163 (+ v 2)))
-                        (set-client scroller client)))))
-              (set-visible? (child view 'all) #f)
-              (let ((border (new Border-View parent: view name: 'border position: {Point 5 23} size: {Dimension 176 241} border-type: 'solid border-color: {Color Dark-Gray})))
-                (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
-                  (let ((content (get-content scroller)))
-                    (let ((client (new Highlight-Text parent: content background: 'none))
-                          (values (map second highlighted)))
-                      (unless (null? values)
-                        (set-string-content client (substitute-alist '((#\( . "[") (#\) . "]")) (string-append (join (map ->string values) "\n") "\n"))))
-                      (set-client scroller client))))))
-            view))))))
+  (let ((root (find-ascendant tree Together-Replay-Panel)))
+    (let ((timeline (child root 'timeline))
+          (view (new Highlight-View
+                  size: {Dimension 186 300}
+                  background: {Color red: .000 green: .000 blue: .000 alpha: .85}
+                  tree: tree
+                  column: column
+                  enumerated?: enumerated?)))
+      (let ((rank (get-rank column)))
+        (let ((highlighted (collect-if (lambda (highlight) (= (first highlight) rank)) (get-highlighted-values timeline))))
+          (if enumerated?
+              (let ((scroller (new Scroller-View parent: view name: 'scroller position: {Point 5 23} size: {Dimension 176 241} vscroll?: #t style: 'tool)))
+                (let ((content (get-content scroller)))
+                  (let ((v 0)
+                        (values (map second highlighted)))
+                    (let ((client (new View parent: content)))
+                      (for-each (lambda (entry)
+                                  (bind (value . title) entry
+                                    (let ((checked? (or (not values) (member? value values))))
+                                      (new Highlight-Label parent: client title: title position: (new Point 5 v) size: {Dimension 163 22} style: 'text background: #f color: {Color White} checked?: checked? value: value)))
+                                  (increase! v 20))
+                                entries)
+                      (set-size client (new Dimension 163 (+ v 2)))
+                      (set-client scroller client)))))
+            (set-visible? (child view 'all) #f)
+            (let ((border (new Border-View parent: view name: 'border position: {Point 5 23} size: {Dimension 176 241} border-type: 'solid border-color: {Color Dark-Gray})))
+              (let ((scroller (new Scroller-View parent: border name: 'scroller vscroll?: #t style: 'tool)))
+                (let ((content (get-content scroller)))
+                  (let ((client (new Highlight-Text parent: content background: 'none))
+                        (values (map second highlighted)))
+                    (unless (null? values)
+                      (set-string-content client (substitute-alist '((#\( . "[") (#\) . "]")) (string-append (join (map ->string values) "\n") "\n"))))
+                    (set-client scroller client))))))
+          view)))))
 
 
 (class Highlight-View extends Layout-View
@@ -975,10 +1011,10 @@
   
   
   (method (on-unsorted self evt)
-    (let ((zone (current-zone)))
+    (let ((root (find-ascendant tree Together-Replay-Panel)))
       (unsort-columns tree)
-      (display-evolutions zone)
-      (highlight-replay-value zone)
+      (display-evolutions root)
+      (highlight-replay-value root)
       (close-popups (get-window-manager) (current-window))))
   
   
@@ -1002,27 +1038,26 @@
   
   
   (method protected (apply-highlight self)
-    (let ((zone (current-zone)))
-      (let ((root (get-root zone)))
-        (let ((timeline (child root 'timeline)))
-          (set-highlighted-cells (get-replay zone) '())
-          (let ((rank (get-rank column))
-                (values
-                  (if enumerated?
-                      (let ((client (get-client (child self 'scroller))))
-                        (let ((all (get-children client)))
-                          (let ((checked (collect-if get-checked? all)))
-                            (map get-value checked))))
-                    (let ((client (get-client (child self '(border scroller)))))
-                      (let ((content (get-string-content client)))
-                        (read-string-content content))))))
-            (set-highlighted-values timeline (append (collect-if (lambda (highlight)
-                                                                   (/= (first highlight) rank))
-                                                                 (get-highlighted-values timeline))
-                                                     (map (lambda (value)
-                                                            (list rank value))
-                                                          values)))
-            (invalidate-view timeline))))))
+    (let ((root (find-ascendant tree Together-Replay-Panel)))
+      (let ((timeline (child root 'timeline)))
+        (set-highlighted-cells (get-replay root) '())
+        (let ((rank (get-rank column))
+              (values
+                (if enumerated?
+                    (let ((client (get-client (child self 'scroller))))
+                      (let ((all (get-children client)))
+                        (let ((checked (collect-if get-checked? all)))
+                          (map get-value checked))))
+                  (let ((client (get-client (child self '(border scroller)))))
+                    (let ((content (get-string-content client)))
+                      (read-string-content content))))))
+          (set-highlighted-values timeline (append (collect-if (lambda (highlight)
+                                                                 (/= (first highlight) rank))
+                                                               (get-highlighted-values timeline))
+                                                   (map (lambda (value)
+                                                          (list rank value))
+                                                        values)))
+          (invalidate-view timeline)))))
   
   
   (method (on-ok self evt)

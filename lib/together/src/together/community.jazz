@@ -76,6 +76,7 @@
         (world.settings)
         (world.skybox)
         (world.sound)
+        (world.stream)
         (world.streamer)
         (world.streaming)
         (world.task)
@@ -146,7 +147,6 @@
   (slot draw-hook        initialize #f getter generate)
   (slot hide-ring        initialize #f getter generate)
   (slot hide-thread      initialize #f getter generate)
-  (slot replay           initialize #f getter generate)
   (slot first-hierarchy? initialize #t getter generate)
   
   
@@ -258,7 +258,7 @@
         (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         ;; replay
-        (let ((root (new Together-Root name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+        (let ((root (new Together-Replay-Panel name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
           (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
           (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
@@ -1504,13 +1504,26 @@
     (case stage
       ((replay))
       ((circle)
-       (bell))
+       (view-last-replay self))
       (else
        (goto-replay/last self))))
   
   
+  (method (view-last-replay self)
+    (let ((last-replay (world-setting 'world.last-replay #f)))
+      (if last-replay
+          (bind (name from to now) last-replay
+            (let ((dir (new-directory {Directory Settings "work" "replays"} name)))
+              (if (exists? dir)
+                  (view-replay-directory self dir from to now)
+                (bell))))
+        (bell))))
+  
+  
   (method (goto-replay/last self)
-    (if (not replay)
+    (let ((interface (current-interface)))
+      (if (get-replay (child interface 'replay))
+          (goto-replay self)
         (let ((last-replay (world-setting 'world.last-replay #f)))
           (if last-replay
               (bind (name from to now) last-replay
@@ -1518,8 +1531,7 @@
                   (if (exists? dir)
                       (view-replay-directory self dir from to now)
                     (goto-replay self))))
-            (goto-replay self)))
-      (goto-replay self)))
+            (goto-replay self))))))
   
   
   (method (goto-replay self)
@@ -1529,22 +1541,20 @@
   (method (view-replay-directory self dir (from #f) (to #f) (now #f))
     (let ((interface (current-interface))
           (world (current-world)))
-      (if (eq? stage 'circle)
-          (display-error world "Cannot view replay in circle")
-        (receive (names metadatas chronologies evolutions channels audios videos) (collect-replays dir)
-          (define (determine-tier character-name)
-            (or (table-find names character-name test: equal?)
-                (car (table-keys names))))
-          
-          (define (determine-base-time)
-            (fifth (table-ref metadatas server-no)))
-          
-          (let ((character-name (get-character-name (current-client))))
-            (let ((tier (determine-tier character-name)))
-              (let ((base-time (determine-base-time))
-                    (title (get-name dir)))
-                (let ((replay (new Replay title dir tier names metadatas chronologies evolutions channels audios videos base-time)))
-                  (view-replay self replay from to now))
+      (receive (names metadatas chronologies evolutions channels audios videos) (collect-replays dir)
+        (define (determine-tier character-name)
+          (or (table-find names character-name test: equal?)
+              (car (table-keys names))))
+        
+        (define (determine-base-time)
+          (fifth (table-ref metadatas server-no)))
+        
+        (let ((character-name (get-character-name (current-client))))
+          (let ((tier (determine-tier character-name)))
+            (let ((base-time (determine-base-time))
+                  (title (get-name dir)))
+              (let ((replay (new Replay title dir tier names metadatas chronologies evolutions channels audios videos base-time)))
+                (view-replay self replay from to now)
                 (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
                 (save-content options-settings))))))))
   
@@ -1559,10 +1569,16 @@
           (base-time (get-base-time replay)))
       (let ((chronology (table-ref chronologies tier))
             (evolution (table-ref evolutions tier)))
-        (set! self.replay replay)
-        (hide-admin self)
-        (goto-replay self)
-        (let ((panel (child root 'timeline)))
+        (define (setup-replay-panel panel)
+          (set-replay panel replay))
+        
+        (define (setup-visualizer-panel panel)
+          (set-replay panel replay)
+          (set-tier panel tier)
+          (setup-visualizer panel)
+          (invalidate-view panel))
+        
+        (define (setup-timeline-panel panel)
           (set-tier panel (table-ref names tier))
           (set-title panel title)
           (set-highlighted-values panel '())
@@ -1579,18 +1595,66 @@
           (set-from replay from)
           (set-to replay to)
           (set-now replay now))
-        (let ((panel (child root 'visualizer)))
-          (set-replay panel replay)
-          (set-tier panel tier)
-          (setup-visualizer panel)
-          (invalidate-view panel))
-        (let ((panel (child root 'evolution)))
+        
+        (define (setup-evolution-panel panel)
           (set-names panel names)
           (set-channels panel channels)
           (set-evolutions panel evolutions)
           (set-base-time panel base-time))
-        (display-evolutions self now)
-        (set-?r replay))))
+        
+        (if (eq? stage 'circle)
+            (let ((world (current-world))
+                  (udp (current-udp)))
+              (define (stream-replay name)
+                (let ((channels (list (make-replay-channel))))
+                  (make-stream "Replay" 'replay #f channels)))
+              
+              (define (make-replay-channel)
+                (let ((media-kind udp-video)
+                      (source-kind 'replay)
+                      (level #f)
+                      (resolution draw-resolution)
+                      (framerate #f)
+                      (bitrate draw-bitrate)
+                      (codec #f)
+                      (caps #f))
+                  (new Channel-Creator
+                    (list media-kind source-kind level resolution framerate bitrate codec caps)
+                    (lambda (stream-no channel-no)
+                      (let ((client (current-client)))
+                        (let ((channel (register-send-channel (get-udp-client client) stream-no channel-no media-kind source-kind level resolution framerate bitrate codec caps)))
+                          (channel-output (current-video) channel root-view: (make-replay-view))
+                          (let ((src (new Video-Src))
+                                (sink (new Stream-Consumer
+                                        consumer: (client-video-consumer client channel-no local?: stream-local?))))
+                            (let ((pipeline (pipeline (list src sink))))
+                              (set-pipeline channel pipeline)))))))))
+              
+              (define (make-replay-view)
+                (let ((root (new Together-Replay-Panel position: {Point 0 0} size: {Dimension 1280 720} in-circle?: #t)))
+                  (let ((visualizer (new Together-Visualizer-Panel parent: root name: 'visualizer position: {Point 64  20} size: {Dimension 1152 150}))
+                        (timeline   (new Together-Timeline-Panel   parent: root name: 'timeline   position: {Point 64 168} size: {Dimension 1152 200}))
+                        (evolution  (new Together-Evolution-Panel  parent: root name: 'evolution  position: {Point 64 367} size: {Dimension 1152 333})))
+                    ;(set-background root {Color red: 30 green: 30 blue: 30 alpha: .7})
+                    ;(set-border-sides (child visualizer 'border) 'bottom)
+                    ;(set-border-color timeline #f)
+                    ;(set-border-sides (child evolution 'border) 'top)
+                    (setup-replay-panel root)
+                    (setup-visualizer-panel visualizer)
+                    (setup-timeline-panel timeline)
+                    (setup-evolution-panel evolution)
+                    (display-evolutions root now)
+                    root)))
+              
+              (hide-admin self)
+              (play (stream-replay "Replay")))
+        (hide-admin self)
+        (goto-replay self)
+        (setup-replay-panel root)
+        (setup-visualizer-panel (child root 'visualizer))
+        (setup-timeline-panel (child root 'timeline))
+        (setup-evolution-panel (child root 'evolution))
+        (display-evolutions root now)))))
   
   
   (method (on-request-replays self evt)
