@@ -90,6 +90,7 @@
   (slot streams               initialize #f  getter generate)
   (slot stream                initialize #f  getter generate)
   (slot stream-name           initialize #f  getter generate)
+  (slot stream-label          initialize #f  getter generate)
   (slot channel-audio         initialize #f  getter generate)
   (slot channel-video         initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
@@ -176,7 +177,8 @@
     
     (set! streams (collect-streams origin))
     (set! stream (and (not-null? streams) (car streams)))
-    (set! stream-name (and stream (second stream))))
+    (set! stream-name (and stream (second stream)))
+    (set! stream-label (and stream-name (format "{a} ({a})" stream-name (third stream)))))
   
   
   (method (setup-channels self)
@@ -372,10 +374,13 @@
     (if (not origin)
         (draw-text surface 5 3 "<no stream found>" visualizer-text-color)
       (draw-text surface 5 3 (format "{a}" (name-ref replay origin)) visualizer-text-color)
-      (if (not stream-name)
+      (if (not stream-label)
           (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
-        (draw-text surface 80 3 stream-name visualizer-text-color)
-        (draw-text surface 155 3 (format "{a}" (udp-name media-kind)) visualizer-text-color)))
+        (draw-text surface 80 3 stream-label visualizer-text-color)
+        (draw-text surface 155 3 (ecase media-kind
+                                   ((udp-audio) (format "audio ({a})" channel-audio))
+                                   ((udp-video) (format "video ({a})" channel-video)))
+          visualizer-text-color)))
     (when selection-description
       (draw-text surface 210 3 selection-description visualizer-text-color))
     (let ((title (format "{r precision: 1}x" visualizer-speed)))
