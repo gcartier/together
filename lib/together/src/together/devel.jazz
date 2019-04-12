@@ -177,6 +177,8 @@
         (world.spawn)
         (world.speed)
         (world.stream)
+        (world.streamer)
+        (world.streaming)
         (world.support)
         (world.syntax (phase syntax))
         (world.tag)
