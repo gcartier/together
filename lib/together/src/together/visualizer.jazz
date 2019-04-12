@@ -503,12 +503,19 @@
         (and (< v 25)
              (between? h 150 210)))
       
+      (define (in-metadata?)
+        (and (< v 25)
+             (let ((width (get-width self)))
+               (between? h (- width 50) width))))
+      
       (cond ((in-origin?)
              (cycle-origins panel (get-shift? evt)))
             ((in-stream?)
              (cycle-streams panel (get-shift? evt)))
             ((in-media-kind?)
              (cycle-media-kinds panel (get-shift? evt)))
+            ((in-metadata?)
+             (pp (table-values (get-metadatas (get-replay panel)))))
             (else
              (nextmethod self evt))))))
 
