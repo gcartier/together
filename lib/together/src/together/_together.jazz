@@ -24,6 +24,7 @@
 ;;;
 
 
+(hub get-in-circle?)
 (hub get-replay)
 
 

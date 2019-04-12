@@ -40,6 +40,7 @@
         (world.geometry)
         (world.interface.evolution)
         (world.interface.panel)
+        (world.interface.replay)
         (world.interface.text)
         (world.interface.timeline)
         (world.manager)
@@ -239,7 +240,7 @@
 ;;;
 
 
-(class Together-Replay-Panel extends Layout-View implements Circleable
+(class Together-Replay-Panel extends Replay-Panel implements Circleable
   
   
   (property replay     initialize #f accessors generate)
