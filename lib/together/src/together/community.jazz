@@ -1005,13 +1005,13 @@
       (define (send-rate)
         (let ((rate (get-last-send-rate (get-udp-client client))))
           (if (and rate (/= rate -1.))
-              (format "{r precision: 1}Mbps (upload)" (/ rate 131072.))
+              (format "{r precision: 1}Mbps (upload)" (bytes->mbps rate))
             "N/A")))
       
       (define (receive-rate)
         (let ((rate (get-last-receive-rate (get-udp-client client))))
           (if (and rate (/= rate -1.))
-              (format "{r precision: 1}Mbps (download)" (/ rate 131072.))
+              (format "{r precision: 1}Mbps (download)" (bytes->mbps rate))
             "N/A")))
       
       (define (present-chronology-duration)
