@@ -499,6 +499,7 @@
                                  (set! previous-latency-h h)
                                  (set! previous-latency-v v))))
                            ;; timestamp-based experiment
+                           @w
                            (let ((time (timestamp-time evolution n)))
                              (when time
                                (let ((h (when->h self from to span time)))
