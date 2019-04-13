@@ -812,10 +812,6 @@
 (class Retain-Visualizer extends Tier-Visualizer
   
   
-  (method override (ring-span self)
-    udp-retain-window)
-  
-  
   (method (draw-retain self surface emulator)
     (when emulator
       (let ((media-kind (get-media-kind panel))
@@ -855,6 +851,10 @@
   (slot emulator initialize #f accessors generate)
   
   
+  (method override (ring-span self)
+    udp-sender-retain-window)
+  
+  
   (method override (draw self surface context)
     (draw-retain self surface emulator))
   
@@ -878,6 +878,10 @@
   
   
   (slot emulator initialize #f accessors generate)
+  
+  
+  (method override (ring-span self)
+    udp-server-retain-window)
   
   
   (method override (draw self surface context)
