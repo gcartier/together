@@ -92,7 +92,7 @@
   (method override (title-update self)
     (when (window?)
       (let ((window (current-window)))
-        (set-caption window "Together"))))
+        (set-caption-base window "Together"))))
   
   
   (method override (main-menu? self)

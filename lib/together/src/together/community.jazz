@@ -1451,17 +1451,21 @@
   (method (toggle-script self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (let ((panel (child interface 'script)))
+      (let ((toplevel (current-toplevel))
+            (panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (if (get-visible? panel)
               (begin
                 (save-script manager)
                 (set-visible? panel #f)
+                (set-caption toplevel #f)
                 (focus-world))
             (call-setup-catalogs)
             (let ((text (locate manager '(script text))))
               (if edited-entity
-                  (recolorize-syntax text)
+                  (begin
+                    (recolorize-syntax text)
+                    (edited-update manager))
                 (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
                   (when script
                     (let ((entity (register-asset-script script)))

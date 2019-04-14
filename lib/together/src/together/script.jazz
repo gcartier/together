@@ -14,7 +14,10 @@
 (module together.script jazz
 
 
-(import (world)
+(import (jazz.application)
+        (jazz.io)
+        (jazz.window)
+        (world)
         (world.context)
         (world.interface.script))
 
@@ -44,7 +47,18 @@
   (method override (form-model self form)
     (case (get-name form)
       ((script) Together-Script-View)
-      (else (nextmethod self form)))))
+      (else (nextmethod self form))))
+  
+  
+  (method override (edited-update self)
+    (define (present-edited)
+      (let ((spine (get-spine (get-asset edited))))
+        (let ((name (filename-base (last spine)))
+              (path (butlast spine)))
+          (format "{a} ~{{l detail: :human}~}" name path))))
+    
+    (let ((toplevel (current-toplevel)))
+      (set-caption toplevel (present-edited)))))
 
 
 ;;;
