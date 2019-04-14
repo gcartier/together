@@ -143,12 +143,12 @@
               ((udp-id-retain-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (let ((time-base (evolutionary-udp-data5 evolution n)))
+                 (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     ;; quick hack for timeless
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-data4 evolution n))
+                                        (- time (evolutionary-udp-insert-packet-timestamp evolution n))
                                       time-base)))
-                       (time-latency (evolutionary-udp-data3 evolution n)))
+                       (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
@@ -292,12 +292,12 @@
               ((udp-id-insert-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (let ((time-base (evolutionary-udp-data5 evolution n)))
+                 (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     ;; quick hack for timeless
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-data4 evolution n))
+                                        (- time (evolutionary-udp-insert-packet-timestamp evolution n))
                                       time-base)))
-                       (time-latency (evolutionary-udp-data3 evolution n)))
+                       (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?

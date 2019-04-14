@@ -468,8 +468,8 @@
                     (finally #f)))
             
             (define (timestamp-time evolution n)
-              (let ((base (evolutionary-udp-data5 evolution n))
-                    (timestamp (evolutionary-udp-data4 evolution n)))
+              (let ((base (evolutionary-udp-insert-packet-base evolution n))
+                    (timestamp (evolutionary-udp-insert-packet-timestamp evolution n)))
                 (and (/= timestamp -1.)
                      (+ base timestamp))))
             
@@ -484,13 +484,13 @@
                            @w
                            (let ((h (when->h self from to span time)))
                              (set-color surface {Color red: .005 green: .642 blue: .995})
-                             (let ((latency (evolutionary-udp-data6 evolution n)))
+                             (let ((latency (evolutionary-udp-insert-packet-last-latency evolution n)))
                                (let ((v (fxround (- 55. (* latency latency-scale)))))
                                  (when (not previous-latency-h)
                                    (let ((n (find-previous n id)))
                                      (when n
                                        (let ((h (when->h self from to span (evolutionary-udp-time evolution n)))
-                                             (v (fxround (- 55. (* (evolutionary-udp-data6 evolution n) latency-scale)))))
+                                             (v (fxround (- 55. (* (evolutionary-udp-insert-packet-last-latency evolution n) latency-scale)))))
                                          (set! previous-latency-h h)
                                          (set! previous-latency-v v)))))
                                  (when previous-latency-h
@@ -504,7 +504,7 @@
                              (when time
                                (let ((h (when->h self from to span time)))
                                  (set-color surface {Color Orange})
-                                 (let ((latency (evolutionary-udp-data6 evolution n)))
+                                 (let ((latency (evolutionary-udp-insert-packet-last-latency evolution n)))
                                    (let ((v (fxround (- 55. (* latency latency-scale)))))
                                      (when (not previous-timestamp-latency-h)
                                        (let ((n (find-previous n id)))
@@ -512,7 +512,7 @@
                                            (let ((time (timestamp-time evolution n)))
                                              (when time
                                                (let ((h (when->h self from to span time))
-                                                     (v (fxround (- 55. (* (evolutionary-udp-data6 evolution n) latency-scale)))))
+                                                     (v (fxround (- 55. (* (evolutionary-udp-insert-packet-last-latency evolution n) latency-scale)))))
                                                  (set! previous-timestamp-latency-h h)
                                                  (set! previous-timestamp-latency-v v)))))))
                                      (when previous-timestamp-latency-h
