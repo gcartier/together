@@ -178,7 +178,7 @@
     (set! streams (collect-streams origin))
     (set! stream (and (not-null? streams) (car streams)))
     (set! stream-name (and stream (second stream)))
-    (set! stream-label (and stream-name (format "{a} ({a})" stream-name (third stream)))))
+    (set! stream-label (present-stream self stream stream-name)))
   
   
   (method (setup-channels self)
@@ -377,7 +377,7 @@
       (if (not stream-label)
           (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
         (draw-text surface 80 3 stream-label visualizer-text-color)
-        (draw-text surface 155 3 (ecase media-kind
+        (draw-text surface 255 3 (ecase media-kind
                                    ((udp-audio) (format "audio ({a})" channel-audio))
                                    ((udp-video) (format "video ({a})" channel-video)))
           visualizer-text-color)))
@@ -432,6 +432,7 @@
     (when (not-null? streams)
       (set! stream (cycle-element streams stream reversed?: reversed?))
       (set! stream-name (second stream))
+      (set! stream-label (present-stream self stream stream-name))
       (setup-channels self)
       (setup-channel-rings self)
       (setup-media-kinds self)
@@ -451,6 +452,16 @@
       (reset-media-kind (locate self 'receiver))
       (setup-timeline self)
       (invalidate-view self)))
+  
+  
+  (method (present-stream self stream stream-name)
+    (and stream-name
+         (let ((cut 20)
+               (len (string-length stream-name)))
+           (let ((effective-name (if (> len cut)
+                                     (format "{a}..." (substring stream-name 0 cut))
+                                   stream-name)))
+             (format "{a} ({a})" effective-name (third stream))))))
   
   
   (method protected (replay-simulation self)
@@ -497,11 +508,11 @@
       
       (define (in-stream?)
         (and (< v 25)
-             (between? h 65 150)))
+             (between? h 65 245)))
       
       (define (in-media-kind?)
         (and (< v 25)
-             (between? h 150 210)))
+             (between? h 245 320)))
       
       (define (in-metadata?)
         (and (< v 25)
