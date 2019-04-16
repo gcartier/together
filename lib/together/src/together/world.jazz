@@ -47,6 +47,7 @@
     (let ((zone (current-zone+)))
       (if (is? zone Community-Zone)
           (case (get-stage zone)
+            ((gathering) 220)
             ((circle) 185)
             ((replay) 185)
             (else (nextmethod self)))
