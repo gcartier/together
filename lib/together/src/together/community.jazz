@@ -214,6 +214,8 @@
         ;; common
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
+        (new Kind-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 320 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(320 (bounds -300)) layout-type: 'border)
         (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
@@ -301,6 +303,9 @@
       (define (show parent name)
         (set-visible? (child parent name) #t))
       
+      (define (hide parent name)
+        (set-visible? (child parent name) #f))
+      
       (define (visible parent name flag)
         (set-visible? (child parent name) flag))
       
@@ -331,6 +336,8 @@
       (show root 'circle-create)
       (show interface 'people-label)
       (show interface 'people)
+      (hide interface 'streams-label)
+      (hide interface 'streams)
       (show interface 'chat-label)
       (show interface 'chat)
       (proportion interface 'chat '(220 (bounds -300)))
@@ -413,6 +420,8 @@
       (show interface 'script)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
       (visible interface 'chat-label #f)
       (visible interface 'chat #f)
       (visible interface 'command-to #f)
@@ -436,6 +445,8 @@
       (show root 'back)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
       (visible interface 'chat-label #f)
       (visible interface 'chat #f)
       (visible interface 'command-to #f)
@@ -457,6 +468,8 @@
       (show root 'back)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
       (visible interface 'chat-label #f)
       (visible interface 'chat #f)
       (visible interface 'command-to #f)
@@ -483,6 +496,8 @@
     (let ((interface (current-interface)))
       (close (child interface 'people-label))
       (close (child interface 'people))
+      (close (child interface 'streams-label))
+      (close (child interface 'streams))
       (close (child interface 'chat-label))
       (close (child interface 'command-to))
       (when (developer?)
@@ -536,6 +551,8 @@
       (hide root 'join)
       (hide interface 'people-label)
       (hide interface 'people)
+      (hide interface 'streams-label)
+      (hide interface 'streams)
       (hide interface 'chat-label)
       (hide interface 'chat)
       (hide interface 'command-to)
@@ -684,7 +701,20 @@
       (when (neq? stage 'gathering)
         (toggle-visible? (child interface 'people-label))
         (toggle-visible? (child interface 'people))
+        (set-visible? (child interface 'streams-label) #f)
+        (set-visible? (child interface 'streams) #f)
         (update-buttons self))))
+  
+  
+  (method (on-toggle-streams self evt)
+    (let ((interface (current-interface)))
+      (when (eq? stage 'circle)
+        (set-visible? (child interface 'people-label) #f)
+        (set-visible? (child interface 'people) #f)
+        (toggle-visible? (child interface 'streams-label))
+        (toggle-visible? (child interface 'streams))
+        (when (get-visible? (child interface 'streams))
+          (view-streams self)))))
   
   
   (method (on-toggle-chat self evt)
@@ -1173,6 +1203,116 @@
     (when (eq? stage 'gathering)
       (when (and selected-group (not selected-player))
         (join-circle self selected-group))))
+  
+  
+  ;;;
+  ;;;; Streams
+  ;;;
+  
+  
+  (method (streams-tree self)
+    (let ((interface (current-interface)))
+      (locate (child interface 'streams) '(streams streams))))
+  
+  
+  (method (view-streams self)
+    (let ((tier (current-tier))
+          (me (current-me)))
+      (let ((tree (streams-tree self)))
+        (remove-every-row tree)
+        (with-update-locked tree
+          (lambda ()
+            (let ((audio-extensions (streaming-audio-extensions))
+                  (video-extensions (streaming-video-extensions)))
+              (define (determine-kind files)
+                (let ((count (length files)))
+                  (if (and (= count 1)
+                           (member? (get-extension (car files)) '("jpg" "jpeg") test: extension=?))
+                      'image
+                    (let ((audio? (some? (lambda (file)
+                                           (member? (get-extension file) audio-extensions test: extension=?))
+                                         files))
+                          (video? (some? (lambda (file)
+                                           (member? (get-extension file) video-extensions test: extension=?))
+                                         files)))
+                      (if (and audio? video?)
+                          'video
+                        (if audio?
+                            'audio
+                          #f))))))
+              
+              (define (iterate father dir)
+                (let ((files (collect-files dir
+                               (lambda (file)
+                                 (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
+                  (for-each (lambda (partition)
+                              (bind (base . files) partition
+                                (let ((kind (determine-kind files)))
+                                  (let ((title (format "{a} ({a})" base (or kind 'unknown)))
+                                        (color (case kind
+                                                 ;((image) {Color World-Orange})
+                                                 (else {Color White})))
+                                        (location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
+                                    (add-row tree
+                                             father: father
+                                             children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                             user-data: (and kind (cons kind location)))))))
+                            (partition files key: get-base test: filename=?)))
+                (iterate-directory dir
+                  (lambda (dir)
+                    (let ((name (get-name dir)))
+                      (unless (filename=? name "private")
+                        (let ((father (add-row tree
+                                               father: father
+                                               state: 'expanded
+                                               children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
+                          (iterate father dir)))))
+                  files?: #f
+                  directories?: #t
+                  recursive?: #f))
+              
+              (iterate #f streams-dir)))))))
+  
+  
+  (method package (streams-selection-change self)
+    (streams-action-selected self))
+  
+  
+  (method package (streams-double-click self)
+    )
+  
+  
+  (method package (streams-return-press self)
+    )
+  
+  
+  (method (streams-action-selected self)
+    (when (eq? stage 'circle)
+      (let ((tree (streams-tree self)))
+        (let ((data (get-single-selected-data tree)))
+          (when data
+            (bind (kind . location) data
+              (case kind
+                ((image)
+                 (let ((image (add-extension location "jpg"))
+                       (name (filename-name location)))
+                   (let ((stream (stream-image image name)))
+                     (delay-streaming
+                       (lambda ()
+                         (play stream))))))
+                ((audio)
+                 (let ((name (filename-name location)))
+                   (let ((stream (stream-video location name audio?: (not (streaming-audio?)))))
+                     (delay-streaming
+                       (lambda ()
+                         (play stream))))))
+                ((video)
+                 (let ((name (filename-name location))
+                       (audio-file? (exists? (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension)))))))
+                   (let ((stream (stream-video location name audio?: (and audio-file? (not (streaming-audio?)) (not stream-silent?)))))
+                     (delay-streaming
+                       (lambda ()
+                         (play stream)))))))))))))
   
   
   ;;;
@@ -1874,6 +2014,52 @@
   (method override (on-return-press self evt)
     (let ((zone (current-zone)))
       (people-return-press zone))))
+
+
+;;;
+;;;; Streams-Panel
+;;;
+
+
+(class Streams-Panel extends World-Panel
+  
+  
+  (form
+    (<install>
+      (<Border-View>    name: content location: center border-type: solid border-color: {Color Dark-Gray} style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
+        (<Streams-View> name: streams location: center)))))
+
+
+;;;
+;;;; Streams-View
+;;;
+
+
+(class Streams-View extends Scroller-View
+  
+  
+  (form
+    (<install>                                  style: document hscroll?: #t vscroll?: #t
+      (<content~>                               layout-type: fill
+        (<Tree-Header>                          style: document shown?: #f
+          (<content~>
+            (<Tree-View>          name: streams portfolio: :images filled-column: stream background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+              (<Tree-Node-Column> name: stream  title: "Stream" width: 235 toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f)))))))
+  
+  
+  (method package (on-selection-change self evt)
+    (let ((zone (current-zone)))
+      (streams-selection-change zone)))
+  
+  
+  (method package (on-double-click self evt)
+    (let ((zone (current-zone)))
+      (streams-double-click zone)))
+  
+  
+  (method override (on-return-press self evt)
+    (let ((zone (current-zone)))
+      (streams-return-press zone))))
 
 
 ;;;

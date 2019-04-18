@@ -283,6 +283,12 @@
         (on-toggle-people zone evt))))
   
   
+  (method (on-toggle-streams self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-streams zone evt))))
+  
+  
   (method (on-toggle-chat self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -1141,6 +1147,7 @@
       (<World-Action-Item> name: enter-press          title: "Enter" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: tab-press            title: "Tab" visible?: #t action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-streams       title: "Toggle streams" visible?: #t action-handler: {Event-Handler :application on-toggle-streams} shortcut: {Shortcut :alt #\S} description: "Toggle streams.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
       (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       ;; profile
