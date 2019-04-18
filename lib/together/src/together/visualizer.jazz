@@ -382,7 +382,7 @@
                                    ((udp-video) (format "video ({a})" channel-video)))
           visualizer-text-color)))
     (when selection-description
-      (draw-text surface 210 3 selection-description visualizer-text-color))
+      (draw-text surface 335 3 selection-description visualizer-text-color))
     (let ((title (format "{r precision: 1}x" visualizer-speed)))
       (let ((width (get-width self))
             (extent (get-text-extent surface title)))
@@ -793,10 +793,11 @@
               #f)))
         
         (define (describe-packet packet)
-          (format "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-                  (if (get-header? packet) 'yes 'no)
-                  (get-timestamp packet)
-                  (let ((duration (get-duration packet)))
+          (format @too-much "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                  "Sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                  @too-much (if (get-header? packet) 'yes 'no)
+                  @too-much (get-timestamp packet)
+                  @too-much (let ((duration (get-duration packet)))
                     (if (not duration)
                         (format "{a}" duration)
                       (format "{r precision: 3}" (/ duration nanosecond))))
