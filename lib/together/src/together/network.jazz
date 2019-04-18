@@ -120,7 +120,7 @@
                         (with-task-mutex
                           (lambda ()
                             (feedback "Profile done")
-                            (let ((parent {Directory Settings "work" "profiles"}))
+                            (let ((parent {Directory Documents "profiles"}))
                               (let ((dir (timestamped-directory parent "profile")))
                                 (create-directories dir)
                                 (save-binary (new-file dir "<server>.replay") server-profile)

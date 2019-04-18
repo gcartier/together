@@ -46,10 +46,10 @@
 
 
 (definition protected (determine-documents-root)
-  (cond-expand (prod  '(Home "Documents" "prod"))
-               (stage '(Home "Documents" "stage"))
-               (test  '(Home "Documents" "test"))
-               (else  '(Home "Documents" "devel"))))
+  (cond-expand (prod  '(Home "Documents" "Together" "prod"))
+               (stage '(Home "Documents" "Together" "stage"))
+               (test  '(Home "Documents" "Together" "test"))
+               (else  '(Home "Documents" "Together" "devel"))))
 
 
 ;;;

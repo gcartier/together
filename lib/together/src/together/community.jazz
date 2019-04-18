@@ -1518,7 +1518,7 @@
     (let ((last-replay (world-setting 'world.last-replay #f)))
       (if last-replay
           (bind (name from to now) last-replay
-            (let ((dir (new-directory {Directory Settings "work" "replays"} name)))
+            (let ((dir (new-directory {Directory Documents "replays"} name)))
               (if (exists? dir)
                   (view-replay-directory self dir from to now)
                 (bell))))
@@ -1532,7 +1532,7 @@
         (let ((last-replay (world-setting 'world.last-replay #f)))
           (if last-replay
               (bind (name from to now) last-replay
-                (let ((dir (new-directory {Directory Settings "work" "replays"} name)))
+                (let ((dir (new-directory {Directory Documents "replays"} name)))
                   (if (exists? dir)
                       (view-replay-directory self dir from to now)
                     (goto-replay self))))

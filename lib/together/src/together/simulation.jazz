@@ -114,7 +114,7 @@
 
 (definition public (stream-local location (max #f))
   (let ((audio (current-audio)))
-    (let ((file (new-file {Directory Settings} (list "streams" (add-extension location (audio-profile-extension))))))
+    (let ((file (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension))))))
       (let ((port (open-input-file (path-settings file))))
         (let ((time-base (new Time-Base))
               (output (test-output) @w (visualizer-output audio))
@@ -215,7 +215,7 @@
                                   (parameterize ((simulation? #t)
                                                  (simulation-update-time update-time)
                                                  (simulation-evolution origin-evolution))
-                                    (let ((file (new-file {Directory Settings} (list "streams" (add-extension location (audio-profile-extension))))))
+                                    (let ((file (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension))))))
                                       (call-with-input-file (path-settings file)
                                         (lambda (port)
                                           (set! audio-header (read-audio-header-old audio-codec port))
@@ -267,7 +267,7 @@
 
 
 (definition (save/view-simulation name base-time names chronology origin server receiver origin-tier server-tier receiver-tier origin-evolution server-evolution receiver-evolution audio-header)
-  (let ((directory (timestamped-directory {Directory Settings "work" "simulations"} (if name (string-append "replay_" name) "replay"))))
+  (let ((directory (timestamped-directory {Directory Documents "work" "simulations"} (if name (string-append "replay_" name) "replay"))))
     (define (save-client no client evolution)
       (define (metadata name)
         (define (send-streams)
