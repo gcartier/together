@@ -480,7 +480,7 @@
                         ((udp-id-retain-packet)
                          (when (and graph-latency?
                                     (eqv? (flonum->fixnum (evolutionary-udp-origin evolution n)) origin)
-                                    (eqv? (flonum->fixnum (evolutionary-udp-kind evolution n)) media-kind))
+                                    (eqv? (flonum->fixnum (evolutionary-udp-kind evolution n)) udp-video))
                            @w
                            (let ((h (when->h self from to span time)))
                              (set-color surface {Color red: .005 green: .642 blue: .995})

@@ -1410,9 +1410,8 @@
               ;; channelgazoum
               (let ((audio-channels (collect-if (lambda (channel) (and (pair? channel) (= (cdr channel) udp-audio))) channels)))
                 (when (not-null? audio-channels)
-                  (bind (origin . media-kind) (car audio-channels)
+                  (bind (origin) (car audio-channels)
                     (set-origin panel origin)
-                    (set-media-kind panel media-kind)
                     (invalidate-view panel))))))))))
   
   

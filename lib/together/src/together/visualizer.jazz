@@ -402,7 +402,6 @@
   (method (setup-timeline self)
     (let ((timeline (brother self 'timeline)))
       (set-origin timeline origin)
-      (set-media-kind timeline media-kind)
       (let ((start (evolutionary-time receiver-evolution (first-position receiver-evolution)))
             (end (evolutionary-time receiver-evolution (last-position receiver-evolution))))
         (set-visualizer-start timeline start)
