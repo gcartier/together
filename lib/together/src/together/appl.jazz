@@ -963,7 +963,6 @@
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
           @wait
           (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
-          (<World-Action-Item> name: profile-network           visible?: #t shortcut: {Shortcut :alt :shift #\P} title: "Profile network" action-handler: {Event-Handler :application on-profile-network} description: "Profile network.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :application on-add-image} description: "Add image.")
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
@@ -1144,6 +1143,8 @@
       (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
       (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
+      ;; profile
+      (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :alt #\N} alternate-shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network.")
       ;; media
       (<World-Action-Item> name: toggle-denoise       title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")

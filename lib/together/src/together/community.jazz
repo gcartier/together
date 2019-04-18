@@ -1663,7 +1663,9 @@
   
   (method (on-profile-network self evt)
     (when (eq? stage 'gathering)
-      (profile-network)))
+      (if (get-shift? evt)
+          (profile-heartbeat)
+        (profile-network))))
   
   
   (method (on-request-replays self evt)
