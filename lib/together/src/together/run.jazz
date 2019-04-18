@@ -98,9 +98,15 @@
                        world.mag-filter           nearest)))
 
 
+(definition (create-documents)
+  (create-directories {Directory Documents "assets"})
+  (create-directories {Directory Documents "streams"}))
+
+
 (definition (run-together descriptor)
   (prepare-together)
   (prepare-settings)
+  (create-documents)
   (load-unit 'world.work)
   (load-unit 'together.boot)
   (boot-process))
