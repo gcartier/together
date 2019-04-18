@@ -41,6 +41,18 @@
 
 
 ;;;
+;;;; Documents
+;;;
+
+
+(definition protected (determine-documents-root)
+  (cond-expand (prod  '(Home "Documents" "prod"))
+               (stage '(Home "Documents" "stage"))
+               (test  '(Home "Documents" "test"))
+               (else  '(Home "Documents" "devel"))))
+
+
+;;;
 ;;;; Version
 ;;;
 
@@ -108,8 +120,9 @@
   (set-tier-title "Together")
   (set-tier-kind 'client)
   (set-process-kind 'application)
-  (set-settings-root (determine-settings-root))
   (set-settings-alias 'Resources)
+  (set-settings-root (determine-settings-root))
+  (set-documents-root (determine-documents-root))
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user developer))
   (set-server-filename (determine-server-filename))
