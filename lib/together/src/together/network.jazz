@@ -1,0 +1,141 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Network Profile
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.network jazz
+
+
+(import (jazz.event)
+        (jazz.io)
+        (jazz.time)
+        (world)
+        (world.client.tier)
+        (world.client.udp)
+        (world.configure)
+        (world.context)
+        (world.event)
+        (world.interface.evolution)
+        (world.streaming)
+        (world.task)
+        (world.udp)
+        (world.video)
+        (together))
+
+
+(definition protected (profile-network)
+  (let ((client (current-client))
+        (world (current-world))
+        (zone (current-zone)))
+    (define (feedback message (duration #f))
+      (display-message world message duration: duration))
+    
+    (feedback "Profile network..." +inf.0)
+    (start-profile client)
+    (let ((udp-client (get-udp-client client))
+          (heartbeat-period (/ 1. 10.))
+          (recuperate .5))
+      (define (record-bookmark)
+        (parameterize ((simulation-evolution (get-profile-evolution udp-client)))
+          (record-event udp-id-bookmark
+                        -1.
+                        -1.
+                        -1.
+                        -1.
+                        -1.
+                        -1.
+                        -1.)))
+      
+      (let ((receive-thread
+              (new-thread
+                (lambda ()
+                  (declare (proper-tail-calls))
+                  (let ((udp-port (get-udp-port udp-client)))
+                    (let (loop)
+                      (let ((data (read udp-port)))
+                        (receive-data udp-client data))
+                      (loop))))
+                'receive))
+            (heartbeat-thread
+              (new-thread
+                (lambda ()
+                  (declare (proper-tail-calls))
+                  (let (loop)
+                    (send-profile-heartbeat udp-client)
+                    (sleep heartbeat-period)
+                    (loop)))
+                'heartbeat)))
+        (let ((send-thread
+                (new-thread
+                  (lambda ()
+                    (define (profile-upload mbps (duration: duration #f) (feedback?: feedback? #t))
+                      (when feedback?
+                        (feedback (format "Profile upload {a}Mbps..." mbps) +inf.0))
+                      (let ((size 1000)
+                            (duration (or duration 1.)))
+                        (let ((delay (/ (cast <fl> size) (mbps->bytes mbps))))
+                          (let ((iter (fxround (/ duration delay))))
+                            (record-bookmark)
+                            (let ((data (make-u8vector size)))
+                              (loop (repeat iter)
+                                    (send-profile-media udp-client data)
+                                    (sleep delay)))
+                            (record-bookmark))))
+                      (sleep recuperate))
+                    
+                    (define (profile-download mbps (feedback?: feedback? #t))
+                      (when feedback?
+                        (feedback (format "Profile download {a}Mbps..." mbps) +inf.0))
+                      (record-bookmark)
+                      (test-profile client 'download (list mbps))
+                      (sleep 1.5)
+                      (record-bookmark)
+                      (sleep recuperate))
+                    
+                    (define (profile-both mbps)
+                      (feedback (format "Profile both {a}Mbps..." mbps) +inf.0)
+                      (profile-upload mbps feedback?: #f)
+                      (test-profile client 'download (list mbps)))
+                    
+                    (define (profile-bandwiths profile)
+                      (profile  1)
+                      (profile  2)
+                      (profile  4)
+                      (profile  8)
+                      (profile 16))
+                    
+                    (declare (proper-tail-calls))
+                    (sleep recuperate)
+                    (profile-bandwiths profile-upload)
+                    (profile-bandwiths profile-download)
+                    (profile-bandwiths profile-both)
+                    (exit-thread heartbeat-thread)
+                    (thread-join! heartbeat-thread)
+                    (exit-thread receive-thread)
+                    (thread-join! receive-thread)
+                    (receive (server-profile client-profile) (retrieve-profiles client)
+                      (stop-profile client)
+                      (with-task-mutex
+                        (lambda ()
+                          (feedback "Profile done")
+                          (let ((parent {Directory Settings "work" "profiles"}))
+                            (let ((dir (timestamped-directory parent "profile")))
+                              (create-directories dir)
+                              (save-binary (new-file dir "<server>.replay") server-profile)
+                              (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
+                              (view-replay-directory dir)))))))
+                  'send)))
+          (thread-base-priority-set! heartbeat-thread udp-priority)
+          (thread-base-priority-set! send-thread udp-priority)
+          (thread-base-priority-set! receive-thread udp-priority)
+          (thread-start! heartbeat-thread)
+          (thread-start! send-thread)
+          (thread-start! receive-thread)))))))

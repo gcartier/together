@@ -405,6 +405,12 @@
         (on-goto-simulate zone evt))))
   
   
+  (method (on-profile-network self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-profile-network zone evt))))
+  
+  
   (method (on-request-replays self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -957,6 +963,7 @@
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
           @wait
           (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
+          (<World-Action-Item> name: profile-network           visible?: #t shortcut: {Shortcut :alt :shift #\P} title: "Profile network" action-handler: {Event-Handler :application on-profile-network} description: "Profile network.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :application on-add-image} description: "Add image.")
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")

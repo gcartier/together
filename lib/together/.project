@@ -59,6 +59,7 @@
         (<Jazz-File>       name: validate           source: {File :context "src" "together" "validate.jazz"})
         (<Jazz-File>       name: visualizer         source: {File :context "src" "together" "visualizer.jazz"})
         (<Jazz-File>       name: emulation          source: {File :context "src" "together" "emulation.jazz"})
-        (<Jazz-File>       name: simulator          source: {File :context "src" "together" "simulator.jazz"}))
+        (<Jazz-File>       name: simulator          source: {File :context "src" "together" "simulator.jazz"})
+        (<Jazz-File>       name: network            source: {File :context "src" "together" "network.jazz"}))
       (<Jazz-File>         name: t                  source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun               source: {File :context "src" "trun.jazz"})))))

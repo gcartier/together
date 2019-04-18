@@ -85,6 +85,7 @@
         (world.video)
         (world.window)
         (together)
+        (together.network)
         (together.replay)
         (together.script)
         (together.settings)
@@ -1659,6 +1660,11 @@
         (setup-timeline-panel (child root 'timeline))
         (setup-evolution-panel (child root 'evolution))
         (display-evolutions root now)))))
+  
+  
+  (method (on-profile-network self evt)
+    (when (eq? stage 'gathering)
+      (profile-network)))
   
   
   (method (on-request-replays self evt)
