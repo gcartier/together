@@ -970,6 +970,7 @@
           @wait
           (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
           (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
+          (<World-Action-Item> name: toggle-streams            visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle streams" action-handler: {Event-Handler :application on-toggle-streams} description: "Toggle streams.")
           (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :application on-add-image} description: "Add image.")
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
           (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
@@ -1147,7 +1148,6 @@
       (<World-Action-Item> name: enter-press          title: "Enter" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: tab-press            title: "Tab" visible?: #t action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-streams       title: "Toggle streams" visible?: #t action-handler: {Event-Handler :application on-toggle-streams} shortcut: {Shortcut :alt #\S} description: "Toggle streams.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
       (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       ;; profile
