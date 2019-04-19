@@ -1219,7 +1219,8 @@
   (method (view-streams self)
     (let ((tier (current-tier))
           (me (current-me)))
-      (let ((tree (streams-tree self)))
+      (let ((udp-client (get-udp-client tier))
+            (tree (streams-tree self)))
         (remove-every-row tree)
         (with-update-locked tree
           (lambda ()
@@ -1227,20 +1228,24 @@
                   (video-extensions (streaming-video-extensions)))
               (define (determine-kind files)
                 (let ((count (length files)))
-                  (if (and (= count 1)
-                           (member? (get-extension (car files)) '("jpg" "jpeg") test: extension=?))
-                      'image
-                    (let ((audio? (some? (lambda (file)
-                                           (member? (get-extension file) audio-extensions test: extension=?))
-                                         files))
-                          (video? (some? (lambda (file)
-                                           (member? (get-extension file) video-extensions test: extension=?))
-                                         files)))
-                      (if (and audio? video?)
-                          'video
-                        (if audio?
-                            'audio
-                          #f))))))
+                  (cond ((and (= count 1)
+                              (member? (get-extension (car files)) '("jpg" "jpeg") test: extension=?))
+                         'image)
+                        ((and (= count 1)
+                              (member? (get-extension (car files)) '("txt") test: extension=?))
+                         'text)
+                        (else
+                         (let ((audio? (some? (lambda (file)
+                                                (member? (get-extension file) audio-extensions test: extension=?))
+                                              files))
+                               (video? (some? (lambda (file)
+                                                (member? (get-extension file) video-extensions test: extension=?))
+                                              files)))
+                           (if (and audio? video?)
+                               'video
+                             (if audio?
+                                 'audio
+                               #f)))))))
               
               (define (iterate father dir private?)
                 (unless (and (eq? stream-private? 'only)
@@ -1251,13 +1256,18 @@
                     (for-each (lambda (partition)
                                 (bind (base . files) partition
                                   (let ((kind (determine-kind files)))
-                                    (let ((title (format "{a}" base))
-                                          (color {Color White})
-                                          (location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
-                                      (add-row tree
-                                               father: father
-                                               children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                               user-data: (and kind (cons kind location)))))))
+                                    (when kind
+                                      (let ((location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
+                                        ;; quick hack
+                                        (when (eq? kind 'image)
+                                          (set! location (string-append location ".jpg")))
+                                        (let ((streaming (find-streaming udp-client location)))
+                                          (let ((title (streaming-title self streaming base))
+                                                (color (streaming-color self streaming)))
+                                            (add-row tree
+                                                     father: father
+                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                                     user-data: (and kind (list kind base location))))))))))
                               (partition files key: get-base test: filename=?))))
                 (iterate-directory dir
                   (lambda (subdir)
@@ -1277,8 +1287,24 @@
               (iterate #f streams-dir #f)))))))
   
   
-  (method package (streams-selection-change self)
+  (method (streaming-title self streaming base)
+    (if streaming
+        (format "{a} (playing)" base)
+      (format "{a}" base)))
+  
+  
+  (method (streaming-color self streaming)
+    (if streaming
+        {Color World-Blue}
+      {Color White}))
+  
+  
+  (method package (streams-action self)
     (streams-action-selected self))
+  
+  
+  (method package (streams-selection-change self)
+    )
   
   
   (method package (streams-double-click self)
@@ -1290,32 +1316,61 @@
   
   
   (method (streams-action-selected self)
-    (when (eq? stage 'circle)
-      (let ((tree (streams-tree self)))
-        (let ((data (get-single-selected-data tree)))
-          (when data
-            (bind (kind . location) data
-              (case kind
-                ((image)
-                 (let ((image (add-extension location "jpg"))
-                       (name (filename-name location)))
-                   (let ((stream (stream-image image name)))
-                     (delay-streaming
-                       (lambda ()
-                         (play stream))))))
-                ((audio)
-                 (let ((name (filename-name location)))
-                   (let ((stream (stream-video location name audio?: (not (streaming-audio?)))))
-                     (delay-streaming
-                       (lambda ()
-                         (play stream))))))
-                ((video)
-                 (let ((name (filename-name location))
-                       (audio-file? (exists? (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension)))))))
-                   (let ((stream (stream-video location name audio?: (and audio-file? (not (streaming-audio?)) (not stream-silent?)))))
-                     (delay-streaming
-                       (lambda ()
-                         (play stream)))))))))))))
+    (let ((tier (current-tier)))
+      (when (eq? stage 'circle)
+        (let ((udp-client (get-udp-client tier))
+              (tree (streams-tree self)))
+          (let ((row (get-selected-row tree)))
+            (when row
+              (let ((data (get-user-data row)))
+                (when data
+                  (bind (kind base location) data
+                    (define (update-cell streaming)
+                      (let ((title (streaming-title self streaming base))
+                            (color (streaming-color self streaming))
+                            (line (row->line tree row))
+                            (col 0))
+                        (let ((cell (new Cell line col)))
+                          (let ((data (get-cell-data tree cell)))
+                            (set-title data title)
+                            (set-color data color))
+                          (invalidate-cell tree cell))))
+                    
+                    (let ((streaming (find-streaming udp-client location)))
+                      (if streaming
+                          (begin
+                            (close-send-stream udp-client streaming)
+                            (update-cell #f))
+                        (case kind
+                          ((text)
+                           (let ((name (filename-name location)))
+                             (let ((stream (stream-text location name)))
+                               (update-cell stream)
+                               (delay-streaming
+                                 (lambda ()
+                                   (play stream))))))
+                          ((image)
+                           (let ((name (filename-name location)))
+                             (let ((stream (stream-image location name)))
+                               (update-cell stream)
+                               (delay-streaming
+                                 (lambda ()
+                                   (play stream))))))
+                          ((audio)
+                           (let ((name (filename-name location)))
+                             (let ((stream (stream-video location name audio?: (not (streaming-audio?)))))
+                               (update-cell stream)
+                               (delay-streaming
+                                 (lambda ()
+                                   (play stream))))))
+                          ((video)
+                           (let ((name (filename-name location))
+                                 (audio-file? (exists? (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension)))))))
+                             (let ((stream (stream-video location name audio?: (and audio-file? (not (streaming-audio?)) (not stream-silent?)))))
+                               (update-cell stream)
+                               (delay-streaming
+                                 (lambda ()
+                                   (play stream))))))))))))))))))
   
   
   ;;;
@@ -2050,12 +2105,17 @@
   
   
   (form
-    (<install>                                  style: document hscroll?: #f vscroll?: #f
-      (<content~>                               layout-type: fill
-        (<Tree-Header>                          style: document shown?: #f
+    (<install>                                style: document hscroll?: #f vscroll?: #f
+      (<content~>                             layout-type: fill
+        (<Tree-Header>                        style: document shown?: #f
           (<content~>
-            (<Tree-View>          name: streams portfolio: :images filled-column: stream background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
-              (<Tree-Node-Column> name: stream  title: "Stream" width: 235 toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f)))))))
+            (<Streams-Tree>     name: streams portfolio: :images filled-column: stream background: #f action-handler: {Event-Handler :form on-action} selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+              (<Streams-Column> name: stream  title: "Stream" width: 235 toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f)))))))
+  
+  
+  (method package (on-action self evt)
+    (let ((zone (current-zone)))
+      (streams-action zone)))
   
   
   (method package (on-selection-change self evt)
@@ -2071,6 +2131,30 @@
   (method override (on-return-press self evt)
     (let ((zone (current-zone)))
       (streams-return-press zone))))
+
+
+;;;
+;;;; Streams-Tree
+;;;
+
+
+(class Streams-Tree extends Tree-View)
+
+
+;;;
+;;;; Streams-Column
+;;;
+
+
+(class Streams-Column extends Tree-Node-Column
+  
+  
+  (method override (draw-background self surface context row data width height)
+    )
+  
+  
+  (method override (cell-color self color context)
+    color))
 
 
 ;;;
