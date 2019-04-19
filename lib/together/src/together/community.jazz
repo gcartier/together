@@ -55,6 +55,7 @@
         (world.evolution)
         (world.geometry)
         (world.interface)
+        (world.interface.bindings)
         (world.interface.clients)
         (world.interface.command)
         (world.interface.dialogs)
@@ -1856,6 +1857,14 @@
                 (else
                  (close-send-stream udp stream)
                  (display-on/off world "Screen sharing" #f)))))))
+  
+  
+  (method (on-toggle-key-bindings self evt)
+    (let ((interface (current-interface)))
+      (let ((viewer (find-component interface 'bindings)))
+        (if viewer
+            (close viewer)
+           (open-frame (new World-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))))))
   
   
   (method (on-toggle-mode self evt)
