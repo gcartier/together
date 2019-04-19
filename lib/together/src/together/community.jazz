@@ -214,8 +214,8 @@
         ;; common
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 320 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(320 (bounds -300)) layout-type: 'border)
+        (new Kind-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border)
         (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
@@ -1241,37 +1241,39 @@
                             'audio
                           #f))))))
               
-              (define (iterate father dir)
-                (let ((files (collect-files dir
-                               (lambda (file)
-                                 (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
-                  (for-each (lambda (partition)
-                              (bind (base . files) partition
-                                (let ((kind (determine-kind files)))
-                                  (let ((title (format "{a} ({a})" base (or kind 'unknown)))
-                                        (color (case kind
-                                                 ;((image) {Color World-Orange})
-                                                 (else {Color White})))
-                                        (location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
-                                    (add-row tree
-                                             father: father
-                                             children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                             user-data: (and kind (cons kind location)))))))
-                            (partition files key: get-base test: filename=?)))
-                (iterate-directory dir
-                  (lambda (dir)
-                    (let ((name (get-name dir)))
-                      (unless (filename=? name "private")
-                        (let ((father (add-row tree
+              (define (iterate father dir private?)
+                (unless (and (eq? stream-private? 'only)
+                             (not private?))
+                  (let ((files (collect-files dir
+                                 (lambda (file)
+                                   (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
+                    (for-each (lambda (partition)
+                                (bind (base . files) partition
+                                  (let ((kind (determine-kind files)))
+                                    (let ((title (format "{a}" base))
+                                          (color {Color White})
+                                          (location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
+                                      (add-row tree
                                                father: father
-                                               state: 'expanded
-                                               children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
-                          (iterate father dir)))))
+                                               children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                               user-data: (and kind (cons kind location)))))))
+                              (partition files key: get-base test: filename=?))))
+                (iterate-directory dir
+                  (lambda (subdir)
+                    (let ((private-dir? (filename=? (get-name subdir) "private")))
+                      (when (or stream-private?
+                                (not private-dir?))
+                        (let ((name (get-name subdir)))
+                          (let ((father (add-row tree
+                                                 father: father
+                                                 state: 'expanded
+                                                 children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
+                            (iterate father subdir (or private? private-dir?)))))))
                   files?: #f
                   directories?: #t
                   recursive?: #f))
               
-              (iterate #f streams-dir)))))))
+              (iterate #f streams-dir #f)))))))
   
   
   (method package (streams-selection-change self)
@@ -2039,7 +2041,7 @@
   
   
   (form
-    (<install>                                  style: document hscroll?: #t vscroll?: #t
+    (<install>                                  style: document hscroll?: #f vscroll?: #f
       (<content~>                               layout-type: fill
         (<Tree-Header>                          style: document shown?: #f
           (<content~>
