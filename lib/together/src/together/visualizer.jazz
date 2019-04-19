@@ -930,7 +930,10 @@
   
   
   (method override (ring-span self)
-    (+ giveup-window udp-process-window))
+    (let ((media-kind (get-media-kind panel)))
+      (+ giveup-window (if (= media-kind udp-audio)
+                           udp-audio-process-window
+                         udp-video-process-window))))
   
   
   (method override (draw self surface context)
