@@ -51,14 +51,15 @@
   
   
   (method override (edited-update self)
-    (define (present-edited)
+    (define (present-edited edited)
       (let ((spine (get-spine (get-asset edited))))
         (let ((name (filename-base (last spine)))
               (path (butlast spine)))
           (format "{a} ~{{l detail: :human}~}" name path))))
     
-    (let ((toplevel (current-toplevel)))
-      (set-caption toplevel (present-edited)))))
+    (when edited
+      (let ((toplevel (current-toplevel)))
+        (set-caption toplevel (present-edited edited))))))
 
 
 ;;;
