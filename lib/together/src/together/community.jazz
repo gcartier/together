@@ -1238,11 +1238,14 @@
                                (video? (some? (lambda (file)
                                                 (member? (get-extension file) video-extensions test: extension=?))
                                               files)))
-                           (if (and audio? video?)
-                               'video
-                             (if audio?
-                                 'audio
-                               #f)))))))
+                           (cond ((and audio? video?)
+                                  'video)
+                                 (audio?
+                                  'audio)
+                                 (video?
+                                  'video)
+                                 (else
+                                  #f)))))))
               
               (define (iterate father dir private?)
                 (unless (and (eq? stream-private? 'only)
