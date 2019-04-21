@@ -78,6 +78,7 @@
         (world.changes)
         (world.chronology)
         (world.chunk)
+        (world.circle)
         (world.client.udp)
         (world.collision)
         (world.configure)

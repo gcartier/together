@@ -249,7 +249,8 @@
   
   
   (method override (update self out)
-    (set! output out))
+    (set! output out)
+    (set-output (get-player self) out))
   
   
   (method override (draw self surface context)

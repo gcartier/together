@@ -109,9 +109,6 @@
       (world-setting 'together.auto-live? #t)
     #t))
 
-(definition auto-camera?
-  (world-setting 'together.auto-camera? #t))
-
 (definition hide-people?
   (world-setting 'together.hide-people? #t))
 
@@ -1483,8 +1480,7 @@
   
   (method (layout-circle self ordered-outputs)
     (let ((count (length ordered-outputs)))
-      (when auto-camera?
-        (circle-update-camera count))
+      (circle-update-camera count)
       (when (and (eq? stage 'circle)
                  (eq? video-layout 'focus))
         (goto-focused self)
@@ -1520,7 +1516,9 @@
            #t)
           (({Shortcut Backspace})
            (circle-uninstall-camera)
-           (circle-update-camera count))
+           (circle-update-camera count)
+           (bind-camera)
+           (unbind-output))
           (else
            #f)))))
 
