@@ -926,6 +926,8 @@
           (<!>                 name: cancel                    visible?: #t))
         (<highlight-mode!>
           (<!>                 name: highlight                 visible?: #t))
+        (<world-camera!>
+          (<!>                 name: toggle-cursor-mode        visible?: #t))
         (<world-debug!>
           (<!>                 name: toggle-info               visible?: #t)
           (<!>                 name: toggle-profiler           visible?: #t)
