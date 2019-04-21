@@ -1483,7 +1483,8 @@
   
   (method (layout-circle self ordered-outputs)
     (let ((count (length ordered-outputs)))
-      (circle-update-camera count)
+      (when bound-camera?
+        (circle-update-camera count))
       (when (and (eq? stage 'circle)
                  (eq? video-layout 'focus))
         (goto-focused self)
