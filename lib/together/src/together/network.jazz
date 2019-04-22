@@ -35,6 +35,24 @@
         (together))
 
 
+(definition protected heartbeat-upload
+  0)
+
+(definition protected heartbeat-download
+  0)
+
+(definition protected heartbeat-values
+  '(0 100 200 500 1000 2000 5000 10000 20000))
+
+(definition protected (cycle-heartbeat-upload (reversed?: reversed? #f))
+  (set! heartbeat-upload (or (cycle-element heartbeat-values heartbeat-upload cycle?: #f reversed?: reversed?) heartbeat-upload))
+  heartbeat-upload)
+
+(definition protected (cycle-heartbeat-download (reversed?: reversed? #f))
+  (set! heartbeat-download (or (cycle-element heartbeat-values heartbeat-download cycle?: #f reversed?: reversed?) heartbeat-download))
+  heartbeat-download)
+
+
 (definition protected running-profile
   #f)
 
@@ -69,7 +87,7 @@
     (evolutionary-time evolution (last-position evolution))))
 
 
-(definition protected (profile-network (only-heartbeat?: only-heartbeat? #f))
+(definition protected (profile-network (heartbeat?: heartbeat? #f))
   (let ((interface (current-interface))
         (client (current-client))
         (world (current-world))
@@ -127,7 +145,8 @@
                     (loop (+ n 1))))
                 'redraw)))
         (let ((send-thread
-                (and (not only-heartbeat?)
+                (and (or (not heartbeat?)
+                         (> heartbeat-upload 0))
                      (new-thread
                        (lambda ()
                          (let ((start 0.))
@@ -167,11 +186,17 @@
                              (profile 16))
                            
                            (declare (proper-tail-calls))
-                           (wait (+ start recuperate))
-                           (increase! start recuperate)
-                           (profile-bandwiths profile-upload)
-                           (profile-bandwiths profile-download)
-                           (profile-bandwiths profile-both)
+                           (cond (heartbeat?
+                                  (when (> heartbeat-download 0)
+                                    (test-profile client 'download (list heartbeat-download)))
+                                  (when (> heartbeat-upload 0)
+                                    (profile-upload heartbeat-upload feedback?: #f)))
+                                 (else
+                                  (wait (+ start recuperate))
+                                  (increase! start recuperate)
+                                  (profile-bandwiths profile-upload)
+                                  (profile-bandwiths profile-download)
+                                  (profile-bandwiths profile-both)))
                            (exit-thread heartbeat-thread)
                            (thread-join! heartbeat-thread)
                            (exit-thread redraw-thread)
@@ -201,7 +226,7 @@
 
 
 (definition protected (profile-heartbeat)
-  (profile-network only-heartbeat?: #t))
+  (profile-network heartbeat?: #t))
 
 
 (definition protected (save-profile server-profile client-profile)
