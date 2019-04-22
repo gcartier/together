@@ -35,6 +35,29 @@
         (together))
 
 
+(definition protected running-profile
+  #f)
+
+
+(class Network-Profile extends Object
+  
+  
+  (slot panel            getter generate)
+  (slot receive-thread   getter generate)
+  (slot heartbeat-thread getter generate)
+  (slot redraw-thread    getter generate)
+  (slot send-thread      getter generate)
+  
+  
+  (method override (initialize self panel receive-thread heartbeat-thread redraw-thread send-thread)
+    (nextmethod self)
+    (set! self.panel panel)
+    (set! self.receive-thread receive-thread)
+    (set! self.heartbeat-thread heartbeat-thread)
+    (set! self.redraw-thread redraw-thread)
+    (set! self.send-thread send-thread)))
+
+
 (class Network-Timeline extends Timeline-Panel
   
   
@@ -46,7 +69,7 @@
     (evolutionary-time evolution (last-position evolution))))
 
 
-(definition protected (profile-network)
+(definition protected (profile-network (only-heartbeat?: only-heartbeat? #f))
   (let ((interface (current-interface))
         (client (current-client))
         (world (current-world))
@@ -66,6 +89,7 @@
         (sleep (- (+ base target) (current-seconds))))
       
       (set-replay? panel #t)
+      (set-show-knees? panel #t)
       (set-border-color panel {Color Dark-Gray})
       (set-chronology panel (get-profile-chronology udp-client))
       (set-evolution panel (get-profile-evolution udp-client))
@@ -103,78 +127,124 @@
                     (loop (+ n 1))))
                 'redraw)))
         (let ((send-thread
-                (new-thread
-                  (lambda ()
-                    (let ((start 0.))
-                      (define (profile-upload mbps (duration: duration #f) (feedback?: feedback? #t))
-                        (when feedback?
-                          (feedback (format "Profile upload {a}Mbps..." mbps) +inf.0))
-                        (let ((size 1000)
-                              (duration (or duration 1.)))
-                          (let ((delay (/ (cast <fl> size) (mbps->bytes mbps))))
-                            (let ((iter (fxround (/ duration delay))))
-                              (let ((elapse (/ duration (cast <fl> iter)))
-                                    (data (make-u8vector size)))
-                                (loop (for n from 0 below iter)
-                                      (wait (+ start (* (cast <fl> n) elapse)))
-                                      (send-profile-media udp-client data)))))
-                          (increase! start duration))
-                        (wait (+ start recuperate))
-                        (increase! start recuperate))
-                      
-                      (define (profile-download mbps (feedback?: feedback? #t))
-                        (when feedback?
-                          (feedback (format "Profile download {a}Mbps..." mbps) +inf.0))
-                        (test-profile client 'download (list mbps))
-                        (wait (+ start 2.))
-                        (increase! start 2.))
-                      
-                      (define (profile-both mbps)
-                        (feedback (format "Profile both {a}Mbps..." mbps) +inf.0)
-                        (test-profile client 'download (list mbps))
-                        (profile-upload mbps feedback?: #f))
-                      
-                      (define (profile-bandwiths profile)
-                        (profile  1)
-                        (profile  2)
-                        (profile  4)
-                        (profile  8)
-                        (profile 16))
-                      
-                      (declare (proper-tail-calls))
-                      (wait (+ start recuperate))
-                      (increase! start recuperate)
-                      (profile-bandwiths profile-upload)
-                      (profile-bandwiths profile-download)
-                      (profile-bandwiths profile-both)
-                      (exit-thread heartbeat-thread)
-                      (thread-join! heartbeat-thread)
-                      (exit-thread redraw-thread)
-                      (thread-join! redraw-thread)
-                      (exit-thread receive-thread)
-                      (thread-join! receive-thread)
-                      (receive (server-profile client-profile) (retrieve-profiles client)
-                        (stop-profile client)
-                        (with-task-mutex
-                          (lambda ()
-                            (feedback "Profile done")
-                            (close panel)
-                            (let ((parent {Directory Documents "profiles"}))
-                              (let ((dir (timestamped-directory parent "profile")))
-                                (create-directories dir)
-                                (save-binary (new-file dir "<server>.replay") server-profile)
-                                (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
-                                (view-replay-directory dir))))))))
-                  'send)))
+                (and (not only-heartbeat?)
+                     (new-thread
+                       (lambda ()
+                         (let ((start 0.))
+                           (define (profile-upload mbps (duration: duration #f) (feedback?: feedback? #t))
+                             (when feedback?
+                               (feedback (format "Profile upload {a}Mbps..." mbps) +inf.0))
+                             (let ((size 1000)
+                                   (duration (or duration 1.)))
+                               (let ((delay (/ (cast <fl> size) (mbps->bytes mbps))))
+                                 (let ((iter (fxround (/ duration delay))))
+                                   (let ((elapse (/ duration (cast <fl> iter)))
+                                         (data (make-u8vector size)))
+                                     (loop (for n from 0 below iter)
+                                           (wait (+ start (* (cast <fl> n) elapse)))
+                                           (send-profile-media udp-client data)))))
+                               (increase! start duration))
+                             (wait (+ start recuperate))
+                             (increase! start recuperate))
+                           
+                           (define (profile-download mbps (feedback?: feedback? #t))
+                             (when feedback?
+                               (feedback (format "Profile download {a}Mbps..." mbps) +inf.0))
+                             (test-profile client 'download (list mbps))
+                             (wait (+ start 2.))
+                             (increase! start 2.))
+                           
+                           (define (profile-both mbps)
+                             (feedback (format "Profile both {a}Mbps..." mbps) +inf.0)
+                             (test-profile client 'download (list mbps))
+                             (profile-upload mbps feedback?: #f))
+                           
+                           (define (profile-bandwiths profile)
+                             (profile  1)
+                             (profile  2)
+                             (profile  4)
+                             (profile  8)
+                             (profile 16))
+                           
+                           (declare (proper-tail-calls))
+                           (wait (+ start recuperate))
+                           (increase! start recuperate)
+                           (profile-bandwiths profile-upload)
+                           (profile-bandwiths profile-download)
+                           (profile-bandwiths profile-both)
+                           (exit-thread heartbeat-thread)
+                           (thread-join! heartbeat-thread)
+                           (exit-thread redraw-thread)
+                           (thread-join! redraw-thread)
+                           (exit-thread receive-thread)
+                           (thread-join! receive-thread)
+                           (receive (server-profile client-profile) (retrieve-profiles client)
+                             (stop-profile client)
+                             (with-task-mutex
+                               (lambda ()
+                                 (feedback "Profile done")
+                                 (close panel)
+                                 (set! running-profile #f)
+                                 (save-profile server-profile client-profile))))))
+                       'send))))
+          (thread-base-priority-set! receive-thread udp-priority)
           (thread-base-priority-set! heartbeat-thread udp-priority)
           (thread-base-priority-set! redraw-thread udp-priority)
-          (thread-base-priority-set! send-thread udp-priority)
-          (thread-base-priority-set! receive-thread udp-priority)
+          (when send-thread
+            (thread-base-priority-set! send-thread udp-priority))
+          (thread-start! receive-thread)
           (thread-start! heartbeat-thread)
           (thread-start! redraw-thread)
-          (thread-start! send-thread)
-          (thread-start! receive-thread))))))
+          (when send-thread
+            (thread-start! send-thread))
+          (set! running-profile (new Network-Profile panel receive-thread heartbeat-thread redraw-thread send-thread)))))))
 
 
 (definition protected (profile-heartbeat)
-  ))
+  (profile-network only-heartbeat?: #t))
+
+
+(definition protected (save-profile server-profile client-profile)
+  (let ((client (current-client)))
+    (let ((parent {Directory Documents "profiles"}))
+      (let ((dir (timestamped-directory parent "profile")))
+        (create-directories dir)
+        (save-binary (new-file dir "<server>.replay") server-profile)
+        (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
+        (view-replay-directory dir)))))
+
+
+(definition protected (done-profile)
+  (let ((client (current-client))
+        (world (current-world)))
+    (receive (server-profile client-profile) (retrieve-profiles client)
+      (terminate-profile)
+      (save-profile server-profile client-profile)
+      (display-message world "Profile done"))))
+
+
+(definition protected (cancel-profile)
+  (let ((world (current-world)))
+    (terminate-profile)
+    (display-message world "Profile cancelled")))
+
+
+(definition protected (terminate-profile)
+  (let ((client (current-client)))
+    (let ((panel (get-panel running-profile))
+          (receive-thread (get-receive-thread running-profile))
+          (heartbeat-thread (get-heartbeat-thread running-profile))
+          (redraw-thread (get-redraw-thread running-profile))
+          (send-thread (get-send-thread running-profile)))
+      (when send-thread
+        (exit-thread send-thread)
+        (thread-join! send-thread))
+      (exit-thread heartbeat-thread)
+      (thread-join! heartbeat-thread)
+      (exit-thread redraw-thread)
+      (thread-join! redraw-thread)
+      (exit-thread receive-thread)
+      (thread-join! receive-thread)
+      (stop-profile client)
+      (close panel)
+      (set! running-profile #f)))))

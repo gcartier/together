@@ -1890,9 +1890,16 @@
   
   (method (on-profile-network self evt)
     (when (eq? stage 'gathering)
-      (if (get-shift? evt)
-          (profile-heartbeat)
+      (if running-profile
+          (cancel-profile)
         (profile-network))))
+  
+  
+  (method (on-profile-heartbeat self evt)
+    (when (eq? stage 'gathering)
+      (if running-profile
+          (done-profile)
+        (profile-heartbeat))))
   
   
   (method (on-request-replays self evt)
