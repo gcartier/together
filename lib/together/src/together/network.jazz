@@ -15,15 +15,19 @@
 
 
 (import (jazz.event)
+        (jazz.graphic)
         (jazz.io)
         (jazz.time)
+        (jazz.view)
         (world)
         (world.client.tier)
         (world.client.udp)
         (world.configure)
         (world.context)
         (world.event)
+        (world.evolution)
         (world.interface.evolution)
+        (world.interface.timeline)
         (world.streaming)
         (world.task)
         (world.udp)
@@ -31,8 +35,20 @@
         (together))
 
 
+(class Network-Timeline extends Timeline-Panel
+  
+  
+  (method override (timeline-start self) <fl>
+    (evolutionary-time evolution (first-position evolution)))
+  
+  
+  (method override (timeline-end self) <fl>
+    (evolutionary-time evolution (last-position evolution))))
+
+
 (definition protected (profile-network)
-  (let ((client (current-client))
+  (let ((interface (current-interface))
+        (client (current-client))
         (world (current-world))
         (zone (current-zone)))
     (define (feedback message (duration #f))
@@ -42,11 +58,18 @@
     (start-profile client)
     (let ((udp-client (get-udp-client client))
           (heartbeat-period (/ 1. 10.))
+          (redraw-period (/ 1. 2.))
           (base (current-seconds))
-          (recuperate 1.))
+          (recuperate 1.)
+          (panel (new Network-Timeline parent: interface location: '(center 155) proportion: '((bounds -500) 110))))
       (define (wait target)
         (sleep (- (+ base target) (current-seconds))))
       
+      (set-replay? panel #t)
+      (set-border-color panel {Color Dark-Gray})
+      (set-chronology panel (get-profile-chronology udp-client))
+      (set-evolution panel (get-profile-evolution udp-client))
+      (layout-view interface)
       (let ((receive-thread
               (new-thread
                 (lambda ()
@@ -65,7 +88,20 @@
                     (send-profile-heartbeat udp-client)
                     (wait (* (cast <fl> n) heartbeat-period))
                     (loop (+ n 1))))
-                'heartbeat)))
+                'heartbeat))
+            (redraw-thread
+              (new-thread
+                (lambda ()
+                  (declare (proper-tail-calls))
+                  (let (loop (n 0))
+                    (delay-event
+                      (lambda ()
+                        (with-task-mutex
+                          (lambda ()
+                            (redraw panel)))))
+                    (wait (* (cast <fl> n) redraw-period))
+                    (loop (+ n 1))))
+                'redraw)))
         (let ((send-thread
                 (new-thread
                   (lambda ()
@@ -113,6 +149,8 @@
                       (profile-bandwiths profile-both)
                       (exit-thread heartbeat-thread)
                       (thread-join! heartbeat-thread)
+                      (exit-thread redraw-thread)
+                      (thread-join! redraw-thread)
                       (exit-thread receive-thread)
                       (thread-join! receive-thread)
                       (receive (server-profile client-profile) (retrieve-profiles client)
@@ -120,6 +158,7 @@
                         (with-task-mutex
                           (lambda ()
                             (feedback "Profile done")
+                            (close panel)
                             (let ((parent {Directory Documents "profiles"}))
                               (let ((dir (timestamped-directory parent "profile")))
                                 (create-directories dir)
@@ -128,9 +167,11 @@
                                 (view-replay-directory dir))))))))
                   'send)))
           (thread-base-priority-set! heartbeat-thread udp-priority)
+          (thread-base-priority-set! redraw-thread udp-priority)
           (thread-base-priority-set! send-thread udp-priority)
           (thread-base-priority-set! receive-thread udp-priority)
           (thread-start! heartbeat-thread)
+          (thread-start! redraw-thread)
           (thread-start! send-thread)
           (thread-start! receive-thread))))))
 
