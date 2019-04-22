@@ -872,6 +872,7 @@
           (remove-skybox zone)
           (set! joined-circle name)
           (set! circle-start (current-seconds))
+          (install-circle-hooks self)
           (goto-stage self 'circle)
           (update-layouts video)))))
   
@@ -879,6 +880,7 @@
   (method (leave-circle self)
     (let ((tier (current-client))
           (zone (current-zone)))
+      (uninstall-circle-hooks self)
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
         (close-live-stream tier)
@@ -1479,6 +1481,30 @@
   ;;;
   ;;;; Circle
   ;;;
+  
+  
+  (method (install-circle-hooks self)
+    (let ((tier (current-tier)))
+      (set-stream-add-hook tier (~ stream-add self))
+      (set-stream-remove-hook tier (~ stream-remove self))))
+  
+  
+  (method (uninstall-circle-hooks self)
+    (let ((tier (current-tier)))
+      (set-stream-add-hook tier #f)
+      (set-stream-remove-hook tier #f)))
+  
+  
+  (method (stream-add self stream)
+    (let ((world (current-world)))
+      (when (eq? (get-source-kind stream) 'live)
+        (display-message world (format "{a} joined" (get-sender stream))))))
+  
+  
+  (method (stream-remove self stream)
+    (let ((world (current-world)))
+      (when (eq? (get-source-kind stream) 'live)
+        (display-message world (format "{a} left" (get-sender stream))))))
   
   
   (method (layout-circle self ordered-outputs)
