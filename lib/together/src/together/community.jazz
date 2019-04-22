@@ -1519,6 +1519,18 @@
   
   
   (method package (shortcut-press-circle self shortcut)
+    (define (focus-no no)
+      (when developer?
+        (let ((video (current-video)))
+          (define (find-by-level level)
+            (find-if (lambda (output)
+                       (eqv? (get-level output) level))
+                     (get-ordered-outputs video)))
+          
+          (let ((output (find-by-level (- no 1))))
+            (when output
+              (change-focused-output video output))))))
+    
     (if (or (not (world-focused?))
             (neq? stage 'circle))
         #f
@@ -1549,6 +1561,16 @@
            (circle-update-camera count)
            (bind-camera)
            (unbind-output))
+          (({Shortcut #\1})
+            (focus-no 1))
+          (({Shortcut #\2})
+           (focus-no 2))
+          (({Shortcut #\3})
+            (focus-no 3))
+          (({Shortcut #\4})
+           (focus-no 4))
+          (({Shortcut #\5})
+           (focus-no 5))
           (else
            #f)))))
 
