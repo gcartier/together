@@ -71,6 +71,7 @@
         (world.io)
         (world.manager)
         (world.pane)
+        (world.profile)
         (world.profiling)
         (world.ring)
         (world.script.asset)
@@ -210,6 +211,7 @@
             (release (process-release (current-process)))
             (name (get-character-name configuration)))
         ;; common
+        (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
         (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
         (new Kind-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
@@ -232,11 +234,12 @@
           (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
           (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
           (initial-banner (locate (child interface 'admin) '(console text)) (format "Together server v{a}" (present version))))
+        (update-profile (child interface 'profile))
         (add-exception-view self)
         ;; gathering
         (let ((root (new Together-Root name: 'gathering parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
-          (new Name-Label name: 'name parent: root title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+          (new Name-Label name: 'name parent: root title: name location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
           (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'release parent: root title: release location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
@@ -248,7 +251,7 @@
           (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self)))
         ;; circle
         (let ((root (new Together-Root name: 'circle parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Kind-Label name: 'circle-name parent: root title: name location: '(-10 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+          (new Kind-Label name: 'circle-name parent: root title: name location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
           (new Push-Button name: 'audio parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
           (new Push-Button name: 'video parent: root location: '(195 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
           (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
@@ -332,6 +335,7 @@
       (show root 'circle-label)
       (show root 'circle-view)
       (show root 'circle-create)
+      (show interface 'profile)
       (show interface 'people-label)
       (show interface 'people)
       (hide interface 'streams-label)
@@ -382,6 +386,7 @@
       (show root 'audio)
       (show root 'video)
       (show root 'layouts)
+      (show interface 'profile)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
       (proportion interface 'chat '(220 (bounds -354)))
@@ -416,6 +421,7 @@
       (set! root (child interface 'script-root))
       (show root 'back)
       (show interface 'script)
+      (visible interface 'profile #f)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
       (visible interface 'streams-label #f)
@@ -441,6 +447,7 @@
       (show root 'timeline)
       (show root 'evolution)
       (show root 'back)
+      (visible interface 'profile #f)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
       (visible interface 'streams-label #f)
@@ -464,6 +471,7 @@
       (set! root (child interface 'simulate))
       (show root 'simulator)
       (show root 'back)
+      (visible interface 'profile #f)
       (visible interface 'people-label #f)
       (visible interface 'people #f)
       (visible interface 'streams-label #f)
@@ -492,6 +500,7 @@
   
   (method (uninstall-zone self)
     (let ((interface (current-interface)))
+      (close (child interface 'profile))
       (close (child interface 'people-label))
       (close (child interface 'people))
       (close (child interface 'streams-label))
@@ -646,6 +655,7 @@
           (interface (current-interface)))
       @wait-later-version-as-it-needs-debugging
       (show-cursor window)
+      (set-visible? (child interface 'profile) #t)
       (set-visible? (child root 'circle-name) #t)
       (set-visible? (child root 'toggle-people) #t)
       (set-visible? (child root 'toggle-chat) #t)
@@ -671,6 +681,7 @@
                                                     (interface (current-interface)))
                                                 @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
+                                                (set-visible? (child interface 'profile) #f)
                                                 (set-visible? (child root 'circle-name) #f)
                                                 (set-visible? (child root 'toggle-people) #f)
                                                 (set-visible? (child root 'toggle-chat) #f)
@@ -791,7 +802,7 @@
       (let ((frame (top-frame)))
         (if frame
             (close frame)
-          (when (and developer? (eq? stage 'gathering))
+          (when (and (developer?) (eq? stage 'gathering))
             (delay-event
               (lambda ()
                 (with-task-mutex
@@ -1520,7 +1531,7 @@
   
   (method package (shortcut-press-circle self shortcut)
     (define (focus-no no)
-      (when developer?
+      (when (developer?)
         (let ((video (current-video)))
           (define (find-by-level level)
             (find-if (lambda (output)
@@ -2091,6 +2102,45 @@
   (method override (mouse-up self evt)
     (when (developer?)
       (open-login-zone))))
+
+
+;;;
+;;;; Profile-Label
+;;;
+
+
+(class Profile-Label extends Label-View
+  
+  
+  (method override (mouse-up self evt)
+    (let ((client (current-client)))
+      (let ((profile-list (if (developer?)
+                              '(high good medium low poor recovery)
+                            '(medium low poor recovery)))
+            (reversed? (get-shift? evt)))
+        (change-base-profile client (or (cycle-element profile-list base-profile cycle?: #f reversed?: reversed?) base-profile))
+        (update-profile self)))))
+
+
+(definition protected (update-profile label)
+  (define (update-label title color)
+    (set-title label title)
+    (set-color label color))
+  
+  (cond ((developer?)
+         (case base-profile
+           ((high)     (update-label "High"     {Color Pastel-Purple}))
+           ((good)     (update-label "Good"     {Color Pastel-Blue}))
+           ((medium)   (update-label "Medium"   {Color Pastel-Green}))
+           ((low)      (update-label "Low"      {Color Pastel-Yellow}))
+           ((poor)     (update-label "Poor"     {Color Pastel-Orange}))
+           ((recovery) (update-label "Recovery" {Color Pastel-Red}))))
+        (else
+         (case base-profile
+           ((medium)   (update-label "Good"     {Color Pastel-Green}))
+           ((low)      (update-label "Medium"   {Color Pastel-Yellow}))
+           ((poor)     (update-label "Low"      {Color Pastel-Orange}))
+           ((recovery) (update-label "Poor"     {Color Pastel-Red}))))))
 
 
 ;;;
