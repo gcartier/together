@@ -652,7 +652,8 @@
   ;; only 1 pixel doesn't show the interface
   (method protected (show-interface self hide-interface?)
     (let ((window (current-window))
-          (interface (current-interface)))
+          (interface (current-interface))
+          (video (current-video)))
       @wait-later-version-as-it-needs-debugging
       (show-cursor window)
       (set-visible? (child interface 'profile) #t)
@@ -664,6 +665,7 @@
       (set-visible? (child root 'video) #t)
       (set-visible? (child root 'layouts) #t)
       (set-video-interface? #t)
+      (invalidate-outputs video)
       (delay-hide-interface self hide-interface?)))
   
   
@@ -678,7 +680,8 @@
                                             (when (and (eq? stage 'circle)
                                                        auto-hide?)
                                               (let ((window (current-window))
-                                                    (interface (current-interface)))
+                                                    (interface (current-interface))
+                                                    (video (current-video)))
                                                 @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
                                                 (set-visible? (child interface 'profile) #f)
@@ -689,7 +692,8 @@
                                                 (set-visible? (child root 'audio) #f)
                                                 (set-visible? (child root 'video) #f)
                                                 (set-visible? (child root 'layouts) #f)
-                                                (set-video-interface? #f)))))))))))
+                                                (set-video-interface? #f)
+                                                (invalidate-outputs video)))))))))))
   
   
   (method (show/hide-debug self h v)
@@ -1613,7 +1617,7 @@
     (when (eq? stage 'circle)
       (let ((video (current-video)))
         (set-debug-media? (not debug-media?))
-        (redraw-outputs video)
+        (invalidate-outputs video)
         (when debug-media?
           (show-interface self #t)))))
   
