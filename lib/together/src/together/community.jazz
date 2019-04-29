@@ -2109,15 +2109,26 @@
 ;;;
 
 
+(definition change-profile-reversed?
+  #f)
+
+
 (class Profile-Label extends Label-View
   
   
   (method override (mouse-up self evt)
     (let ((client (current-client)))
-      (let ((profile-list (if (developer?)
-                              '(high good medium low poor @RECOVERY recovery)
-                            '(medium low poor @RECOVERY recovery)))
-            (reversed? (get-shift? evt)))
+      (cond ((and change-profile-reversed? (eq? base-profile video-initial-profile))
+             (set! change-profile-reversed? #f))
+            ((and (not change-profile-reversed?) (eq? base-profile 'poor))
+             (set! change-profile-reversed? #t)))
+      (let ((profile-list (case video-initial-profile
+                            ((high) '(high good medium low poor @RECOVERY recovery))
+                            ((good) '(good medium low poor @RECOVERY recovery))
+                            ((medium) '(medium low poor @RECOVERY recovery))
+                            ((low) '(low poor @RECOVERY recovery))
+                            ((poor) '(poor @RECOVERY recovery))))
+            (reversed? (xor change-profile-reversed? (get-shift? evt))))
         (change-base-profile client (or (cycle-element profile-list base-profile cycle?: #f reversed?: reversed?) base-profile))
         (update-profile self)))))
 
