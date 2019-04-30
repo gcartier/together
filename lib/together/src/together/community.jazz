@@ -2131,9 +2131,8 @@
                             ((good) '(good medium low poor @RECOVERY recovery))
                             ((medium) '(medium low poor @RECOVERY recovery))
                             ((low) '(low poor @RECOVERY recovery))
-                            ((poor) '(poor @RECOVERY recovery))))
-            (reversed? (xor change-profile-reversed? (get-shift? evt))))
-        (change-base-profile client (or (cycle-element profile-list base-profile cycle?: #f reversed?: reversed?) base-profile))
+                            ((poor) '(poor @RECOVERY recovery)))))
+        (change-base-profile client (or (cycle-element profile-list base-profile cycle?: #f reversed?: change-profile-reversed?) base-profile))
         (update-profile self)))))
 
 
