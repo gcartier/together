@@ -83,10 +83,10 @@
 
 
   (method override (setup-pipeline self)
-    (let ((pipeline (gst-launch (tie "appsrc name=src")
-                                (and (eq? codec 'opus) "opusdec name=dec")
-                                (and (eq? codec 'vorbis) "vorbisdec name=dec")
-                                "osxaudiosink name=sink")))
+    (let ((pipeline (gst-pipeline (tie "appsrc name=src")
+                                  (and (eq? codec 'opus) "opusdec name=dec")
+                                  (and (eq? codec 'vorbis) "vorbisdec name=dec")
+                                  "osxaudiosink name=sink")))
       (gst_object_set_name pipeline "output")
       (let ((appsrc (gst_bin_get_by_name pipeline "src")))
         (case codec
