@@ -1610,6 +1610,7 @@
   (method (on-toggle-debug self evt)
     (when (eq? stage 'circle)
       (set-show-debug? (not show-debug?))
+      (set-refresh-interface? show-debug?)
       (invalidate-interface)))
   
   
