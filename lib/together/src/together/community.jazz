@@ -669,8 +669,8 @@
         (set-visible? (child root 'layouts) #t)
         (set-video-interface? #t)
         (invalidate-outputs video)
-        (set! interface-shown? #t)
-        (delay-hide-interface self hide-interface?))))
+        (set! interface-shown? #t))
+      (delay-hide-interface self hide-interface?)))
   
   
   (method (delay-hide-interface self hide-interface?)
