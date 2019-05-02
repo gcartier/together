@@ -596,12 +596,6 @@
                 (display-on/off world "Full mode" full-mode?))))))))
   
   
-  (method (toggle-events-mode self)
-    (let ((timeline (brother panel 'timeline)))
-      (set-events-mode? timeline (not (get-events-mode? timeline)))
-      (redraw timeline)))
-  
-  
   (method protected (update-video-output self)
     (when panel
       (let ((emulator (get-receiver-emulator panel))
@@ -636,8 +630,6 @@
        (toggle-playing self))
       ((#\f)
        (toggle-full-mode self))
-      ((#\t)
-       (toggle-events-mode self))
       ((#\r)
        (replay-simulation panel))))
   
