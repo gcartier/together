@@ -820,39 +820,44 @@
   
   (method override (register-event-looks self)
     ;; state
-    (register-event-look udp-id-state-ok         3 chronology-blue)    ;   R
-    (register-event-look udp-id-state-late       3 chronology-blue)    ;   R
-    (register-event-look udp-id-state-waiting    3 chronology-blue)    ;   R
-    ;; ack
-    (register-event-look udp-id-receive-ack      2 chronology-purple)  ;   R
+    (register-event-look udp-id-state-ok         0 chronology-blue)     ;   R
+    (register-event-look udp-id-state-late       0 chronology-blue)     ;   R
+    (register-event-look udp-id-state-waiting    0 chronology-blue)     ;   R
     ;; nack
-    (register-event-look udp-id-retain-packet    0 chronology-gray)    ; OS
-    (register-event-look udp-id-release-packet   1 chronology-magenta) ; OS
-    (register-event-look udp-id-nack-packet      5 chronology-purple)  ;  SR
-    (register-event-look udp-id-got-packet       5 chronology-green)   ;  SR
-    (register-event-look udp-id-giveup-packet    5 chronology-cyan)    ;  SR
-    (register-event-look udp-id-resend-packet    5 chronology-blue)    ; OS
-    (register-event-look udp-id-absent-packet    6 chronology-yellow)  ; OS
+    (register-event-look udp-id-nack-packet      1 chronology-purple)   ;  SR
+    (register-event-look udp-id-got-packet       1 chronology-green)    ;  SR
+    (register-event-look udp-id-giveup-packet    1 chronology-cyan)     ;  SR
+    (register-event-look udp-id-resend-packet    1 chronology-blue)     ; OS
+    (register-event-look udp-id-absent-packet    2 chronology-yellow)   ; OS
     ;; receive
-    (register-event-look udp-id-insert-packet    0 chronology-gray)    ;   R
-    (register-event-look udp-id-update-time      1 chronology-magenta) ; OSR
-    (register-event-look udp-id-duplicate-packet 4 chronology-cyan)    ;  SR
-    (register-event-look udp-id-reject-packet    6 chronology-orange)  ;  SR
-    (register-event-look udp-id-packet-gap       3 chronology-blue)    ;  SR
+    (register-event-look udp-id-duplicate-packet 0 chronology-cyan)     ;  SR
+    (register-event-look udp-id-reject-packet    2 chronology-orange)   ;  SR
+    (register-event-look udp-id-packet-gap       0 chronology-blue)     ;  SR
     ;; process
-    (register-event-look udp-id-play-frame       2 chronology-purple)  ;   R
-    (register-event-look udp-id-freeze-frame     2 chronology-purple)  ;   R
-    (register-event-look udp-id-missing-packet   2 chronology-purple)  ;   R
-    (register-event-look udp-id-discard-packet   2 chronology-purple)  ;   R
+    (register-event-look udp-id-missing-packet   0 chronology-purple)   ;   R
+    (register-event-look udp-id-discard-packet   0 chronology-magenta)  ;   R
     ;; throttle
-    (register-event-look udp-id-throttle-on      7 chronology-orange)  ; OS
-    (register-event-look udp-id-throttle-off     7 chronology-orange)  ; OS
-    (register-event-look udp-id-throttle-frame   7 chronology-orange)  ; OS
+    (register-event-look udp-id-throttle-on      3 chronology-orange)   ; OS
+    (register-event-look udp-id-throttle-off     3 chronology-orange)   ; OS
+    (register-event-look udp-id-throttle-frame   3 chronology-orange)   ; OS
     ;; bookmark
-    (register-event-look udp-id-bookmark         8 chronology-purple)  ;   R
+    (register-event-look udp-id-bookmark         4 chronology-purple)   ;   R
     ;; invalid
-    (register-event-look udp-id-write-failure    8 chronology-red)     ; OSR
-    (register-event-look udp-id-ring-overflow    8 chronology-red))    ; OSR
+    (register-event-look udp-id-write-failure    4 chronology-red)      ; OSR
+    (register-event-look udp-id-ring-overflow    4 chronology-red)      ; OSR
+    ;; normal case is too much
+    @comment (
+    ;; ack
+    (register-event-look udp-id-receive-ack      2 chronology-purple)   ;   R
+    ;; nack
+    (register-event-look udp-id-retain-packet    0 chronology-gray)     ; OS
+    (register-event-look udp-id-release-packet   1 chronology-magenta)  ; OS
+    ;; receive
+    (register-event-look udp-id-insert-packet    0 chronology-gray)     ;   R
+    (register-event-look udp-id-update-time      1 chronology-magenta)  ; OSR
+    ;; process
+    (register-event-look udp-id-play-frame       2 chronology-purple)   ;   R
+    (register-event-look udp-id-freeze-frame     0 chronology-cyan)))   ;   R
   
   
   ;;;
