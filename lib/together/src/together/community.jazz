@@ -148,6 +148,7 @@
   (slot hide-ring        initialize #f getter generate)
   (slot hide-thread      initialize #f getter generate)
   (slot first-hierarchy? initialize #t getter generate)
+  (slot interface-shown? initialize #t getter generate)
   
   
   (method override (zone-ready self)
@@ -598,25 +599,26 @@
   
   
   (method override (mouse-down self h v)
-    (mouse-up-or-down self #f))
+    (mouse-activity self #f))
   
   
   (method override (mouse-up self h v)
-    (mouse-up-or-down self #t))
+    (mouse-activity self))
   
   
   (method override (mouse-action self h v)
-    (mouse-up-or-down self #t))
+    (mouse-activity self))
   
   
   (method override (double-click self h v)
-    (mouse-up-or-down self #t))
+    (mouse-activity self))
   
   
   (method override (multiple-click self h v)
-    (mouse-up-or-down self #t))
+    (mouse-activity self))
   
-  (method (mouse-up-or-down self hide-interface?)
+  
+  (method (mouse-activity self (hide-interface? #t))
     (unless (script-visible? self)
       (when (eq? stage 'circle)
         (show-interface self hide-interface?))))
@@ -654,19 +656,21 @@
     (let ((window (current-window))
           (interface (current-interface))
           (video (current-video)))
-      @wait-later-version-as-it-needs-debugging
-      (show-cursor window)
-      (set-visible? (child interface 'profile) #t)
-      (set-visible? (child root 'circle-name) #t)
-      (set-visible? (child root 'toggle-people) #t)
-      (set-visible? (child root 'toggle-chat) #t)
-      (set-visible? (child root 'leave) #t)
-      (set-visible? (child root 'audio) #t)
-      (set-visible? (child root 'video) #t)
-      (set-visible? (child root 'layouts) #t)
-      (set-video-interface? #t)
-      (invalidate-outputs video)
-      (delay-hide-interface self hide-interface?)))
+      (unless interface-shown?
+        @wait-later-version-as-it-needs-debugging
+        (show-cursor window)
+        (set-visible? (child interface 'profile) #t)
+        (set-visible? (child root 'circle-name) #t)
+        (set-visible? (child root 'toggle-people) #t)
+        (set-visible? (child root 'toggle-chat) #t)
+        (set-visible? (child root 'leave) #t)
+        (set-visible? (child root 'audio) #t)
+        (set-visible? (child root 'video) #t)
+        (set-visible? (child root 'layouts) #t)
+        (set-video-interface? #t)
+        (invalidate-outputs video)
+        (set! interface-shown? #t)
+        (delay-hide-interface self hide-interface?))))
   
   
   (method (delay-hide-interface self hide-interface?)
@@ -678,7 +682,8 @@
                                         (with-task-mutex
                                           (lambda ()
                                             (when (and (eq? stage 'circle)
-                                                       auto-hide?)
+                                                       auto-hide?
+                                                       interface-shown?)
                                               (let ((window (current-window))
                                                     (interface (current-interface))
                                                     (video (current-video)))
@@ -693,7 +698,8 @@
                                                 (set-visible? (child root 'video) #f)
                                                 (set-visible? (child root 'layouts) #f)
                                                 (set-video-interface? #f)
-                                                (invalidate-outputs video)))))))))))
+                                                (invalidate-outputs video)
+                                                (set! interface-shown? #f)))))))))))
   
   
   (method (show/hide-debug self h v)
