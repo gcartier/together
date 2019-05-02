@@ -316,6 +316,7 @@
   (method override (prepare self rest)
     (nextmethod self rest)
     (set! live? #f)
+    (set! events-mode? #t)
     (set! border-color {Color Dark-Gray}))
   
   
