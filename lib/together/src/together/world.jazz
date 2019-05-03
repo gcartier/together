@@ -23,6 +23,7 @@
         (world.interface.sheet)
         (world.sound)
         (together.community)
+        (together.replay)
         (together.script)
         (together.zone))
 
@@ -41,6 +42,10 @@
   
   (method override (script-panel-class self)
     Together-Script-Panel)
+  
+  
+  (method override (timeline-panel-class self)
+    Together-Live-Timeline-Panel)
   
   
   (method override (draw-message-offset self)

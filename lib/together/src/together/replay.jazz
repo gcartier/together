@@ -297,11 +297,116 @@
 
 
 ;;;
+;;;; Live Timeline
+;;;
+
+
+(class Together-Live-Timeline-Panel extends Timeline-Panel
+  
+  
+  (method override (plot-events self surface from to)
+    (let ((foot 220)
+          (all? (eq? events-mode 'all)))
+      (define (plot evolution offset scale)
+        (let ((start (timeline-start self))
+              (end (timeline-end self)))
+          (define (find-first) <fx+>
+            (loop (for n from (first-position evolution) to (last-position evolution))
+                  (when (>= (evolutionary-udp-time evolution n) start)
+                    (return n))
+                  (finally #f)))
+          
+          (define (find-last first <fx>) <fx>
+            (loop (for n from first to (last-position evolution))
+                  (when (> (evolutionary-udp-time evolution n) end)
+                    (return (- n 1)))
+                  (finally (last-position evolution))))
+          
+          (let ((width (cast <fl> (get-width self)))
+                (height (cast <fl> (get-height self)))
+                (span (min (- to from) span))
+                (now-h (and now (when->h self from to span now)))
+                (first (find-first)))
+            (when first
+              (let ((last (find-last first)))
+                (define (find-head) <fx>
+                  (loop (for n from first to last)
+                        (when (>= (evolutionary-udp-time evolution n) from)
+                          (return n))
+                        (finally first)))
+                
+                (define (find-tail head <fx>) <fx>
+                  (loop (for n from head to last)
+                        (when (> (evolutionary-udp-time evolution n) to)
+                          (return (- n 1)))
+                        (finally last)))
+                
+                (let ((head (find-head)))
+                  (let ((tail (find-tail head)))
+                    (loop (for layer from 3 downto 0)
+                          (loop (for n from head to tail)
+                                (let ((time (evolutionary-udp-time evolution n))
+                                      (id (evolutionary-udp-id evolution n)))
+                                  (let ((look (id->event-look (flonum->fixnum id))))
+                                    (when look
+                                      (let ((rank (get-rank look))
+                                            (color (get-color look)))
+                                        (when (= rank layer)
+                                          (let ((h (fxround (* (/ (- time from) span) width)))
+                                                (top (- (- foot (fxround (* scale (cast <fl> (+ rank 1))))) offset))
+                                                (bottom (- foot offset)))
+                                            (let ((rect (new Rect h top (+ h 1) bottom)))
+                                              (fill-rect surface rect color)
+                                              (let ((tolerance (/ span 400.)))
+                                                (when (and now (between? now (- time tolerance) (+ time tolerance)))
+                                                  (set! boxes (cons rect boxes))
+                                                  (let ((name (evolution-id->abbrev id)))
+                                                    (let ((text (format "{a}" name)))
+                                                      (let ((label (if all?
+                                                                       (list (if (odd? rank) 'right 'left) (- top 5) text)
+                                                                     (list 'right (+ top 3) text))))
+                                                        (set! labels (cons label labels)))))))))))))))))))))))
+      
+      (unless live?
+        (set-font surface {Font Label})
+        (let ((title (capitalize (->string events-mode))))
+          (draw-text surface 5 117 title timeline-text-color)))
+      (if live?
+          (plot evolution 0 24.)
+        (let ((visualizer (brother self 'visualizer)))
+          (let ((origin (get-origin-evolution visualizer))
+                (server (get-server-evolution visualizer))
+                (receiver (get-receiver-evolution visualizer))
+                (server? (equal? tier "<server>")))
+            (case events-mode
+              ((origin) (plot origin 0 24.))
+              ((server) (plot server 0 24.))
+              ((receiver) (plot receiver 0 24.))
+              ((all) (let ((width (cast <fl> (get-width self))))
+                       (when origin
+                         (set-color surface {Color Gray alpha: .4})
+                         (set-line-width surface 1)
+                         (move-to surface 0 (- foot 66))
+                         (line-to surface width (- foot 66))
+                         (plot origin 66 8.))
+                       (when server
+                         (set-color surface {Color Gray alpha: .4})
+                         (set-line-width surface 1)
+                         (move-to surface 0 (- foot 33))
+                         (line-to surface width (- foot 33))
+                         (plot server 33 8.))
+                       ;; quick hack around what seems to be a visualizer bug
+                       ;; where the server and receiver evolutions are the same
+                       (when (and receiver (not server?))
+                         (plot receiver 0 8.)))))))))))
+
+
+;;;
 ;;;; Timeline
 ;;;
 
 
-(class Together-Timeline-Panel extends Timeline-Panel
+(class Together-Timeline-Panel extends Together-Live-Timeline-Panel
   
   
   (slot evolutions          initialize #f  accessors generate)
@@ -455,100 +560,6 @@
                  (redraw self)))
               (else
                (nextmethod self evt))))))
-  
-  
-  (method override (plot-events self surface from to)
-    (let ((foot 220)
-          (all? (eq? events-mode 'all)))
-      (define (plot evolution offset scale)
-        (let ((start (timeline-start self))
-              (end (timeline-end self)))
-          (define (find-first) <fx+>
-            (loop (for n from (first-position evolution) to (last-position evolution))
-                  (when (>= (evolutionary-udp-time evolution n) start)
-                    (return n))
-                  (finally #f)))
-          
-          (define (find-last first <fx>) <fx>
-            (loop (for n from first to (last-position evolution))
-                  (when (> (evolutionary-udp-time evolution n) end)
-                    (return (- n 1)))
-                  (finally (last-position evolution))))
-          
-          (let ((width (cast <fl> (get-width self)))
-                (height (cast <fl> (get-height self)))
-                (span (min (- to from) span))
-                (now-h (and now (when->h self from to span now)))
-                (first (find-first)))
-            (when first
-              (let ((last (find-last first)))
-                (define (find-head) <fx>
-                  (loop (for n from first to last)
-                        (when (>= (evolutionary-udp-time evolution n) from)
-                          (return n))
-                        (finally first)))
-                
-                (define (find-tail head <fx>) <fx>
-                  (loop (for n from head to last)
-                        (when (> (evolutionary-udp-time evolution n) to)
-                          (return (- n 1)))
-                        (finally last)))
-                
-                (let ((head (find-head)))
-                  (let ((tail (find-tail head)))
-                    (loop (for layer from 3 downto 0)
-                          (loop (for n from head to tail)
-                                (let ((time (evolutionary-udp-time evolution n))
-                                      (id (evolutionary-udp-id evolution n)))
-                                  (let ((look (id->event-look (flonum->fixnum id))))
-                                    (when look
-                                      (let ((rank (get-rank look))
-                                            (color (get-color look)))
-                                        (when (= rank layer)
-                                          (let ((h (fxround (* (/ (- time from) span) width)))
-                                                (top (- (- foot (fxround (* scale (cast <fl> (+ rank 1))))) offset))
-                                                (bottom (- foot offset)))
-                                            (let ((rect (new Rect h top (+ h 1) bottom)))
-                                              (fill-rect surface rect color)
-                                              (let ((tolerance (/ span 400.)))
-                                                (when (and now (between? now (- time tolerance) (+ time tolerance)))
-                                                  (set! boxes (cons rect boxes))
-                                                  (let ((name (evolution-id->abbrev id)))
-                                                    (let ((text (format "{a}" name)))
-                                                      (let ((label (if all?
-                                                                       (list (if (odd? rank) 'right 'left) (- top 5) text)
-                                                                     (list 'right (+ top 3) text))))
-                                                        (set! labels (cons label labels)))))))))))))))))))))))
-      
-      (set-font surface {Font Label})
-      (let ((title (capitalize (->string events-mode))))
-        (draw-text surface 5 117 title timeline-text-color))
-      (let ((visualizer (brother self 'visualizer)))
-        (case events-mode
-          ((origin) (plot (get-origin-evolution visualizer) 0 24.))
-          ((server) (plot (get-server-evolution visualizer) 0 24.))
-          ((receiver) (plot (get-receiver-evolution visualizer) 0 24.))
-          ((all) (let ((width (cast <fl> (get-width self))))
-                   (let ((origin (get-origin-evolution visualizer))
-                         (server (get-server-evolution visualizer))
-                         (receiver (get-receiver-evolution visualizer))
-                         (server? (equal? tier "<server>")))
-                     (when origin
-                       (set-color surface {Color Gray alpha: .4})
-                       (set-line-width surface 1)
-                       (move-to surface 0 (- foot 66))
-                       (line-to surface width (- foot 66))
-                       (plot origin 66 8.))
-                     (when server
-                       (set-color surface {Color Gray alpha: .4})
-                       (set-line-width surface 1)
-                       (move-to surface 0 (- foot 33))
-                       (line-to surface width (- foot 33))
-                       (plot server 33 8.))
-                     ;; quick hack around what seems to be a visualizer bug
-                     ;; where the server and receiver evolutions are the same
-                     (when (and receiver (not server?))
-                       (plot receiver 0 8.)))))))))
   
   
   (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
