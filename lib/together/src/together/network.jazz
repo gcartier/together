@@ -102,7 +102,7 @@
           (redraw-period (/ 1. 2.))
           (base (current-seconds))
           (recuperate 1.)
-          (panel (new Network-Timeline parent: interface location: '(center 155) proportion: '((bounds -500) 110))))
+          (panel (new Network-Timeline parent: interface location: '(center 155) proportion: '((bounds -500) 120))))
       (define (wait target)
         (sleep (- (+ base target) (current-seconds))))
       
