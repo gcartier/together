@@ -841,10 +841,10 @@
     (register-event-look udp-id-throttle-off     3 chronology-orange)   ; OS
     (register-event-look udp-id-throttle-frame   3 chronology-orange)   ; OS
     ;; bookmark
-    (register-event-look udp-id-bookmark         4 chronology-purple)   ;   R
+    (register-event-look udp-id-bookmark         3 chronology-purple)   ;   R
     ;; invalid
-    (register-event-look udp-id-write-failure    4 chronology-red)      ; OSR
-    (register-event-look udp-id-ring-overflow    4 chronology-red)      ; OSR
+    (register-event-look udp-id-write-failure    3 chronology-red)      ; OSR
+    (register-event-look udp-id-ring-overflow    3 chronology-red)      ; OSR
     ;; normal case is too much
     @comment (
     ;; ack
