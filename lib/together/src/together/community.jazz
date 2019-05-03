@@ -1676,6 +1676,7 @@
       (toggle-timeline world)
       (let ((panel (child interface 'timeline)))
         (when (get-visible? panel)
+          (set-span panel 30.)
           (set-events-mode panel 'all)
           (let ((udp-client (get-udp-client client)))
             (let ((channels (table-keys (get-receive-channels udp-client))))
