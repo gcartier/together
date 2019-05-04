@@ -310,8 +310,8 @@
                            (let ((to (get-highest ring)))
                              (loop (for seq from (+ from 1) below to)
                                    (table-set! adds seq time))))))))))
-              ;; nack
-              ((udp-id-nack-packet))
+              ;; missing
+              ((udp-id-missing-packet))
               ;; gap
               ((udp-id-packet-gap))
               ;; got
@@ -388,8 +388,8 @@
                                               (when video-header-played?
                                                 (receive-visualizer-video (current-video) video-output buffer timestamp duration))))))))))))))
                        (visualizer-remove-frame ring))))))
-              ;; missing
-              ((udp-id-missing-packet)
+              ;; lost
+              ((udp-id-lost-packet)
                (let ((sequence (evolutionary-udp-sequence evolution n)))
                  (when show-visualize?
                    (terminal 'missing sequence))
