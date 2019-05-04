@@ -2157,20 +2157,13 @@
     (set-title label title)
     (set-color label color))
   
-  (cond ((developer?)
-         (case base-profile
-           ((high)     (update-label "High"     {Color Pastel-Purple}))
-           ((good)     (update-label "Good"     {Color Pastel-Blue}))
-           ((medium)   (update-label "Medium"   {Color Pastel-Green}))
-           ((low)      (update-label "Low"      {Color Pastel-Yellow}))
-           ((poor)     (update-label "Poor"     {Color Pastel-Orange}))
-           ((recovery) (update-label "Recovery" {Color Pastel-Red}))))
-        (else
-         (case base-profile
-           ((medium)   (update-label "Good"     {Color Pastel-Green}))
-           ((low)      (update-label "Medium"   {Color Pastel-Yellow}))
-           ((poor)     (update-label "Low"      {Color Pastel-Orange}))
-           ((recovery) (update-label "Poor"     {Color Pastel-Red}))))))
+  (case base-profile
+    ((high)     (update-label "High"     {Color Pastel-Purple}))
+    ((good)     (update-label "Good"     {Color Pastel-Blue}))
+    ((medium)   (update-label "Medium"   {Color Pastel-Green}))
+    ((low)      (update-label "Low"      {Color Pastel-Yellow}))
+    ((poor)     (update-label "Poor"     {Color Pastel-Orange}))
+    ((recovery) (update-label "Recovery" {Color Pastel-Red}))))
 
 
 ;;;
