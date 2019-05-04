@@ -162,6 +162,7 @@
         (install-stage self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
+        (set-unbind-camera? (world-setting 'together.unbind-camera? #f))
         (view-people self)
         (when auto-create
           (for-each (lambda (name)
@@ -183,6 +184,7 @@
         (uninstall-hooks self)
         (uninstall-stage self)
         (uninstall-zone self)
+        (set-unbind-camera? #t)
         (set! stage #f)
         (no-showcase world)
         (uninstall-camera)))
