@@ -253,7 +253,9 @@
   
   
   (method override (class-actions self)
-    (append (list (find-actions 'together))
+    (append (list (find-actions 'together)
+                  (find-actions 'gathering)
+                  (find-actions 'circle))
             (nextmethod self)))
   
   
@@ -1002,6 +1004,7 @@
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
           (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
+          (<World-Action-Item> name: toggle-denoise            title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\W} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
@@ -1013,6 +1016,10 @@
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
           (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
           (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
+          ;; profile
+          (<World-Action-Item> name: profile-network           title: "Profile network" visible?: #t shortcut: {Shortcut :alt #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network.")
+          (<World-Action-Item> name: profile-heartbeat         title: "Profile heartbeat" visible?: #t shortcut: {Shortcut :alt #\H} action-handler: {Event-Handler :application on-profile-heartbeat} description: "Profile heartbeat.")
+          (<World-Action-Item> name: add-bookmark              title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
           (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
@@ -1168,8 +1175,10 @@
       (<World-Collision-Actions>     name: world-collision)
       (<World-Anonymous-Actions>     name: world-anonymous)
       (<World-User-Actions>          name: world-user)
-      ;; Together
-      (<Together-Actions>            name: together))))
+        ;; Together
+      (<Together-Actions>            name: together)
+      (<Gathering-Actions>           name: gathering)
+      (<Circle-Actions>              name: circle))))
 
 
 ;;;
@@ -1182,22 +1191,33 @@
   
   (form
     (<install>                                        title: "Together"
+      ;; window
+      (<World-Action-Item> name: toggle-key-bindings  title: "Toggle key bindings" visible?: #t action-handler: {Event-Handler :application on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle key bindings.")
+      (<World-Action-Item> name: toggle-windowed-mode title: "Toggle fullscreen window" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} description: "Toggle between windowed and fullscreen mode.")
+      (<World-Action-Item> name: quit                 title: "Quit Together" visible?: #t shortcut: {Shortcut :meta #\Q} description: "Quit."))))
+
+
+(class Gathering-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                      title: "Gathering"
+    (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login.")
+    (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message."))))
+
+
+(class Circle-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Circle"
       ;; application
-      (<World-Action-Item> name: enter-press          title: "Enter" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
-      (<World-Action-Item> name: tab-press            title: "Tab" visible?: #t action-handler: {Event-Handler :application on-tab-press} shortcut: {Shortcut Tab} description: "Tab.")
+      (<World-Action-Item> name: enter-press          title: "Toggle rotate circle" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
       (<World-Action-Item> name: message              title: "Message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
-      ;; profile
-      (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :alt #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network.")
-      (<World-Action-Item> name: profile-heartbeat    title: "Profile heartbeat" visible?: #t shortcut: {Shortcut :alt #\H} action-handler: {Event-Handler :application on-profile-heartbeat} description: "Profile heartbeat.")
       ;; media
-      (<World-Action-Item> name: toggle-denoise       title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
       (<World-Action-Item> name: toggle-audio         title: "Toggle audio" visible?: #t action-handler: {Event-Handler :application on-toggle-audio} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-video         title: "Toggle video" visible?: #t action-handler: {Event-Handler :application on-toggle-video} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
       (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
-      (<World-Action-Item> name: toggle-key-bindings  title: "Toggle key bindings" visible?: #t action-handler: {Event-Handler :application on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle key bindings.")
-      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")
-      (<World-Action-Item> name: add-bookmark         title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
-      ;; window
-      (<World-Action-Item> name: toggle-windowed-mode title: "Windowed / fullscreen" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} description: "Toggle between windowed and fullscreen mode.")))))
+      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")))))
