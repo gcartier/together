@@ -864,6 +864,7 @@
                     (display-error world exception)
                   (clear-message world)
                   (set-string-content text "")
+                  (content-changed view)
                   (join-circle self name)))))))))
   
   

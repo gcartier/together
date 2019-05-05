@@ -240,6 +240,10 @@
   
   
   (method (on-content-change self evt)
+    (content-changed self))
+  
+  
+  (method (content-changed self)
     (let ((zone (current-zone)))
       (let ((text (locate self 'text)))
         (set-enabled? (child (get-root zone) action-view) (not (whitespace? (get-string-content text)))))))
