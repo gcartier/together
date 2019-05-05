@@ -1277,44 +1277,39 @@
                                  (else
                                   #f)))))))
               
-              (define (iterate father dir private?)
-                (unless (and (eq? stream-private? 'only)
-                             (not private?))
-                  (let ((files (collect-files dir
-                                 (lambda (file)
-                                   (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
-                    (for-each (lambda (partition)
-                                (bind (base . files) partition
-                                  (let ((kind (determine-kind files)))
-                                    (when kind
-                                      (let ((location (and kind (filename-spine (join (subpath streams-dir (car files)) "/")))))
-                                        ;; quick hack
-                                        (when (eq? kind 'image)
-                                          (set! location (string-append location ".jpg")))
-                                        (let ((streaming (find-streaming udp-client location)))
-                                          (let ((title (streaming-title self streaming base))
-                                                (color (streaming-color self streaming)))
-                                            (add-row tree
-                                                     father: father
-                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                                     user-data: (and kind (list kind base location))))))))))
-                              (partition files key: get-base test: filename=?))))
+              (define (iterate dir (father #f))
+                (let ((files (collect-files dir
+                               (lambda (file)
+                                 (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
+                  (for-each (lambda (partition)
+                              (bind (base . files) partition
+                                (let ((kind (determine-kind files)))
+                                  (when kind
+                                    (let ((location (and kind (filename-spine (join (subpath {Directory Documents} (car files)) "/")))))
+                                      ;; quick hack
+                                      (when (eq? kind 'image)
+                                        (set! location (string-append location ".jpg")))
+                                      (let ((streaming (find-streaming udp-client location)))
+                                        (let ((title (streaming-title self streaming base))
+                                              (color (streaming-color self streaming)))
+                                          (add-row tree
+                                                   father: father
+                                                   children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                                   user-data: (and kind (list kind base location))))))))))
+                            (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
                   (lambda (subdir)
-                    (let ((private-dir? (filename=? (get-name subdir) "private")))
-                      (when (or stream-private?
-                                (not private-dir?))
-                        (let ((name (get-name subdir)))
-                          (let ((father (add-row tree
-                                                 father: father
-                                                 state: 'expanded
-                                                 children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
-                            (iterate father subdir (or private? private-dir?)))))))
+                    (let ((name (get-name subdir)))
+                      (let ((father (add-row tree
+                                             father: father
+                                             state: 'expanded
+                                             children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
+                        (iterate subdir father))))
                   files?: #f
                   directories?: #t
                   recursive?: #f))
               
-              (iterate #f streams-dir #f)))))))
+              (iterate-stream-directories iterate)))))))
   
   
   (method (streaming-title self streaming base)
@@ -1395,7 +1390,7 @@
                                    (play stream))))))
                           ((video)
                            (let ((name (filename-name location))
-                                 (audio-file? (exists? (new-file {Directory Documents} (list "streams" (add-extension location (audio-profile-extension)))))))
+                                 (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
                              (let ((stream (stream-video location name audio?: (and audio-file? (not (streaming-audio?)) (not stream-silent?)))))
                                (update-cell stream)
                                (delay-streaming
