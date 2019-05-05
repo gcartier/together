@@ -1650,8 +1650,9 @@
   
   (method (show-admin self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'admin-label) #t)
-      (set-visible? (child interface 'admin) #t)
+      (when (developer?)
+        (set-visible? (child interface 'admin-label) #t)
+        (set-visible? (child interface 'admin) #t))
       (when (eq? stage 'gathering)
         (set-visible? (child root 'join) #f)
         (set-visible? (child root 'circle) #f))
@@ -1660,8 +1661,9 @@
   
   (method (hide-admin self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'admin-label) #f)
-      (set-visible? (child interface 'admin) #f)
+      (when (developer?)
+        (set-visible? (child interface 'admin-label) #f)
+        (set-visible? (child interface 'admin) #f))
       (when (eq? stage 'gathering)
         (set-visible? (child root 'join) #t)
         (set-visible? (child root 'circle) #t))))
