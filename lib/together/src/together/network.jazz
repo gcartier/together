@@ -28,6 +28,7 @@
         (world.evolution)
         (world.interface.evolution)
         (world.interface.timeline)
+        (world.settings)
         (world.streaming)
         (world.task)
         (world.udp)
@@ -207,10 +208,16 @@
                              (stop-profile client)
                              (with-task-mutex
                                (lambda ()
-                                 (feedback "Profile done")
-                                 (close panel)
-                                 (set! running-profile #f)
-                                 (save-profile server-profile client-profile))))))
+                                 (cond ((developer?)
+                                        (feedback "Profile done")
+                                        (close panel)
+                                        (set! running-profile #f)
+                                        (save-profile server-profile client-profile))
+                                       (else
+                                        (feedback "Profile saved")
+                                        (close panel)
+                                        (set! running-profile #f)
+                                        (save-profile server-profile client-profile view-profile?: #f))))))))
                        'send))))
           (thread-base-priority-set! receive-thread udp-priority)
           (thread-base-priority-set! heartbeat-thread udp-priority)
@@ -229,14 +236,15 @@
   (profile-network heartbeat?: #t))
 
 
-(definition protected (save-profile server-profile client-profile)
+(definition protected (save-profile server-profile client-profile (view-profile?: view-profile? #t))
   (let ((client (current-client)))
     (let ((parent {Directory Documents "profiles"}))
       (let ((dir (timestamped-directory parent "profile")))
         (create-directories dir)
         (save-binary (new-file dir "<server>.replay") server-profile)
         (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
-        (view-replay-directory dir)))))
+        (when view-profile?
+          (view-replay-directory dir))))))
 
 
 (definition protected (done-profile)
