@@ -100,6 +100,7 @@
 
 (definition (create-documents)
   (create-directories {Directory Documents "assets"})
+  (create-directories {Directory Documents "shared"})
   (create-directories {Directory Documents "streams"}))
 
 
