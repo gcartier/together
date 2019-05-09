@@ -31,6 +31,7 @@
         (jazz.graphic)
         (jazz.handler)
         (jazz.io)
+        (jazz.listener)
         (jazz.markup)
         (jazz.opengl.window)
         (jazz.project)
