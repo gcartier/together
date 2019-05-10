@@ -16,6 +16,8 @@
 
 (import (jazz.action)
         (jazz.io)
+        (jazz.platform)
+        (jazz.settings)
         (world)
         (world.profiling)
         (together)
@@ -104,13 +106,40 @@
   (create-directories {Directory Documents "streams"}))
 
 
+(definition (install-valid?)
+  (define (inside-installer?)
+    (and kernel-bundle-root
+         (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
+           (and (filename=? (get-name root) "Together.app")
+                (let ((apps (get-parent root)))
+                  (and (filename=? (get-name apps) "Apps")
+                       (exists? (new-directory apps "Update.app"))
+                       (let ((contents (get-parent apps)))
+                         (and (filename=? (get-name contents) "Contents")
+                              (exists? (new-directory contents "MacOS"))
+                              (exists? (new-directory contents "Worlds"))
+                              (let ((app (get-parent contents)))
+                                (filename=? (get-name app) "Together.app"))))))))))
+  
+  (if (and (inside-installer?)
+           (not (equal? (string-argument "called-from" #f)
+                        "installer")))
+      (begin
+        (system-message (format "Please use the green icon to launch Together")
+                        type: 'problem
+                        title: "Together")
+        #f)
+    #t))
+
+
 (definition (run-together descriptor)
-  (prepare-together)
-  (prepare-settings)
-  (create-documents)
-  (load-unit 'world.work)
-  (load-unit 'together.boot)
-  (boot-process))
+  (when (install-valid?)
+    (prepare-together)
+    (prepare-settings)
+    (create-documents)
+    (load-unit 'world.work)
+    (load-unit 'together.boot)
+    (boot-process)))
 
 
 (register-product-run 'together
