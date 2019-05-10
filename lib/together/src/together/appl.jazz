@@ -902,11 +902,7 @@
   (define-trait developer-bindings Bindings
     (<Role-Trait>              name: developer
       (<install>
-        ;; not working because it is shadowned by toggle video
-        ;; paste-cycle-ring should of course be a text action...
         (<application!>
-          (<!>                 name: paste-cycle-ring          visible?: #t shortcut: {Shortcut :alt #\V})
-          (<!>                 name: paste-cycle-ring-reversed visible?: #t shortcut: {Shortcut :alt :shift #\V})
           (<!>                 name: backward-history          visible?: #t)
           (<!>                 name: forward-history           visible?: #t))
         (<view!>
@@ -929,6 +925,8 @@
           (<!>                 name: document-home             visible?: #t alternate-shortcut: {Shortcut :meta Up})
           (<!>                 name: document-end              visible?: #t alternate-shortcut: {Shortcut :meta Down})
           (<!>                 name: paste&next                visible?: #t)
+          (<!>                 name: paste-cycle-ring          visible?: #t shortcut: {Shortcut :alt #\V})
+          (<!>                 name: paste-cycle-ring-reversed visible?: #t shortcut: {Shortcut :alt :shift #\V})
           (<!>                 name: kill-line                 visible?: #t)
           (<!>                 name: center-caret              visible?: #t)
           (<!>                 name: top-caret                 visible?: #t)
