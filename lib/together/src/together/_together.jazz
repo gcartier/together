@@ -78,7 +78,7 @@
                       (list 'Together)
                     (cond-expand
                       (windows (list 'Build))
-                      (else (get-list (get-parent (get-parent {Directory Build})))))))
+                      (else (get-list (get-parent {Directory Build}))))))
   (register-resources-alias 'Together 'together))
 
 
