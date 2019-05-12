@@ -875,6 +875,7 @@
           (video (current-video)))
       (reset-chronology)
       (reset-evolution)
+      (bind-camera)
       (let ((channels/exception (join-group tier name)))
         (if (string? channels/exception)
             (display-error world channels/exception)
