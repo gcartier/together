@@ -88,6 +88,8 @@
     (mac
      (cond-expand (debug
                    "together-debug.app")
+                  (triage
+                   "together-triage.app")
                   (else
                    "together.app")))
     (unix
