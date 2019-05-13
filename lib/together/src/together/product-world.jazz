@@ -35,7 +35,7 @@
       {Directory Home "Devel" "together" "install"})
     
     (definition together-world
-      "Together-World")))
+      "together-world")))
 
 
 (definition (install descriptor)
