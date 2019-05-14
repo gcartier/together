@@ -1547,12 +1547,18 @@
     (define (focus-no no)
       (when (developer?)
         (let ((video (current-video)))
+          ;; useful to compare profiles
           (define (find-by-level level)
             (find-if (lambda (output)
                        (eqv? (get-level output) level))
                      (get-ordered-outputs video)))
           
-          (let ((output (find-by-level (- no 1))))
+          (define (find-nth rank)
+            (let ((outputs (get-ordered-outputs video)))
+              (and (< rank (length outputs))
+                   (element outputs rank))))
+          
+          (let ((output (find-nth (- no 1))))
             (when output
               (change-focused-output video output))))))
     
