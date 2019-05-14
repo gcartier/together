@@ -34,10 +34,11 @@
 
 
 (definition protected (determine-settings-root)
-  (cond-expand (prod  {Directory Home ".together" "prod"})
-               (stage {Directory Home ".together" "stage"})
-               (test  {Directory Home ".together" "test"})
-               (else  {Directory Home ".together" "devel"})))
+  (cond-expand (prod   {Directory Home ".together" "prod"})
+               (stage  {Directory Home ".together" "stage"})
+               (triage {Directory Home ".together" "triage"})
+               (test   {Directory Home ".together" "test"})
+               (else   {Directory Home ".together" "devel"})))
 
 
 ;;;
@@ -47,10 +48,11 @@
 
 (definition protected (determine-documents-root)
   (cond-expand
-    (mac (cond-expand (prod  '(Home "Documents" "Together" "prod"))
-                      (stage '(Home "Documents" "Together" "stage"))
-                      (test  '(Home "Documents" "Together" "test"))
-                      (else  '(Home "Documents" "Together" "devel"))))
+    (mac (cond-expand (prod   '(Home "Documents" "Together" "prod"))
+                      (stage  '(Home "Documents" "Together" "stage"))
+                      (triage '(Home "Documents" "Together" "triage"))
+                      (test   '(Home "Documents" "Together" "test"))
+                      (else   '(Home "Documents" "Together" "devel"))))
     (else '(Settings))))
 
 
