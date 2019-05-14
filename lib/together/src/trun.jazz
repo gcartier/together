@@ -17,4 +17,4 @@
 (import (together.run))
 
 
-(prepare-client))
+(prepare-together))
