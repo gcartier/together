@@ -1950,7 +1950,7 @@
   (method (on-profile-heartbeat self evt)
     (when (eq? stage 'gathering)
       (if running-profile
-          (done-profile)
+          (cancel-profile)
         (profile-heartbeat))))
   
   

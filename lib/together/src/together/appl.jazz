@@ -1016,7 +1016,6 @@
           (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
           (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
           (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
-          (<World-Action-Item> name: profile-heartbeat         title: "Profile heartbeat" visible?: #t shortcut: {Shortcut :alt #\H} action-handler: {Event-Handler :application on-profile-heartbeat} description: "Profile heartbeat.")
           (<World-Action-Item> name: add-bookmark              title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
           (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
@@ -1204,6 +1203,7 @@
   (form
     (<install>                                        title: "Gathering"
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login.")
+      (<World-Action-Item> name: profile-heartbeat    title: "Profile heartbeat" visible?: #t shortcut: {Shortcut :alt :shift #\B} action-handler: {Event-Handler :application on-profile-heartbeat} description: "Profile heartbeat.")
       (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network."))))
 
 
