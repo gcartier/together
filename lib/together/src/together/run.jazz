@@ -124,8 +124,10 @@
   (if (and (inside-installer?)
            (not (equal? (string-argument "called-from" #f)
                         "installer")))
-      (begin
-        (system-message (format "Please use the green icon to launch Together")
+      (let ((color (cond-expand
+                     (triage "red")
+                     (else "green"))))
+        (system-message (format "Please use the {a} icon to launch Together" color)
                         type: 'problem
                         title: "Together")
         #f)
