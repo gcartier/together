@@ -365,7 +365,7 @@
                 (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4 (u8vector-length buffer))))
                   (let ((data (make-u8vector header-size)))
                     (write-udp-kind data kind)
-                    (write-udp-origin data origin)
+                    (write-udp-sender data origin)
                     (write-udp-sequence data sequence)
                     (write-udp-frame data frame)
                     (write-udp-part data part)
@@ -377,7 +377,7 @@
               
               (define (record-data data)
                 (parameterize ((simulation-evolution sender-evolution))
-                  (let ((origin (read-udp-origin data))
+                  (let ((sender (read-udp-sender data))
                         (kind (read-udp-kind data))
                         (sequence (read-udp-sequence data))
                         (frame (read-udp-frame data))
@@ -388,7 +388,7 @@
                         (duration (read-udp-media-duration data)))
                     (record-event udp-id-create-packet
                                   -1.
-                                  (fixnum->flonum origin)
+                                  (fixnum->flonum sender)
                                   (fixnum->flonum kind)
                                   (fixnum->flonum sequence)
                                   (fixnum->flonum frame)
@@ -398,7 +398,7 @@
                                     (timestamp->flonum timestamp)))
                     (record-event udp-id-create-info
                                   -1.
-                                  (fixnum->flonum origin)
+                                  (fixnum->flonum sender)
                                   (fixnum->flonum kind)
                                   (fixnum->flonum sequence)
                                   (fixnum->flonum part)
