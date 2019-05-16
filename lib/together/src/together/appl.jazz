@@ -34,9 +34,9 @@
         (jazz.listener)
         (jazz.markup)
         (jazz.opengl.window)
+        (jazz.presence)
         (jazz.project)
         (jazz.reference)
-        (jazz.remote)
         (jazz.resource)
         (jazz.search)
         (jazz.snapshot)
@@ -176,7 +176,7 @@
       (if (get-controller-debugger)
           (attach-process local-debugger (get-local-process) #t)
         (when #t;(and kernel-source-access? (world-setting 'world.debugger? #f))
-          (attach-to-controller (get-local-register) #t)
+          (attach-to-controller (get-local-register 'debugging) #t)
           ;; quicky until the local debugger is fully operational
           ;; restore the exception debugger to a snapshot debugger
           (when (not (controlling-terminal?))
@@ -694,7 +694,7 @@
   (method override (register-base-objects self)
     (nextmethod self)
     (when (developer?)
-      (register-object (get-local-register) 'debugger (new Jazz-Debugger-Local-Proxy local-debugger))))
+      (register-object (get-local-register 'debugging) 'debugger (new Jazz-Debugger-Local-Proxy (require-presence 'debugging) local-debugger))))
   
   
   ;;;
