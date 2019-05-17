@@ -21,6 +21,7 @@
                               together.devel
                               together.domain
                               together.emulation
+                              together.exception
                               together.login
                               together.network
                               together.process

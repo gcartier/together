@@ -71,6 +71,7 @@
         (together)
         (together.community)
         (together.debugger)
+        (together.exception)
         (together.script)
         (together.settings)
         (together.window)
@@ -177,11 +178,6 @@
           (attach-process local-debugger (get-local-process) #t)
         (when #t;(and kernel-source-access? (world-setting 'world.debugger? #f))
           (attach-to-controller (get-local-register 'debugging) #t)
-          ;; quicky until the local debugger is fully operational
-          ;; restore the exception debugger to a snapshot debugger
-          (when (not (controlling-terminal?))
-            (set-exception-debugger (application-exception-debugger unsaved-work?: #f))
-            (set-exception-hook exception-debugger-hook))
           (with-system-exception-debugger
             (lambda ()
               (ready-to-controller)

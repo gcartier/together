@@ -14,14 +14,16 @@
 (module together.settings jazz
 
 
-(import (jazz.io)
+(import (jazz.debuggee)
+        (jazz.io)
         (jazz.platform)
         (jazz.settings)
         (world)
         (world.autoload)
         (world.io)
         (world.profile)
-        (world.settings))
+        (world.settings)
+        (together.exception))
 
 
 (definition protected (together-file)
@@ -115,4 +117,13 @@
             (set-setting options-settings 'together.first-use? #f)
             (save-content options-settings)
             "nebula")
-        (random-element '("calm_sea" "dark_sea" "nebula"))))))
+        (random-element '("calm_sea" "dark_sea" "nebula")))))
+
+
+;;;
+;;;; Exceptions
+;;;
+
+
+(unless (or (using-debugger?) (controlling-terminal?))
+  (setup-together-exception-debugger)))

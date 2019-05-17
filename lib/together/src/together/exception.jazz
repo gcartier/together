@@ -1,0 +1,39 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Exceptions
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.exception jazz
+
+
+(import (jazz.platform)
+        (jazz.snapshot))
+
+
+(definition protected (setup-together-exception-debugger)
+  (set-exception-debugger (together-exception-debugger))
+  (set-exception-hook exception-debugger-hook))
+
+
+(definition (together-exception-debugger)
+  (snapshot-exception-debugger
+    feedback: (together-exception-feedback)))
+
+
+(definition (together-exception-feedback)
+  (lambda (exception snapshot)
+    (system-message (format "{a} {a}.{%}{%}{a}.{%}{%}{a}."
+                            "An unexpected problem occurred while executing"
+                            (current-process-present)
+                            "This will terminate the application immediately"
+                            "A log file has been generated and will be automatically sent to the developers next time you launch Together")
+                    title: "Application Error"
+                    type: 'problem))))
