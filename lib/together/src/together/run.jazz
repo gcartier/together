@@ -108,9 +108,13 @@
 
 (definition (install-valid?)
   (define (inside-installer?)
+    (define (together-app? name)
+      (and (starts-with? name "Together")
+           (ends-with? name ".app")))
+    
     (and kernel-bundle-root
          (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
-           (and (filename=? (get-name root) "Together.app")
+           (and (together-app? (get-name root))
                 (let ((apps (get-parent root)))
                   (and (filename=? (get-name apps) "Apps")
                        (exists? (new-directory apps "Update.app"))
@@ -119,7 +123,7 @@
                               (exists? (new-directory contents "MacOS"))
                               (exists? (new-directory contents "Worlds"))
                               (let ((app (get-parent contents)))
-                                (filename=? (get-name app) "Together.app"))))))))))
+                                (together-app? (get-name app)))))))))))
   
   (if (and (inside-installer?)
            (not (equal? (string-argument "called-from" #f)
