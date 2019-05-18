@@ -3,6 +3,7 @@
 REL="$(dirname "$0")"
 
 WRL="$REL/world"
+JIRI="$REL/jiri"
 JAZZ="$REL/jazz"
 JAZ="$JAZZ/jaz"
 
@@ -53,6 +54,8 @@ display_info () {
     (display_module_info "Together" "$REL")
     echo
     (display_module_info "World" "$WRL")
+    echo
+    (display_module_info "Jiri" "$JIRI")
     echo
     (display_module_info "Jazz" "$JAZZ")
 }
