@@ -2012,7 +2012,8 @@
       (let ((viewer (find-component interface 'bindings)))
         (if viewer
             (close viewer)
-           (open-frame (new World-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))))))
+           (open-frame (new World-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))
+           (focus-world)))))
   
   
   (method (on-toggle-mode self evt)
