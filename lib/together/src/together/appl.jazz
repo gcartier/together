@@ -1218,6 +1218,7 @@
       (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")
       (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :application on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
       (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :application on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
+      (<World-Action-Item> name: bring-to-front       title: "Bring to front" visible?: #t shortcut: {Shortcut "Click image"})
       (<World-Action-Item> name: backspace-press      title: "Go to home view" visible?: #t shortcut: {Shortcut Backspace} description: "Backspace.")
       (<World-Action-Item> name: enter-press          title: "Toggle rotation" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: left-press           title: "Rotate left" visible?: #t shortcut: {Shortcut "Left Arrow"} description: "Left.")
