@@ -351,25 +351,6 @@
     (set! last-now time))
   
   
-  (method override (position-change self position)
-    (nextmethod self position)
-    (let ((video-visualizer (locate-component self 'video)))
-      (when video-visualizer
-        (update-video-output video-visualizer))))
-  
-  
-  (method override (size-change self size)
-    (nextmethod self size)
-    @wait
-    (let ((world (current-world)))
-      (let ((width (get-width world))
-            (height (get-height world)))
-        (make-orthographic-matrix! (get-projection-matrix sheet) 0. width 0. height 0. 10.)))
-    (let ((video-visualizer (locate-component self 'video)))
-      (when video-visualizer
-        (update-video-output video-visualizer))))
-  
-  
   (method override (draw self surface context)
     (if (not origin)
         (draw-text surface 5 3 "<no stream found>" visualizer-text-color)
@@ -597,31 +578,33 @@
   
   
   (method protected (update-video-output self)
-    (when panel
-      (let ((emulator (get-receiver-emulator panel))
-            (timeline (brother panel 'timeline)))
-        (when emulator
-          (let ((output (get-video-output emulator)))
-            (when output
-              (let ((sheet (get-sheet output))
-                    (full-mode? (get-full-mode? timeline)))
-                (cond (full-mode?
-                       (let ((width (cast <fl> (- (get-width panel) 2))))
-                         (let ((height (/ (* width 9.) 16.)))
-                           (let ((evolution (brother panel 'evolution)))
-                             (let ((position (new Point 156 (+ (get-v (get-position evolution)) (- (get-height evolution) (fxround height)) -1)))
-                                   (size (new Dimension (fxround width) (fxround height))))
-                               (set-position sheet position)
-                               (set-size sheet size)
-                               (set-video-position position)
-                               (set-video-size size))))))
-                      (else
-                       (let ((position (nu+ (get-position panel) {Point 25 30}))
-                             (size {Dimension 178 100}))
-                         (set-position sheet position)
-                         (set-size sheet size)
-                         (set-video-position position)
-                         (set-video-size size)))))))))))
+    (let ((world (current-world)))
+      (when panel
+        (let ((emulator (get-receiver-emulator panel))
+              (timeline (brother panel 'timeline)))
+          (when emulator
+            (let ((output (get-video-output emulator)))
+              (when output
+                (let ((sheet (get-sheet output))
+                      (full-mode? (get-full-mode? timeline)))
+                  (make-orthographic-matrix! (get-projection-matrix sheet) 0. (get-width world) 0. (get-height world) 0. 10.)
+                  (cond (full-mode?
+                         (let ((width (cast <fl> (- (get-width panel) 2))))
+                           (let ((height (/ (* width 9.) 16.)))
+                             (let ((evolution (brother panel 'evolution)))
+                               (let ((position (nu+ (get-position panel) (new Point 1 (+ (get-v (get-position evolution)) (- (get-height evolution) (fxround height)) -11))))
+                                     (size (new Dimension (fxround width) (fxround height))))
+                                 (set-position sheet position)
+                                 (set-size sheet size)
+                                 (set-video-position position)
+                                 (set-video-size size))))))
+                        (else
+                         (let ((position (nu+ (get-position panel) {Point 21 29}))
+                               (size {Dimension 178 100}))
+                           (set-position sheet position)
+                           (set-size sheet size)
+                           (set-video-position position)
+                           (set-video-size size))))))))))))
   
   
   (method override (key-press self evt)
