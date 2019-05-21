@@ -524,16 +524,20 @@
   (method protected (sleep-process self)
     (with-task-mutex
       (lambda ()
-        (when (eq? stage 'circle)
-          (leave-circle self)
-          (set! disconnected? #t)))))
+        (let ((client (current-client)))
+          (when (eq? stage 'circle)
+            (leave-circle self)
+            (sleep-to-server client)
+            (set! disconnected? #t))))))
   
   
   (method protected (wake-process self)
     (with-task-mutex
       (lambda ()
-        (let ((world (current-world)))
+        (let ((client (current-client))
+              (world (current-world)))
           (when disconnected?
+            (wake-to-server client)
             (display-message world "Disconnected from circle" duration: 5.)
             (set! disconnected? #f))))))
   
