@@ -527,8 +527,8 @@
         (let ((client (current-client)))
           (when (eq? stage 'circle)
             (leave-circle self)
-            (sleep-to-server client)
-            (set! disconnected? #t))))))
+            (set! disconnected? #t))
+          (sleep-to-server client)))))
   
   
   (method protected (wake-process self)
@@ -536,8 +536,8 @@
       (lambda ()
         (let ((client (current-client))
               (world (current-world)))
+          (wake-to-server client)
           (when disconnected?
-            (wake-to-server client)
             (display-message world "Disconnected from circle" duration: 5.)
             (set! disconnected? #f))))))
   
