@@ -16,6 +16,7 @@
 
 (import (jazz.action)
         (jazz.io)
+        (jazz.logger)
         (jazz.platform)
         (jazz.settings)
         (jazz.snapshot)
@@ -23,6 +24,12 @@
         (world.profiling)
         (together)
         (together.domain))
+
+
+(definition (prepare-logger)
+  (initialize-aliases)
+  (set-logger-directory (new-directory (determine-settings-root) '("1.0.0" "work" "logs")))
+  (set-logger-prefix "client"))
 
 
 (definition protected (prepare-together)
@@ -142,6 +149,7 @@
 
 (definition (run-together descriptor)
   (when (install-valid?)
+    (prepare-logger)
     (prepare-together)
     (prepare-settings)
     (create-documents)
