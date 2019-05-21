@@ -149,6 +149,7 @@
   (slot hide-thread      initialize #f getter generate)
   (slot first-hierarchy? initialize #t getter generate)
   (slot interface-shown? initialize #t getter generate)
+  (slot disconnected?    initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -518,6 +519,23 @@
       (close (child interface 'replay))
       (close (child interface 'simulate))
       (close (child interface 'exception))))
+  
+  
+  (method protected (sleep-process self)
+    (with-task-mutex
+      (lambda ()
+        (when (eq? stage 'circle)
+          (leave-circle self)
+          (set! disconnected? #t)))))
+  
+  
+  (method protected (wake-process self)
+    (with-task-mutex
+      (lambda ()
+        (let ((world (current-world)))
+          (when disconnected?
+            (display-message world "Disconnected from circle" duration: 5.)
+            (set! disconnected? #f))))))
   
   
   (method (on-about self evt)

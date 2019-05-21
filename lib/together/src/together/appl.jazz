@@ -230,6 +230,25 @@
                           (set-text (get-script entity) content)
                           (execute-script world edited-path))))))))))))
     (nextmethod self))
+  
+  
+  ;;;
+  ;;;; Sleep
+  ;;;
+  
+  
+  (method override (sleep-process self)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (sleep-process zone)))
+    (nextmethod self))
+  
+  
+  (method override (wake-process self)
+    (nextmethod self)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (wake-process zone))))
 
   
   ;;;
