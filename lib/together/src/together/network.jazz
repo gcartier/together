@@ -101,11 +101,11 @@
     (let ((udp-client (get-udp-client client))
           (heartbeat-period (/ 1. 10.))
           (redraw-period (/ 1. 2.))
-          (base (current-seconds))
+          (base (current-monotonic))
           (recuperate 1.)
           (panel (new Network-Timeline parent: interface location: '(center 155) proportion: '((bounds -500) 120))))
       (define (wait target)
-        (sleep (- (+ base target) (current-seconds))))
+        (sleep (- (+ base target) (current-monotonic))))
       
       (set-replay? panel #t)
       (set-show-knees? panel #t)
