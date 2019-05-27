@@ -138,18 +138,19 @@
 (class Community-Zone extends Together-Zone
   
   
-  (slot configuration    initialize #f getter generate)
-  (slot selected-group   initialize #f getter generate)
-  (slot selected-player  initialize #f getter generate)
-  (slot joined-circle    initialize #f getter generate)
-  (slot circle-start     initialize #f getter generate)
-  (slot view-focused     initialize #f getter generate)
-  (slot draw-hook        initialize #f getter generate)
-  (slot hide-ring        initialize #f getter generate)
-  (slot hide-thread      initialize #f getter generate)
-  (slot first-hierarchy? initialize #t getter generate)
-  (slot interface-shown? initialize #t getter generate)
-  (slot disconnected?    initialize #f getter generate)
+  (slot configuration     initialize #f getter generate)
+  (slot selected-group    initialize #f getter generate)
+  (slot selected-player   initialize #f getter generate)
+  (slot joined-circle     initialize #f getter generate)
+  (slot circle-start      initialize #f getter generate)
+  (slot message-recipient initialize #f getter generate)
+  (slot view-focused      initialize #f getter generate)
+  (slot draw-hook         initialize #f getter generate)
+  (slot hide-ring         initialize #f getter generate)
+  (slot hide-thread       initialize #f getter generate)
+  (slot first-hierarchy?  initialize #t getter generate)
+  (slot interface-shown?  initialize #t getter generate)
+  (slot disconnected?     initialize #f getter generate)
   
   
   (method override (zone-ready self)
@@ -227,8 +228,8 @@
           (set-location chat '(-10 100))
           (set-proportion chat '(220 (bounds -354))))
         (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40})))
-          (new Kind-Label name: 'to parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-          (new Kind-Label name: 'dest parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
+          (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+          (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
         (let ((command (child interface 'command)))
           (set-border-type (child command 'border) 'solid)
           (set-border-color (child command 'border) {Color Dark-Gray})
@@ -348,12 +349,13 @@
       (show interface 'chat)
       (proportion interface 'chat '(220 (bounds -300)))
       (show interface 'command-to)
-      (title interface '(command-to dest) "The gathering")
-      (color interface '(command-to dest) {Color red: 32 green: 205 blue: 33})
       (location interface 'command-to '(-10 -158))
       (show interface 'command)
       (location interface 'command '(-10 -146))
       (show root 'about)
+      (title interface '(command-to to) "The gathering")
+      (color interface '(command-to to) {Color red: 32 green: 205 blue: 33})
+      (update-to self)
       (update-circle/join self)
       (layout-view interface)
       (layout-view root)
@@ -394,14 +396,13 @@
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
       (proportion interface 'chat '(220 (bounds -354)))
-      (title interface '(command-to dest) joined-circle)
-      (color interface '(command-to dest) {Color World-Red})
       (location interface 'command-to '(-10 -212))
       (location interface 'command '(-10 -200))
       (visible interface 'chat-label (not hide-chat?))
       (visible interface 'chat (not hide-chat?))
       (visible interface 'command-to (not hide-chat?))
       (visible interface 'command (not hide-chat?))
+      (update-to self)
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
@@ -607,6 +608,25 @@
              (set-title (child root 'circle) selected-group)
              (set-enabled? (child root 'join) #t)
              (layout-view root)))))
+  
+  
+  (method (update-to self)
+    (let ((interface (current-interface)))
+      (let ((to (child interface '(command-to to))))
+        (cond (selected-player
+               (set-title to selected-player)
+               (set-color to {Color World-Blue})
+               (set! message-recipient (list 'player selected-player)))
+              (selected-group
+               (when (and (eq? stage 'circle)
+                          (equal? selected-group joined-circle))
+                 (set-title to selected-group)
+                 (set-color to {Color World-Red})
+                 (set! message-recipient (list 'group selected-group))))
+              (else
+               (set-title to "The Gathering")
+               (set-color to {Color red: 32 green: 205 blue: 33})
+               (set! message-recipient #f))))))
   
   
   ;;;
@@ -977,6 +997,7 @@
       (register-draw-hook interface draw-hook)
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
+      (set-sender-hook (child interface 'chat) (~ chat-sender self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))
       (set-view-replay-directory (~ view-replay-directory self))))
@@ -996,6 +1017,7 @@
       (unregister-draw-hook interface draw-hook)
       (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
+      (set-sender-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
       (set-escape-handler (child interface 'command) #f)
       (reset-view-replay-directory)))
@@ -1232,7 +1254,8 @@
             (set! selected-group group)
             (set! selected-player player)
             (when (eq? stage 'gathering)
-              (update-circle/join self)))
+              (update-circle/join self))
+            (update-to self))
           
           (case kind
             ((player)
@@ -1432,6 +1455,14 @@
     #f)
   
   
+  (method (chat-sender self sender)
+    (let ((interface (current-interface)))
+      (let ((to (child interface '(command-to to))))
+        (set-title to sender)
+        (set-color to {Color World-Blue})
+        (set! message-recipient (list 'player sender)))))
+  
+  
   (method (show-chat self)
     (let ((interface (current-interface)))
       (set-visible? (child interface 'chat-label) #t)
@@ -1466,12 +1497,20 @@
                    (show-panel-whisper last-whisperer message)
                    (values 'whisper last-whisperer message))))
               (else
-               (values 'group (group-recipient) content)))))
+               (selected-recipient content)))))
     
     (define (group-recipient)
       (if (eq? stage 'circle)
           joined-circle
         #f))
+    
+    (define (selected-recipient message)
+      (if (not message-recipient)
+          (values 'group #f message)
+        (bind (what name) message-recipient
+          (case what
+            ((player) (values 'whisper name message))
+            (else (values 'group name message))))))
     
     (define (show-panel-whisper recipient message)
       (let ((interface (current-interface)))
@@ -2222,7 +2261,7 @@
       (<content~>                              layout-type: fill
         (<Tree-Header>                         style: document shown?: #f
           (<content~>
-            (<Tree-View>          name: people portfolio: :images filled-column: person background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+            (<Tree-View>          name: people portfolio: :images filled-column: person always-select?: #t background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
               (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
   
   
