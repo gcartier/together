@@ -216,7 +216,7 @@
         (let ((edited-path (get-path (get-asset edited-entity))))
           (let ((script (find-script world edited-path)))
             (when script
-              (let ((content (load-asset-text script)))
+              (let ((content (load-text script)))
                 (when (not (equal? (digest-string content 'SHA-1)
                                    (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
                   (let ((panel (child interface 'script)))
