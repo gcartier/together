@@ -1705,13 +1705,15 @@
   (method (on-toggle-admin self evt)
     (let ((interface (current-interface)))
       (let ((panel (child interface 'admin)))
-        (if (get-visible? panel)
-            (begin
-              (hide-admin self)
-              ;; should not be necessary
-              (focus-world))
-          (show-admin self)
-          (acquire-focus (locate panel '(console text)))))))
+        (let ((text (locate panel '(console text))))
+          (if (and (get-visible? panel)
+                   (eq? (active-focus) text))
+              (begin
+                (hide-admin self)
+                ;; should not be necessary
+                (focus-world))
+            (show-admin self)
+            (acquire-focus text))))))
   
   
   (method (show-admin self)
