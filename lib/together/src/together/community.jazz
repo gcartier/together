@@ -1208,20 +1208,26 @@
         (remove-every-row tree)
         (with-update-locked tree
           (lambda ()
+            (define (add-player father info group)
+              (bind (player id no asleep?) info
+                (let ((title (if asleep? (format "{a} (offline)" player) player))
+                      (font {Font Label-User})
+                      (color (if asleep? {Color Medium-Gray} {Color World-Blue})))
+                  (add-row tree
+                           father: father
+                           children: (list (new Tree-Node title: title font: font color: color))
+                           user-data: (list 'player player group)))))
+            
             (bind (gathering . groups) hierarchy
               (let ((players (cdr gathering)))
                 (let ((row (add-row tree
-                                  state: 'expanded
-                                  children: (list (new Tree-Node
-                                                    title: "The gathering"
-                                                    font: {Font Label-User}
-                                                    color: {Color red: 32 green: 205 blue: 33})))))
+                                    state: 'expanded
+                                    children: (list (new Tree-Node
+                                                      title: "The gathering"
+                                                      font: {Font Label-User}
+                                                      color: {Color red: 32 green: 205 blue: 33})))))
                   (for-each (lambda (info)
-                              (bind (player id no) info
-                                (add-row tree
-                                         father: row
-                                         children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
-                                         user-data: (list 'player player #f))))
+                              (add-player row info #f))
                             (let ((me (get-name me)))
                               (sort di<? players key: (lambda (player)
                                                         (if (equal? player me)
@@ -1237,11 +1243,7 @@
                                                   children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
                                                   user-data: (list 'group group))))
                                 (for-each (lambda (info)
-                                            (bind (player id no) info
-                                              (add-row tree
-                                                       father: row
-                                                       children: (list (new Tree-Node title: player font: {Font Label-User} color: {Color World-Blue}))
-                                                       user-data: (list 'player player group))))
+                                            (add-player row info group))
                                           players))))
                           (sort di<? groups key: car)))))))))
   
