@@ -19,7 +19,8 @@
         (world)
         (world.profiling)
         (together)
-        (together.domain))
+        (together.domain)
+        (together.server))
 
 
 (definition (prepare-logger)
@@ -75,6 +76,7 @@
   (logger "Start server")
   (prepare-server)
   (prepare-settings)
+  (send-crash-reports)
   (load-unit 'world.work)
   (load-unit 'together.boot-server)
   (boot-process))
