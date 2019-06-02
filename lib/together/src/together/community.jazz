@@ -56,6 +56,7 @@
         (world.geometry)
         (world.interface)
         (world.interface.bindings)
+        (world.interface.chat)
         (world.interface.clients)
         (world.interface.command)
         (world.interface.dialogs)
@@ -624,7 +625,7 @@
                  (set-color to {Color World-Red})
                  (set! message-recipient (list 'group selected-group))))
               (else
-               (set-title to "The Gathering")
+               (set-title to "The gathering")
                (set-color to {Color red: 32 green: 205 blue: 33})
                (set! message-recipient #f))))))
   
@@ -1460,9 +1461,14 @@
   (method (chat-sender self sender)
     (let ((interface (current-interface)))
       (let ((to (child interface '(command-to to))))
-        (set-title to sender)
-        (set-color to {Color World-Blue})
-        (set! message-recipient (list 'player sender)))))
+        (cond ((not sender)
+               (set-title to "The gathering")
+               (set-color to {Color red: 32 green: 205 blue: 33})
+               (set! message-recipient #f))
+              (else
+               (set-title to sender)
+               (set-color to {Color World-Blue})
+               (set! message-recipient (list 'player sender)))))))
   
   
   (method (show-chat self)
@@ -1477,7 +1483,7 @@
   (method (command-return self command)
     (define (parse-content content)
       (if (not (developer?))
-          (values 'group (group-recipient) content)
+          (selected-recipient content)
         (cond ((starts-with? content "/s ")
                (values 'server #f (substring content 3 (string-length content))))
               ((starts-with? content "/g ")
@@ -1508,16 +1514,29 @@
     
     (define (selected-recipient message)
       (if (not message-recipient)
-          (values 'group #f message)
+          (begin
+            (when joined-circle
+              (show-panel-say "The gathering" message))
+            (values 'group #f message))
         (bind (what name) message-recipient
           (case what
-            ((player) (values 'whisper name message))
-            (else (values 'group name message))))))
+            ((player)
+             (show-panel-whisper name message)
+             (values 'whisper name message))
+            (else
+             (values 'group name message))))))
+    
+    (define (show-panel-say recipient message)
+      (let ((interface (current-interface)))
+        (let ((panel (child interface 'chat))
+              (sender #f))
+          (show-say panel recipient message sender))))
     
     (define (show-panel-whisper recipient message)
       (let ((interface (current-interface)))
-        (let ((panel (child interface 'chat)))
-          (show-whisper panel recipient message))))
+        (let ((panel (child interface 'chat))
+              (sender recipient))
+          (show-whisper panel recipient message sender))))
     
     (let ((world (current-world))
           (tier (current-client)))
