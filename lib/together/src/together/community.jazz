@@ -1283,6 +1283,13 @@
         (join-circle self selected-group))))
   
   
+  (method package (focus-command-text self)
+    (let ((interface (current-interface)))
+      (let ((text (locate (child interface 'command) 'text)))
+        (when (view-visible? text)
+          (acquire-focus text)))))
+  
+  
   ;;;
   ;;;; Streams
   ;;;
@@ -1468,7 +1475,8 @@
               (else
                (set-title to sender)
                (set-color to {Color World-Blue})
-               (set! message-recipient (list 'player sender)))))))
+               (set! message-recipient (list 'player sender))))
+        (focus-command-text self))))
   
   
   (method (show-chat self)
@@ -2290,7 +2298,8 @@
   
   (method package (on-selection-change self evt)
     (let ((zone (current-zone)))
-      (people-selection-change zone)))
+      (people-selection-change zone)
+      (focus-command-text zone)))
   
   
   (method package (on-double-click self evt)
