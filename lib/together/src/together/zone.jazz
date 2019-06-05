@@ -57,15 +57,6 @@
         (together.settings))
 
 
-(definition protected environment-suffix
-  (cond-expand
-    (prod   "")
-    (stage  " (stage)")
-    (triage " (triage)")
-    (test   " (test)")
-    (else   " (devel)")))
-
-
 (class Together-Zone extends Zone
   
   
