@@ -828,7 +828,7 @@
       ;; memory
       (register-site-look 'memory 1 {Color Red})
       ;; other
-      (register-site-look #f 10 {Color Dark-Gray})))
+      (default-site-look 10 {Color Dark-Gray})))
   
   
   ;;;
