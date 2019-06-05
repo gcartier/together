@@ -75,18 +75,36 @@
 
 
 ;;;
-;;;; Stream
+;;;; Audio-Sink
 ;;;
 
 
-(class Test-Audio-Sink extends Audio-Sink
-
-
+(class Simulation-Audio-Sink extends Audio-Sink
+  
+  
   (method override (setup-pipeline self)
-    (let ((pipeline (gst-pipeline (tie "appsrc name=src")
+    (let ((pipeline (gst-pipeline "appsrc name=src"
                                   (and (eq? codec 'opus) "opusdec name=dec")
                                   (and (eq? codec 'vorbis) "vorbisdec name=dec")
-                                  "osxaudiosink name=sink")))
+                                  ;"audiorate"
+                                  "tee name=tee"
+                                  (list
+                                    "tee."
+                                    "queue"
+                                    "osxaudiosink name=sink")
+                                  ;@wav
+                                  (list
+                                    "tee."
+                                    "queue"
+                                    "wavenc"
+                                    (format "filesink location={a}" (parse {File Documents "work" "test.wav"})))
+                                  @ogg
+                                  (list
+                                    "tee."
+                                    "queue"
+                                    "vorbisenc"
+                                    "oggmux"
+                                    (format "filesink location={a}" (parse {File Documents "work" "test.ogg"}))))))
       (gst_object_set_name pipeline "output")
       (let ((appsrc (gst_bin_get_by_name pipeline "src")))
         (case codec
@@ -98,18 +116,23 @@
            (gst_app_src_set_caps appsrc
                                  (gst_caps "audio/x-vorbis"))))
         (g_object_set appsrc
-                      "is-live"     (g_value_boolean #t)
-                      "stream-type" (g_value_int GST_APP_STREAM_TYPE_STREAM)
-                      "format"      (g_value_int GST_FORMAT_TIME))
+          "is-live"     (g_value_boolean #t)
+          "stream-type" (g_value_int GST_APP_STREAM_TYPE_STREAM)
+          "format"      (g_value_int GST_FORMAT_TIME))
         (gst_element_set_state pipeline GST_STATE_READY)
         (set! self.pipeline pipeline)
         (set! self.appsrc appsrc)))))
 
 
-(definition (test-output)
-  (let ((output (new Test-Audio-Sink codec: audio-codec)))
+(definition (simulation-output)
+  (let ((output (new Simulation-Audio-Sink codec: audio-codec)))
     (play output)
     output))
+
+
+;;;
+;;;; Local
+;;;
 
 
 (definition public (stream-local location (max #f))
@@ -117,7 +140,7 @@
     (let ((file (new-file {Directory Documents "streams" "music"} (add-extension location (audio-profile-extension)))))
       (let ((reader (new Stream-Reader file)))
         (let ((time-base (new Time-Base))
-              (output (test-output) @w (visualizer-output audio))
+              (output (simulation-output))
               (max (or max 500)))
           (let (loop (count 0))
             (receive (buffer timestamp duration) (read-frame reader)
@@ -142,12 +165,12 @@
 
 (definition public (rise-latency)
   (lambda (elapse)
-    (/ elapse 15.)))
+    (/ elapse 10.)))
 
 
 (definition public (fall-latency)
   (lambda (elapse)
-    (- 1. (/ elapse 15.))))
+    (- 1. (/ elapse 10.))))
 
 
 (definition public (updown-latency (bottom: bottom 5.) (top: top 5.) (slope: slope 1.) (min: min 0.) (max: max .4))
@@ -169,10 +192,10 @@
                min))))))
 
 
-(definition public (sin-latency max)
+(definition public (sin-latency max (spikes? #f))
   (lambda (elapse)
     (let ((latency (/ (* (+ (sin elapse) 1.) max) 2.)))
-      (if (< (random-real) .01)
+      (if (and spikes? (< (random-real) .01))
           (+ latency .3)
         latency))))
 
@@ -220,9 +243,7 @@
                 (define (determine-latency nanostamp)
                   (let ((elapse (- nanostamp base-nanostamp)))
                     (if latency
-                        (let ((new-latency (latency elapse)))
-                          (terminal elapse new-latency)
-                          new-latency)
+                        (latency elapse)
                       0.)))
                 
                 (define (latencer data)
@@ -269,7 +290,7 @@
                                 'insert))
                       (audio (new-thread
                                (lambda ()
-                                 (let ((audio-output (test-output) @w (simulation-output (current-audio))))
+                                 (let ((audio-output (simulation-output)))
                                    (parameterize ((simulation? #t)
                                                   (simulation-evolution receiver-evolution)
                                                   (simulation-audio audio-output))
@@ -495,7 +516,7 @@
                              (lambda ()
                                (parameterize ((simulation? #t)
                                               (simulation-evolution receiver-evolution)
-                                              (simulation-audio (simulation-output (current-audio))))
+                                              (simulation-audio (simulation-output)))
                                  (let (looping)
                                    (let ((info (process-audio receiver-audio-ring average debug-process?)))
                                      (when (neq? info 'terminate)
