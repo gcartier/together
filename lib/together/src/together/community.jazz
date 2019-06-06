@@ -150,7 +150,6 @@
   (slot hide-ring         initialize #f getter generate)
   (slot hide-thread       initialize #f getter generate)
   (slot first-hierarchy?  initialize #t getter generate)
-  (slot interface-shown?  initialize #t getter generate)
   (slot disconnected?     initialize #f getter generate)
   
   
@@ -714,7 +713,7 @@
         (set-visible? (child root 'layouts) #t)
         (set-video-interface? #t)
         (invalidate-outputs video)
-        (set! interface-shown? #t))
+        (set-interface-shown? #t))
       (delay-hide-interface self hide-interface?)))
   
   
@@ -744,7 +743,7 @@
                                                 (set-visible? (child root 'layouts) #f)
                                                 (set-video-interface? #f)
                                                 (invalidate-outputs video)
-                                                (set! interface-shown? #f)))))))))))
+                                                (set-interface-shown? #f)))))))))))
   
   
   (method (show/hide-debug self h v)
@@ -1718,7 +1717,7 @@
   (method (on-toggle-debug self evt)
     (when (eq? stage 'circle)
       (set-show-debug? (not show-debug?))
-      (set-refresh-interface? show-debug?)
+      (set-always-refresh-interface? show-debug?)
       (invalidate-interface)))
   
   
