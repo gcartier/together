@@ -150,6 +150,7 @@
   (slot hide-ring         initialize #f getter generate)
   (slot hide-thread       initialize #f getter generate)
   (slot first-hierarchy?  initialize #t getter generate)
+  (slot buttons-shown?    initialize #t getter generate)
   (slot disconnected?     initialize #f getter generate)
   
   
@@ -700,7 +701,7 @@
     (let ((window (current-window))
           (interface (current-interface))
           (video (current-video)))
-      (unless interface-shown?
+      (unless buttons-shown?
         @wait-later-version-as-it-needs-debugging
         (show-cursor window)
         (set-visible? (child interface 'profile) #t)
@@ -713,7 +714,7 @@
         (set-visible? (child root 'layouts) #t)
         (set-video-interface? #t)
         (invalidate-outputs video)
-        (set-interface-shown? #t))
+        (set! buttons-shown? #t))
       (delay-hide-interface self hide-interface?)))
   
   
@@ -727,7 +728,7 @@
                                           (lambda ()
                                             (when (and (eq? stage 'circle)
                                                        auto-hide?
-                                                       interface-shown?)
+                                                       buttons-shown?)
                                               (let ((window (current-window))
                                                     (interface (current-interface))
                                                     (video (current-video)))
@@ -743,7 +744,7 @@
                                                 (set-visible? (child root 'layouts) #f)
                                                 (set-video-interface? #f)
                                                 (invalidate-outputs video)
-                                                (set-interface-shown? #f)))))))))))
+                                                (set! buttons-shown? #f)))))))))))
   
   
   (method (show/hide-debug self h v)
