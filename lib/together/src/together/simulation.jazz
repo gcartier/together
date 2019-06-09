@@ -92,7 +92,7 @@
                                     "tee."
                                     "queue"
                                     "osxaudiosink name=sink")
-                                  ;@wav
+                                  @wav
                                   (list
                                     "tee."
                                     "queue"
