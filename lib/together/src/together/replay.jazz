@@ -391,7 +391,7 @@
           (let ((origin (get-origin-evolution visualizer))
                 (server (get-server-evolution visualizer))
                 (receiver (get-receiver-evolution visualizer))
-                (server? (equal? tier "<server>")))
+                (server? (equal? tier "_server")))
             (case events-mode
               ((origin) (plot origin 0 24.))
               ((server) (plot server 0 24.))

@@ -243,7 +243,7 @@
     (let ((parent {Directory Documents "profiles"}))
       (let ((dir (timestamped-directory parent "profile")))
         (create-directories dir)
-        (save-binary (new-file dir "<server>.replay") server-profile)
+        (save-binary (new-file dir "_server.replay") server-profile)
         (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
         (when view-profile?
           (view-replay-directory dir))))))
