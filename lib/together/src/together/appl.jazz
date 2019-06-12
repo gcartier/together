@@ -897,10 +897,13 @@
   
   
   (method override (role-traits self role)
-    (let ((sphere (if sphere? (list sphere-bindings) '())))
+    (let ((platform (cond-expand
+                      (windows (list windows-bindings))
+                      (else '())))
+          (sphere (if sphere? (list sphere-bindings) '())))
       (case role
-        ((user) `((:bindings ,user-bindings ,@sphere)))
-        ((developer) `((:bindings ,developer-bindings ,@sphere)))
+        ((user) `((:bindings ,user-bindings ,@platform ,@sphere)))
+        ((developer) `((:bindings ,developer-bindings ,@platform ,@sphere)))
         (else (nextmethod self role)))))
 
 
@@ -1040,6 +1043,35 @@
           (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
+  
+
+  ;;;
+  ;;;; Windows
+  ;;;
+
+  
+  (define-trait windows-bindings Bindings
+    (<Trait>            name: windows
+      (<install>
+        (<application~>
+          (<!>          name: new                          shortcut: {Shortcut :control #\N})
+          (<!>          name: close                        shortcut: {Shortcut :control F4})
+          (<!>          name: print                        shortcut: {Shortcut :control #\P})
+          (<!>          name: print-layout                 shortcut: {Shortcut :control :shift #\P})
+          (<!>          name: print-preview                shortcut: {Shortcut :alt #\P})
+          (<!>          name: quit                         shortcut: {Shortcut :alt F4})
+          (<!>          name: next-frame                   shortcut: {Shortcut :control F6})
+          (<!>          name: previous-frame               shortcut: {Shortcut :control :shift F6})
+          (<!>          name: current-frame                shortcut: {Shortcut F6}))
+        (<guest~>
+          (<!>          name: save                         shortcut: {Shortcut :control #\S}))
+        (<view~>
+          (<!>          name: redo                         shortcut: {Shortcut :control #\Y}))
+        (<text~>
+          (<!>          name: delete-char                  alternate-shortcut: {Shortcut :control #\D}))
+        (<together~>
+          (<!>          name: toggle-windowed-mode         shortcut: {Shortcut F11})
+          (<!>          name: quit                         shortcut: {Shortcut :alt F4})))))
 
 
   ;;;
@@ -1048,7 +1080,7 @@
 
 
   (define-trait sphere-bindings Bindings
-    (<Role-Trait>        name: sphere
+    (<Trait>                   name: sphere
       (<install>
         (<world-camera!>
           (<!>                 name: person-motion visible?: #t)
