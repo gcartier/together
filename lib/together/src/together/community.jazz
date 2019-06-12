@@ -2110,7 +2110,7 @@
       (let ((viewer (find-component interface 'bindings)))
         (if viewer
             (close viewer)
-           (open-frame (new World-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))
+           (open-frame (new Together-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))
            (focus-world)))))
   
   
@@ -2389,6 +2389,19 @@
   
   (method override (cell-color self color context)
     color))
+
+
+;;;
+;;;; Bindings-Viewer
+;;;
+
+
+(class Together-Bindings-Viewer extends World-Bindings-Viewer
+  
+  
+  (form
+    (<install>
+      (<caption~> title: "Keyboard Shortcuts"))))
 
 
 ;;;
