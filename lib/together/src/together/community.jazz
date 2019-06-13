@@ -1046,26 +1046,34 @@
   
   
   (method (camera-framerate-experiment self feedback)
-    (with-task-mutex
-      (lambda ()
-        (let ((client (current-client)))
-          (camera-framerate? (not (camera-framerate?)))
-          (when (camera-playing? client)
-            (release-camera client)
-            (play-camera client)))))
-    (feedback (format "Camera framerate {a}" (if (camera-framerate?) "on" "off")))
+    (if (neq? stage 'circle)
+        (begin
+          (bell)
+          (feedback "Only available in circle"))
+      (with-task-mutex
+        (lambda ()
+          (let ((client (current-client)))
+            (camera-framerate? (not (camera-framerate?)))
+            (when (camera-playing? client)
+              (release-camera client)
+              (play-camera client)))))
+      (feedback (format "Camera framerate {a}" (if (camera-framerate?) "on" "off"))))
     (sleep .5))
   
   
   (method (camera-high-resolution-experiment self feedback)
-    (with-task-mutex
-      (lambda ()
-        (let ((client (current-client)))
-          (camera-high-resolution? (not (camera-high-resolution?)))
-          (when (camera-playing? client)
-            (release-camera client)
-            (play-camera client)))))
-    (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off")))
+    (if (neq? stage 'circle)
+        (begin
+          (bell)
+          (feedback "Only available in circle"))
+      (with-task-mutex
+        (lambda ()
+          (let ((client (current-client)))
+            (camera-high-resolution? (not (camera-high-resolution?)))
+            (when (camera-playing? client)
+              (release-camera client)
+              (play-camera client)))))
+      (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off"))))
     (sleep .5))
   
   
