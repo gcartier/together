@@ -111,7 +111,7 @@
       (set-replay? panel #t)
       (set-show-knees? panel #t)
       (set-border-color panel {Color Dark-Gray})
-      (setup-sites (sites-metadata))
+      (setup-sites panel (sites-metadata))
       (set-chronology panel (get-profile-chronology udp-client))
       (set-evolution panel (get-profile-evolution udp-client))
       (layout-view interface)
