@@ -164,6 +164,7 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
+        (install-experiments self)
         (set-escape-hook world (~ escape-press self))
         (set-unbind-camera? (world-setting 'together.unbind-camera? #f))
         (view-people self)
@@ -236,6 +237,8 @@
           (set-border-color (child command 'border) {Color Dark-Gray})
           (set-location command '(-10 -200))
           (set-size command (new Dimension 220 19)))
+        (new Kind-Label name: 'experiment-label parent: interface title: "Experiment" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Experiment-Panel name: 'experiment parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
         (when (developer?)
           (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
           (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
@@ -1025,6 +1028,48 @@
   
   
   ;;;
+  ;;;; Experiments
+  ;;;
+  
+  
+  (method (install-experiments self)
+    (add-experiment
+      (new Experiment
+        "Toggle camera framerate"
+        (lambda (feedback)
+          (camera-framerate-experiment self feedback))))
+    (add-experiment
+      (new Experiment
+        "Toggle camera high resolution"
+        (lambda (feedback)
+          (camera-high-resolution-experiment self feedback)))))
+  
+  
+  (method (camera-framerate-experiment self feedback)
+    (with-task-mutex
+      (lambda ()
+        (let ((client (current-client)))
+          (camera-framerate? (not (camera-framerate?)))
+          (when (camera-playing? client)
+            (release-camera client)
+            (play-camera client)))))
+    (feedback (format "Camera framerate {a}" (if (camera-framerate?) "on" "off")))
+    (sleep .5))
+  
+  
+  (method (camera-high-resolution-experiment self feedback)
+    (with-task-mutex
+      (lambda ()
+        (let ((client (current-client)))
+          (camera-high-resolution? (not (camera-high-resolution?)))
+          (when (camera-playing? client)
+            (release-camera client)
+            (play-camera client)))))
+    (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off")))
+    (sleep .5))
+  
+  
+  ;;;
   ;;;; Server
   ;;;
   
@@ -1386,18 +1431,6 @@
     (streams-action-selected self))
   
   
-  (method package (streams-selection-change self)
-    )
-  
-  
-  (method package (streams-double-click self)
-    )
-  
-  
-  (method package (streams-return-press self)
-    )
-  
-  
   (method (streams-action-selected self)
     (let ((tier (current-tier)))
       (when (eq? stage 'circle)
@@ -1454,6 +1487,86 @@
                                (delay-streaming
                                  (lambda ()
                                    (play stream))))))))))))))))))
+  
+  
+  ;;;
+  ;;;; Experiment
+  ;;;
+  
+  
+  (method (experiment-tree self)
+    (let ((interface (current-interface)))
+      (locate (child interface 'experiment) 'experiment)))
+  
+  
+  (method (experiment-text self)
+    (let ((interface (current-interface)))
+      (locate (child interface 'experiment) '(console text))))
+  
+  
+  (method (view-experiment self)
+    (let ((tree (experiment-tree self)))
+      (remove-every-row tree)
+      (with-update-locked tree
+        (lambda ()
+          (for-each (lambda (experiment)
+                      (let ((title (experiment-title self experiment))
+                            (color (experiment-color self experiment)))
+                        (add-row tree
+                                 children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                 user-data: experiment)))
+                    experiments)))))
+  
+  
+  (method (experiment-title self experiment)
+    (get-title experiment))
+  
+  
+  (method (experiment-color self experiment)
+    (if (get-running? experiment)
+        {Color World-Blue}
+      {Color White}))
+  
+  
+  (method package (experiment-action self)
+    (experiment-action-selected self))
+  
+  
+  (method (experiment-action-selected self)
+    (let ((tree (experiment-tree self))
+          (text (experiment-text self)))
+      (let ((row (get-selected-row tree)))
+        (when row
+          (let ((experiment (get-user-data row)))
+            (define (update-cell)
+              (let ((title (experiment-title self experiment))
+                    (color (experiment-color self experiment))
+                    (line (row->line tree row))
+                    (col 0))
+                (let ((cell (new Cell line col)))
+                  (let ((data (get-cell-data tree cell)))
+                    (set-title data title)
+                    (set-color data color))
+                  (invalidate-cell tree cell))))
+            
+            (when experiment
+              (let ((action (get-action experiment)))
+                (define (feedback message)
+                  (with-task-mutex
+                    (lambda ()
+                      (let ((end (text-ending text)))
+                        (let ((range (new Range$Cell$ end end)))
+                          (replace (get-model text) range (list message ""))
+                          (ensure-range-displayed text range))))))
+                
+                (empty-text text)
+                (delay-event
+                  (lambda ()
+                    (set-running? experiment #t)
+                    (update-cell)
+                    (action feedback)
+                    (set-running? experiment #f)
+                    (update-cell))))))))))
   
   
   ;;;
@@ -2125,6 +2238,34 @@
                                ((fill) "Fill")))))
   
   
+  (method (on-toggle-experiment self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'experiment)))
+        (if (get-visible? panel)
+            (hide-experiment self)
+          (show-experiment self)))))
+  
+  
+  (method (show-experiment self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'experiment-label) #t)
+      (set-visible? (child interface 'experiment) #t)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'join) #f)
+        (set-visible? (child root 'circle) #f))
+      (view-experiment self)
+      (layout-view interface)))
+  
+  
+  (method (hide-experiment self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'experiment-label) #f)
+      (set-visible? (child interface 'experiment) #f)
+      (when (eq? stage 'gathering)
+        (set-visible? (child root 'join) #t)
+        (set-visible? (child root 'circle) #t))))
+  
+  
   (method (on-add-image self evt)
     (when (eq? stage 'circle)
       (add-image)))
@@ -2343,28 +2484,13 @@
       (<content~>                             layout-type: fill
         (<Tree-Header>                        style: document shown?: #f
           (<content~>
-            (<Streams-Tree>     name: streams portfolio: :images filled-column: stream background: #f action-handler: {Event-Handler :form on-action} selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+            (<Streams-Tree>     name: streams portfolio: :images filled-column: stream background: #f action-handler: {Event-Handler :form on-action}
               (<Streams-Column> name: stream  title: "Stream" width: 235 toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f)))))))
   
   
   (method package (on-action self evt)
     (let ((zone (current-zone)))
-      (streams-action zone)))
-  
-  
-  (method package (on-selection-change self evt)
-    (let ((zone (current-zone)))
-      (streams-selection-change zone)))
-  
-  
-  (method package (on-double-click self evt)
-    (let ((zone (current-zone)))
-      (streams-double-click zone)))
-  
-  
-  (method override (on-return-press self evt)
-    (let ((zone (current-zone)))
-      (streams-return-press zone))))
+      (streams-action zone))))
 
 
 ;;;
@@ -2402,6 +2528,128 @@
   (form
     (<install>
       (<caption~> title: "Keyboard Shortcuts"))))
+
+
+;;;
+;;;; Experiment
+;;;
+
+
+(definition protected experiments
+  '())
+
+(definition protected (add-experiment experiment)
+  (set! experiments (append experiments (list experiment))))
+
+(definition protected (remove-experiment experiment)
+  (set! experiments (remove! experiment experiments)))
+
+
+(class Experiment extends Object
+  
+  
+  (slot title    getter generate)
+  (slot action   getter generate)
+  (slot running? accessors generate)
+  
+  
+  (method override (initialize self title action)
+    (nextmethod self)
+    (set! self.title title)
+    (set! self.action action)
+    (set! self.running? #f))
+  
+  
+  (method override (print self output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{a}" title)))))
+
+
+;;;
+;;;; Experiment-Panel
+;;;
+
+
+(class Experiment-Panel extends World-Panel
+  
+  
+  (form
+    (<install>
+      (<Border-View>                 name: content    location: center border-type: solid border-color: {Color Dark-Gray} style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
+        (<Splitter-View>             name: splitter   separator: none orientation: vert mode: relative division: 40.
+          (<Tree-Header>             name: header     location: first style: document shown?: #f
+            (<content~>                               layout-type: fill
+              (<Experiment-Tree>     name: experiment portfolio: :images filled-column: title background: #f action-handler: {Event-Handler :form on-action}
+                (<Experiment-Column> name: title      title: "Experiment" toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f))))
+          (<Experiment-View>         name: console    location: second)))))
+  
+  
+  (method override (draw self surface context)
+    (let ((v (- (get-height (locate self 'header)) 1)))
+      (set-color surface {Color Medium-Gray alpha: .7})
+      (set-line-width surface 1)
+      (move-to surface 1 v)
+      (line-to surface (- (get-width self) 1) v)))
+  
+  
+  (method package (on-action self evt)
+    (let ((zone (current-zone)))
+      (experiment-action zone))))
+
+
+;;;
+;;;; Experiment-Tree
+;;;
+
+
+(class Experiment-Tree extends Tree-View)
+
+
+;;;
+;;;; Experiment-Column
+;;;
+
+
+(class Experiment-Column extends Tree-Node-Column
+  
+  
+  (method override (draw-background self surface context row data width height)
+    )
+  
+  
+  (method override (cell-color self color context)
+    color))
+
+
+;;;
+;;;; Experiment-View
+;;;
+
+
+(class Experiment-View extends Scroller-View
+  
+  
+  (form
+    (<install>
+      (<!>                      name: content
+        (<Experiment-Text-View> name: text    background: #f)))))
+
+
+;;;
+;;;; Experiment-Text-View
+;;;
+
+
+(class Experiment-Text-View extends World-Text-View
+  
+  
+  (form
+    (<install> editable?: #f selectable?: #t))
+  
+  
+  (method override (new-model self)
+    (new Text-Model wrap?: #t left-padding: 2 top-padding: 1)))
 
 
 ;;;

@@ -465,6 +465,12 @@
         (on-toggle-mode zone evt))))
   
   
+  (method (on-toggle-experiment self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-experiment zone evt))))
+  
+  
   (method (on-add-image self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -1041,7 +1047,7 @@
           (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
           (<World-Action-Item> name: add-bookmark              title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
           (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
-          (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\X} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
+          (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\Z} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
   
 
@@ -1241,10 +1247,10 @@
   
   (form
     (<install>                                        title: "Together"
-      ;; window
       (<World-Action-Item> name: change-quality       title: "Change call quality" visible?: #t shortcut: {Shortcut "Click call quality"})
       (<World-Action-Item> name: send-message         title: "Send message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       (<World-Action-Item> name: toggle-key-bindings  title: "Toggle keyboard shortcuts" visible?: #t action-handler: {Event-Handler :application on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle keyboard shortcuts.")
+      (<World-Action-Item> name: toggle-experiment    title: "Toggle experiment panel" visible?: #t action-handler: {Event-Handler :application on-toggle-experiment} shortcut: {Shortcut :alt :shift #\X} description: "Toggle experiment panel.")
       (<World-Action-Item> name: toggle-windowed-mode title: "Toggle fullscreen window" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} description: "Toggle between windowed and fullscreen mode.")
       (<World-Action-Item> name: quit                 title: "Quit Together" visible?: #t shortcut: {Shortcut :meta #\Q} description: "Quit."))))
 
