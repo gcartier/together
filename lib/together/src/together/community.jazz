@@ -359,7 +359,7 @@
       (show root 'about)
       (title interface '(command-to to) "The gathering")
       (color interface '(command-to to) {Color red: 32 green: 205 blue: 33})
-      (update-to self)
+      (update-message-recipient self #f)
       (update-circle/join self)
       (layout-view interface)
       (layout-view root)
@@ -406,7 +406,7 @@
       (visible interface 'chat (not hide-chat?))
       (visible interface 'command-to (not hide-chat?))
       (visible interface 'command (not hide-chat?))
-      (update-to self)
+      (update-message-recipient self (list 'group joined-circle))
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
@@ -614,23 +614,26 @@
              (layout-view root)))))
   
   
-  (method (update-to self)
+  (method package (update-message-recipient self recipient)
     (let ((interface (current-interface)))
       (let ((to (child interface '(command-to to))))
-        (cond (selected-player
-               (set-title to selected-player)
+        (if (not recipient)
+            (begin
+              (set-title to "The gathering")
+              (set-color to {Color red: 32 green: 205 blue: 33})
+              (set! message-recipient recipient))
+          (bind (kind name) recipient
+            (case kind
+              ((player)
+               (set-title to name)
                (set-color to {Color World-Blue})
-               (set! message-recipient (list 'player selected-player)))
-              (selected-group
+               (set! message-recipient recipient))
+              ((group)
                (when (and (eq? stage 'circle)
-                          (equal? selected-group joined-circle))
-                 (set-title to selected-group)
+                          (equal? name joined-circle))
+                 (set-title to name)
                  (set-color to {Color World-Red})
-                 (set! message-recipient (list 'group selected-group))))
-              (else
-               (set-title to "The gathering")
-               (set-color to {Color red: 32 green: 205 blue: 33})
-               (set! message-recipient #f))))))
+                 (set! message-recipient recipient)))))))))
   
   
   ;;;
@@ -1299,8 +1302,7 @@
             (set! selected-group group)
             (set! selected-player player)
             (when (eq? stage 'gathering)
-              (update-circle/join self))
-            (update-to self))
+              (update-circle/join self)))
           
           (case kind
             ((player)
@@ -1326,7 +1328,6 @@
   
   
   (method package (focus-command-text self)
-    @wait-buggy
     (let ((interface (current-interface)))
       (let ((text (locate (child interface 'command) 'text)))
         (when (view-visible? text)
@@ -2434,14 +2435,23 @@
       (<content~>                              layout-type: fill
         (<Tree-Header>                         style: document shown?: #f
           (<content~>
-            (<Tree-View>          name: people portfolio: :images filled-column: person always-select?: #t background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+            (<People-Tree>        name: people portfolio: :images filled-column: person always-select?: #t background: #f action-handler: {Event-Handler :form on-action} selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
               (<Tree-Node-Column> name: person title: "Person" width: 235 toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
+  
+  
+  (method package (on-action self evt)
+    (let ((zone (current-zone)))
+      (let ((tree (get-sender evt)))
+        (let ((recipient (get-single-selected-data tree))
+              (previous-focus (get-previous-focus tree)))
+          (update-message-recipient zone recipient)
+          (when (is? previous-focus Command-Bar-Text-View)
+            (focus-command-text zone))))))
   
   
   (method package (on-selection-change self evt)
     (let ((zone (current-zone)))
-      (people-selection-change zone)
-      (focus-command-text zone)))
+      (people-selection-change zone)))
   
   
   (method package (on-double-click self evt)
@@ -2452,6 +2462,22 @@
   (method override (on-return-press self evt)
     (let ((zone (current-zone)))
       (people-return-press zone))))
+
+
+;;;
+;;;; People-Tree
+;;;
+
+
+(class People-Tree extends Tree-View
+  
+  
+  (slot previous-focus initialize #f getter generate)
+  
+  
+  (method override (mouse-down self evt)
+    (set! previous-focus (active-focus))
+    (nextmethod self evt)))
 
 
 ;;;
