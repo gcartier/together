@@ -1035,46 +1035,9 @@
   (method (install-experiments self)
     (add-experiment
       (new Experiment
-        "Show documents"
-        (lambda (feedback)
-          (show-documents-experiment self feedback))))
-    (add-experiment
-      (new Experiment
-        "Toggle camera framerate"
-        (lambda (feedback)
-          (camera-framerate-experiment self feedback))))
-    (add-experiment
-      (new Experiment
         "Toggle camera high resolution"
         (lambda (feedback)
           (camera-high-resolution-experiment self feedback)))))
-  
-  
-  (import (jiri.platform))
-  (method (show-documents-experiment self feedback)
-    (with-task-mutex
-      (lambda ()
-        (let ((dir (get-special-folder CSIDL_PERSONAL)))
-          (register-alias 'Yo (list dir)))))
-    (feedback (format "Documents: {a}" (parse {Directory Yo})))
-    (feedback (format "Documents exists: {a}" (exists? {Directory Yo})))
-    (sleep .5))
-  
-  
-  (method (camera-framerate-experiment self feedback)
-    (if (neq? stage 'circle)
-        (begin
-          (bell)
-          (feedback "Only available in circle"))
-      (with-task-mutex
-        (lambda ()
-          (let ((client (current-client)))
-            (camera-framerate? (not (camera-framerate?)))
-            (when (camera-playing? client)
-              (release-camera client)
-              (play-camera client)))))
-      (feedback (format "Camera framerate {a}" (if (camera-framerate?) "on" "off"))))
-    (sleep .5))
   
   
   (method (camera-high-resolution-experiment self feedback)
