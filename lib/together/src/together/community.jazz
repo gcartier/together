@@ -1074,11 +1074,21 @@
   
   (method (hierarchy-update self hierarchy)
     (let ((tree (people-tree self)))
+      (define (same-entity? x y)
+        (define (entity info)
+          (if (not info)
+              info
+            (bind (kind name) info
+              (cons kind name))))
+        
+        (equal? (entity x)
+                (entity y)))
+      
       (with-preserved-selection tree
         (lambda ()
           (view-hierarchy self hierarchy))
         use: 'data
-        test: equal?
+        test: same-entity?
         generate-event?: #t)
       (when (and auto-create
                  first-hierarchy?
