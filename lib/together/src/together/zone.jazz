@@ -221,7 +221,8 @@
 (class Name-View extends Border-View
   
   
-  (property action-view initialize #f accessors generate)
+  (property action-view  initialize #f accessors generate)
+  (property invalid-view initialize #f accessors generate)
   
   
   (form
@@ -236,14 +237,33 @@
   
   
   (method (content-changed self)
+    (define (name-invalid name)
+      (cond ((empty-string? name)
+             "")
+            ((eqv? (first name) #\space)
+             "Name cannot start with spaces")
+            ((eqv? (last name) #\space)
+             "Name cannot end with spaces")
+            ((not (every? (lambda (c)
+                            (or (eqv? c #\-)
+                                (eqv? c #\space)
+                                (alphanumeric? c)))
+                          name))
+             "Name can only contain letters, numbers, dashes and spaces")
+            (else
+             #f)))
+    
     (let ((zone (current-zone)))
       (let ((text (locate self 'text)))
-        (set-enabled? (child (get-root zone) action-view) (not (whitespace? (get-string-content text)))))))
+        (let ((invalid (name-invalid (get-string-content text))))
+          (set-enabled? (child (get-root zone) action-view) (not invalid))
+          (set-title (brother self invalid-view) (or invalid ""))))))
   
   
   (method (on-return self evt)
     (let ((zone (current-zone)))
-      (name-return zone)))
+      (when (get-enabled? (child (get-root zone) action-view))
+        (name-return zone))))
   
   
   (method (on-escape self evt)
@@ -265,6 +285,21 @@
   
   (method override (handle-escape? self)
     #t))
+
+
+;;;
+;;;; Name-Invalid
+
+
+(class Name-Invalid extends Label-View
+  
+  
+  (form
+    (<install> justification: center))
+  
+  
+  (method override (text-color self)
+    {Color World-Red}))
 
 
 ;;;
