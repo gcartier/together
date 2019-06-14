@@ -41,6 +41,7 @@
   (set-settings-alias 'Resources)
   (set-settings-root (determine-settings-root))
   (set-documents-root (determine-documents-root))
+  (set-options-setup setup-options)
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
@@ -63,6 +64,13 @@
     (connect-slave-to-master)))
 
 
+(definition (setup-options settings)
+  (for-each-property (lambda (property value)
+                       (set-setting settings property value))
+                     '(;; media
+                       world.video-layout         circle)))
+
+
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
@@ -71,8 +79,6 @@
                        ;; configure
                        world.render-rate          30.
                        world.render-rate-inactive 30.
-                       ;; media
-                       world.video-layout         circle
                        ;; keys
                        world.move-up              {Shortcut #\R}
                        ;; test
