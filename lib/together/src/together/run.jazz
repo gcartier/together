@@ -80,6 +80,7 @@
                        world.render-rate          30.
                        world.render-rate-inactive 30.
                        ;; keys
+                       world.arrow-movement?      #f
                        world.move-up              {Shortcut #\R}
                        ;; test
                        world.init-script          #f
