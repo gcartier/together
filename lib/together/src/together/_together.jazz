@@ -16,6 +16,7 @@
 
 (import (jazz.io)
         (jazz.version)
+        (jiri.platform (cond windows))
         (world))
 
 
@@ -48,12 +49,21 @@
 
 (definition protected (determine-documents-root)
   (cond-expand
-    (mac (cond-expand (prod   '(Home "Documents" "Together" "prod"))
-                      (stage  '(Home "Documents" "Together" "stage"))
-                      (triage '(Home "Documents" "Together" "triage"))
-                      (test   '(Home "Documents" "Together" "test"))
-                      (else   '(Home "Documents" "Together" "devel"))))
-    (else '(Settings))))
+    (mac
+     (cond-expand (prod   '(Home "Documents" "Together" "prod"))
+                  (stage  '(Home "Documents" "Together" "stage"))
+                  (triage '(Home "Documents" "Together" "triage"))
+                  (test   '(Home "Documents" "Together" "test"))
+                  (else   '(Home "Documents" "Together" "devel"))))
+    (windows
+     (let ((dir (get-special-folder CSIDL_PERSONAL)))
+       (cond-expand (prod   (list dir "Together" "prod"))
+                    (stage  (list dir "Together" "stage"))
+                    (triage (list dir "Together" "triage"))
+                    (test   (list dir "Together" "test"))
+                    (else   (list dir "Together" "devel")))))
+    (else
+     '(Settings))))
 
 
 ;;;
