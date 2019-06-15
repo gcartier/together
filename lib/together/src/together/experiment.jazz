@@ -1,0 +1,113 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Experiments
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.experiment jazz
+
+
+(import (jazz.platform)
+        (world)
+        (world.client.tier)
+        (world.context)
+        (world.task)
+        (world.video)
+        (together.zone))
+
+
+;;;
+;;;; Experiment
+;;;
+
+
+(definition protected experiments
+  '())
+
+(definition protected (add-experiment experiment)
+  (set! experiments (append experiments (list experiment))))
+
+(definition protected (remove-experiment experiment)
+  (set! experiments (remove! experiment experiments)))
+
+
+(class Experiment extends Object
+  
+  
+  (slot title    getter generate)
+  (slot action   getter generate)
+  (slot running? accessors generate)
+  
+  
+  (method override (initialize self title action)
+    (nextmethod self)
+    (set! self.title title)
+    (set! self.action action)
+    (set! self.running? #f))
+  
+  
+  (method override (print self output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{a}" title)))))
+
+
+;;;
+;;;; Experiments
+;;;
+
+
+(definition protected (install-experiments)
+  (add-experiment
+    (new Experiment
+      "Augment thread priority"
+      (lambda (feedback)
+        (augment-thread-priority feedback))))
+  (add-experiment
+    (new Experiment
+      "Toggle camera high resolution"
+      (lambda (feedback)
+        (camera-high-resolution feedback)))))
+
+
+(definition (augment-thread-priority feedback)
+  (define (gather-threads)
+    (sort < (map second (table-values (collect-threads-info)))))
+  
+  (cond-expand
+    (windows
+     (with-task-mutex
+       (lambda ()
+         (feedback (format "Before: {a}" (gather-threads)))
+         (let ((priority 1))
+           (let ((result (SetThreadPriority (GetCurrentThread) priority)))
+             (feedback (format "SetThreadPriority({a}): {a}" priority result))
+             (when (not result)
+               (feedback (format "GetLastError: {a}" (GetLastError))))))
+         (feedback (format "After: {a}" (gather-threads)))))
+     (sleep .5))
+    (else)))
+
+
+(definition (camera-high-resolution feedback)
+  (let ((client (current-client))
+        (zone (current-zone)))
+    (if (neq? (get-stage zone) 'circle)
+        (begin
+          (bell)
+          (feedback "Only available in circle"))
+      (with-task-mutex
+        (lambda ()
+          (camera-high-resolution? (not (camera-high-resolution?)))
+          (when (camera-playing? client)
+            (release-camera client)
+            (play-camera client))))
+      (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off")))))
+  (sleep .5)))

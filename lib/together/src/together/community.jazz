@@ -88,6 +88,7 @@
         (world.video)
         (world.window)
         (together)
+        (together.experiment)
         (together.network)
         (together.replay)
         (together.script)
@@ -164,7 +165,7 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
-        (install-experiments self)
+        (install-experiments)
         (set-escape-hook world (~ escape-press self))
         (set-unbind-camera? (world-setting 'together.unbind-camera? #f))
         (view-people self)
@@ -1034,35 +1035,6 @@
   
   
   ;;;
-  ;;;; Experiments
-  ;;;
-  
-  
-  (method (install-experiments self)
-    (add-experiment
-      (new Experiment
-        "Toggle camera high resolution"
-        (lambda (feedback)
-          (camera-high-resolution-experiment self feedback)))))
-  
-  
-  (method (camera-high-resolution-experiment self feedback)
-    (if (neq? stage 'circle)
-        (begin
-          (bell)
-          (feedback "Only available in circle"))
-      (with-task-mutex
-        (lambda ()
-          (let ((client (current-client)))
-            (camera-high-resolution? (not (camera-high-resolution?)))
-            (when (camera-playing? client)
-              (release-camera client)
-              (play-camera client)))))
-      (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off"))))
-    (sleep .5))
-  
-  
-  ;;;
   ;;;; Server
   ;;;
   
@@ -1553,7 +1525,7 @@
             (when experiment
               (let ((action (get-action experiment)))
                 (define (feedback message)
-                  (with-task-mutex
+                  (with-reentrant-task-mutex
                     (lambda ()
                       (let ((end (text-ending text)))
                         (let ((range (new Range$Cell$ end end)))
@@ -2554,42 +2526,6 @@
   (form
     (<install>
       (<caption~> title: "Keyboard Shortcuts"))))
-
-
-;;;
-;;;; Experiment
-;;;
-
-
-(definition protected experiments
-  '())
-
-(definition protected (add-experiment experiment)
-  (set! experiments (append experiments (list experiment))))
-
-(definition protected (remove-experiment experiment)
-  (set! experiments (remove! experiment experiments)))
-
-
-(class Experiment extends Object
-  
-  
-  (slot title    getter generate)
-  (slot action   getter generate)
-  (slot running? accessors generate)
-  
-  
-  (method override (initialize self title action)
-    (nextmethod self)
-    (set! self.title title)
-    (set! self.action action)
-    (set! self.running? #f))
-  
-  
-  (method override (print self output readably)
-    (print-unreadable self output
-      (lambda (output)
-        (format output "{a}" title)))))
 
 
 ;;;
