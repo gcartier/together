@@ -65,11 +65,14 @@
 
 
 (definition protected (install-experiments)
-  (add-experiment
-    (new Experiment
-      "Augment thread priority"
-      (lambda (feedback)
-        (augment-thread-priority feedback))))
+  (cond-expand
+    (windows
+     (add-experiment
+       (new Experiment
+         "Augment thread priority"
+         (lambda (feedback)
+           (augment-thread-priority feedback)))))
+    (else))
   (add-experiment
     (new Experiment
       "Toggle camera high resolution"
@@ -77,12 +80,12 @@
         (camera-high-resolution feedback)))))
 
 
-(definition (augment-thread-priority feedback)
-  (define (gather-threads)
-    (sort < (map second (table-values (collect-threads-info)))))
-  
-  (cond-expand
-    (windows
+(cond-expand
+  (windows
+   (definition (augment-thread-priority feedback)
+     (define (gather-threads)
+       (sort < (map second (table-values (collect-threads-info)))))
+     
      (with-task-mutex
        (lambda ()
          (feedback (format "Before: {a}" (gather-threads)))
@@ -92,8 +95,8 @@
              (when (not result)
                (feedback (format "GetLastError: {a}" (GetLastError))))))
          (feedback (format "After: {a}" (gather-threads)))))
-     (sleep .5))
-    (else)))
+     (sleep .5)))
+  (else))
 
 
 (definition (camera-high-resolution feedback)
