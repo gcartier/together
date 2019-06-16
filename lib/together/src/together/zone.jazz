@@ -223,6 +223,8 @@
   
   (property action-view  initialize #f accessors generate)
   (property invalid-view initialize #f accessors generate)
+  (property name-label   initialize #f accessors generate)
+  (property max-length   initialize #f accessors generate)
   
   
   (form
@@ -240,24 +242,23 @@
     (define (name-invalid name)
       (cond ((empty-string? name)
              "")
-            ((eqv? (first name) #\space)
-             "Name cannot start with spaces")
-            ((eqv? (last name) #\space)
-             "Name cannot end with spaces")
             ((not (every? (lambda (c)
                             (or (eqv? c #\-)
                                 (eqv? c #\space)
                                 (alphanumeric? c)))
                           name))
-             "Name can only contain letters, numbers, dashes and spaces")
+             (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
+            ((> (string-length name) max-length)
+             (format "{a} cannot be longer than {a} characters" name-label max-length))
             (else
              #f)))
     
     (let ((zone (current-zone)))
       (let ((text (locate self 'text)))
-        (let ((invalid (name-invalid (get-string-content text))))
-          (set-enabled? (child (get-root zone) action-view) (not invalid))
-          (set-title (brother self invalid-view) (or invalid ""))))))
+        (let ((name (trim-whitespace (get-string-content text))))
+          (let ((invalid (name-invalid name)))
+            (set-enabled? (child (get-root zone) action-view) (not invalid))
+            (set-title (brother self invalid-view) (or invalid "")))))))
   
   
   (method (on-return self evt)
