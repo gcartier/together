@@ -435,10 +435,10 @@
         (on-profile-network zone evt))))
   
   
-  (method (on-profile-heartbeat self evt)
+  (method (on-profile-pulse self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
-        (on-profile-heartbeat zone evt))))
+        (on-profile-pulse zone evt))))
   
   
   (method (on-request-replays self evt)
@@ -1261,7 +1261,7 @@
   (form
     (<install>                                        title: "Gathering"
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login.")
-      (<World-Action-Item> name: profile-heartbeat    title: "Profile heartbeat" visible?: #t shortcut: {Shortcut :alt :shift #\B} action-handler: {Event-Handler :application on-profile-heartbeat} description: "Profile heartbeat.")
+      (<World-Action-Item> name: profile-pulse        title: "Profile pulse" visible?: #t shortcut: {Shortcut :alt :shift #\P} action-handler: {Event-Handler :application on-profile-pulse} description: "Profile pulse.")
       (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network."))))
 
 

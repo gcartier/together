@@ -37,22 +37,22 @@
         (together))
 
 
-(definition protected heartbeat-upload
+(definition protected pulse-upload
   0)
 
-(definition protected heartbeat-download
+(definition protected pulse-download
   0)
 
-(definition protected heartbeat-values
+(definition protected pulse-values
   '(0 100 200 500 1000 2000 5000 10000 20000))
 
-(definition protected (cycle-heartbeat-upload (reversed?: reversed? #f))
-  (set! heartbeat-upload (or (cycle-element heartbeat-values heartbeat-upload cycle?: #f reversed?: reversed?) heartbeat-upload))
-  heartbeat-upload)
+(definition protected (cycle-pulse-upload (reversed?: reversed? #f))
+  (set! pulse-upload (or (cycle-element pulse-values pulse-upload cycle?: #f reversed?: reversed?) pulse-upload))
+  pulse-upload)
 
-(definition protected (cycle-heartbeat-download (reversed?: reversed? #f))
-  (set! heartbeat-download (or (cycle-element heartbeat-values heartbeat-download cycle?: #f reversed?: reversed?) heartbeat-download))
-  heartbeat-download)
+(definition protected (cycle-pulse-download (reversed?: reversed? #f))
+  (set! pulse-download (or (cycle-element pulse-values pulse-download cycle?: #f reversed?: reversed?) pulse-download))
+  pulse-download)
 
 
 (definition protected running-profile
@@ -62,18 +62,18 @@
 (class Network-Profile extends Object
   
   
-  (slot panel            getter generate)
-  (slot receive-thread   getter generate)
-  (slot heartbeat-thread getter generate)
-  (slot redraw-thread    getter generate)
-  (slot send-thread      getter generate)
+  (slot panel          getter generate)
+  (slot receive-thread getter generate)
+  (slot pulse-thread   getter generate)
+  (slot redraw-thread  getter generate)
+  (slot send-thread    getter generate)
   
   
-  (method override (initialize self panel receive-thread heartbeat-thread redraw-thread send-thread)
+  (method override (initialize self panel receive-thread pulse-thread redraw-thread send-thread)
     (nextmethod self)
     (set! self.panel panel)
     (set! self.receive-thread receive-thread)
-    (set! self.heartbeat-thread heartbeat-thread)
+    (set! self.pulse-thread pulse-thread)
     (set! self.redraw-thread redraw-thread)
     (set! self.send-thread send-thread)))
 
@@ -89,7 +89,7 @@
     (evolutionary-time evolution (last-position evolution))))
 
 
-(definition protected (profile-network (heartbeat?: heartbeat? #f))
+(definition protected (profile-network (pulse?: pulse? #f))
   (let ((interface (current-interface))
         (client (current-client))
         (world (current-world))
@@ -100,7 +100,7 @@
     (feedback "Profile network..." +inf.0)
     (start-profile client)
     (let ((udp-client (get-udp-client client))
-          (heartbeat-period (/ 1. 10.))
+          (pulse-period (/ 1. 10.))
           (redraw-period (/ 1. 2.))
           (base (current-monotonic))
           (recuperate 1.)
@@ -125,15 +125,15 @@
                         (receive-data udp-client data))
                       (loop))))
                 'receive))
-            (heartbeat-thread
+            (pulse-thread
               (new-thread
                 (lambda ()
                   (declare (proper-tail-calls))
                   (let (loop (n 0))
-                    (send-profile-heartbeat udp-client)
-                    (wait (* (cast <fl> n) heartbeat-period))
+                    (send-profile-pulse udp-client)
+                    (wait (* (cast <fl> n) pulse-period))
                     (loop (+ n 1))))
-                'heartbeat))
+                'pulse))
             (redraw-thread
               (new-thread
                 (lambda ()
@@ -148,8 +148,8 @@
                     (loop (+ n 1))))
                 'redraw)))
         (let ((send-thread
-                (and (or (not heartbeat?)
-                         (> heartbeat-upload 0))
+                (and (or (not pulse?)
+                         (> pulse-upload 0))
                      (new-thread
                        (lambda ()
                          (let ((start 0.))
@@ -189,19 +189,19 @@
                              (profile 16))
                            
                            (declare (proper-tail-calls))
-                           (cond (heartbeat?
-                                  (when (> heartbeat-download 0)
-                                    (test-profile client 'download (list heartbeat-download)))
-                                  (when (> heartbeat-upload 0)
-                                    (profile-upload heartbeat-upload feedback?: #f)))
+                           (cond (pulse?
+                                  (when (> pulse-download 0)
+                                    (test-profile client 'download (list pulse-download)))
+                                  (when (> pulse-upload 0)
+                                    (profile-upload pulse-upload feedback?: #f)))
                                  (else
                                   (wait (+ start recuperate))
                                   (increase! start recuperate)
                                   (profile-bandwiths profile-upload)
                                   (profile-bandwiths profile-download)
                                   (profile-bandwiths profile-both)))
-                           (exit-thread heartbeat-thread)
-                           (thread-join! heartbeat-thread)
+                           (exit-thread pulse-thread)
+                           (thread-join! pulse-thread)
                            (exit-thread redraw-thread)
                            (thread-join! redraw-thread)
                            (exit-thread receive-thread)
@@ -222,20 +222,20 @@
                                         (save-profile server-profile client-profile view-profile?: #f))))))))
                        'send))))
           (thread-base-priority-set! receive-thread udp-priority)
-          (thread-base-priority-set! heartbeat-thread udp-priority)
+          (thread-base-priority-set! pulse-thread udp-priority)
           (thread-base-priority-set! redraw-thread udp-priority)
           (when send-thread
             (thread-base-priority-set! send-thread udp-priority))
           (thread-start! receive-thread)
-          (thread-start! heartbeat-thread)
+          (thread-start! pulse-thread)
           (thread-start! redraw-thread)
           (when send-thread
             (thread-start! send-thread))
-          (set! running-profile (new Network-Profile panel receive-thread heartbeat-thread redraw-thread send-thread)))))))
+          (set! running-profile (new Network-Profile panel receive-thread pulse-thread redraw-thread send-thread)))))))
 
 
-(definition protected (profile-heartbeat)
-  (profile-network heartbeat?: #t))
+(definition protected (profile-pulse)
+  (profile-network pulse?: #t))
 
 
 (definition protected (save-profile server-profile client-profile (view-profile?: view-profile? #t))
@@ -268,14 +268,14 @@
   (let ((client (current-client)))
     (let ((panel (get-panel running-profile))
           (receive-thread (get-receive-thread running-profile))
-          (heartbeat-thread (get-heartbeat-thread running-profile))
+          (pulse-thread (get-pulse-thread running-profile))
           (redraw-thread (get-redraw-thread running-profile))
           (send-thread (get-send-thread running-profile)))
       (when send-thread
         (exit-thread send-thread)
         (thread-join! send-thread))
-      (exit-thread heartbeat-thread)
-      (thread-join! heartbeat-thread)
+      (exit-thread pulse-thread)
+      (thread-join! pulse-thread)
       (exit-thread redraw-thread)
       (thread-join! redraw-thread)
       (exit-thread receive-thread)
