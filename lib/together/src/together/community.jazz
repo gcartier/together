@@ -1006,6 +1006,7 @@
       (set-layout-circle-hook (~ layout-circle self))
       (set! draw-hook (~ draw-debug self))
       (register-draw-hook interface draw-hook)
+      (set-refresh-interface-hook (~ refresh-hook self))
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
       (set-sender-hook (child interface 'chat) (~ chat-sender self))
@@ -1026,6 +1027,7 @@
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
       (unregister-draw-hook interface draw-hook)
+      (set-refresh-interface-hook #f)
       (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
       (set-sender-hook (child interface 'chat) #f)
@@ -1784,6 +1786,21 @@
            (focus-no 5))
           (else
            #f)))))
+  
+  
+  ;;;
+  ;;;; Refresh
+  ;;;
+  
+  
+  (method (refresh-hook self)
+    (cond (show-debug?
+           #f)
+          ((and debug-media? (not auto-hide?))
+           (lambda ()
+             (invalidate-outputs (current-video))))
+          (else
+           #f)))
 
   
   ;;;
@@ -1806,7 +1823,6 @@
   (method (on-toggle-debug self evt)
     (when (eq? stage 'circle)
       (set-show-debug? (not show-debug?))
-      (set-always-refresh-interface? show-debug?)
       (invalidate-interface)))
   
   
