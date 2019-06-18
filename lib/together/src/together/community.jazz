@@ -1501,11 +1501,11 @@
       {Color White}))
   
   
-  (method package (experiment-action self)
-    (experiment-action-selected self))
+  (method package (experiment-action self clear?)
+    (experiment-action-selected self clear?))
   
   
-  (method (experiment-action-selected self)
+  (method (experiment-action-selected self clear?)
     (let ((tree (experiment-tree self))
           (text (experiment-text self)))
       (let ((row (get-selected-row tree)))
@@ -1532,7 +1532,8 @@
                           (replace (get-model text) range (list message ""))
                           (ensure-range-displayed text range))))))
                 
-                (empty-text text)
+                (when clear?
+                  (empty-text text))
                 (delay-event
                   (lambda ()
                     (set-running? experiment #t)
@@ -2557,7 +2558,8 @@
   
   (method package (on-action self evt)
     (let ((zone (current-zone)))
-      (experiment-action zone))))
+      (let ((clear? (get-shift? evt)))
+        (experiment-action zone clear?)))))
 
 
 ;;;
