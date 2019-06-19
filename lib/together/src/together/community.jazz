@@ -1725,22 +1725,29 @@
   
   (method package (shortcut-press-circle self shortcut)
     (define (focus-no no)
-      (when (developer?)
-        (let ((video (current-video)))
-          ;; useful to compare profiles
-          (define (find-by-level level)
-            (find-if (lambda (output)
-                       (eqv? (get-level output) level))
-                     (get-ordered-outputs video)))
-          
-          (define (find-nth rank)
-            (let ((outputs (get-ordered-outputs video)))
-              (and (< rank (length outputs))
-                   (element outputs rank))))
-          
-          (let ((output (find-nth (- no 1))))
-            (when output
-              (change-focused-output video output))))))
+      (let ((video (current-video)))
+        ;; useful to compare profiles
+        (define (find-by-level level)
+          (find-if (lambda (output)
+                     (eqv? (get-level output) level))
+                   (get-ordered-outputs video)))
+        
+        (define (find-nth rank)
+          (let ((outputs (get-ordered-outputs video)))
+            (and (< rank (length outputs))
+                 (element outputs rank))))
+        
+        (let ((output (find-nth (- no 1))))
+          (when output
+            (circle-switch-focus output)))))
+    
+    (define (cycle-focus reversed?)
+      (let ((video (current-video)))
+        (let ((focused (get-focused-output video))
+              (outputs (get-ordered-outputs video)))
+          (when focused
+            (let ((next (cycle-element outputs focused reversed?: reversed?)))
+              (circle-switch-focus next))))))
     
     (if (or (not (world-focused?))
             (neq? stage 'circle))
@@ -1784,6 +1791,10 @@
            (focus-no 4))
           (({Shortcut #\5})
            (focus-no 5))
+          (({Shortcut Tab})
+            (cycle-focus #f))
+          (({Shortcut :shift Tab})
+            (cycle-focus #t))
           (else
            #f)))))
   
