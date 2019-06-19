@@ -7,5 +7,6 @@
 /world
 /*.patch
 .configuration
+.jaz
 .jazzini
 .DS_Store
