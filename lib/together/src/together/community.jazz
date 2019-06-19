@@ -1043,13 +1043,15 @@
   
   (method (server-entered self character-name)
     (let ((world (current-world)))
-      (display-message world (format "{a} entered" character-name))))
+      (unless (eq? stage 'circle)
+        (display-message world (format "{a} entered" character-name)))))
   
   
   (method (server-exited self character-name disconnected?)
     (let ((world (current-world)))
-      (let ((message (if disconnected? "disconnected" "exited")))
-        (display-message world (format "{a} {a}" character-name message)))))
+      (unless (eq? stage 'circle)
+        (let ((message (if disconnected? "disconnected" "exited")))
+          (display-message world (format "{a} {a}" character-name message))))))
   
   
   (method (hierarchy-update self hierarchy)
@@ -1703,13 +1705,15 @@
   (method (stream-add self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (display-message world (format "{a} joined" (get-sender stream))))))
+        (unless (eq? stage 'circle)
+          (display-message world (format "{a} joined" (get-sender stream)))))))
   
   
   (method (stream-remove self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (display-message world (format "{a} left" (get-sender stream))))))
+        (unless (eq? stage 'circle)
+          (display-message world (format "{a} left" (get-sender stream)))))))
   
   
   (method (layout-circle self ordered-outputs)
