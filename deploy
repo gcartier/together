@@ -1,9 +1,17 @@
 #!/bin/sh
 
+if [ -f ".jaz" ]; then
+    source ".jaz"
+fi
+
 if [ -z "$1" ]; then
   # echo "No environment parameter"
   # exit 1
-  ENVIRONMENT="test"
+  if [ -z "$JAZCONF" ]; then
+    ENVIRONMENT="test"
+  else
+    ENVIRONMENT="$JAZCONF"
+  fi
 else
   ENVIRONMENT="$1"
   shift
