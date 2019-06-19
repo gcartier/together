@@ -23,13 +23,15 @@
 
 (definition monitor-directory
   (cond-expand
-    (devel {Directory Home ".together" "devel" "1.0.0" "work" "crashes"})
-    (test  {Directory Home ".together" "test" "1.0.0" "work" "crashes"})))
+    (devel  {Directory Home ".together" "devel" "1.0.0" "work" "crashes"})
+    (test   {Directory Home ".together" "test" "1.0.0" "work" "crashes"})
+    (triage {Directory Home ".together" "triage" "1.0.0" "work" "crashes"})))
 
 (definition monitor-remote
   (cond-expand
-    (devel "http://logs.togethersphere.com/devel")
-    (test  "http://logs.togethersphere.com/test")))
+    (devel  "http://logs.togethersphere.com/devel")
+    (test   "http://logs.togethersphere.com/test")
+    (triage "http://logs.togethersphere.com/triage")))
 
 
 (definition public (send-crash-reports)
