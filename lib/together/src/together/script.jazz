@@ -54,8 +54,9 @@
     (define (present-edited edited)
       (let ((spine (get-spine (get-asset edited))))
         (let ((name (filename-base (last spine)))
-              (path (butlast spine)))
-          (format "{a} ~{{l detail: :human}~}" name path))))
+              (path (butlast spine))
+              (modified? (script-modified? self)))
+          (format "{a}{?: *~} ~{{l detail: :human}~}" name modified? path))))
     
     (when edited
       (let ((toplevel (current-toplevel)))
@@ -85,7 +86,8 @@
   
   
   (method override (content-changed self range strings undo-range undo-strings)
-    )
+    (let ((manager (find-ascendant self Script-Manager)))
+      (edited-update manager)))
   
   
   (method override (evaluate-selection self)

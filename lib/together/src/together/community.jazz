@@ -1953,8 +1953,10 @@
             (panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (if (get-visible? panel)
-              (begin
-                (save-script manager)
+              (if (script-modified? manager)
+                  (begin
+                    (save-script manager)
+                    (edited-update manager))
                 (set-visible? panel #f)
                 (set-caption toplevel #f)
                 (focus-world))
