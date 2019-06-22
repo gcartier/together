@@ -19,6 +19,7 @@
         (jazz.io)
         (jazz.math)
         (jazz.stream)
+        (jazz.stream.syntax (phase syntax))
         (jazz.syntax (phase syntax))
         (jazz.zlib)
         (world)
@@ -106,7 +107,7 @@
                                     "oggmux"
                                     (format "filesink location={a}" (parse {File Documents "work" "test.ogg"}))))))
       (gst_object_set_name pipeline "output")
-      (let ((appsrc (gst_bin_get_by_name pipeline "src")))
+      (with-unref ((appsrc (gst_bin_get_by_name pipeline "src")))
         (case codec
           ((opus)
            (gst-app-src-set-caps appsrc "audio/x-opus"
