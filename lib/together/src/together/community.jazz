@@ -1815,7 +1815,7 @@
   
   (method (refresh-hook self)
     (cond (show-debug?
-           #f)
+           #t)
           ((and debug-media? (not auto-hide?))
            (lambda ()
              (invalidate-outputs (current-video))))
