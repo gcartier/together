@@ -1282,4 +1282,6 @@
       (<World-Action-Item> name: left-press           title: "Rotate left" visible?: #t shortcut: {Shortcut "Left Arrow"} description: "Left.")
       (<World-Action-Item> name: right-press          title: "Rotate right" visible?: #t shortcut: {Shortcut "Right Arrow"} description: "Right.")
       (<World-Action-Item> name: up-press             title: "Increase speed" visible?: #t shortcut: {Shortcut "Up Arrow"} description: "Up.")
-      (<World-Action-Item> name: down-press           title: "Decrease speed" visible?: #t shortcut: {Shortcut "Down Arrow"} description: "Down.")))))
+      (<World-Action-Item> name: down-press           title: "Decrease speed" visible?: #t shortcut: {Shortcut "Down Arrow"} description: "Down.")
+      (<World-Action-Item> name: tab-press            title: "Cycle focus" visible?: #t shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
+      (<World-Action-Item> name: number-press         title: "Change focus" visible?: #t shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image")))))
