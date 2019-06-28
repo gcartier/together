@@ -192,6 +192,7 @@
         (set-unbind-camera? #t)
         (set! stage #f)
         (no-showcase world)
+        (restore-fov)
         (uninstall-camera)))
     (nextmethod self))
   
@@ -966,7 +967,7 @@
         (close-receive-streams udp-client))
       (leave-group tier joined-circle)
       (circle-uninstall-camera)
-      (circle-restore-fov)
+      (restore-fov)
       (install-camera)
       (install-skybox zone (find-skybox together-skybox))
       (set! draw-grid? #f)
