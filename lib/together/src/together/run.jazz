@@ -79,6 +79,8 @@
                        ;; configure
                        world.render-rate          30.
                        world.render-rate-inactive 30.
+                       world.post-processing?     #t
+                       world.multisampling        1
                        ;; keys
                        world.arrow-movement?      #f
                        world.move-up              {Shortcut #\R}
