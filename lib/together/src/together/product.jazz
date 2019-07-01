@@ -86,24 +86,21 @@
 (definition install-name
   (cond-expand
     (mac
-     (cond-expand (debug
-                   "together-debug.app")
+     (cond-expand (test
+                   "together-test.app")
                   (triage
                    "together-triage.app")
-                  (test
-                   "together-test.app")
                   (prod
                    "together-prod.app")))
     (unix
-     (cond-expand (debug
-                   "Togetherd")
-                  (else
-                   "Together")))
+     "Together")
     (else
-     (cond-expand (debug
-                   "togetherd")
-                  (else
-                   "together")))))
+     (cond-expand (test
+                   "together-test")
+                  (triage
+                   "together-triage")
+                  (prod
+                   "together-prod")))))
 
 
 (definition (install descriptor)
