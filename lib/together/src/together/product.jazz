@@ -90,8 +90,10 @@
                    "together-debug.app")
                   (triage
                    "together-triage.app")
-                  (else
-                   "together-test.app")))
+                  (test
+                   "together-test.app")
+                  (prod
+                   "together-prod.app")))
     (unix
      (cond-expand (debug
                    "Togetherd")
