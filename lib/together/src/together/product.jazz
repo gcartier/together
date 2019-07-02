@@ -86,16 +86,23 @@
 (definition install-name
   (cond-expand
     (mac
-     (cond-expand (test
+     (cond-expand (devel
+                   "together-devel.app")
+                  (test
                    "together-test.app")
                   (triage
                    "together-triage.app")
                   (prod
                    "together-prod.app")))
     (unix
-     "Together")
+     (cond-expand (devel
+                   "Togetherd")
+                  (else
+                   "Together")))
     (else
-     (cond-expand (test
+     (cond-expand (devel
+                   "together-devel")
+                  (test
                    "together-test")
                   (triage
                    "together-triage")
