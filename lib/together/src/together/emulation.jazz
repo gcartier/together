@@ -379,8 +379,7 @@
                                                   (when (and origin-audio-header
                                                              (not audio-header-played?))
                                                     (play-header origin-audio-header))
-                                                  (let ((adjustment (evolutionary-udp-play-frame-adjustment evolution n)))
-                                                    (receive-visualizer-audio (current-audio) audio-output buffer (flonum->timestamp adjustment) duration))))))
+                                                  (receive-visualizer-audio (current-audio) audio-output buffer timestamp duration)))))
                                            ((udp-video)
                                             (if header?
                                                 (begin

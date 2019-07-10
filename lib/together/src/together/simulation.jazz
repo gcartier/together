@@ -124,7 +124,7 @@
 
 
 (definition (simulation-output)
-  (let ((output (new Simulation-Audio-Sink codec: audio-codec)))
+  (let ((output (new Simulation-Audio-Sink codec: audio-codec provider: audio-provider)))
     (play output)
     output))
 
@@ -145,13 +145,13 @@
             (receive (buffer timestamp duration) (read-frame reader)
               (when (and buffer (< count max))
                 (if (audio-buffer-header? buffer)
-                    (receive-audio audio output buffer 0 duration)
+                    (receive-audio audio output buffer timestamp duration)
                   (let ((time (current-seconds))
                         (nanostamp (+ (timestamp->flonum timestamp) 0. @w (* count .01))))
                     (update-start time-base time nanostamp)
                     (let ((sendtime (remote->local time-base nanostamp)))
                       (sleep (- sendtime time))
-                      (receive-audio audio output buffer 0 duration))))
+                      (receive-audio audio output buffer timestamp duration))))
                 (loop (+ count 1)))))
           (release output)
           (close reader))))))
