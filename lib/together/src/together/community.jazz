@@ -154,6 +154,11 @@
   (slot buttons-shown?    initialize #t getter generate)
   (slot disconnected?     initialize #f getter generate)
   
+  (cond-expand
+    (windows
+     (slot hide-last-mouse initialize #f getter generate))
+    (else))
+  
   
   (method override (zone-ready self)
     (nextmethod self)
@@ -650,7 +655,18 @@
   (method override (mouse-moved self x y)
     (unless (script-visible? self)
       (when (eq? stage 'circle)
-        (show-interface self #t))
+        (cond-expand
+          (windows
+           (let ((point (new Point$fl$ x y)))
+             ;; quick hack around windows sending
+             ;; mouse-moved every second even with
+             ;; the mouse not moving at all
+             (when (or (not hide-last-mouse)
+                       (nu/=? hide-last-mouse point))
+               (show-interface self #t)
+               (set! hide-last-mouse point))))
+          (else
+           (show-interface self #t))))
       (when (developer?)
         (show/hide-debug self (fxround x) (fxround y)))))
   
@@ -949,6 +965,9 @@
           (clear-message world)
           (uninstall-camera)
           (remove-skybox zone)
+          (cond-expand
+            (windows (set! hide-last-mouse #f))
+            (else))
           (set! joined-circle name)
           (set! circle-start (current-seconds))
           (install-circle-hooks self)
