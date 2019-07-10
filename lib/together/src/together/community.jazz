@@ -1759,6 +1759,21 @@
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
               (circle-switch-focus next))))))
     
+    (define (unmute-audio no)
+      (let ((audio (current-audio)))
+        (define (find-nth rank)
+          (let ((outputs (get-ordered-outputs audio)))
+            (and (< rank (length outputs))
+                 (element outputs rank))))
+        
+        (let ((output (find-nth (- no 1))))
+          (when output
+            (let ((circle-view (audio->circle-view output)))
+              (when circle-view
+                (let ((mute-view (child circle-view 'mute)))
+                  (when (get-muted? mute-view)
+                    (adjust-muted? mute-view #f)))))))))
+    
     (if (or (not (world-focused?))
             (neq? stage 'circle))
         #f
@@ -1805,6 +1820,16 @@
             (cycle-focus #f))
           (({Shortcut :shift Tab})
             (cycle-focus #t))
+          (({Shortcut :control #\1})
+           (unmute-audio 1))
+          (({Shortcut :control #\2})
+           (unmute-audio 2))
+          (({Shortcut :control #\3})
+           (unmute-audio 3))
+          (({Shortcut :control #\4})
+           (unmute-audio 4))
+          (({Shortcut :control #\5})
+           (unmute-audio 5))
           (else
            #f)))))
   
