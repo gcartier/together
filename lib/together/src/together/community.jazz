@@ -153,6 +153,7 @@
   (slot first-hierarchy?  initialize #t getter generate)
   (slot buttons-shown?    initialize #t getter generate)
   (slot disconnected?     initialize #f getter generate)
+  (slot chat-wide?        initialize #f getter generate)
   
   (cond-expand
     (windows
@@ -226,11 +227,11 @@
             (name (get-character-name configuration)))
         ;; common
         (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
-        (new Kind-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border)
-        (new Kind-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+        (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
         (let ((chat (child interface 'chat)))
           (set-border-type (child chat 'border) 'solid)
           (set-border-color (child chat 'border) {Color Dark-Gray})
@@ -360,11 +361,11 @@
       (hide interface 'streams)
       (show interface 'chat-label)
       (show interface 'chat)
-      (proportion interface 'chat '(220 (bounds -300)))
+      (proportion interface 'chat (chat-proportion self))
       (show interface 'command-to)
-      (location interface 'command-to '(-10 -158))
+      (location interface 'command-to (command-to-location self))
       (show interface 'command)
-      (location interface 'command '(-10 -146))
+      (location interface 'command (command-location self))
       (show root 'about)
       (title interface '(command-to to) "The gathering")
       (color interface '(command-to to) {Color red: 32 green: 205 blue: 33})
@@ -408,9 +409,9 @@
       (show interface 'profile)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
-      (proportion interface 'chat '(220 (bounds -354)))
-      (location interface 'command-to '(-10 -212))
-      (location interface 'command '(-10 -200))
+      (proportion interface 'chat (chat-proportion self))
+      (location interface 'command-to (command-to-location self))
+      (location interface 'command (command-location self))
       (visible interface 'chat-label (not hide-chat?))
       (visible interface 'chat (not hide-chat?))
       (visible interface 'command-to (not hide-chat?))
@@ -1338,6 +1339,10 @@
           (acquire-focus text)))))
   
   
+  (method package (people-label-action self)
+    )
+  
+  
   ;;;
   ;;;; Streams
   ;;;
@@ -1489,6 +1494,10 @@
                                (delay-streaming
                                  (lambda ()
                                    (play stream))))))))))))))))))
+  
+  
+  (method package (streams-label-action self)
+    )
   
   
   ;;;
@@ -1675,6 +1684,57 @@
   
   (method (command-escape self command)
     )
+  
+  
+  (method package (chat-label-action self)
+    (let ((interface (current-interface)))
+      (let ((chat-label (child interface 'chat-label))
+            (chat (child interface 'chat))
+            (command-to (child interface 'command-to))
+            (command (child interface 'command)))
+        (set! chat-wide? (not chat-wide?))
+        (set-size chat-label (chat-label-size self))
+        (set-proportion chat (chat-proportion self))
+        (set-size command-to (command-to-size self))
+        (set-location command-to (command-to-location self))
+        (set-size command (command-size self))
+        (set-location command (command-location self)))
+      (layout-view interface)))
+  
+  
+  (method (chat-label-size self)
+    (if chat-wide?
+        {Dimension 420 40}
+      {Dimension 220 40}))
+  
+  
+  (method (chat-proportion self)
+    `(,(if chat-wide? 420 220)
+      (bounds ,(if (eq? stage 'gathering) -300 -354))))
+  
+  
+  (method (command-to-size self)
+    (if chat-wide?
+        {Dimension 420 40}
+      {Dimension 220 40}))
+  
+  
+  (method (command-to-location self)
+    (if (eq? stage 'gathering)
+        '(-10 -158)
+      '(-10 -212)))
+  
+  
+  (method (command-size self)
+    (if chat-wide?
+        {Dimension 420 19}
+      {Dimension 220 19}))
+  
+  
+  (method (command-location self)
+    (if (eq? stage 'gathering)
+        '(-10 -146)
+      '(-10 -200)))
   
   
   ;;;
@@ -2468,6 +2528,23 @@
 
 
 ;;;
+;;;; People-Label
+;;;
+
+
+(class People-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
+  (method override (mouse-up self evt)
+    (let ((zone (current-zone)))
+      (people-label-action zone))))
+
+
+;;;
 ;;;; People-Panel
 ;;;
 
@@ -2540,6 +2617,23 @@
 
 
 ;;;
+;;;; Streams-Label
+;;;
+
+
+(class Streams-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
+  (method override (mouse-up self evt)
+    (let ((zone (current-zone)))
+      (streams-label-action zone))))
+
+
+;;;
 ;;;; Streams-Panel
 ;;;
 
@@ -2597,6 +2691,23 @@
   
   (method override (cell-color self color context)
     color))
+
+
+;;;
+;;;; Chat-Label
+;;;
+
+
+(class Chat-Label extends Label-View
+  
+  
+  (method override (text-color self)
+    {Color World-Ochre})
+  
+  
+  (method override (mouse-up self evt)
+    (let ((zone (current-zone)))
+      (chat-label-action zone))))
 
 
 ;;;
