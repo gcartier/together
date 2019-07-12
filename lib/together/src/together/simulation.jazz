@@ -191,7 +191,7 @@
                min))))))
 
 
-(definition public (sin-latency max (spikes? #f))
+(definition public (sin-latency (max 1.) (spikes? #f))
   (lambda (elapse)
     (let ((latency (/ (* (+ (sin elapse) 1.) max) 2.)))
       (if (and spikes? (< (random-real) .01))
