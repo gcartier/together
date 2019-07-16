@@ -999,6 +999,7 @@
           (<!>                 name: view-workspace            visible?: #t)
           (<!>                 name: clear-console             visible?: #t)
           (<!>                 name: clear-terminal            visible?: #t)
+          (<!>                 name: toggle-gc-sound           visible?: #t shortcut: {Shortcut :control :alt #\K})
           (<!>                 name: explore-interface         visible?: #t)
           (<!>                 name: toggle-axes               visible?: #t shortcut: {Shortcut :alt #\X})
           (<!>                 name: test                      visible?: #t)
