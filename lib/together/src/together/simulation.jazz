@@ -34,6 +34,7 @@
         (world.math)
         (world.server.udp)
         (world.settings)
+        (world.simulate)
         (world.simulation)
         (world.stream)
         (world.time)
@@ -162,43 +163,6 @@
 ;;;
 
 
-(definition public (rise-latency)
-  (lambda (elapse)
-    (/ elapse 10.)))
-
-
-(definition public (fall-latency)
-  (lambda (elapse)
-    (- 1. (/ elapse 10.))))
-
-
-(definition public (updown-latency (bottom: bottom 5.) (top: top 5.) (slope: slope 1.) (min: min 0.) (max: max .4))
-  (lambda (elapse)
-    (let ((a bottom)
-          (b (+ bottom slope))
-          (c (+ bottom slope top))
-          (d (+ bottom slope top slope)))
-      (let ((elapse (flmodulo elapse d)))
-        (cond ((< elapse a)
-               min)
-              ((< elapse b)
-               (interpolate elapse a b min max))
-              ((< elapse c)
-               max)
-              ((< elapse d)
-               (interpolate elapse c d max min))
-              (else
-               min))))))
-
-
-(definition public (sin-latency (max 1.) (spikes? #f))
-  (lambda (elapse)
-    (let ((latency (/ (* (+ (sin elapse) 1.) max) 2.)))
-      (if (and spikes? (< (random-real) .01))
-          (+ latency .3)
-        latency))))
-
-
 (definition public (simulate-audio location (name: name #f) (start: start #f) (end: end #f) (duration: duration #f) (latency: latency #f) (update-time: update-time #f) (save?: save? #t) (view?: view? #t))
   (declare (proper-tail-calls))
   (let ((world (current-world)))
@@ -253,11 +217,11 @@
                     (let ((elapse (- (read-udp-sent data) base-time)))
                       (/ (+ (sin (* elapse 8.)) 1.) 8.))))
                 
-                (define (writer data drop?)
+                (define (writer data info drop?)
                   (parameterize ((simulation-evolution receiver-evolution))
                     (receive-media receiver-tier udp-audio data)))
                 
-                (set-simulator origin-tier (new UDP-Simulator #f @w latencer #f #f writer))
+                (set-simulator origin-tier (new UDP-Simulator #f @w latencer #f writer))
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)

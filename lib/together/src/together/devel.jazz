@@ -170,6 +170,7 @@
         (world.settings)
         (world.shader)
         (world.shaders)
+        (world.simulate)
         (world.skybox)
         (world.sound)
         (world.spawn)
