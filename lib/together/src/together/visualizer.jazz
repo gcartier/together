@@ -183,14 +183,22 @@
   
   (method (setup-channels self)
     (let ((audio #f)
-          (video #f))
+          (video #f)
+          (level #f))
       (when stream
         (bind (sender name no origin source-kind video-level channels) stream
           (for-each (lambda (channel)
                       (bind (no origin media-kind) channel
                         (ecase media-kind
-                          ((udp-audio) (set! audio no))
-                          ((udp-video) (set! video no)))))
+                          ((udp-audio)
+                           (set! audio no))
+                          ((udp-video)
+                           ;; quick hack to choose the highest level
+                           ;; which most of the time is the right one
+                           (when (or (not level)
+                                     (> video-level level))
+                             (set! video no)
+                             (set! level video-level))))))
                     channels)))
       (set! channel-audio audio)
       (set! channel-video video)))
