@@ -146,7 +146,7 @@
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     ;; quick hack for timeless
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-insert-packet-timestamp evolution n))
+                                        (- time (evolutionary-udp-insert-packet-pts evolution n))
                                       time-base)))
                        (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
                    (let ((data (find-create sequence)))
@@ -295,7 +295,7 @@
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     ;; quick hack for timeless
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-insert-packet-timestamp evolution n))
+                                        (- time (evolutionary-udp-insert-packet-pts evolution n))
                                       time-base)))
                        (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
                    (let ((data (find-create sequence)))
@@ -358,7 +358,8 @@
                                                          (read-udp-media-payload (get-data (car packets)))
                                                        (let ((chunks (map read-udp-media-payload (map get-data packets))))
                                                          (apply u8vector-append chunks))))
-                                             (timestamp (flonum->timestamp (get-timestamp packet)))
+                                             (dts (flonum->timestamp (get-dts packet)))
+                                             (pts (flonum->timestamp (get-pts packet)))
                                              (duration (get-duration packet)))
                                          (ecase kind
                                            ((udp-audio)
@@ -368,8 +369,8 @@
                                                 (when (u8vector? buffer)
                                                   (let ((headers (u8vector->object buffer)))
                                                     (for-each (lambda (header)
-                                                                (bind (buffer timestamp duration) header
-                                                                  (receive-visualizer-audio (current-audio) audio-output buffer timestamp duration)))
+                                                                (bind (buffer dts pts duration) header
+                                                                  (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))
                                                               headers)
                                                     (set! audio-header-played? #t))))
                                               
@@ -379,14 +380,14 @@
                                                   (when (and origin-audio-header
                                                              (not audio-header-played?))
                                                     (play-header origin-audio-header))
-                                                  (receive-visualizer-audio (current-audio) audio-output buffer timestamp duration)))))
+                                                  (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))))
                                            ((udp-video)
                                             (if header?
                                                 (begin
                                                   (set! video-header-played? #t)
-                                                  (receive-visualizer-video (current-video) video-output buffer timestamp duration))
+                                                  (receive-visualizer-video (current-video) video-output buffer dts pts duration))
                                               (when video-header-played?
-                                                (receive-visualizer-video (current-video) video-output buffer timestamp duration))))))))))))))
+                                                (receive-visualizer-video (current-video) video-output buffer dts pts duration))))))))))))))
                        (visualizer-remove-frame ring))))))
               ;; lost
               ((udp-id-lost-packet)

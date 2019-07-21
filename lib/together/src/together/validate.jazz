@@ -63,20 +63,20 @@
                     (base #f)
                     (start-time #f)
                     (inserts suite))
-                (define (need-data kind origin sequence frame part total timestamp header?)
+                (define (need-data kind origin sequence frame part total dts pts header?)
                   (or (table-ref datas sequence #f)
                       (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4)))
                         (let ((data (make-u8vector header-size))
-                              (nanostamp (if (not timestamp)
-                                             -1.
-                                           (flonum->timestamp timestamp))))
+                              (nanodts (if (not dts) -1. (flonum->timestamp dts)))
+                              (nanopts (if (not pts) -1. (flonum->timestamp pts))))
                           (write-udp-kind data kind)
                           (write-udp-sender data origin)
                           (write-udp-sequence data sequence)
                           (write-udp-frame data frame)
                           (write-udp-part data part)
                           (write-udp-total data total)
-                          (write-udp-media-timestamp data nanostamp)
+                          (write-udp-media-dts data nanodts)
+                          (write-udp-media-pts data nanopts)
                           (write-udp-media-header? data header?)
                           (table-set! datas sequence data)
                           (parameterize ((simulation-evolution origin-evolution))
@@ -87,7 +87,8 @@
                                           (fixnum->flonum sequence)
                                           (fixnum->flonum frame)
                                           (barbara-header-hack header?)
-                                          timestamp)
+                                          dts
+                                          pts)
                             (record-event udp-id-create-info
                                           -1.
                                           (fixnum->flonum origin)
@@ -121,7 +122,7 @@
                                 (lambda ()
                                   (parameterize ((simulation? #t)
                                                  (simulation-evolution receiver-evolution))
-                                    (define (simulate header? timestamp seconds sequence frame part total)
+                                    (define (simulate header? dts pts seconds sequence frame part total)
                                       (let ((now (current-seconds)))
                                         (when (not start-time)
                                           (set! base now)
@@ -130,19 +131,19 @@
                                           (sleep (- time now))
                                           (when (or debug-validate? debug-insert?)
                                             (terminal 'insert sequence frame))
-                                          (let ((data (need-data media-kind origin sequence frame part total timestamp header?)))
+                                          (let ((data (need-data media-kind origin sequence frame part total dts pts header?)))
                                             (receive-media receiver-client media-kind data)))))
                                     
                                     (for-each (lambda (info)
                                                 (if (= media-kind udp-audio)
-                                                    (bind (timestamp seconds sequence) info
+                                                    (bind (dts pts seconds sequence) info
                                                       (let ((header? #f)
                                                             (frame (- sequence 2))
                                                             (part 0)
                                                             (total 1))
-                                                        (simulate header? timestamp seconds sequence frame part total)))
-                                                  (bind (header? timestamp seconds sequence frame part total) info
-                                                    (simulate header? timestamp seconds sequence frame part total))))
+                                                        (simulate header? dts pts seconds sequence frame part total)))
+                                                  (bind (header? dts pts seconds sequence frame part total) info
+                                                    (simulate header? dts pts seconds sequence frame part total))))
                                               inserts))
                                   ;; quicky give some time for process to finish
                                   (sleep .8)

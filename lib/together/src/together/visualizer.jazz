@@ -259,17 +259,19 @@
                         (sequence (evolutionary-udp-sequence origin-evolution create)))
                     (let ((info (locate-info create kind sequence)))
                       (when info
-                        (let ((data (let ((header-size (+ 8 4 2 2 4 4 4 4 8 8 4)))
+                        (let ((data (let ((header-size (+ 8 4 2 2 4 4 4 4 8 8 8 4)))
                                       (let ((origin (flonum->fixnum (evolutionary-udp-origin origin-evolution create)))
                                             (kind (flonum->fixnum (evolutionary-udp-kind origin-evolution create)))
                                             (frame (evolutionary-udp-frame origin-evolution create))
                                             (part (flonum->fixnum (evolutionary-udp-data2 origin-evolution info)))
                                             (total (flonum->fixnum (evolutionary-udp-data3 origin-evolution info)))
                                             (header? (= (evolutionary-udp-data3 origin-evolution create) 123456.))
-                                            (timestamp (evolutionary-udp-data4 origin-evolution create))
+                                            (dts (evolutionary-udp-data4 origin-evolution create))
+                                            (pts (evolutionary-udp-data5 origin-evolution create))
                                             (duration (evolutionary-udp-data4 origin-evolution info)))
                                         (let ((data (make-u8vector header-size))
-                                              (nanostamp (flonum->timestamp timestamp))
+                                              (nanodts (flonum->timestamp dts))
+                                              (nanopts (flonum->timestamp pts))
                                               (nanoduration (flonum->timestamp duration)))
                                           (write-udp-kind data kind)
                                           (write-udp-sender data origin)
@@ -278,7 +280,8 @@
                                           (write-udp-frame data frame)
                                           (write-udp-part data part)
                                           (write-udp-total data total)
-                                          (write-udp-media-timestamp data nanostamp)
+                                          (write-udp-media-dts data nanodts)
+                                          (write-udp-media-pts data nanopts)
                                           (write-udp-media-duration data (if (> nanoduration 18446744073709551615)
                                                                              18446744073709551615
                                                                            nanoduration))
@@ -726,7 +729,7 @@
           (time-base (get-time-base ring)))
       ;; quick test
       (when time-base
-        (let ((time (remote->local time-base (get-timestamp packet)))
+        (let ((time (remote->local time-base (get-pts packet)))
               (frame (get-frame packet)))
           (let ((h (interpolate now (+ time span) time after-x before-x))
                 (v (+ offset 4.))
@@ -776,10 +779,10 @@
               #f)))
         
         (define (describe-packet packet)
-          (format @too-much "Header {a}, timestamp {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+          (format @too-much "Header {a}, pts {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                   "Sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                   @too-much (if (get-header? packet) 'yes 'no)
-                  @too-much (get-timestamp packet)
+                  @too-much (get-pts packet)
                   @too-much (let ((duration (get-duration packet)))
                     (if (not duration)
                         (format "{a}" duration)

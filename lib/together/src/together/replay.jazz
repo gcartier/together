@@ -599,9 +599,9 @@
             
             (define (timestamp-time evolution n)
               (let ((base (evolutionary-udp-insert-packet-base evolution n))
-                    (timestamp (evolutionary-udp-insert-packet-timestamp evolution n)))
-                (and (/= timestamp -1.)
-                     (+ base timestamp))))
+                    (pts (evolutionary-udp-insert-packet-pts evolution n)))
+                (and (/= pts -1.)
+                     (+ base pts))))
             
             (loop (for n from first to last)
                   (let ((time (evolutionary-udp-time evolution n))
