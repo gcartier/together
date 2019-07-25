@@ -1940,7 +1940,7 @@
   (method (refresh-hook self)
     (cond (show-debug?
            #t)
-          ((and debug-media? (not auto-hide?))
+          ((and debug-stream (not auto-hide?))
            (lambda ()
              (invalidate-outputs (current-video))))
           (else
@@ -1973,9 +1973,22 @@
   (method (on-toggle-debug-media self evt)
     (when (eq? stage 'circle)
       (let ((video (current-video)))
-        (set-debug-media? (not debug-media?))
+        (set-debug-stream (if (eq? debug-stream 'media)
+                              #f
+                            'media))
         (invalidate-outputs video)
-        (when debug-media?
+        (when debug-stream
+          (show-interface self #t)))))
+  
+  
+  (method (on-toggle-debug-flow self evt)
+    (when (eq? stage 'circle)
+      (let ((video (current-video)))
+        (set-debug-stream (if (eq? debug-stream 'flow)
+                              #f
+                            'flow))
+        (invalidate-outputs video)
+        (when debug-stream
           (show-interface self #t)))))
   
   

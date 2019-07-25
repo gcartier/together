@@ -374,6 +374,12 @@
         (on-toggle-debug-media zone evt))))
   
   
+  (method (on-toggle-debug-flow self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-toggle-debug-flow zone evt))))
+  
+  
   (method (on-toggle-admin self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -1031,6 +1037,7 @@
           (<World-Action-Item> name: toggle-hide               visible?: #t shortcut: {Shortcut :alt :shift #\H} title: "Toggle hide" action-handler: {Event-Handler :application on-toggle-hide} description: "Toggle hide.")
           (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
           (<World-Action-Item> name: toggle-debug-media        visible?: #t shortcut: {Shortcut :alt :shift #\M} title: "Toggle debug media" action-handler: {Event-Handler :application on-toggle-debug-media} description: "Toggle debug media.")
+          (<World-Action-Item> name: toggle-debug-flow         visible?: #t shortcut: {Shortcut :alt :shift #\F} title: "Toggle debug flow" action-handler: {Event-Handler :application on-toggle-debug-flow} description: "Toggle debug flow.")
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
           (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
