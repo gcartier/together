@@ -2088,6 +2088,14 @@
        (goto-script/last self))))
   
   
+  (method (on-evaluate-script self evt)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (when edited-entity
+        (let ((asset (get-asset edited-entity)))
+          (execute-script world (get-path asset))))))
+  
+  
   (method (toggle-script self)
     (let ((interface (current-interface))
           (world (current-world)))

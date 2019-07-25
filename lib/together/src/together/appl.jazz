@@ -356,6 +356,12 @@
       (display-message world "Bookmarked!")))
   
   
+  (method (on-evaluate-script self evt)
+    (let ((zone (current-zone)))
+      (when (is? zone Community-Zone)
+        (on-evaluate-script zone evt))))
+  
+  
   (method (on-toggle-hide self evt)
     (let ((zone (current-zone)))
       (when (is? zone Community-Zone)
@@ -1032,6 +1038,7 @@
           (<World-Action-Item> name: edit-script9              visible?: #t shortcut: {Shortcut :control :alt #\9} title: "Edit script #9" action-handler: {Event-Handler :application on-edit-script9})
           (<World-Action-Item> name: edit-script0              visible?: #t shortcut: {Shortcut :control :alt #\0} title: "Edit script #0" action-handler: {Event-Handler :application on-edit-script0})
           (<World-Action-Item> name: toggle-script             visible?: #t shortcut: {Shortcut :control :alt #\S} title: "Toggle script" action-handler: {Event-Handler :application on-toggle-script} description: "Toggle script.")
+          (<World-Action-Item> name: evaluate-script           visible?: #t shortcut: {Shortcut :control Return} title: "Evaluate script" action-handler: {Event-Handler :application on-evaluate-script} description: "Evaluate script.")
           (<World-Action-Item> name: toggle-grid               visible?: #t shortcut: {Shortcut :alt #\G} title: "Grid" action-handler: {Event-Handler :application on-toggle-grid} description: "Display a grid that will be used to position elements added to the world.")
           (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-hide               visible?: #t shortcut: {Shortcut :alt :shift #\H} title: "Toggle hide" action-handler: {Event-Handler :application on-toggle-hide} description: "Toggle hide.")
