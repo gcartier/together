@@ -125,6 +125,9 @@
 (definition auto-join
   (world-setting 'together.auto-join #f))
 
+(definition auto-script
+  (world-setting 'together.auto-script #f))
+
 
 (definition protected show-dropped?
   (world-setting 'together.show-dropped? #f))
@@ -179,8 +182,10 @@
           (for-each (lambda (name)
                       (create-group client name #t))
                     (listify auto-create)))
-        (when auto-join
-          (join-circle self auto-join)))))
+        (cond (auto-join
+               (join-circle self auto-join))
+              (auto-script
+               (goto-script/last self))))))
   
   
   (method override (destroy self)
