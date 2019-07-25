@@ -25,6 +25,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.resource)
+        (jazz.stream)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -600,7 +601,7 @@
             (define (timestamp-time evolution n)
               (let ((base (evolutionary-udp-insert-packet-base evolution n))
                     (pts (evolutionary-udp-insert-packet-pts evolution n)))
-                (and (/= pts -1.)
+                (and (/= pts TIME_NONE)
                      (+ base pts))))
             
             (loop (for n from first to last)

@@ -231,7 +231,7 @@
                                       (let ((reader (new Stream-Reader file)))
                                         (set! audio-header (read-audio-header audio-codec reader))
                                         (when audio-header
-                                          (send-media origin-tier channel-no audio-header #t -1 GST_CLOCK_TIME_NONE))
+                                          (send-media origin-tier channel-no audio-header #t GST_CLOCK_TIME_NONE GST_CLOCK_TIME_NONE GST_CLOCK_TIME_NONE))
                                         (let (loop (count 0))
                                           (let ((time (current-seconds)))
                                             (receive (buffer dts pts duration) (read-frame reader)
@@ -409,8 +409,8 @@
                                   (fixnum->flonum sequence)
                                   (fixnum->flonum frame)
                                   (barbara-header-hack header?)
-                                  (if (= dts -1) -1. (timestamp->flonum dts))
-                                  (if (= pts -1) -1. (timestamp->flonum pts)))
+                                  (timestamp->flonum dts)
+                                  (timestamp->flonum pts))
                     (record-event udp-id-create-info
                                   -1.
                                   (fixnum->flonum sender)
@@ -418,9 +418,7 @@
                                   (fixnum->flonum sequence)
                                   (fixnum->flonum part)
                                   (fixnum->flonum total)
-                                  (if (= duration -1)
-                                      -1.
-                                    (timestamp->flonum duration)))
+                                  (timestamp->flonum duration))
                     data)))
               
               (let ((insert (new-thread
