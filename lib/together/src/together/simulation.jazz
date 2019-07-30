@@ -126,7 +126,7 @@
 
 (definition (simulation-output)
   (let ((output (new Simulation-Audio-Sink codec: audio-codec provider: audio-provider)))
-    (play output)
+    (start output)
     output))
 
 
