@@ -554,12 +554,15 @@
   (method protected (wake-process self)
     (with-task-mutex
       (lambda ()
-        (let ((client (current-client))
-              (world (current-world)))
-          (wake-to-server client)
-          (when disconnected?
-            (display-message world "Disconnected from circle" duration: 5.)
-            (set! disconnected? #f))))))
+        ;; this can occur if some other part of the
+        ;; system called bailout-client during wakeup
+        (when (client?)
+          (let ((client (current-client))
+                (world (current-world)))
+            (wake-to-server client)
+            (when disconnected?
+              (display-message world "Disconnected from circle" duration: 5.)
+              (set! disconnected? #f)))))))
   
   
   (method (on-about self evt)
