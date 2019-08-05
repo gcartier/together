@@ -853,10 +853,16 @@
   
   
   (method (on-toggle-denoise self evt)
-    (let ((world (current-world)))
+    (let ((client (current-client))
+          (world (current-world)))
       (when (eq? stage 'circle)
-        (set-audio-denoise? (not (get-audio-denoise?)))
-        (display-on/off world "Denoise" (get-audio-denoise?)))))
+        (set-audio-denoise? (not audio-denoise?))
+        (let ((mic-channel (get-mic-channel client)))
+          (when mic-channel
+            (let ((denoiser (get-denoiser (get-src (get-pipeline mic-channel)))))
+              (when denoiser
+                (set-denoising? denoiser audio-denoise?)))))
+        (display-on/off world "Denoise" audio-denoise?))))
   
   
   (method (on-toggle-audio self evt)
