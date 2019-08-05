@@ -130,6 +130,10 @@
   (world-setting 'together.auto-script #f))
 
 
+(definition edited-script
+  (world-setting 'together.edited-script #f))
+
+
 (definition protected show-dropped?
   (world-setting 'together.show-dropped? #f))
 
@@ -2120,9 +2124,11 @@
   (method (on-evaluate-script self evt)
     (let ((interface (current-interface))
           (world (current-world)))
-      (when edited-entity
-        (let ((asset (get-asset edited-entity)))
-          (execute-script world (get-path asset))))))
+      (cond (edited-entity
+             (let ((asset (get-asset edited-entity)))
+               (execute-script world (get-path asset))))
+            (edited-script
+             (execute-script world edited-script)))))
   
   
   (method (toggle-script self)
@@ -2145,12 +2151,13 @@
                   (begin
                     (recolorize-syntax text)
                     (edited-update manager))
-                (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
-                  (when script
-                    (let ((entity (register-asset-script script)))
-                      (set-edited-entity entity)
-                      (set-edited manager entity)
-                      (set-moniker text (get-file script))))))
+                (when edited-script
+                  (let ((script (find-script world edited-script)))
+                    (when script
+                      (let ((entity (register-asset-script script)))
+                        (set-edited-entity entity)
+                        (set-edited manager entity)
+                        (set-moniker text (get-file script)))))))
               (acquire-focus text))
             (set-visible? panel #t))))))
   
@@ -2168,13 +2175,14 @@
         (let ((manager (locate panel 'manager)))
           (let ((text (locate manager '(script text))))
             (when (not edited-entity)
-              (let ((script (find-script world (world-setting 'together.edited-script "test/replay"))))
-                (when script
-                  (call-setup-catalogs)
-                  (let ((entity (register-asset-script script)))
-                    (set-edited-entity entity)
-                    (set-edited manager entity)
-                    (set-moniker text (get-file script))))))
+              (when edited-script
+                (let ((script (find-script world edited-script)))
+                  (when script
+                    (call-setup-catalogs)
+                    (let ((entity (register-asset-script script)))
+                      (set-edited-entity entity)
+                      (set-edited manager entity)
+                      (set-moniker text (get-file script)))))))
             (goto-script self)
             (acquire-focus text))))))
   
