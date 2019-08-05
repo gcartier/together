@@ -83,6 +83,7 @@
         (world.streamer)
         (world.streaming)
         (world.task)
+        (world.time)
         (world.timeline)
         (world.udp)
         (world.video)
@@ -1183,25 +1184,6 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
-        (define (present-circle-duration duration)
-          (let ((date (time-monotonic->date (make-time 'time-monotonic 0 duration) 0))
-                (day (* 24 60 60)))
-            (let ((days (quotient duration day))
-                  (hours (date-hour date))
-                  (minutes (date-minute date))
-                  (seconds (date-second date)))
-              (cond ((and (= days 0)
-                          (= hours 0)
-                          (= minutes 0))
-                     (format "{a}s" seconds))
-                    ((and (= days 0)
-                          (= hours 0))
-                     (format "{a}m {a}s" minutes seconds))
-                    ((= days 0)
-                     (format "{a}h {a}m" hours minutes))
-                    (else
-                     (format "{a}d {a}h {a}m" days hours minutes))))))
-        
         (define (count-nacks kind)
           (let ((total 0)
                 (channels 0))
@@ -1225,7 +1207,7 @@
           (when (eq? stage 'circle)
             (when show-debug?
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-              (draw (format "{a}" (present-circle-duration (fxround (- (current-seconds) circle-start)))) {Color World-Ochre})
+              (draw (format "{a}" (present-duration (- (current-seconds) circle-start))) {Color World-Ochre})
               (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
               (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
               (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
