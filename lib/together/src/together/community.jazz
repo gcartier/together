@@ -1415,13 +1415,16 @@
                                 (let ((kind (determine-kind files)))
                                   (when kind
                                     (let ((location (and kind (join (subpath {Directory Documents} (car files)) "/"))))
-                                      (let ((streaming (find-streaming udp-client location)))
-                                        (let ((title (streaming-title self streaming base))
-                                              (color (streaming-color self streaming)))
-                                          (add-row tree
-                                                   father: father
-                                                   children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                                   user-data: (and kind (list kind base location))))))))))
+                                      (let ((location (if (eq? kind 'image)
+                                                          location
+                                                        (filename-spine location))))
+                                        (let ((streaming (find-streaming udp-client location)))
+                                          (let ((title (streaming-title self streaming base))
+                                                (color (streaming-color self streaming)))
+                                            (add-row tree
+                                                     father: father
+                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                                     user-data: (and kind (list kind base location)))))))))))
                             (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
                   (lambda (subdir)
