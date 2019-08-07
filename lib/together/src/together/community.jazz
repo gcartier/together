@@ -1385,7 +1385,7 @@
               (define (determine-kind files)
                 (let ((count (length files)))
                   (cond ((and (= count 1)
-                              (member? (get-extension (car files)) '("jpg" "jpeg") test: extension=?))
+                              (member? (get-extension (car files)) '("jpg" "jpeg" "png") test: extension=?))
                          'image)
                         ((and (= count 1)
                               (member? (get-extension (car files)) '("txt") test: extension=?))
@@ -1414,10 +1414,7 @@
                               (bind (base . files) partition
                                 (let ((kind (determine-kind files)))
                                   (when kind
-                                    (let ((location (and kind (filename-spine (join (subpath {Directory Documents} (car files)) "/")))))
-                                      ;; quick hack
-                                      (when (eq? kind 'image)
-                                        (set! location (string-append location ".jpg")))
+                                    (let ((location (and kind (join (subpath {Directory Documents} (car files)) "/"))))
                                       (let ((streaming (find-streaming udp-client location)))
                                         (let ((title (streaming-title self streaming base))
                                               (color (streaming-color self streaming)))
