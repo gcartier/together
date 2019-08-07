@@ -176,7 +176,7 @@
       ;; will be handled by the IDE itself which must thus be fully functional
       (if (get-controller-debugger)
           (attach-process local-debugger (get-local-process) #t)
-        (when #t;(and kernel-source-access? (world-setting 'world.debugger? #f))
+        (when (controlling-terminal?) ;; (and kernel-source-access? (world-setting 'world.debugger? #f))
           (attach-to-controller (get-local-register 'debugging) #t)
           (with-system-exception-debugger
             (lambda ()
