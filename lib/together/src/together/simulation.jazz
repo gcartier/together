@@ -376,8 +376,8 @@
               
               ;; mega quicky to test
               (define (need-data2 kind origin sequence frame part total buffer dts pts header?)
-                (let ((header-size (+ 8 4 4 4 4 4 4 8 8 4 (u8vector-length buffer))))
-                  (let ((data (make-u8vector header-size)))
+                (let ((size (+ (udp-media-header-size) (u8vector-length buffer))))
+                  (let ((data (make-u8vector size)))
                     (write-udp-kind data kind)
                     (write-udp-sender data origin)
                     (write-udp-sequence data sequence)
