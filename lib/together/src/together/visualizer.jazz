@@ -367,8 +367,8 @@
           (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
         (draw-text surface 80 3 stream-label visualizer-text-color)
         (draw-text surface 255 3 (ecase media-kind
-                                   ((udp-audio) (format "audio ({a})" channel-audio))
-                                   ((udp-video) (format "video ({a})" channel-video)))
+                                   ((udp-audio) "audio" @debug (format "audio ({a})" channel-audio))
+                                   ((udp-video) "video" @debug (format "video ({a})" channel-video)))
           visualizer-text-color)))
     (when selection-description
       (draw-text surface 335 3 selection-description visualizer-text-color))
@@ -449,6 +449,8 @@
            (let ((effective-name (if (> len cut)
                                      (format "{a}..." (substring stream-name 0 cut))
                                    stream-name)))
+             effective-name
+             @debug
              (format "{a} ({a})" effective-name (third stream))))))
   
   
