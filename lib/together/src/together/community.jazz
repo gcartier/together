@@ -1845,7 +1845,7 @@
   
   
   (method package (shortcut-press-circle self shortcut)
-    (define (focus-no no)
+    (define (focus-no no (unmute? #f))
       (let ((video (current-video)))
         ;; useful to compare profiles
         (define (find-by-level level)
@@ -1860,7 +1860,13 @@
         
         (let ((output (find-nth (- no 1))))
           (when output
-            (circle-switch-focus output)))))
+            (circle-switch-focus output)
+            (when unmute?
+              (let ((circle-view (circle-view output)))
+                (let ((mute-view (child circle-view 'mute)))
+                  (when (and (get-visible? mute-view)
+                             (get-muted? mute-view))
+                    (adjust-muted? mute-view #f)))))))))
     
     (define (cycle-focus reversed?)
       (let ((video (current-video)))
@@ -1869,21 +1875,6 @@
           (when focused
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
               (circle-switch-focus next))))))
-    
-    (define (unmute-audio no)
-      (let ((audio (current-audio)))
-        (define (find-nth rank)
-          (let ((outputs (get-ordered-outputs audio)))
-            (and (< rank (length outputs))
-                 (element outputs rank))))
-        
-        (let ((output (find-nth (- no 1))))
-          (when output
-            (let ((circle-view (audio->circle-view output)))
-              (when circle-view
-                (let ((mute-view (child circle-view 'mute)))
-                  (when (get-muted? mute-view)
-                    (adjust-muted? mute-view #f)))))))))
     
     (define (maybe-toggle-paused)
       (let ((video (current-video)))
@@ -1965,15 +1956,15 @@
           (({Shortcut :shift Tab})
             (cycle-focus #t))
           (({Shortcut :control #\1})
-           (unmute-audio 1))
+           (focus-no 1 #t))
           (({Shortcut :control #\2})
-           (unmute-audio 2))
+           (focus-no 2 #t))
           (({Shortcut :control #\3})
-           (unmute-audio 3))
+           (focus-no 3 #t))
           (({Shortcut :control #\4})
-           (unmute-audio 4))
+           (focus-no 4 #t))
           (({Shortcut :control #\5})
-           (unmute-audio 5))
+           (focus-no 5 #t))
           (({Shortcut :alt Space})
            (maybe-toggle-paused))
           (({Shortcut :alt Left})
