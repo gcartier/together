@@ -1042,6 +1042,7 @@
       (set-server-entered-hook tier (~ server-entered self))
       (set-server-exited-hook tier (~ server-exited self))
       (set-server-disconnected-hook tier (~ server-disconnected self))
+      (set-server-reconnected-hook tier (~ server-reconnected self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
@@ -1065,6 +1066,7 @@
       (set-server-entered-hook tier #f)
       (set-server-exited-hook tier #f)
       (set-server-disconnected-hook tier #f)
+      (set-server-reconnected-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
@@ -1098,6 +1100,11 @@
   (method (server-disconnected self character-name)
     (let ((world (current-world)))
       (display-message world (format "{a} disconnected" character-name))))
+  
+  
+  (method (server-reconnected self character-name)
+    (let ((world (current-world)))
+      (display-message world (format "{a} reconnected" character-name))))
   
   
   (method (hierarchy-update self hierarchy)
