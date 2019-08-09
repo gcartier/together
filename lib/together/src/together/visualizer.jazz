@@ -242,7 +242,7 @@
                                        media-kind)))
                               channels)))))
     
-    (set! media-kinds (collect-media-kinds origin stream))
+    (set! media-kinds (remove-duplicates (collect-media-kinds origin stream)))
     (set! media-kind (and (not-null? media-kinds) (car media-kinds))))
   
   
