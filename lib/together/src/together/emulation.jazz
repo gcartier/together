@@ -144,7 +144,6 @@
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
-                                    ;; quick hack for timeless
                                     (if (= time-base -1.)
                                         (- time (evolutionary-udp-insert-packet-pts evolution n))
                                       time-base)))
@@ -228,16 +227,14 @@
   
   
   (slot origin-audio                     getter generate)
-  (slot origin-audio-header              getter generate)
   (slot origin-video                     getter generate)
   (slot origin-evolution                 getter generate)
-  (slot audio-header-played?             getter generate)
   (slot video-header-played?             getter generate)
   (slot audio-output       initialize #f getter generate)
   (slot video-output       initialize #f getter generate)
   
   
-  (method override (initialize self call tier origin origin-audio origin-audio-header origin-video origin-evolution evolution audio-creates video-creates channel-name channel-audio channel-video)
+  (method override (initialize self call tier origin origin-audio audio-caps origin-video origin-evolution evolution audio-creates video-creates channel-name channel-audio channel-video)
     (nextmethod self call origin evolution audio-creates video-creates)
     (set! self.audio-no channel-audio)
     (set! self.video-no channel-video)
@@ -247,12 +244,10 @@
     (set! self.audio-ring (and audio-channel (get-process-ring audio-channel)))
     (set! self.video-ring (and video-channel (get-process-ring video-channel)))
     (set! self.origin-audio origin-audio)
-    (set! self.origin-audio-header origin-audio-header)
     (set! self.origin-video origin-video)
     (set! self.origin-evolution origin-evolution)
-    (set! self.audio-output (and origin-audio (visualizer-output (current-audio))))
+    (set! self.audio-output (and origin-audio (visualizer-output (current-audio) caps: audio-caps)))
     (set! self.video-output (and origin-video (visualizer-output (current-video) video-position video-size)))
-    (set! self.audio-header-played? #f)
     (set! self.video-header-played? #f))
   
   
@@ -293,7 +288,6 @@
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
-                                    ;; quick hack for timeless
                                     (if (= time-base -1.)
                                         (- time (evolutionary-udp-insert-packet-pts evolution n))
                                       time-base)))
@@ -334,7 +328,7 @@
                  (let ((packet (earliest-packet ring)))
                    (let ((consistent? (and packet (eqv? (get-frame packet) frame))))
                      (when #t @patch-around-audio-always-ending-up-non-consistent (if debug-visualize? (assert consistent? #t) consistent?)
-                       ;; we cannot rely on having the headers in the evolution
+                       ;; we cannot rely on having the video headers in the evolution
                        ;; on the other hand playing implies state ok or late...
                        (if (= id udp-id-play-frame)
                            (state-ok ring)
@@ -363,24 +357,8 @@
                                              (duration (get-duration packet)))
                                          (ecase kind
                                            ((udp-audio)
-                                            (let ()
-                                              (define (play-header buffer)
-                                                ;; quick backward compatibility hack
-                                                (when (u8vector? buffer)
-                                                  (let ((headers (u8vector->object buffer)))
-                                                    (for-each (lambda (header)
-                                                                (bind (buffer dts pts duration) header
-                                                                  (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))
-                                                              headers)
-                                                    (set! audio-header-played? #t))))
-                                              
-                                              (when (or playing? header?)
-                                                (if (and header? (eq? audio-codec 'vorbis))
-                                                    (play-header origin-audio-header @mega-quick-hack-for-simulation buffer)
-                                                  (when (and origin-audio-header
-                                                             (not audio-header-played?))
-                                                    (play-header origin-audio-header))
-                                                  (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))))
+                                            (when playing?
+                                              (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))
                                            ((udp-video)
                                             (if header?
                                                 (begin

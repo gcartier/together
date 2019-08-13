@@ -79,7 +79,6 @@
   (slot replay                initialize #f  accessors generate)
   (slot tier                  initialize #f  accessors generate)
   (slot origin-audio          initialize #f  getter generate)
-  (slot origin-audio-header   initialize #f  getter generate)
   (slot origin-video          initialize #f  getter generate)
   (slot origin-evolution      initialize #f  getter generate)
   (slot server-evolution      initialize #f  getter generate)
@@ -92,6 +91,7 @@
   (slot stream-name           initialize #f  getter generate)
   (slot stream-label          initialize #f  getter generate)
   (slot channel-audio         initialize #f  getter generate)
+  (slot channel-audio-caps    initialize #f  getter generate)
   (slot channel-video         initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
   (slot media-kind            initialize #f  getter generate)
@@ -183,15 +183,17 @@
   
   (method (setup-channels self)
     (let ((audio #f)
+          (audio-caps #f)
           (video #f)
           (level #f))
       (when stream
         (bind (sender name no origin source-kind video-level channels) stream
           (for-each (lambda (channel)
-                      (bind (no origin media-kind) channel
+                      (bind (no origin media-kind source-kind level resolution framerate bitrate codec caps) channel
                         (ecase media-kind
                           ((udp-audio)
-                           (set! audio no))
+                           (set! audio no)
+                           (set! audio-caps caps))
                           ((udp-video)
                            ;; quick hack to choose the highest level
                            ;; which most of the time is the right one
@@ -201,33 +203,21 @@
                              (set! level video-level))))))
                     channels)))
       (set! channel-audio audio)
+      (set! channel-audio-caps audio-caps)
       (set! channel-video video)))
   
   
   (method (setup-channel-rings self)
-    (define (audio-info)
-      (if (not channel-audio)
-          (values #f #f)
-        (let ((info (audio-ref replay channel-audio)))
-          (if (not info)
-              (values #f #f)
-            (bind (ring header) info
-              (values ring header))))))
+    (define (audio-ring)
+      (and channel-audio
+           (audio-ref replay channel-audio)))
     
-    (define (video-info)
-      (if (not channel-video)
-          (values #f #f)
-        (let ((info (video-ref replay channel-video)))
-          (if (not info)
-              (values #f #f)
-            (bind (ring header) info
-              (values ring header))))))
+    (define (video-ring)
+      (and channel-video
+           (video-ref replay channel-video)))
     
-    (receive (ring header) (audio-info)
-      (set! origin-audio ring)
-      (set! origin-audio-header header))
-    (receive (ring header) (video-info)
-      (set! origin-video ring)))
+    (set! origin-audio (audio-ring))
+    (set! origin-video (video-ring)))
   
   
   (method (setup-media-kinds self)
@@ -331,7 +321,7 @@
       (set! call (simulate-udp-call (get-metadatas replay)))
       (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates stream-name channel-audio channel-video))
       (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates stream-name channel-audio channel-video))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio origin-audio-header origin-video origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio channel-audio-caps origin-video origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
       (set-emulator (locate self 'sender) sender-emulator)
       (set-emulator (locate self 'server) server-emulator)
       (set-emulator (locate self 'receiver) receiver-emulator)
@@ -455,7 +445,7 @@
   
   
   (method protected (replay-simulation self)
-    (together.simulation:simulate-replay origin origin-audio origin-audio-header origin-video origin-evolution server-no tier)))
+    (together.simulation:simulate-replay origin origin-audio channel-audio-caps origin-video origin-evolution server-no tier)))
 
 
 ;;;
