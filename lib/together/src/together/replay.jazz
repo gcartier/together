@@ -601,8 +601,7 @@
             (define (timestamp-time evolution n)
               (let ((base (evolutionary-udp-insert-packet-base evolution n))
                     (pts (evolutionary-udp-insert-packet-pts evolution n)))
-                (and (/= pts TIME_NONE)
-                     (+ base pts))))
+                (+ base pts)))
             
             (loop (for n from first to last)
                   (let ((time (evolutionary-udp-time evolution n))
@@ -632,25 +631,24 @@
                            ;; timestamp-based experiment
                            @w
                            (let ((time (timestamp-time evolution n)))
-                             (when time
-                               (let ((h (when->h self from to span time)))
-                                 (set-color surface {Color Orange})
-                                 (let ((latency (evolutionary-udp-insert-packet-last-latency evolution n)))
-                                   (let ((v (fxround (- 55. (* latency latency-scale)))))
-                                     (when (not previous-timestamp-latency-h)
-                                       (let ((n (find-previous n id)))
-                                         (when n
-                                           (let ((time (timestamp-time evolution n)))
-                                             (when time
-                                               (let ((h (when->h self from to span time))
-                                                     (v (fxround (- 55. (* (evolutionary-udp-insert-packet-last-latency evolution n) latency-scale)))))
-                                                 (set! previous-timestamp-latency-h h)
-                                                 (set! previous-timestamp-latency-v v)))))))
-                                     (when previous-timestamp-latency-h
-                                       (move-to surface previous-timestamp-latency-h previous-timestamp-latency-v)
-                                       (line-to surface h v))
-                                     (set! previous-timestamp-latency-h h)
-                                     (set! previous-timestamp-latency-v v))))))))))))))))
+                             (let ((h (when->h self from to span time)))
+                               (set-color surface {Color Orange})
+                               (let ((latency (evolutionary-udp-insert-packet-last-latency evolution n)))
+                                 (let ((v (fxround (- 55. (* latency latency-scale)))))
+                                   (when (not previous-timestamp-latency-h)
+                                     (let ((n (find-previous n id)))
+                                       (when n
+                                         (let ((time (timestamp-time evolution n)))
+                                           (when time
+                                             (let ((h (when->h self from to span time))
+                                                   (v (fxround (- 55. (* (evolutionary-udp-insert-packet-last-latency evolution n) latency-scale)))))
+                                               (set! previous-timestamp-latency-h h)
+                                               (set! previous-timestamp-latency-v v)))))))
+                                   (when previous-timestamp-latency-h
+                                     (move-to surface previous-timestamp-latency-h previous-timestamp-latency-v)
+                                     (line-to surface h v))
+                                   (set! previous-timestamp-latency-h h)
+                                   (set! previous-timestamp-latency-v v)))))))))))))))
   
   
   (method override (plot-highlight self surface <Surface> from <fl> to <fl>)

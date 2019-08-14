@@ -724,8 +724,7 @@
     (let ((now (get-now panel))
           (selection-frame (get-selection-frame panel))
           (time-base (get-time-base ring)))
-      ;; quick test
-      (when (and time-base (/= (get-pts packet) TIME_NONE))
+      (when time-base
         (let ((time (remote->local time-base (get-pts packet)))
               (frame (get-frame packet)))
           (let ((h (interpolate now (+ time span) time after-x before-x))
