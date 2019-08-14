@@ -63,7 +63,7 @@
                     (base #f)
                     (start-time #f)
                     (inserts suite))
-                (define (need-data kind origin sequence frame part total dts pts header?)
+                (define (need-data kind origin sequence frame part total dts pts keyframe?)
                   (or (table-ref datas sequence #f)
                       (let ((header-size (udp-media-header-size)))
                         (let ((data (make-u8vector header-size))
@@ -77,7 +77,7 @@
                           (write-udp-total data total)
                           (write-udp-media-dts data nanodts)
                           (write-udp-media-pts data nanopts)
-                          (write-udp-media-header? data header?)
+                          (write-udp-media-keyframe? data keyframe?)
                           (table-set! datas sequence data)
                           (parameterize ((simulation-evolution origin-evolution))
                             (record-event udp-id-create-packet
@@ -86,7 +86,7 @@
                                           (fixnum->flonum kind)
                                           (fixnum->flonum sequence)
                                           (fixnum->flonum frame)
-                                          (barbara-header-hack header?)
+                                          (barbara-keyframe-hack keyframe?)
                                           dts
                                           pts)
                             (record-event udp-id-create-info
@@ -122,7 +122,7 @@
                                 (lambda ()
                                   (parameterize ((simulation? #t)
                                                  (simulation-evolution receiver-evolution))
-                                    (define (simulate header? dts pts seconds sequence frame part total)
+                                    (define (simulate keyframe? dts pts seconds sequence frame part total)
                                       (let ((now (current-seconds)))
                                         (when (not start-time)
                                           (set! base now)
@@ -131,19 +131,19 @@
                                           (sleep (- time now))
                                           (when (or debug-validate? debug-insert?)
                                             (terminal 'insert sequence frame))
-                                          (let ((data (need-data media-kind origin sequence frame part total dts pts header?)))
+                                          (let ((data (need-data media-kind origin sequence frame part total dts pts keyframe?)))
                                             (receive-media receiver-client media-kind data)))))
                                     
                                     (for-each (lambda (info)
                                                 (if (= media-kind udp-audio)
                                                     (bind (dts pts seconds sequence) info
-                                                      (let ((header? #f)
+                                                      (let ((keyframe? #f)
                                                             (frame (- sequence 2))
                                                             (part 0)
                                                             (total 1))
-                                                        (simulate header? dts pts seconds sequence frame part total)))
-                                                  (bind (header? dts pts seconds sequence frame part total) info
-                                                    (simulate header? dts pts seconds sequence frame part total))))
+                                                        (simulate keyframe? dts pts seconds sequence frame part total)))
+                                                  (bind (keyframe? dts pts seconds sequence frame part total) info
+                                                    (simulate keyframe? dts pts seconds sequence frame part total))))
                                               inserts))
                                   ;; quicky give some time for process to finish
                                   (sleep .8)

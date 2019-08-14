@@ -365,7 +365,7 @@
                     (and packet (get-data packet)))))
               
               ;; mega quicky to test
-              (define (need-data2 kind origin sequence frame part total buffer dts pts header?)
+              (define (need-data2 kind origin sequence frame part total buffer dts pts keyframe?)
                 (let ((size (+ (udp-media-header-size) (u8vector-length buffer))))
                   (let ((data (make-u8vector size)))
                     (write-udp-kind data kind)
@@ -377,7 +377,7 @@
                     (write-udp-media-dts data dts)
                     (write-udp-media-pts data pts)
                     (write-udp-media-payload data buffer)
-                    (write-udp-media-header? data header?)
+                    (write-udp-media-keyframe? data keyframe?)
                     data)))
               
               (define (record-data data)
@@ -388,7 +388,7 @@
                         (frame (read-udp-frame data))
                         (part (read-udp-part data))
                         (total (read-udp-total data))
-                        (header? (read-udp-media-header? data))
+                        (keyframe? (read-udp-media-keyframe? data))
                         (dts (read-udp-media-dts data))
                         (pts (read-udp-media-pts data))
                         (duration (read-udp-media-duration data)))
@@ -398,7 +398,7 @@
                                   (fixnum->flonum kind)
                                   (fixnum->flonum sequence)
                                   (fixnum->flonum frame)
-                                  (barbara-header-hack header?)
+                                  (barbara-keyframe-hack keyframe?)
                                   (timestamp->flonum dts)
                                   (timestamp->flonum pts))
                     (record-event udp-id-create-info
@@ -415,7 +415,7 @@
                               (lambda ()
                                 (parameterize ((simulation? #t)
                                                (simulation-evolution receiver-evolution))
-                                  ;; header mega hack
+                                  ;; keyframe mega hack
                                   (let ((first-sequence (loop (for n from (first-position origin-evolution) to (last-position origin-evolution))
                                                               (when (= (flonum->fixnum (evolutionary-udp-id origin-evolution n)) udp-id-create-packet)
                                                                 (return (evolutionary-udp-sequence origin-evolution n)))))
@@ -427,8 +427,8 @@
                                           (frame-mega-hack (- first-frame 1))
                                           (part 0)
                                           (total 1)
-                                          (header? #t))
-                                      (let ((data (need-data2 kind origin sequence-mega-hack frame-mega-hack part total #f -1 -1 header?)))
+                                          (keyframe? #t))
+                                      (let ((data (need-data2 kind origin sequence-mega-hack frame-mega-hack part total #f -1 -1 keyframe?)))
                                         (record-data data)
                                         (receive-media receiver-tier udp-audio data)
                                         (increase! sequence-mega-hack)
