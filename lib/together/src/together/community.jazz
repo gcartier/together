@@ -133,6 +133,9 @@
 (definition focus-unmute?
   (world-setting 'together.focus-unmute? #f))
 
+(definition navigate-shortcuts?
+  (world-setting 'together.navigate-shortcuts? #f))
+
 
 (definition edited-script
   (world-setting 'together.edited-script #f))
@@ -1920,14 +1923,20 @@
     (if (or (not (world-focused?))
             (neq? stage 'circle))
         #f
-      (let ((count (video-count)))
+      (let ((count (video-count))
+            (rotate-shortcut   (if navigate-shortcuts? {Shortcut :alt Space} {Shortcut Space}))
+            (left-shortcut     (if navigate-shortcuts? {Shortcut :alt Left} {Shortcut Left}))
+            (right-shortcut    (if navigate-shortcuts? {Shortcut :alt Right} {Shortcut Right}))
+            (pause-shortcut    (if navigate-shortcuts? {Shortcut Space} {Shortcut :alt Space}))
+            (backward-shortcut (if navigate-shortcuts? {Shortcut Left} {Shortcut :alt Left}))
+            (forward-shortcut  (if navigate-shortcuts? {Shortcut Right} {Shortcut :alt Right})))
         (nucase shortcut
-          (({Shortcut Left})
+          ((left-shortcut)
            (when (> count circle-max-fixed)
              (circle-left-rotation)
              (circle-install-camera))
            #t)
-          (({Shortcut Right})
+          ((right-shortcut)
            (when (> count circle-max-fixed)
              (circle-right-rotation)
              (circle-install-camera))
@@ -1940,7 +1949,7 @@
            (when (> count circle-max-fixed)
              (circle-decrease-speed))
            #t)
-          (({Shortcut Space})
+          ((rotate-shortcut)
            (when (> count circle-max-fixed)
              (circle-toggle-camera))
            #t)
@@ -1963,11 +1972,11 @@
             (cycle-focus #f))
           (({Shortcut :shift Tab})
             (cycle-focus #t))
-          (({Shortcut :alt Space})
+          ((pause-shortcut)
            (maybe-toggle-paused))
-          (({Shortcut :alt Left})
+          ((backward-shortcut)
            (maybe-seek-backward))
-          (({Shortcut :alt Right})
+          ((forward-shortcut)
            (maybe-seek-forward))
           (else
            #f)))))
