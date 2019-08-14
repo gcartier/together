@@ -1907,6 +1907,9 @@
               (let ((seek-view (child circle-view 'stream-seek)))
                 (if (not (get-visible? seek-view))
                     (bell)
+                  (let ((pause-view (child circle-view 'stream-pause)))
+                    (unless (get-paused? pause-view)
+                      (toggle-paused pause-view)))
                   (seek-backward seek-view))))))))
     
     (define (maybe-seek-forward)
@@ -1918,6 +1921,9 @@
               (let ((seek-view (child circle-view 'stream-seek)))
                 (if (not (get-visible? seek-view))
                     (bell)
+                  (let ((pause-view (child circle-view 'stream-pause)))
+                    (unless (get-paused? pause-view)
+                      (toggle-paused pause-view)))
                   (seek-forward seek-view))))))))
     
     (if (or (not (world-focused?))
