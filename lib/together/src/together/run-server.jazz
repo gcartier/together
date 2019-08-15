@@ -18,6 +18,7 @@
         (jazz.logger)
         (world)
         (world.profiling)
+        (world.server.presence)
         (together)
         (together.domain)
         (together.server))
@@ -52,6 +53,7 @@
 
 (definition protected (prepare-settings)
   (load-unit 'world.settings)
+  (setup-server-presence)
   (when start-tier-listener
     (start-tier-listener))
   (when connect-slave-to-master
