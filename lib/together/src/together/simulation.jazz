@@ -143,7 +143,7 @@
               (output (simulation-output))
               (max (or max 500)))
           (let (loop (count 0))
-            (receive (buffer dts pts duration) (read-frame reader)
+            (receive (buffer dts pts duration keyframe?) (read-frame reader)
               (when (and buffer (< count max))
                 (let ((time (current-seconds))
                       (nanopts (+ (timestamp->flonum pts) 0. @w (* count .01))))
@@ -226,7 +226,7 @@
                                       (let ((reader (new Stream-Reader file)))
                                         (let (loop (count 0))
                                           (let ((time (current-seconds)))
-                                            (receive (buffer dts pts duration) (read-frame reader)
+                                            (receive (buffer dts pts duration keyframe?) (read-frame reader)
                                               (when buffer
                                                 (let ((nanostamp (timestamp->flonum pts)))
                                                   (when (or (not base-nanostamp) (not end) (< (- nanostamp base-nanostamp) end))
@@ -238,7 +238,7 @@
                                                       (let ((sendtime (+ (remote->local time-base nanostamp)
                                                                          (determine-latency (- nanostamp start-nanostamp)))))
                                                         (sleep (- sendtime time))
-                                                        (send-media origin-tier channel-no buffer #f dts pts duration)))
+                                                        (send-media origin-tier channel-no buffer dts pts duration keyframe?)))
                                                     (loop (+ count 1))))))))
                                         (close reader))))
                                   ;; quicky give some time for process to finish
