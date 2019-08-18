@@ -197,8 +197,7 @@
                           ((udp-video)
                            ;; quick hack to choose the highest level
                            ;; which most of the time is the right one
-                           (when (or (not level)
-                                     (> video-level level))
+                           (when (> video-level level)
                              (set! video no)
                              (set! level video-level))))))
                     channels)))
