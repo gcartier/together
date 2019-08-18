@@ -600,8 +600,8 @@
             
             (define (timestamp-time evolution n)
               (let ((base (evolutionary-udp-insert-packet-base evolution n))
-                    (pts (evolutionary-udp-insert-packet-pts evolution n)))
-                (+ base pts)))
+                    (dts (evolutionary-udp-insert-packet-dts evolution n)))
+                (+ base dts)))
             
             (loop (for n from first to last)
                   (let ((time (evolutionary-udp-time evolution n))
