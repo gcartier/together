@@ -50,6 +50,7 @@
         (world.asset)
         (world.assets)
         (world.capabilities)
+        (world.circle)
         (world.client.actions)
         (world.client.bars)
         (world.configure)
@@ -1273,7 +1274,8 @@
         ;; Together
       (<Together-Actions>            name: together)
       (<Gathering-Actions>           name: gathering)
-      (<Circle-Actions>              name: circle))))
+      (<Circle-Actions>              name: circle)
+      (<Circle-View-Actions>         name: circle-view))))
 
 
 ;;;
