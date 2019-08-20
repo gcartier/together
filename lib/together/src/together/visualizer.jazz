@@ -185,9 +185,9 @@
     (let ((audio #f)
           (audio-caps #f)
           (video #f)
-          (level #f))
+          (video-level #f))
       (when stream
-        (bind (sender name no origin source-kind video-level channels) stream
+        (bind (sender name no origin source-kind level channels) stream
           (for-each (lambda (channel)
                       (bind (no origin media-kind source-kind level resolution framerate bitrate codec caps) channel
                         (ecase media-kind
@@ -197,9 +197,10 @@
                           ((udp-video)
                            ;; quick hack to choose the highest level
                            ;; which most of the time is the right one
-                           (when (> video-level level)
+                           (when (or (not video-level)
+                                     (> level video-level))
                              (set! video no)
-                             (set! level video-level))))))
+                             (set! video-level level))))))
                     channels)))
       (set! channel-audio audio)
       (set! channel-audio-caps audio-caps)
