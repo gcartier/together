@@ -970,6 +970,7 @@
   
   (method (join-circle self name)
     (let ((tier (current-client))
+          (udp (current-udp))
           (world (current-world))
           (zone (current-zone))
           (video (current-video)))
@@ -980,14 +981,9 @@
         (if (string? no/streams/exception)
             (display-error world no/streams/exception)
           (bind (no . streams) no/streams/exception
-            (let ((udp-client (get-udp-client tier)))
-              (when auto-live?
-                (require-live-stream tier))
-              (for-each (lambda (info)
-                          (bind (sender name stream-no origin source-kind video-level channels) info
-                            (stream-add tier no sender name stream-no origin source-kind video-level channels)))
-                        streams)
-              (start udp-client))
+            (when auto-live?
+              (require-live-stream tier))
+            (start udp)
             (when auto-live?
               (when auto-audio?
                 (play-mic tier))
@@ -1002,6 +998,10 @@
             (set! circle-name name)
             (set! circle-no no)
             (set! circle-start (current-seconds))
+            (for-each (lambda (info)
+                        (bind (sender name stream-no origin source-kind video-level channels) info
+                          (stream-add tier no sender name stream-no origin source-kind video-level channels)))
+                      streams)
             (install-circle-hooks self)
             (goto-stage self 'circle)
             (update-layouts video))))))
