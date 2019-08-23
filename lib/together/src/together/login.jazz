@@ -281,7 +281,8 @@
   
   
   (method (on-customize self evt)
-    (unless changing-name?
+    (if changing-name?
+        (end-change-name self)
       (change-name self)))
   
   
