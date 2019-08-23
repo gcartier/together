@@ -158,7 +158,8 @@
   (slot configuration     initialize #f getter generate)
   (slot selected-group    initialize #f getter generate)
   (slot selected-player   initialize #f getter generate)
-  (slot joined-circle     initialize #f getter generate)
+  (slot circle-name       initialize #f getter generate)
+  (slot circle-no         initialize #f getter generate)
   (slot circle-start      initialize #f getter generate)
   (slot message-recipient initialize #f getter generate)
   (slot view-focused      initialize #f getter generate)
@@ -418,7 +419,7 @@
       
       (set! root (child interface 'circle))
       (show root 'circle-name)
-      (title root 'circle-name joined-circle)
+      (title root 'circle-name circle-name)
       (show root 'toggle-people)
       (show root 'toggle-chat)
       (show root 'leave)
@@ -435,7 +436,7 @@
       (visible interface 'chat (not hide-chat?))
       (visible interface 'command-to (not hide-chat?))
       (visible interface 'command (not hide-chat?))
-      (update-message-recipient self (list 'group joined-circle))
+      (update-message-recipient self (list 'group circle-name))
       (layout-view interface)
       (layout-view root)
       (no-showcase world)
@@ -664,7 +665,7 @@
                (set! message-recipient recipient))
               ((group)
                (when (and (eq? stage 'circle)
-                          (equal? name joined-circle))
+                          (equal? name circle-name))
                  (set-title to name)
                  (set-color to {Color World-Red})
                  (set! message-recipient recipient)))))))))
@@ -958,9 +959,9 @@
       (let ((view (child root 'circle-view)))
         (let ((text (locate view 'text)))
           (let ((name (trim-whitespace (get-string-content text))))
-            (let ((exception (create-group tier name #f)))
-              (if exception
-                  (display-error world exception)
+            (let ((no/exception (create-group tier name #f)))
+              (if (string? no/exception)
+                  (display-error world no/exception)
                 (clear-message world)
                 (set-string-content text "")
                 (content-changed view)
@@ -975,33 +976,35 @@
       (reset-chronology)
       (reset-evolution)
       (bind-camera)
-      (let ((channels/exception (join-group tier name)))
-        (if (string? channels/exception)
-            (display-error world channels/exception)
-          (let ((udp-client (get-udp-client tier)))
+      (let ((no/streams/exception (join-group tier name)))
+        (if (string? no/streams/exception)
+            (display-error world no/streams/exception)
+          (bind (no . streams) no/streams/exception
+            (let ((udp-client (get-udp-client tier)))
+              (when auto-live?
+                (require-live-stream tier))
+              (for-each (lambda (info)
+                          (bind (sender name stream-no origin source-kind video-level channels) info
+                            (stream-add tier no sender name stream-no origin source-kind video-level channels)))
+                        streams)
+              (start udp-client))
             (when auto-live?
-              (require-live-stream tier))
-            (for-each (lambda (info)
-                        (bind (sender name stream-no origin source-kind video-level channels) info
-                          (stream-add tier sender name stream-no origin source-kind video-level channels)))
-                      channels/exception)
-            (start udp-client))
-          (when auto-live?
-            (when auto-audio?
-              (play-mic tier))
-            (when auto-video?
-              (play-camera tier)))
-          (clear-message world)
-          (uninstall-camera)
-          (remove-skybox zone)
-          (cond-expand
-            (windows (set! hide-last-mouse #f))
-            (else))
-          (set! joined-circle name)
-          (set! circle-start (current-seconds))
-          (install-circle-hooks self)
-          (goto-stage self 'circle)
-          (update-layouts video)))))
+              (when auto-audio?
+                (play-mic tier))
+              (when auto-video?
+                (play-camera tier)))
+            (clear-message world)
+            (uninstall-camera)
+            (remove-skybox zone)
+            (cond-expand
+              (windows (set! hide-last-mouse #f))
+              (else))
+            (set! circle-name name)
+            (set! circle-no no)
+            (set! circle-start (current-seconds))
+            (install-circle-hooks self)
+            (goto-stage self 'circle)
+            (update-layouts video))))))
   
   
   (method (leave-circle self)
@@ -1013,13 +1016,14 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (leave-group tier joined-circle)
+      (leave-group tier circle-name)
       (circle-uninstall-camera)
       (restore-fov)
       (install-camera)
       (install-skybox zone (find-skybox together-skybox))
       (set! draw-grid? #f)
-      (set! joined-circle #f)
+      (set! circle-name #f)
+      (set! circle-no #f)
       (goto-stage self 'gathering)))
   
   
@@ -1684,13 +1688,13 @@
     
     (define (group-recipient)
       (if (eq? stage 'circle)
-          joined-circle
+          circle-name
         #f))
     
     (define (selected-recipient message)
       (if (not message-recipient)
           (begin
-            (when joined-circle
+            (when circle-name
               (show-panel-say "The gathering" message))
             (values 'group #f message))
         (bind (what name) message-recipient
