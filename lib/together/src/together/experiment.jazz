@@ -65,14 +65,16 @@
 
 
 (definition protected (install-experiments)
-  (add-experiment
-    (new Experiment
-      "Toggle camera high resolution"
-      (lambda (feedback)
-        (camera-high-resolution feedback)))))
+  (for-each (lambda (resolution)
+              (add-experiment
+                (new Experiment
+                  (format "Camera {a}x{a}" (get-width resolution) (get-height resolution))
+                  (lambda (feedback)
+                    (select-camera-resolution resolution feedback)))))
+            decreasing-camera-resolutions))
 
 
-(definition (camera-high-resolution feedback)
+(definition (select-camera-resolution resolution feedback)
   (let ((client (current-client))
         (zone (current-zone)))
     (if (neq? (get-stage zone) 'circle)
@@ -81,9 +83,9 @@
           (feedback "Only available in circle"))
       (with-task-mutex
         (lambda ()
-          (camera-high-resolution? (not (camera-high-resolution?)))
+          (change-camera-resolution resolution)
           (when (camera-playing? client)
             (release-camera client)
             (play-camera client))))
-      (feedback (format "Camera high resolution {a}" (if (camera-high-resolution?) "on" "off")))))
+      (feedback (format "Camera resolution set to {a}x{a}" (get-width resolution) (get-height resolution)))))
   (sleep .25)))
