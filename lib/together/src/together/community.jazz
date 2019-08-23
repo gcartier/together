@@ -1434,6 +1434,7 @@
                                               files)))
                            (cond ((and audio? video?)
                                   'video)
+                                 @audio-only-not-supported-at-the-moment
                                  (audio?
                                   'audio)
                                  (video?
