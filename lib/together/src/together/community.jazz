@@ -1057,6 +1057,7 @@
       (set-server-disconnected-hook tier (~ server-disconnected self))
       (set-server-reconnected-hook tier (~ server-reconnected self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
+      (set-stream-addable-hook tier (~ stream-addable self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
       (set! draw-hook (~ draw-debug self))
@@ -1081,6 +1082,7 @@
       (set-server-disconnected-hook tier #f)
       (set-server-reconnected-hook tier #f)
       (set-hierarchy-update-hook tier #f)
+      (set-stream-addable-hook tier #f)
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
       (unregister-draw-hook interface draw-hook)
@@ -1144,6 +1146,14 @@
                  (> (get-visible-count tree) 3))
         (set-single-selection tree 3)
         (set! first-hierarchy? #f))))
+  
+  
+  ;; this rare case can happen if the server had just sent
+  ;; a stream-add moments before receiving our leave circle
+  (method (stream-addable self group-no)
+    (terminal group-no circle-no)
+    (or (not group-no)
+        (eqv? group-no circle-no)))
   
   
   ;;;
