@@ -586,8 +586,10 @@
         (set-visible? (child parent name) #t))
       
       (define (closer frame)
+        (show root 'name)
         (show root 'circle)
         (show root 'join)
+        (show interface 'profile)
         (show interface 'people-label)
         (show interface 'people)
         (show interface 'chat-label)
@@ -618,8 +620,10 @@
         (set-visible? (child parent name) #f))
       
       (set! view-focused (active-focus))
+      (hide root 'name)
       (hide root 'circle)
       (hide root 'join)
+      (hide interface 'profile)
       (hide interface 'people-label)
       (hide interface 'people)
       (hide interface 'streams-label)
