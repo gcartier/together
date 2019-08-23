@@ -71,7 +71,7 @@
                   (format "Camera {a}x{a}" (get-width resolution) (get-height resolution))
                   (lambda (feedback)
                     (select-camera-resolution resolution feedback)))))
-            decreasing-camera-resolutions))
+            (cache-decreasing-camera-resolutions)))
 
 
 (definition (select-camera-resolution resolution feedback)
