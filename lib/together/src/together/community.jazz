@@ -1151,7 +1151,6 @@
   ;; this rare case can happen if the server had just sent
   ;; a stream-add moments before receiving our leave circle
   (method (stream-addable self group-no)
-    (terminal group-no circle-no)
     (or (not group-no)
         (eqv? group-no circle-no)))
   
