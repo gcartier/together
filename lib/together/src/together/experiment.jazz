@@ -43,13 +43,15 @@
   
   (slot title    getter generate)
   (slot action   getter generate)
+  (slot clear?   getter generate)
   (slot running? accessors generate)
   
   
-  (method override (initialize self title action)
+  (method override (initialize self title action (clear? #f))
     (nextmethod self)
     (set! self.title title)
     (set! self.action action)
+    (set! self.clear? clear?)
     (set! self.running? #f))
   
   
