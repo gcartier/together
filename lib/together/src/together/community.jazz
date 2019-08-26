@@ -1907,6 +1907,10 @@
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
               (circle-switch-focus next))))))
     
+    (define (world/circle-focused?)
+      (or (world-focused?)
+          (is? (active-focus) Circle-View)))
+    
     (if (neq? stage 'circle)
         #f
       (nucase shortcut
@@ -1956,11 +1960,15 @@
          (focus-no 5)
          #t)
         (({Shortcut Tab})
-         (cycle-focus #f)
-         #t)
+         (and (world/circle-focused?)
+              (begin
+                (cycle-focus #f)
+                #t)))
         (({Shortcut :shift Tab})
-         (cycle-focus #t)
-         #t)
+         (and (world/circle-focused?)
+              (begin
+                (cycle-focus #t)
+                #t)))
         (else
          #f))))
   
