@@ -1936,8 +1936,10 @@
                 (circle-space)
                 #t)))
         (({Shortcut Return})
-         (circle-return)
-         #t)
+         (and (world-focused?)
+              (begin
+                (circle-return)
+                #t)))
         (({Shortcut #\1})
          (focus-no 1)
          #t)
