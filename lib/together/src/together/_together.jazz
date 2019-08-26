@@ -77,11 +77,11 @@
   (code-string->32-bit-integer "TWJG"))
 
 (definition public together-version
-  {Version 0 1 0 1 closed-alpha})
+  {Version 0 1 1 0 closed-alpha})
 
 
 (definition public together-release
-  "Jul 30 2019")
+  "Aug 26 2019")
 
 
 (set-presence-code together-code)
