@@ -14,16 +14,30 @@
 (module together.product-base jazz
 
 
-(import (jazz.git.foreign)
-        (jazz.io)
+(import (jazz.io)
         (jazz.time))
 
 
+;; not using libgit2 to not have a compilation
+;; dependency inside the build system and also
+;; because it has yet to be ported to unix
+(definition (repository-digest dir)
+  (let ((port
+          (open-process
+            (list
+              path: "git"
+              arguments: `("rev-parse" "HEAD")
+              directory: (parse dir)))))
+    (let ((status (process-status port)))
+      (assert (= status 0)
+        (read-line port)))))
+
+
 (definition protected (source-digests)
-  (values (repository-head-digest {Directory Together})
-          (repository-head-digest {Directory Together "world"})
-          (repository-head-digest {Directory Together "jiri"})
-          (repository-head-digest {Directory Together "jazz"})))
+  (values (repository-digest {Directory Together})
+          (repository-digest {Directory Together "world"})
+          (repository-digest {Directory Together "jiri"})
+          (repository-digest {Directory Together "jazz"})))
 
 
 (definition protected (generate-build-metadata filename)
