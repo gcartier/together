@@ -18,6 +18,7 @@
 
 (import (jazz.io)
         (world)
+        (world.build)
         (together)
         (together.domain))
 
@@ -33,7 +34,8 @@
   (set-documents-root (determine-documents-root))
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user developer admin))
-  (register-domain-names))
+  (register-domain-names)
+  (setup-build ".together-worker"))
 
 
 (definition protected (prepare-settings)

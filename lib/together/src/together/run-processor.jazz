@@ -16,6 +16,7 @@
 
 (import (jazz.io)
         (world)
+        (world.build)
         (world.profiling)
         (together)
         (together.domain))
@@ -36,6 +37,7 @@
   (set-valid-roles '(user developer admin))
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
+  (setup-build ".together-processor")
   (setup-profiling)
   (advise-sites))
 

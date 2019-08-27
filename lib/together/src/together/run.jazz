@@ -21,6 +21,7 @@
         (jazz.settings)
         (jazz.snapshot)
         (world)
+        (world.build)
         (world.profiling)
         (together)
         (together.domain))
@@ -52,6 +53,7 @@
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
   (register-domain-names)
+  (setup-build ".together")
   (setup-profiling)
   (advise-sites))
 
