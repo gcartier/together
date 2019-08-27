@@ -15,7 +15,8 @@
 
 
 (import (jazz.io)
-        (jazz.product))
+        (jazz.product)
+        (together.product-base))
 
 
 ;;;
@@ -65,6 +66,7 @@
     
     (build-product-descriptor descriptor unit: unit force?: force?)
     (initialize-aliases)
+    (generate-build-metadata ".together-processor")
     (copy-info)
     (copy-assets)
     (copy-templates)))

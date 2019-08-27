@@ -14,7 +14,8 @@
 (module together.product-worker jazz
 
 
-(import (jazz.io))
+(import (jazz.io)
+        (together.product-base))
 
 
 ;;;
@@ -63,6 +64,7 @@
     
     (build-product-descriptor descriptor unit: unit force?: force?)
     (initialize-aliases)
+    (generate-build-metadata ".together-worker")
     (copy-assets)))
 
 

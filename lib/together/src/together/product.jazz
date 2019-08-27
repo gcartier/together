@@ -15,7 +15,9 @@
 
 
 (import (jazz.io)
-        (jazz.product))
+        (jazz.product)
+        (jazz.time)
+        (together.product-base))
 
 
 ;;;
@@ -65,6 +67,7 @@
     
     (build-product-descriptor descriptor unit: unit skip-references?: skip-references? force?: force?)
     (initialize-aliases)
+    (generate-build-metadata ".together")
     (copy-info)
     (copy-assets)
     (copy-templates)))

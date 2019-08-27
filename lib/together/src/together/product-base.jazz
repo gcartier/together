@@ -1,0 +1,39 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Product Base
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.product-base jazz
+
+
+(import (jazz.git.foreign)
+        (jazz.io)
+        (jazz.time))
+
+
+(definition protected (source-digests)
+  (values (repository-head-digest {Directory Together})
+          (repository-head-digest {Directory Together "world"})
+          (repository-head-digest {Directory Together "jiri"})
+          (repository-head-digest {Directory Together "jazz"})))
+
+
+(definition protected (generate-build-metadata filename)
+  (let ((file (new-file {Directory Build} filename)))
+    (call-with-output-file (path-settings file)
+      (lambda (output)
+        (format output "date: {s}{%}" (system-date))
+        (format output "sources: (")
+        (receive (together world jiri jazz) (source-digests)
+          (format output "(together . {s}){%}" together)
+          (format output "          (world . {s}){%}" world)
+          (format output "          (jiri . {s}){%}" jiri)
+          (format output "          (jazz . {s})){%}" jazz)))))))
