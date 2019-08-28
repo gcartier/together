@@ -130,22 +130,33 @@
 
 (definition (install-valid?)
   (define (inside-installer?)
-    (define (together-app? name)
-      (and (starts-with? name "Together")
-           (ends-with? name ".app")))
-    
-    (and kernel-bundle-root
-         (let ((root (new Directory (tokenise-filename kernel-bundle-root))))
-           (and (together-app? (get-name root))
-                (let ((apps (get-parent root)))
-                  (and (filename=? (get-name apps) "Apps")
-                       (exists? (new-directory apps "Update.app"))
-                       (let ((contents (get-parent apps)))
-                         (and (filename=? (get-name contents) "Contents")
-                              (exists? (new-directory contents "MacOS"))
-                              (exists? (new-directory contents "Worlds"))
-                              (let ((app (get-parent contents)))
-                                (together-app? (get-name app)))))))))))
+    (cond-expand
+      (mac
+       (and kernel-bundle-root
+            (let ((together (new Directory (tokenise-filename kernel-bundle-root))))
+              (define (together-app? name)
+                (and (starts-with? name "Together")
+                     (ends-with? name ".app")))
+              
+              (and (together-app? (get-name together))
+                   (let ((apps (get-parent together)))
+                     (and (filename=? (get-name apps) "Apps")
+                          (exists? (new-directory apps "Update.app"))
+                          (let ((contents (get-parent apps)))
+                            (and (filename=? (get-name contents) "Contents")
+                                 (exists? (new-directory contents "MacOS"))
+                                 (exists? (new-directory contents "Worlds"))
+                                 (let ((installer (get-parent contents)))
+                                   (together-app? (get-name installer)))))))))))
+      (else
+       (let ((together (new Directory (tokenise-filename kernel-install))))
+         (and (filename=? (get-name together) "together")
+              (let ((app (get-parent together)))
+                (and (filename=? (get-name app) "app")
+                     (exists? (new-directory app "update"))
+                     (let ((installer (get-parent app)))
+                       (and (exists? (new-directory installer "worlds"))
+                            (exists? (new-file installer (add-extension "together" (executable-extension kernel-platform)))))))))))))
   
   (if (and (inside-installer?)
            (not (equal? (string-argument "called-from" #f)
