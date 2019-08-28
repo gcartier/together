@@ -23,6 +23,7 @@
                               together.emulation
                               together.exception
                               together.experiment
+                              together.git
                               together.login
                               together.network
                               together.process

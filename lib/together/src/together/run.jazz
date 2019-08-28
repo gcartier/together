@@ -24,7 +24,8 @@
         (world.build)
         (world.profiling)
         (together)
-        (together.domain))
+        (together.domain)
+        (together.git))
 
 
 (definition (prepare-logger)
@@ -53,9 +54,22 @@
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
   (register-domain-names)
+  (register-binaries)
   (setup-build ".together")
   (setup-profiling)
   (advise-sites))
+
+
+(definition (register-binaries)
+  (when (equal? (string-argument "called-from" #f)
+                "installer")
+    (let ((dirname (cond-expand
+                     (mac kernel-bundle-root)
+                     (else kernel-install))))
+      (let ((dir (new Directory (tokenise-filename dirname))))
+        (when (exists? dir)
+          (let ((digest (repository-digest dir)))
+            (add-snapshot-property 'binaries digest)))))))
 
 
 (definition protected (prepare-settings)
