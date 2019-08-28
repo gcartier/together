@@ -82,10 +82,12 @@
 
 
 (definition protected (setup-presence)
-  (set-presence-code (cond-expand
-                       (devel together-code)
-                       (else build-digest)))
-  (set-presence-version together-version))
+  (let ((code (cond-expand
+                (devel together-code)
+                (else build-digest))))
+    (set-udp-code code)
+    (set-presence-code code)
+    (set-presence-version together-version)))
 
 
 ;;;
