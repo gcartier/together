@@ -49,6 +49,7 @@
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-build ".together-server")
+  (setup-presence)
   (setup-profiling)
   (advise-sites))
 

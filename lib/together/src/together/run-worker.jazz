@@ -35,7 +35,8 @@
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user developer admin))
   (register-domain-names)
-  (setup-build ".together-worker"))
+  (setup-build ".together-worker")
+  (setup-presence))
 
 
 (definition protected (prepare-settings)

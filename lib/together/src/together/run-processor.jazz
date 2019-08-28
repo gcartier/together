@@ -38,6 +38,7 @@
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-build ".together-processor")
+  (setup-presence)
   (setup-profiling)
   (advise-sites))
 
