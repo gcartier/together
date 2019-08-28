@@ -19,7 +19,8 @@
         (jazz.presence.transmission)
         (jazz.version)
         (jiri.platform (cond windows))
-        (world))
+        (world)
+        (world.build))
 
 
 ;;;
@@ -78,10 +79,6 @@
 
 (definition public together-version
   {Version 0 1 1 0 closed-alpha})
-
-
-(definition public together-release
-  "Aug 26 2019")
 
 
 (set-presence-code together-code)

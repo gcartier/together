@@ -15,6 +15,7 @@
 
 
 (import (jazz.markup)
+        (world.build)
         (world.io)
         (world.process)
         (together)
@@ -37,7 +38,7 @@
   
   
   (method override (process-release self)
-    together-release)
+    (build-short-date))
   
   
   (method override (process-debugger self)

@@ -135,7 +135,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((version (process-version (current-process)))
-            (date (date->string (build-date) "~b ~d ~Y"))
+            (date (build-short-date))
             (name (and configuration (get-character-name configuration))))
         (let ((root (new Together-Root name: 'login parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
           (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})

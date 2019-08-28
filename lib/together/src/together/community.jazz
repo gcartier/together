@@ -242,7 +242,7 @@
   (method (install-zone self)
     (let ((interface (current-interface)))
       (let ((version (process-version (current-process)))
-            (date (date->string (build-date) "~b ~d ~Y"))
+            (date (build-short-date))
             (name (get-character-name configuration)))
         ;; common
         (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
