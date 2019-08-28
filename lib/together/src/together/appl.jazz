@@ -230,6 +230,7 @@
                           (set-edited manager entity)
                           (set-string-content text content)
                           (set-text (get-script entity) content)
+                          @a-bit-too-much-especially-when-errors
                           (execute-script world edited-path))))))))))))
     (nextmethod self))
   
