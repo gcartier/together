@@ -189,7 +189,7 @@
       (when stream
         (bind (sender name no origin source-kind level channels) stream
           (for-each (lambda (channel)
-                      (bind (no origin media-kind source-kind level resolution framerate bitrate codec caps) channel
+                      (bind (no media-kind source-kind level resolution framerate bitrate codec caps) channel
                         (ecase media-kind
                           ((udp-audio)
                            (set! audio no)
@@ -227,7 +227,7 @@
           '()
         (bind (sender name no origin source-kind video-level channels) stream
           (sort nu<? (collect (lambda (channel)
-                                (bind (no origin media-kind) channel
+                                (bind (no media-kind) channel
                                   (and (= origin target-origin)
                                        media-kind)))
                               channels)))))
