@@ -64,7 +64,6 @@
         (<Jazz-File>       name: exception          source: {File :context "src" "together" "exception.jazz"})
         (<Jazz-File>       name: server             source: {File :context "src" "together" "server.jazz"})
         (<Jazz-File>       name: experiment         source: {File :context "src" "together" "experiment.jazz"})
-        (<Jazz-File>       name: product-base       source: {File :context "src" "together" "product-base.jazz"})
-        (<Jazz-File>       name: git                source: {File :context "src" "together" "git.jazz"}))
+        (<Jazz-File>       name: product-base       source: {File :context "src" "together" "product-base.jazz"}))
       (<Jazz-File>         name: t                  source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun               source: {File :context "src" "trun.jazz"})))))

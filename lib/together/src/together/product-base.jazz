@@ -15,8 +15,22 @@
 
 
 (import (jazz.io)
-        (jazz.time)
-        (together.git))
+        (jazz.time))
+
+
+;; not using libgit2 to not have a compilation
+;; dependency inside the build system and also
+;; because it has yet to be ported to unix
+(definition (repository-digest dir)
+  (let ((port
+          (open-process
+            (list
+              path: "git"
+              arguments: `("rev-parse" "HEAD")
+              directory: (parse dir)))))
+    (let ((status (process-status port)))
+      (assert (= status 0)
+        (read-line port)))))
 
 
 (definition protected (source-digests)

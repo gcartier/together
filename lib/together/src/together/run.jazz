@@ -15,6 +15,7 @@
 
 
 (import (jazz.action)
+        (jazz.git.foreign)
         (jazz.io)
         (jazz.logger)
         (jazz.platform)
@@ -24,8 +25,7 @@
         (world.build)
         (world.profiling)
         (together)
-        (together.domain)
-        (together.git))
+        (together.domain))
 
 
 (definition (prepare-logger)
@@ -69,7 +69,7 @@
                      (else kernel-install))))
       (let ((dir (new Directory (tokenise-filename dirname))))
         (when (exists? dir)
-          (let ((digest (repository-digest dir)))
+          (let ((digest (repository-head-digest dir)))
             (add-snapshot-property 'binaries digest)))))))
 
 
