@@ -62,15 +62,19 @@
 
 
 (definition (register-binaries)
-  (when (equal? (string-argument "called-from" #f)
-                "installer")
-    (let ((dirname (cond-expand
-                     (mac kernel-bundle-root)
-                     (else kernel-install))))
-      (let ((dir (new Directory (tokenise-filename dirname))))
-        (when (exists? dir)
-          (let ((digest (repository-head-digest dir)))
-            (add-snapshot-property 'binaries digest)))))))
+  ;; libgit2 not yet ported to unix
+  (cond-expand
+    (unix)
+    (else
+     (when (equal? (string-argument "called-from" #f)
+                   "installer")
+       (let ((dirname (cond-expand
+                        (mac kernel-bundle-root)
+                        (else kernel-install))))
+         (let ((dir (new Directory (tokenise-filename dirname))))
+           (when (exists? dir)
+             (let ((digest (repository-head-digest dir)))
+               (add-snapshot-property 'binaries digest)))))))))
 
 
 (definition protected (prepare-settings)
