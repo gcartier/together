@@ -188,7 +188,6 @@
         (install-zone self)
         (install-stage self)
         (install-hooks self)
-        (install-experiments)
         (set-escape-hook world (~ escape-press self))
         (set-unbind-camera? (world-setting 'together.unbind-camera? #f))
         (view-people self)
@@ -2467,6 +2466,7 @@
   
   
   (method (show-experiment self)
+    (install-experiments)
     (let ((interface (current-interface)))
       (set-visible? (child interface 'experiment-label) #t)
       (set-visible? (child interface 'experiment) #t)

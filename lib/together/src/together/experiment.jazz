@@ -68,42 +68,46 @@
 ;;;
 
 
-(definition protected (install-experiments)
-  (for-each (lambda (resolution)
-              (add-experiment
-                (new Experiment
-                  (format "Camera {a}x{a}" (get-width resolution) (get-height resolution))
-                  (lambda (feedback)
-                    (cond-expand
-                      (test
-                       (change-camera-resolution resolution)
-                       (feedback (format "Camera resolution set to {a}x{a}" (get-width resolution) (get-height resolution))))
-                      (else
-                       (select-camera-resolution resolution feedback)))))))
-            (cache-decreasing-camera-resolutions))
-  (cond-expand
-    (test
-     (add-experiment
-       (new Experiment
-         "Camera on"
-         camera-on-non-blocking
-         #t))
-     (add-experiment
-       (new Experiment
-         "Camera off"
-         camera-off-non-blocking
-         #t))
-     (add-experiment
-       (new Experiment
-         "Camera on blocking"
-         camera-on-blocking
-         #t))
-     (add-experiment
-       (new Experiment
-         "Camera off blocking"
-         camera-off-blocking
-         #t)))
-    (else)))
+(definition protected install-experiments
+  (let ((installed? #f))
+    (lambda ()
+      (when (not installed?)
+        (for-each (lambda (resolution)
+                    (add-experiment
+                      (new Experiment
+                        (format "Camera {a}x{a}" (get-width resolution) (get-height resolution))
+                        (lambda (feedback)
+                          (cond-expand
+                            (test
+                             (change-camera-resolution resolution)
+                             (feedback (format "Camera resolution set to {a}x{a}" (get-width resolution) (get-height resolution))))
+                            (else
+                             (select-camera-resolution resolution feedback)))))))
+                  (cache-decreasing-camera-resolutions))
+        (cond-expand
+          (test
+           (add-experiment
+             (new Experiment
+               "Camera on"
+               camera-on-non-blocking
+               #t))
+           (add-experiment
+             (new Experiment
+               "Camera off"
+               camera-off-non-blocking
+               #t))
+           (add-experiment
+             (new Experiment
+               "Camera on blocking"
+               camera-on-blocking
+               #t))
+           (add-experiment
+             (new Experiment
+               "Camera off blocking"
+               camera-off-blocking
+               #t)))
+          (else))
+        (set! installed? #t)))))
 
 
 (definition (select-camera-resolution resolution feedback)
