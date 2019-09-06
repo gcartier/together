@@ -321,20 +321,23 @@
     (let ((interface (current-interface)))
       (let ((new? (or (not configuration) changing-name?)))
         (define (closer frame)
-          (cond (new?
-                 (set-visible? (child root 'new-label) #t)
-                 (set-visible? (child root 'new-name) #t)
-                 (set-visible? (child root 'new-invalid) #t)
-                 (set-visible? (child root 'new-enter) #t)
-                 (set-visible? (child root 'customize) #t)
-                 (when view-focused
-                   (inhibit-focus-selects-all self view-focused
-                     (lambda ()
-                       (acquire-focus view-focused)))))
-                (else
-                 (set-visible? (child root 'name) #t)
-                 (set-visible? (child root 'enter) #t)
-                 (set-visible? (child root 'customize) #t))))
+          (let ((customize (find-component root 'customize)))
+            (cond (new?
+                   (set-visible? (child root 'new-label) #t)
+                   (set-visible? (child root 'new-name) #t)
+                   (set-visible? (child root 'new-invalid) #t)
+                   (set-visible? (child root 'new-enter) #t)
+                   (when customize
+                     (set-visible? customize #t))
+                   (when view-focused
+                     (inhibit-focus-selects-all self view-focused
+                       (lambda ()
+                         (acquire-focus view-focused)))))
+                  (else
+                   (set-visible? (child root 'name) #t)
+                   (set-visible? (child root 'enter) #t)
+                   (when customize
+                     (set-visible? customize #t))))))
         
         (let ((frame (top-frame)))
           (if (is? frame World-Document)
@@ -348,17 +351,20 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((new? (or (not configuration) changing-name?)))
-        (cond (new?
-               (set! view-focused (active-focus))
-               (set-visible? (child root 'new-label) #f)
-               (set-visible? (child root 'new-name) #f)
-               (set-visible? (child root 'new-invalid) #f)
-               (set-visible? (child root 'new-enter) #f)
-               (set-visible? (child root 'customize) #f))
-              (else
-               (set-visible? (child root 'name) #f)
-               (set-visible? (child root 'enter) #f)
-               (set-visible? (child root 'customize) #f)))
+        (let ((customize (find-component root 'customize)))
+          (cond (new?
+                 (set! view-focused (active-focus))
+                 (set-visible? (child root 'new-label) #f)
+                 (set-visible? (child root 'new-name) #f)
+                 (set-visible? (child root 'new-invalid) #f)
+                 (set-visible? (child root 'new-enter) #f)
+                 (when customize
+                   (set-visible? customize #f)))
+                (else
+                 (set-visible? (child root 'name) #f)
+                 (set-visible? (child root 'enter) #f)
+                 (when customize
+                   (set-visible? customize #f)))))
         (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
   
   
