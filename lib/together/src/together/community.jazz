@@ -1925,12 +1925,12 @@
                 (circle-right)
                 #t)))
         (({Shortcut Up})
-         (and (world-focused?)
+         (and (world/circle-focused?)
               (begin
                 (circle-up)
                 #t)))
         (({Shortcut Down})
-         (and (world-focused?)
+         (and (world/circle-focused?)
               (begin
                 (circle-down)
                 #t)))
@@ -1940,7 +1940,7 @@
                 (circle-space)
                 #t)))
         (({Shortcut Return})
-         (and (world-focused?)
+         (and (world/circle-focused?)
               (begin
                 (circle-return)
                 #t)))
