@@ -2602,11 +2602,11 @@
   
   (method override (mouse-up self evt)
     (let ((client (current-client)))
-      (cond ((and change-profile-reversed? (eq? base-profile video-initial-profile))
+      (cond ((and change-profile-reversed? (eq? base-profile initial-base-profile))
              (set! change-profile-reversed? #f))
             ((and (not change-profile-reversed?) (eq? base-profile 'poor))
              (set! change-profile-reversed? #t)))
-      (let ((profile-list (case video-initial-profile
+      (let ((profile-list (case initial-base-profile
                             ((high) '(high good medium low poor @RECOVERY recovery))
                             ((good) '(good medium low poor @RECOVERY recovery))
                             ((medium) '(medium low poor @RECOVERY recovery))
