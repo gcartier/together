@@ -84,6 +84,8 @@
 (definition protected (setup-presence)
   (let ((code (cond-expand
                 (devel together-code)
+                (test together-code)
+                (triage together-code)
                 (else build-digest))))
     (set-udp-code code)
     (set-presence-code code)
