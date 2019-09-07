@@ -896,12 +896,14 @@
   
   
   (method (on-toggle-video self evt)
-    (let ((client (current-client)))
+    (let ((client (current-client))
+          (video (current-video)))
       (when (eq? stage 'circle)
         (require-live-stream client)
         (toggle-camera client)
         (update-video self)
-        (update-layouts (current-video)))))
+        (update-layouts video)
+        (base-profile-update))))
   
   
   (method (update-video self)
@@ -1008,7 +1010,8 @@
                       streams)
             (install-circle-hooks self)
             (goto-stage self 'circle)
-            (update-layouts video))))))
+            (update-layouts video)
+            (base-profile-update))))))
   
   
   (method (leave-circle self)
@@ -2602,9 +2605,9 @@
   
   (method override (mouse-up self evt)
     (let ((client (current-client)))
-      (cond ((and change-profile-reversed? (eq? base-profile initial-base-profile))
+      (cond ((and change-profile-reversed? (eq? user-base-profile initial-base-profile))
              (set! change-profile-reversed? #f))
-            ((and (not change-profile-reversed?) (eq? base-profile 'poor))
+            ((and (not change-profile-reversed?) (eq? user-base-profile 'poor))
              (set! change-profile-reversed? #t)))
       (let ((profile-list (case initial-base-profile
                             ((high) '(high good medium low poor @RECOVERY recovery))
@@ -2612,7 +2615,8 @@
                             ((medium) '(medium low poor @RECOVERY recovery))
                             ((low) '(low poor @RECOVERY recovery))
                             ((poor) '(poor @RECOVERY recovery)))))
-        (change-base-profile client (or (cycle-element profile-list base-profile cycle?: #f reversed?: change-profile-reversed?) base-profile))
+        (set-user-base-profile (or (cycle-element profile-list user-base-profile cycle?: #f reversed?: change-profile-reversed?) user-base-profile))
+        (base-profile-update)
         (update-profile self)))))
 
 
@@ -2621,7 +2625,7 @@
     (set-title label title)
     (set-color label color))
   
-  (case base-profile
+  (case user-base-profile
     ((high)     (update-label "High"     {Color Pastel-Purple}))
     ((good)     (update-label "Good"     {Color Pastel-Blue}))
     ((medium)   (update-label "Medium"   {Color Pastel-Green}))
