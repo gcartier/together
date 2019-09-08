@@ -54,14 +54,15 @@
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
   (register-domain-names)
-  (register-binaries)
+  (register-binaries-properties)
+  (register-kernel-properties)
   (setup-build ".together")
   (setup-presence)
   (setup-profiling)
   (advise-sites))
 
 
-(definition (register-binaries)
+(definition (register-binaries-properties)
   ;; libgit2 not yet ported to unix
   (cond-expand
     (unix)
@@ -75,6 +76,13 @@
            (when (exists? dir)
              (let ((digest (repository-head-digest dir)))
                (add-snapshot-property 'binaries digest)))))))))
+
+
+(definition (register-kernel-properties)
+  (add-snapshot-property 'kernel.c-features c-features)
+  (add-snapshot-property 'kernel.platform kernel-platform)
+  (add-snapshot-property 'kernel.features kernel-features)
+  (add-snapshot-property 'kernel.properties kernel-properties))
 
 
 (definition protected (prepare-settings)
