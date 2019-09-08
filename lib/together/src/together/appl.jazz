@@ -34,6 +34,7 @@
         (jazz.listener)
         (jazz.markup)
         (jazz.opengl.window)
+        (jazz.platform)
         (jazz.presence)
         (jazz.project)
         (jazz.reference)
