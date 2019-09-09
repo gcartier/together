@@ -2838,10 +2838,12 @@
     (<install>
       (<Border-View>                 name: content    location: center border-type: solid border-color: {Color Dark-Gray} style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .250}
         (<Splitter-View>             name: splitter   separator: none orientation: vert mode: relative division: 40.
-          (<Tree-Header>             name: header     location: first style: document shown?: #f
-            (<content~>                               layout-type: fill
-              (<Experiment-Tree>     name: experiment portfolio: :images filled-column: title background: #f action-handler: {Event-Handler :form on-action}
-                (<Experiment-Column> name: title      title: "Experiment" toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f))))
+          (<Scroller-View>                                location: first style: document hscroll?: #t vscroll?: #t
+            (<content~>                                   layout-type: fill
+              (<Tree-Header>             name: header     style: document shown?: #f
+                (<content~>                               layout-type: fill
+                  (<Experiment-Tree>     name: experiment portfolio: :images filled-column: title background: #f action-handler: {Event-Handler :form on-action}
+                    (<Experiment-Column> name: title      title: "Experiment" toplevel-controls?: #f controls?: #f display-images?: #f display-levels?: #f))))))
           (<Experiment-View>         name: console    location: second)))))
   
   
