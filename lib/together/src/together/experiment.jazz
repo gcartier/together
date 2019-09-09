@@ -107,7 +107,40 @@
                camera-off-blocking
                #t)))
           (else))
+        (add-experiment
+          (new Experiment
+            "Magnus 1"
+            (magnus 1)
+            #t))
+        (add-experiment
+          (new Experiment
+            "Magnus 2"
+            (magnus 2)
+            #t))
+        (add-experiment
+          (new Experiment
+            "Magnus 3"
+            (magnus 3)
+            #t))
+        (add-experiment
+          (new Experiment
+            "Magnus 4"
+            (magnus 4)
+            #t))
+        (add-experiment
+          (new Experiment
+            "Magnus off"
+            (magnus #f)
+            #t))
         (set! installed? #t)))))
+
+
+(definition (magnus no)
+  (lambda (feedback)
+    (set-magnus-no no)
+    (feedback (if no
+                  (format "Magnus {a}" no)
+                "Magnus off"))))
 
 
 (definition (select-camera-resolution resolution feedback)
