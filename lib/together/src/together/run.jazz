@@ -192,7 +192,7 @@
                      (triage "red")
                      (else "green"))))
         (system-message (format "Please use the {a} icon to launch Together" color)
-                        type: 'problem
+                        type: 'message
                         title: "Together")
         #f)
     #t))
