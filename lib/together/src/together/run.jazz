@@ -199,7 +199,13 @@
 
 
 (definition (already-running?)
-  (if (process-already-running? "Together" "together.app/Contents/MacOS/Together")
+  (if (cond-expand
+        (mac
+         (process-already-running? "Together" "together.app/Contents/MacOS/Together"))
+        (windows
+         (process-already-running? "together.exe" "app/together/Together.exe"))
+        (else
+         #f))
       (begin
         (system-message (string-append "Together is already running")
                         type: 'message
