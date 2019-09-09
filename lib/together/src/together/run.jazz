@@ -201,7 +201,7 @@
 (definition (already-running?)
   (if (cond-expand
         (mac
-         (process-already-running? "Together" "together.app/Contents/MacOS/Together"))
+         (process-already-running? "Together" "Contents/Apps/together.app/Contents/MacOS/Together"))
         (windows
          (process-already-running? "together.exe" "app/together/Together.exe"))
         (else
