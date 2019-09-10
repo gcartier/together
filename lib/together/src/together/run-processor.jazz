@@ -65,6 +65,7 @@
 
 
 (definition (run-processor descriptor)
+  (initialize-aliases)
   (prepare-processor)
   (prepare-settings)
   (load-unit 'world.work)
