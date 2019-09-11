@@ -2597,7 +2597,7 @@
 
 
 (definition change-profile-reversed?
-  #f)
+  #t)
 
 
 (class Profile-Label extends Label-View
@@ -2605,11 +2605,11 @@
   
   (method override (mouse-up self evt)
     (let ((client (current-client)))
-      (cond ((and change-profile-reversed? (eq? user-base-profile initial-base-profile))
+      (cond ((and change-profile-reversed? (eq? user-base-profile upper-base-profile))
              (set! change-profile-reversed? #f))
             ((and (not change-profile-reversed?) (eq? user-base-profile 'poor))
              (set! change-profile-reversed? #t)))
-      (let ((profile-list (case initial-base-profile
+      (let ((profile-list (case upper-base-profile
                             ((high) '(high good medium low poor @RECOVERY recovery))
                             ((good) '(good medium low poor @RECOVERY recovery))
                             ((medium) '(medium low poor @RECOVERY recovery))
