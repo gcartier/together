@@ -903,7 +903,7 @@
         (toggle-camera client)
         (update-video self)
         (update-layouts video)
-        (base-profile-update))))
+        (effective-base-profile-update))))
   
   
   (method (update-video self)
@@ -1011,7 +1011,7 @@
             (install-circle-hooks self)
             (goto-stage self 'circle)
             (update-layouts video)
-            (base-profile-update))))))
+            (effective-base-profile-update))))))
   
   
   (method (leave-circle self)
@@ -2616,7 +2616,7 @@
                             ((low) '(low poor @RECOVERY recovery))
                             ((poor) '(poor @RECOVERY recovery)))))
         (set-user-base-profile (or (cycle-element profile-list user-base-profile cycle?: #f reversed?: change-profile-reversed?) user-base-profile))
-        (base-profile-update)
+        (effective-base-profile-update)
         (update-profile self)))))
 
 
