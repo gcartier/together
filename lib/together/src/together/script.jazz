@@ -19,7 +19,9 @@
         (jazz.window)
         (world)
         (world.context)
-        (world.interface.script))
+        (world.entity)
+        (world.interface.script)
+        (world.scripter))
 
 
 ;;;
@@ -103,9 +105,13 @@
           (let ((manager (find-ascendant self Script-Manager)))
             (save-script manager)
             (nextmethod self))
-        (when edited-entity
           (let ((panel (child interface 'script)))
-            (let ((manager (locate panel 'manager))
-                  (asset (get-asset edited-entity)))
-              (save-script manager)
-              (execute-script world (get-path asset))))))))))
+            (let ((manager (locate panel 'manager)))
+              (if edited-entity
+                  (let ((asset (get-asset edited-entity)))
+                    (save-script manager)
+                    (execute-script world (get-path asset)))
+                ;; initial quick try for unsaved scripts
+                (let ((entity (new Entity)))
+                  (let ((script (new Script parent: entity text: (get-string-content self))))
+                    (run-task entity script)))))))))))
