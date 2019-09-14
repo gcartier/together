@@ -22,7 +22,7 @@
         (world.interface)
         (world.interface.sheet)
         (world.sound)
-        (together.community)
+        (together.gathering)
         (together.replay)
         (together.script)
         (together.zone))
@@ -50,7 +50,7 @@
   
   (method override (draw-message-offset self)
     (let ((zone (current-zone+)))
-      (if (is? zone Community-Zone)
+      (if (is? zone Gathering-Zone)
           (case (get-stage zone)
             ((gathering) 100)
             ((circle) 65)

@@ -50,7 +50,7 @@
         (world.task)
         (world.video)
         (world.window)
-        (together.community))
+        (together.gathering))
 
 
-(class Sphere-Zone extends Community-Zone))
+(class Sphere-Zone extends Gathering-Zone))

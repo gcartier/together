@@ -27,7 +27,7 @@
         (world.settings)
         (world.simulation)
         (world.udp)
-        (together.community)
+        (together.gathering)
         (together.replay))
 
 

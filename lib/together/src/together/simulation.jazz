@@ -39,7 +39,7 @@
         (world.stream)
         (world.time)
         (world.udp)
-        (together.community)
+        (together.gathering)
         (together.replay))
 
 

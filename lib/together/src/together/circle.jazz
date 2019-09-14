@@ -50,10 +50,10 @@
         (world.task)
         (world.video)
         (world.window)
-        (together.community))
+        (together.gathering))
 
 
-(class Circle-Zone extends Community-Zone
+(class Circle-Zone extends Gathering-Zone
   
   
   (form

@@ -72,9 +72,9 @@
         (world.udp)
         (world.window)
         (together)
-        (together.community)
         (together.debugger)
         (together.exception)
+        (together.gathering)
         (together.script)
         (together.settings)
         (together.window)
@@ -243,7 +243,7 @@
   
   (method override (sleep-process self)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (sleep-process zone)))
     (nextmethod self))
   
@@ -251,7 +251,7 @@
   (method override (wake-process self)
     (nextmethod self)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (wake-process zone))))
 
   
@@ -262,7 +262,7 @@
   
   (method (call-shortcut-hook self shortcut)
     (let ((zone (current-zone)))
-      (if (is? zone Community-Zone)
+      (if (is? zone Gathering-Zone)
           (shortcut-press-circle zone shortcut)
         #f)))
 
@@ -301,49 +301,49 @@
   
   (method (on-toggle-people self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-people zone evt))))
   
   
   (method (on-toggle-streams self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-streams zone evt))))
   
   
   (method (on-toggle-chat self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-chat zone evt))))
   
   
   (method (on-message self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-message zone evt))))
   
   
   (method (on-toggle-denoise self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-denoise zone evt))))
   
   
   (method (on-toggle-audio self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-audio zone evt))))
   
   
   (method (on-toggle-video self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-video zone evt))))
   
   
   (method (on-cycle-layouts self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-cycle-layouts zone evt))))
   
   
@@ -362,176 +362,176 @@
   
   (method (on-evaluate-script self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-evaluate-script zone evt))))
   
   
   (method (on-toggle-hide self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-hide zone evt))))
   
   
   (method (on-toggle-debug self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-debug zone evt))))
   
   
   (method (on-toggle-debug-media self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-debug-media zone evt))))
   
   
   (method (on-toggle-debug-flow self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-debug-flow zone evt))))
   
   
   (method (on-toggle-admin self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-admin zone evt))))
   
   
   (method (on-toggle-script self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-script zone evt))))
   
   
   (method (on-toggle-grid self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-grid zone evt))))
   
   
   (method (on-toggle-timeline self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-timeline zone evt))))
   
   
   (method (on-toggle-visualizer self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-visualizer zone evt))))
   
   
   (method (on-goto-gathering self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-goto-gathering zone evt))))
   
   
   (method (on-goto-script self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-goto-script zone evt))))
   
   
   (method (on-goto-replay self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-goto-replay zone evt))))
   
   
   @wait
   (method (on-goto-simulate self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-goto-simulate zone evt))))
   
   
   (method (on-profile-network self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-profile-network zone evt))))
   
   
   (method (on-profile-pulse self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-profile-pulse zone evt))))
   
   
   (method (on-request-replays self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-request-replays zone evt))))
   
   
   (method (on-toggle-screen-share self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-screen-share zone evt))))
   
   
   (method (on-toggle-key-bindings self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-key-bindings zone evt))))
   
   
   (method (on-toggle-mode self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-mode zone evt))))
   
   
   (method (on-toggle-experiment self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-toggle-experiment zone evt))))
   
   
   (method (on-run-experiment7 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-run-experiment7 zone evt))))
   
   
   (method (on-run-experiment8 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-run-experiment8 zone evt))))
   
   
   (method (on-run-experiment9 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-run-experiment9 zone evt))))
   
   
   (method (on-run-experiment0 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-run-experiment0 zone evt))))
   
   
   (method (on-add-image self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-add-image zone evt))))
   
   
   (method (on-add-video self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-add-video zone evt))))
   
   
   (method (on-add-music self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-add-music zone evt))))
   
   
   (method (on-remove-stream self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-remove-stream zone evt))))
   
   
@@ -544,7 +544,7 @@
   
   (method (on-configure-settings self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-configure-settings zone evt))))
   
   
@@ -580,61 +580,61 @@
   
   (method (on-edit-script1 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script1 zone evt))))
   
   
   (method (on-edit-script2 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script2 zone evt))))
   
   
   (method (on-edit-script3 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script3 zone evt))))
   
   
   (method (on-edit-script4 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script4 zone evt))))
   
   
   (method (on-edit-script5 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script5 zone evt))))
   
   
   (method (on-edit-script6 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script6 zone evt))))
   
   
   (method (on-edit-script7 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script7 zone evt))))
   
   
   (method (on-edit-script8 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script8 zone evt))))
   
   
   (method (on-edit-script9 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script9 zone evt))))
   
   
   (method (on-edit-script0 self evt)
     (let ((zone (current-zone)))
-      (when (is? zone Community-Zone)
+      (when (is? zone Gathering-Zone)
         (on-edit-script0 zone evt))))
   
   
