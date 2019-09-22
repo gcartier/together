@@ -23,9 +23,17 @@
         (jazz.snapshot)
         (world)
         (world.build)
+        (world.foreign)
         (world.profiling)
         (together)
         (together.domain))
+
+
+(definition (prepare-limits)
+  (cond-expand
+    (mac
+     (set-rlimit-nofile 1024))
+    (else)))
 
 
 (definition (prepare-logger)
@@ -213,6 +221,7 @@
 (definition (run-together descriptor)
   (when (install-valid?)
     (unless (already-running?)
+      (prepare-limits)
       (prepare-logger)
       (prepare-together)
       (prepare-settings)
