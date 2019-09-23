@@ -78,7 +78,7 @@
   (code-string->32-bit-integer "TWJG"))
 
 (definition public together-version
-  {Version 0 1 1 0 closed-alpha})
+  {Version 0 1 1 0 closed-beta})
 
 
 (definition protected (setup-presence)
