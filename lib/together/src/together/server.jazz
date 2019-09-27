@@ -26,6 +26,7 @@
     (devel  {Directory Home ".together" "devel" "1.0.0" "work" "crashes"})
     (test   {Directory Home ".together" "test" "1.0.0" "work" "crashes"})
     (triage {Directory Home ".together" "triage" "1.0.0" "work" "crashes"})
+    (stable {Directory Home ".together" "stable" "1.0.0" "work" "crashes"})
     (stage  {Directory Home ".together" "stage" "1.0.0" "work" "crashes"})
     (prod   {Directory Home ".together" "prod" "1.0.0" "work" "crashes"})))
 
@@ -34,6 +35,7 @@
     (devel  "http://logs.togethersphere.com/devel")
     (test   "http://logs.togethersphere.com/test")
     (triage "http://logs.togethersphere.com/triage")
+    (stable "http://logs.togethersphere.com/stable")
     (stage  "http://logs.togethersphere.com/stage")
     (prod   "http://logs.togethersphere.com/prod")))
 

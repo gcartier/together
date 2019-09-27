@@ -40,6 +40,7 @@
 (definition protected (determine-settings-root)
   (cond-expand (prod   {Directory Home ".together" "prod"})
                (stage  {Directory Home ".together" "stage"})
+               (stable {Directory Home ".together" "stable"})
                (triage {Directory Home ".together" "triage"})
                (test   {Directory Home ".together" "test"})
                (else   {Directory Home ".together" "devel"})))
@@ -55,6 +56,7 @@
     (mac
      (cond-expand (prod   '(Home "Documents" "Together" "prod"))
                   (stage  '(Home "Documents" "Together" "stage"))
+                  (stable '(Home "Documents" "Together" "stable"))
                   (triage '(Home "Documents" "Together" "triage"))
                   (test   '(Home "Documents" "Together" "test"))
                   (else   '(Home "Documents" "Together" "devel"))))
@@ -62,6 +64,7 @@
      (let ((dir (get-special-folder CSIDL_PERSONAL)))
        (cond-expand (prod   (list dir "Together" "prod"))
                     (stage  (list dir "Together" "stage"))
+                    (stable (list dir "Together" "stable"))
                     (triage (list dir "Together" "triage"))
                     (test   (list dir "Together" "test"))
                     (else   (list dir "Together" "devel")))))
