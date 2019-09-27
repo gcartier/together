@@ -89,6 +89,7 @@
                 (devel together-code)
                 (test together-code)
                 (triage together-code)
+                (stable together-code)
                 (else build-digest))))
     (set-udp-code code)
     (set-presence-code code)
