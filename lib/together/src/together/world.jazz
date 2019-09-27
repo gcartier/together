@@ -37,7 +37,8 @@
   
   (method override (prepare-sounds self)
     (nextmethod self)
-    (register-sound 'message "sound/message"))
+    (register-sound 'message "sound/message")
+    (register-sound 'connect "sound/user/MapPing"))
   
   
   (method override (script-panel-class self)

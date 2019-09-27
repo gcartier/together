@@ -131,6 +131,10 @@
   (world-setting 'together.auto-script #f))
 
 
+(definition connect-sound
+  (world-setting 'together.connect-sound #f))
+
+
 (definition focus-unmute?
   (world-setting 'together.focus-unmute? #f))
 
@@ -1120,7 +1124,11 @@
   (method (server-entered self character-name)
     (let ((world (current-world)))
       (unless (eq? stage 'circle)
-        (display-message world (format "{a} entered" character-name)))))
+        (display-message world (format "{a} entered" character-name)))
+      (when (cond ((eqv? connect-sound #t) #t)
+                  ((eqv? connect-sound 'gathering) (eq? stage 'gathering))
+                  (else #f))
+        (play-ambient-sound 'connect))))
   
   
   (method (server-exited self character-name)
