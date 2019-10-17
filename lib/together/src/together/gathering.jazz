@@ -134,6 +134,15 @@
 (definition connect-sound
   (world-setting 'together.connect-sound #f))
 
+(definition connect-attention
+  (world-setting 'together.connect-attention #f))
+
+(definition message-sound
+  (world-setting 'together.message-sound #f))
+
+(definition message-attention
+  (world-setting 'together.message-attention #t))
+
 
 (definition focus-unmute?
   (world-setting 'together.focus-unmute? #f))
@@ -1079,6 +1088,7 @@
       (set-server-reconnected-hook tier (~ server-reconnected self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-stream-addable-hook tier (~ stream-addable self))
+      (set-message-received-hook tier (~ message-received self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
       (set! draw-hook (~ draw-debug self))
@@ -1128,7 +1138,11 @@
       (when (cond ((eqv? connect-sound #t) #t)
                   ((eqv? connect-sound 'gathering) (eq? stage 'gathering))
                   (else #f))
-        (play-ambient-sound 'connect))))
+        (play-ambient-sound 'connect))
+      (when (cond ((eqv? connect-attention #t) #t)
+                  ((eqv? connect-attention 'gathering) (eq? stage 'gathering))
+                  (else #f))
+        (user-attention))))
   
   
   (method (server-exited self character-name)
@@ -1659,6 +1673,21 @@
                     (action feedback)
                     (set-running? experiment #f)
                     (update-cell))))))))))
+  
+  
+  ;;;
+  ;;;; Message
+  ;;;
+  
+  
+  (method (message-received self sender kind message)
+    (let ((client (current-client)))
+      (unless (eq? kind 'activity)
+        (unless (equal? sender (get-character-name client))
+          (when message-sound
+            (play-ambient-sound 'message volume: .25))
+          (when message-attention
+            (user-attention))))))
   
   
   ;;;
