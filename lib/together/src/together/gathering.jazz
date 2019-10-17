@@ -52,6 +52,7 @@
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
+        (world.configure)
         (world.context)
         (world.evolution)
         (world.geometry)
@@ -169,21 +170,22 @@
 (class Gathering-Zone extends Together-Zone
   
   
-  (slot configuration     initialize #f getter generate)
-  (slot selected-group    initialize #f getter generate)
-  (slot selected-player   initialize #f getter generate)
-  (slot circle-name       initialize #f getter generate)
-  (slot circle-no         initialize #f getter generate)
-  (slot circle-start      initialize #f getter generate)
-  (slot message-recipient initialize #f getter generate)
-  (slot view-focused      initialize #f getter generate)
-  (slot draw-hook         initialize #f getter generate)
-  (slot hide-ring         initialize #f getter generate)
-  (slot hide-thread       initialize #f getter generate)
-  (slot first-hierarchy?  initialize #t getter generate)
-  (slot buttons-shown?    initialize #t getter generate)
-  (slot disconnected?     initialize #f getter generate)
-  (slot chat-wide?        initialize #f getter generate)
+  (slot configuration      initialize #f getter generate)
+  (slot selected-group     initialize #f getter generate)
+  (slot selected-player    initialize #f getter generate)
+  (slot circle-name        initialize #f getter generate)
+  (slot circle-no          initialize #f getter generate)
+  (slot circle-audio-only? initialize #f getter generate)
+  (slot circle-start       initialize #f getter generate)
+  (slot message-recipient  initialize #f getter generate)
+  (slot view-focused       initialize #f getter generate)
+  (slot draw-hook          initialize #f getter generate)
+  (slot hide-ring          initialize #f getter generate)
+  (slot hide-thread        initialize #f getter generate)
+  (slot first-hierarchy?   initialize #t getter generate)
+  (slot buttons-shown?     initialize #t getter generate)
+  (slot disconnected?      initialize #f getter generate)
+  (slot chat-wide?         initialize #f getter generate)
   
   (cond-expand
     (windows
@@ -206,7 +208,7 @@
         (view-people self)
         (when auto-create
           (for-each (lambda (name)
-                      (create-group client name #t))
+                      (create-group client name #t #f))
                     (listify auto-create)))
         (cond (auto-join
                (join-circle self auto-join))
@@ -432,7 +434,7 @@
       
       (set! root (child interface 'circle))
       (show root 'circle-name)
-      (title root 'circle-name circle-name)
+      (title root 'circle-name (effective-circle-name self circle-name circle-audio-only?))
       (show root 'toggle-people)
       (show root 'toggle-chat)
       (show root 'leave)
@@ -971,6 +973,12 @@
     (create&join-circle self))
   
   
+  (method (effective-circle-name self group audio-only?)
+    (if (not audio-only?)
+        group
+      (format "{a} (audio)" group)))
+  
+  
   (method (check-has-camera? self)
     (let ((world (current-world)))
       (if (not-null? (cache-decreasing-camera-resolutions))
@@ -983,17 +991,18 @@
     (let ((interface (current-interface))
           (tier (current-client))
           (world (current-world)))
-      (when (check-has-camera? self)
-        (let ((view (child root 'circle-view)))
-          (let ((text (locate view 'text)))
-            (let ((name (trim-whitespace (get-string-content text))))
-              (let ((no/exception (create-group tier name #f)))
-                (if (string? no/exception)
-                    (display-error world no/exception)
-                  (clear-message world)
-                  (set-string-content text "")
-                  (content-changed view)
-                  (join-circle self name)))))))))
+      (let ((audio-only? (shift-down?)))
+        (when (or audio-only? (check-has-camera? self))
+          (let ((view (child root 'circle-view)))
+            (let ((text (locate view 'text)))
+              (let ((name (trim-whitespace (get-string-content text))))
+                (let ((no/exception (create-group tier name #f audio-only?)))
+                  (if (string? no/exception)
+                      (display-error world no/exception)
+                    (clear-message world)
+                    (set-string-content text "")
+                    (content-changed view)
+                    (join-circle self name))))))))))
   
   
   (method (join-circle self name)
@@ -1009,14 +1018,14 @@
         (let ((no/streams/exception (join-group tier name)))
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
-            (bind (no . streams) no/streams/exception
+            (bind (no audio-only? . streams) no/streams/exception
               (when auto-live?
                 (require-live-stream tier))
               (start udp)
               (when auto-live?
                 (when auto-audio?
                   (play-mic tier))
-                (when auto-video?
+                (when (and auto-video? (not audio-only?))
                   (play-camera tier)))
               (clear-message world)
               (uninstall-camera)
@@ -1026,6 +1035,7 @@
                 (else))
               (set! circle-name name)
               (set! circle-no no)
+              (set! circle-audio-only? audio-only?)
               (set! circle-start (current-seconds))
               (for-each (lambda (info)
                           (bind (sender name stream-no origin source-kind video-level channels) info
@@ -1034,12 +1044,15 @@
               (install-circle-hooks self)
               (goto-stage self 'circle)
               (update-layouts video)
-              (effective-base-profile-update)))))))
+              (effective-base-profile-update)
+              (when audio-only?
+                (setup-render-rate 5. 5.))))))))
   
   
   (method (leave-circle self)
     (let ((tier (current-client))
           (zone (current-zone)))
+      (reset-render-rate)
       (uninstall-circle-hooks self)
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
@@ -1363,7 +1376,7 @@
                            user-data: (list 'player player group)))))
             
             (bind (gathering . groups) hierarchy
-              (let ((players (cdr gathering)))
+              (let ((players (cddr gathering)))
                 (let ((row (add-row tree
                                     state: 'expanded
                                     children: (list (new Tree-Node
@@ -1381,14 +1394,15 @@
                 (add-row tree
                          children: (list (new Tree-Node title: "" font: {Font Label-User})))
                 (for-each (lambda (info)
-                            (bind (group . players) info
-                              (let ((row (add-row tree
-                                                  state: 'expanded
-                                                  children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
-                                                  user-data: (list 'group group))))
-                                (for-each (lambda (info)
-                                            (add-player row info group))
-                                          players))))
+                            (bind (group audio-only? . players) info
+                              (let ((title (effective-circle-name self group audio-only?)))
+                                (let ((row (add-row tree
+                                                    state: 'expanded
+                                                    children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
+                                                    user-data: (list 'group group))))
+                                  (for-each (lambda (info)
+                                              (add-player row info group))
+                                            players)))))
                           (sort di<? groups key: car)))))))))
   
   
