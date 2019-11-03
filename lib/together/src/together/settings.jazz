@@ -80,10 +80,7 @@
   (define (determine-world)
     (let ((worlds (determine-worlds)))
       (and worlds
-           (let ((world (new-directory worlds (cond-expand
-                                                (devel "yownu")
-                                                (test "yownu")
-                                                (else "together")))))
+           (let ((world (new-directory worlds "together")))
              (and (exists? world)
                   world)))))
   
