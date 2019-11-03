@@ -52,6 +52,7 @@
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
+        (world.configure)
         (world.context)
         (world.evolution)
         (world.geometry)
@@ -134,6 +135,19 @@
 
 (definition auto-script
   (world-setting 'together.auto-script #f))
+
+
+(definition connect-sound
+  (world-setting 'together.connect-sound #f))
+
+(definition connect-attention
+  (world-setting 'together.connect-attention #f))
+
+(definition message-sound
+  (world-setting 'together.message-sound #f))
+
+(definition message-attention
+  (world-setting 'together.message-attention #t))
 
 
 (definition focus-unmute?
@@ -702,7 +716,7 @@
         (set-proportion (child parent name) prop))
       
       (show root 'circle-name)
-      (title root 'circle-name (get-circle-name together))
+      (title root 'circle-name (effective-circle-name self (get-circle-name together) circle-audio-only?))
       (show interface 'profile)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
@@ -1095,19 +1109,20 @@
 (class Together extends Object
   
   
-  (slot spaces            initialize #f getter generate)
-  (slot space             initialize #f getter generate)
-  (slot configuration     initialize #f getter generate)
-  (slot selected-group    initialize #f getter generate)
-  (slot selected-player   initialize #f getter generate)
-  (slot circle-name       initialize #f getter generate)
-  (slot circle-no         initialize #f getter generate)
-  (slot circle-start      initialize #f getter generate)
-  (slot message-recipient initialize #f getter generate)
-  (slot draw-hook         initialize #f getter generate)
-  (slot first-hierarchy?  initialize #t getter generate)
-  (slot disconnected?     initialize #f getter generate)
-  (slot chat-wide?        initialize #f getter generate)
+  (slot spaces             initialize #f getter generate)
+  (slot space              initialize #f getter generate)
+  (slot configuration      initialize #f getter generate)
+  (slot selected-group     initialize #f getter generate)
+  (slot selected-player    initialize #f getter generate)
+  (slot circle-name        initialize #f getter generate)
+  (slot circle-no          initialize #f getter generate)
+  (slot circle-audio-only? initialize #f getter generate)
+  (slot circle-start       initialize #f getter generate)
+  (slot message-recipient  initialize #f getter generate)
+  (slot draw-hook          initialize #f getter generate)
+  (slot first-hierarchy?   initialize #t getter generate)
+  (slot disconnected?      initialize #f getter generate)
+  (slot chat-wide?         initialize #f getter generate)
   
   (cond-expand
     (windows
@@ -1162,7 +1177,7 @@
         (view-people self)
         (when auto-create
           (for-each (lambda (name)
-                      (create-group client name #t))
+                      (create-group client name #t #f))
                     (listify auto-create)))
         (cond (auto-join
                (join-circle self auto-join))
@@ -1369,6 +1384,12 @@
     (leave-circle self))
   
   
+  (method (effective-circle-name self group audio-only?)
+    (if (not audio-only?)
+        group
+      (format "{a} (audio)" group)))
+  
+  
   (method (check-has-camera? self)
     (let ((world (current-world)))
       (if (not-null? (cache-decreasing-camera-resolutions))
@@ -1381,17 +1402,18 @@
     (let ((interface (current-interface))
           (tier (current-client))
           (world (current-world)))
-      (when (check-has-camera? self)
-        (let ((view (child (get-root space) 'circle-view)))
-          (let ((text (locate view 'text)))
-            (let ((name (trim-whitespace (get-string-content text))))
-              (let ((no/exception (create-group tier name #f)))
-                (if (string? no/exception)
-                    (display-error world no/exception)
-                  (clear-message world)
-                  (set-string-content text "")
-                  (content-changed view)
-                  (join-circle self name)))))))))
+      (let ((audio-only? (shift-down?)))
+        (when (or audio-only? (check-has-camera? self))
+          (let ((view (child (get-root space) 'circle-view)))
+            (let ((text (locate view 'text)))
+              (let ((name (trim-whitespace (get-string-content text))))
+                (let ((no/exception (create-group tier name #f audio-only?)))
+                  (if (string? no/exception)
+                      (display-error world no/exception)
+                    (clear-message world)
+                    (set-string-content text "")
+                    (content-changed view)
+                    (join-circle self name))))))))))
   
   
   (method package (join-circle self name)
@@ -1407,14 +1429,14 @@
         (let ((no/streams/exception (join-group tier name)))
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
-            (bind (no . streams) no/streams/exception
+            (bind (no audio-only? . streams) no/streams/exception
               (when auto-live?
                 (require-live-stream tier))
               (start udp)
               (when auto-live?
                 (when auto-audio?
                   (play-mic tier))
-                (when auto-video?
+                (when (and auto-video? (not audio-only?))
                   (play-camera tier)))
               (clear-message world)
               (uninstall-camera)
@@ -1425,6 +1447,7 @@
                 (else))
               (set! circle-name name)
               (set! circle-no no)
+              (set! circle-audio-only? audio-only?)
               (set! circle-start (current-seconds))
               (for-each (lambda (info)
                           (bind (sender name stream-no origin source-kind video-level channels) info
@@ -1433,12 +1456,15 @@
               (install-circle-hooks self)
               (goto-space self 'avatar)
               (update-layouts video)
-              (effective-base-profile-update)))))))
+              (effective-base-profile-update)
+              (when audio-only?
+                (setup-render-rate 5. 5.))))))))
   
   
   (method (leave-circle self)
     (let ((tier (current-client))
           (zone (current-zone)))
+      (reset-render-rate)
       (uninstall-circle-hooks self)
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
@@ -1485,6 +1511,7 @@
       (set-server-reconnected-hook tier (~ server-reconnected self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-stream-addable-hook tier (~ stream-addable self))
+      (set-message-received-hook tier (~ message-received self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
       (set! draw-hook (~ draw-debug self))
@@ -1530,7 +1557,15 @@
   (method (server-entered self character-name)
     (let ((world (current-world)))
       (unless (is? space Circle-Space)
-        (display-message world (format "{a} entered" character-name)))))
+        (display-message world (format "{a} entered" character-name)))
+      (when (cond ((eqv? connect-sound #t) #t)
+                  ((eqv? connect-sound 'gathering) (eq? stage 'gathering))
+                  (else #f))
+        (play-ambient-sound 'connect))
+      (when (cond ((eqv? connect-attention #t) #t)
+                  ((eqv? connect-attention 'gathering) (eq? stage 'gathering))
+                  (else #f))
+        (user-attention))))
   
   
   (method (server-exited self character-name)
@@ -1753,7 +1788,7 @@
                            user-data: (list 'player player group)))))
             
             (bind (gathering . groups) hierarchy
-              (let ((players (cdr gathering)))
+              (let ((players (cddr gathering)))
                 (let ((row (add-row tree
                                     state: 'expanded
                                     children: (list (new Tree-Node
@@ -1770,14 +1805,15 @@
               (when (not-null? hierarchy)
                 (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
                 (for-each (lambda (info)
-                            (bind (group . players) info
-                              (let ((row (add-row tree
-                                                  state: 'expanded
-                                                  children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
-                                                  user-data: (list 'group group))))
-                                (for-each (lambda (info)
-                                            (add-player row info group))
-                                          players))))
+                            (bind (group audio-only? . players) info
+                              (let ((title (effective-circle-name self group audio-only?)))
+                                (let ((row (add-row tree
+                                                    state: 'expanded
+                                                    children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
+                                                    user-data: (list 'group group))))
+                                  (for-each (lambda (info)
+                                              (add-player row info group))
+                                            players)))))
                           (sort di<? groups key: car))))
             (let ((zones (cache-available-zones)))
               (when (not-null? zones)
@@ -1920,6 +1956,21 @@
                     (action feedback)
                     (set-running? experiment #f)
                     (update-cell))))))))))
+  
+  
+  ;;;
+  ;;;; Message
+  ;;;
+  
+  
+  (method (message-received self sender kind message)
+    (let ((client (current-client)))
+      (unless (eq? kind 'activity)
+        (unless (equal? sender (get-character-name client))
+          (when message-sound
+            (play-ambient-sound 'message volume: .25))
+          (when message-attention
+            (user-attention))))))
   
   
   ;;;

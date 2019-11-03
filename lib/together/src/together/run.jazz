@@ -210,7 +210,7 @@
 
 (definition (already-running?)
   (if (cond-expand
-        (devel #f)
+        ((or devel stable) #f)
         (else (process-already-running?)))
       (begin
         (system-message (string-append "Together is already running")

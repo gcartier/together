@@ -95,6 +95,8 @@
                    "together-test.app")
                   (triage
                    "together-triage.app")
+                  (stable
+                   "together-stable.app")
                   (stage
                    "together-stage.app")
                   (prod
@@ -111,6 +113,8 @@
                    "together-test")
                   (triage
                    "together-triage")
+                  (stable
+                   "together-stable")
                   (stage
                    "together-stage")
                   (prod
