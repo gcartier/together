@@ -2337,11 +2337,11 @@
   ;;;
   
   
-  (method (on-goto-avatar self evt)
-    (goto-avatar self))
+  (method (on-avatar-space self evt)
+    (avatar-space self))
   
   
-  (method (goto-avatar self)
+  (method (avatar-space self)
     (let ((world (current-world)))
       (goto-space self 'avatar)
       (update-parameter world 'avatar)

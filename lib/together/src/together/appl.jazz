@@ -366,10 +366,10 @@
         (on-cycle-layouts together evt))))
   
   
-  (method (on-goto-avatar self evt)
+  (method (on-avatar-space self evt)
     (let ((together (current-together)))
       (when together
-        (on-goto-avatar together evt))))
+        (on-avatar-space together evt))))
   
   
   (method (on-add-bookmark self evt)
@@ -1104,7 +1104,7 @@
           (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
           (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
           (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
-          (<World-Action-Item> name: toggle-denoise            title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt #\D} description: "Toggle denoise.")
+          (<World-Action-Item> name: toggle-denoise            title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle denoise.")
           (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :application on-goto-gathering} description: "Goto gathering.")
           (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
           (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
@@ -1146,7 +1146,7 @@
   (define-trait developer-layout World-Actionbar
     (<Role-Trait>
       (<install>
-        (<!>             name: goto-avatar             visible?: #t)
+        (<!>             name: avatar-space            visible?: #t)
         (<!>             name: circle-layout           visible?: #t)
         (<!>             name: focus-layout            visible?: #t)
         (<!>             name: gallery-layout          visible?: #t))))
@@ -1405,7 +1405,7 @@
 
   (form
     (<install>
-      (<World-Parameter-Button> name: goto-avatar    resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action circle goto-avatar} parameter: avatar)
+      (<World-Parameter-Button> name: avatar-space   resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action circle avatar-space} parameter: avatar)
       (<World-Parameter-Button> name: circle-layout  resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action circle circle-layout} parameter: circle-layout)
       (<World-Parameter-Button> name: focus-layout   resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action circle focus-layout} parameter: focus-layout)
       (<World-Parameter-Button> name: gallery-layout resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action circle gallery-layout} parameter: gallery-layout))))
@@ -1674,7 +1674,7 @@
       (<World-Action-Item> name: change-quality       title: "Change call quality" visible?: #t shortcut: {Shortcut "Click call quality"})
       (<World-Action-Item> name: send-message         title: "Send message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
       (<World-Action-Item> name: toggle-key-bindings  title: "Toggle keyboard shortcuts" visible?: #t action-handler: {Event-Handler :application on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle keyboard shortcuts.")
-      (<World-Action-Item> name: toggle-windowed-mode title: "Toggle fullscreen window" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :alt #\F} description: "Toggle between windowed and fullscreen mode.")
+      (<World-Action-Item> name: toggle-windowed-mode title: "Toggle fullscreen window" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :alt :shift #\F} description: "Toggle between windowed and fullscreen mode.")
       (<World-Action-Item> name: toggle-experiment    title: "Toggle experiment panel" visible?: #t action-handler: {Event-Handler :application on-toggle-experiment} description: "Toggle experiment panel.")
       (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" visible?: #t action-handler: {Event-Handler :application on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
       (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" visible?: #t action-handler: {Event-Handler :application on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
@@ -1700,13 +1700,13 @@
     (<install>                                        title: "Circle"
       (<World-Action-Item> name: toggle-mic           title: "Toggle audio" visible?: #t action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-camera        title: "Toggle video" visible?: #t action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
+      (<World-Action-Item> name: avatar-space         title: "Avatar" visible?: #t action-handler: {Event-Handler :application on-avatar-space} shortcut: {Shortcut :alt #\D} description: "Avatar.")
       (<World-Action-Item> name: circle-layout        title: "Circle layout" visible?: #t action-handler: {Event-Handler :application on-circle-layout} shortcut: {Shortcut :alt #\C} description: "Circle layout.")
       (<World-Action-Item> name: focus-layout         title: "Focus layout" visible?: #t action-handler: {Event-Handler :application on-focus-layout} shortcut: {Shortcut :alt #\F} description: "Focus layout.")
       (<World-Action-Item> name: gallery-layout       title: "Gallery layout" visible?: #t action-handler: {Event-Handler :application on-gallery-layout} shortcut: {Shortcut :alt #\G} description: "Gallery layout.")
       (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")
-      (<World-Action-Item> name: goto-avatar          title: "Avatar" visible?: #t action-handler: {Event-Handler :application on-goto-avatar} shortcut: {Shortcut :alt #\P} description: "Avatar.")
-      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :space on-toggle-people} shortcut: {Shortcut :alt #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :space on-toggle-chat} shortcut: {Shortcut :alt #\C} description: "Toggle chat.")
+      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :space on-toggle-people} shortcut: {Shortcut :alt :shift #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :space on-toggle-chat} shortcut: {Shortcut :alt :shift #\C} description: "Toggle chat.")
       (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" visible?: #t shortcut: {Shortcut "Click image"})
       (<World-Action-Item> name: enter-press          title: "Go to home view" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
