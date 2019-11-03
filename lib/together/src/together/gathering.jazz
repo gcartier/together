@@ -189,6 +189,12 @@
         zones)))
 
 
+(definition (effective-circle-name group audio-only?)
+  (if (not audio-only?)
+      group
+    (format "{a} (audio)" group)))
+
+
 ;;;
 ;;;; Sphere-Space
 ;;;
@@ -716,7 +722,7 @@
         (set-proportion (child parent name) prop))
       
       (show root 'circle-name)
-      (title root 'circle-name (effective-circle-name self (get-circle-name together) circle-audio-only?))
+      (title root 'circle-name (effective-circle-name (get-circle-name together) (get-circle-audio-only? together)))
       (show interface 'profile)
       (visible interface 'people-label (not hide-people?))
       (visible interface 'people (not hide-people?))
@@ -1384,12 +1390,6 @@
     (leave-circle self))
   
   
-  (method (effective-circle-name self group audio-only?)
-    (if (not audio-only?)
-        group
-      (format "{a} (audio)" group)))
-  
-  
   (method (check-has-camera? self)
     (let ((world (current-world)))
       (if (not-null? (cache-decreasing-camera-resolutions))
@@ -1559,11 +1559,11 @@
       (unless (is? space Circle-Space)
         (display-message world (format "{a} entered" character-name)))
       (when (cond ((eqv? connect-sound #t) #t)
-                  ((eqv? connect-sound 'gathering) (eq? stage 'gathering))
+                  ((eqv? connect-sound 'gathering) (is? space Gathering-Space))
                   (else #f))
         (play-ambient-sound 'connect))
       (when (cond ((eqv? connect-attention #t) #t)
-                  ((eqv? connect-attention 'gathering) (eq? stage 'gathering))
+                  ((eqv? connect-attention 'gathering) (is? space Gathering-Space))
                   (else #f))
         (user-attention))))
   
@@ -1806,7 +1806,7 @@
                 (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
                 (for-each (lambda (info)
                             (bind (group audio-only? . players) info
-                              (let ((title (effective-circle-name self group audio-only?)))
+                              (let ((title (effective-circle-name group audio-only?)))
                                 (let ((row (add-row tree
                                                     state: 'expanded
                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
