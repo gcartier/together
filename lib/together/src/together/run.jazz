@@ -55,10 +55,10 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user developer))
-  (set-default-server "Together")
+  (set-valid-roles '(user designer developer))
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
+  @YOWNU-quicky
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
   (register-domain-names)
@@ -120,7 +120,6 @@
                        world.multisampling        1
                        ;; keys
                        world.arrow-movement?      #f
-                       world.move-up              {Shortcut #\R}
                        ;; test
                        world.init-script          #f
                        world.test-script          #f
@@ -148,13 +147,16 @@
                        world.ambience?            #f
                        ;; video
                        world.sun-cycle?           #f
-                       world.start-time           day
+                       world.start-time           day ;; night
                        ;; generation
-                       world.tile-pack            "minecraft"
-                       world.tile-resolution      16
-                       world.generate-mipmap?     #t
-                       world.min-filter           linear
-                       world.mag-filter           nearest)))
+                       ;; YOWNU quick try
+                       ;; *** are linear and nearest inverted??? ***
+                       ;world.tile-pack            "minecraft"
+                       ;world.tile-resolution      16
+                       ;world.generate-mipmap?     #t
+                       ;world.min-filter           linear
+                       ;world.mag-filter           nearest
+                       )))
 
 
 (definition (create-documents)

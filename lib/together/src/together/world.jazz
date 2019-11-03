@@ -22,9 +22,10 @@
         (world.interface)
         (world.interface.sheet)
         (world.sound)
-        (together.gathering)
+        (together.login)
         (together.replay)
         (together.script)
+        (together.space)
         (together.zone))
 
 
@@ -49,11 +50,8 @@
   
   
   (method override (draw-message-offset self)
-    (let ((zone (current-zone+)))
-      (if (is? zone Gathering-Zone)
-          (case (get-stage zone)
-            ((gathering) 100)
-            ((circle) 65)
-            ((replay) 65)
-            (else (nextmethod self)))
+    (let ((space (current-space+)))
+      (if (is? space Together-Space)
+          (or (draw-message-offset space)
+              (nextmethod self))
         (nextmethod self))))))

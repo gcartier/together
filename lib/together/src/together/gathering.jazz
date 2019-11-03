@@ -56,6 +56,7 @@
         (world.evolution)
         (world.geometry)
         (world.interface)
+        (world.interface.actions)
         (world.interface.bindings)
         (world.interface.chat)
         (world.interface.clients)
@@ -63,6 +64,7 @@
         (world.interface.dialogs)
         (world.interface.documents)
         (world.interface.evolution)
+        (world.interface.exception)
         (world.interface.frame)
         (world.interface.panel)
         (world.interface.script)
@@ -80,6 +82,7 @@
         (world.settings)
         (world.skybox)
         (world.sound)
+        (world.space)
         (world.stream)
         (world.streamer)
         (world.streaming)
@@ -89,6 +92,7 @@
         (world.udp)
         (world.video)
         (world.window)
+        (world.zone)
         (together)
         (together.experiment)
         (together.network)
@@ -96,6 +100,7 @@
         (together.script)
         (together.settings)
         (together.simulator)
+        (together.space)
         (together.visualizer)
         (together.zone))
 
@@ -153,662 +158,70 @@
   (set! show-debug? flag))
 
 
-(class Gathering-Zone extends Together-Zone
+;; YOWNU quicky
+(definition *available-zones*
+  #f)
+
+(definition protected (cache-available-zones)
+  (define (filter-zones zones)
+    (collect-if (lambda (info)
+                  (bind (zone . title) info
+                    (not (equal? title "welcome"))))
+                zones))
+  
+  (or *available-zones*
+      (let ((zones (available-zones (current-client))))
+        (set! *available-zones* (filter-zones zones))
+        zones)))
+
+
+;;;
+;;;; Sphere-Space
+;;;
+
+
+(class Sphere-Space extends Together-Space
   
   
-  (slot configuration     initialize #f getter generate)
-  (slot selected-group    initialize #f getter generate)
-  (slot selected-player   initialize #f getter generate)
-  (slot circle-name       initialize #f getter generate)
-  (slot circle-no         initialize #f getter generate)
-  (slot circle-start      initialize #f getter generate)
-  (slot message-recipient initialize #f getter generate)
-  (slot view-focused      initialize #f getter generate)
-  (slot draw-hook         initialize #f getter generate)
-  (slot hide-ring         initialize #f getter generate)
-  (slot hide-thread       initialize #f getter generate)
-  (slot first-hierarchy?  initialize #t getter generate)
-  (slot buttons-shown?    initialize #t getter generate)
-  (slot disconnected?     initialize #f getter generate)
-  (slot chat-wide?        initialize #f getter generate)
-  
-  (cond-expand
-    (windows
-     (slot hide-last-mouse initialize #f getter generate))
-    (else))
-  
-  
-  (method override (zone-ready self)
+  (method override (space-uninstall self)
     (nextmethod self)
-    (when (window?)
-      (let ((world (current-world))
-            (client (current-client)))
-        (setup-stage self)
-        (setup-configuration self)
-        (install-zone self)
-        (install-stage self)
-        (install-hooks self)
-        (set-escape-hook world (~ escape-press self))
-        (set-unbind-camera? (world-setting 'together.unbind-camera? #f))
-        (view-people self)
-        (when auto-create
-          (for-each (lambda (name)
-                      (create-group client name #t))
-                    (listify auto-create)))
-        (cond (auto-join
-               (join-circle self auto-join))
-              (auto-script
-               (goto-script/last self))))))
-  
-  
-  (method override (destroy self)
-    (when (window?)
-      (let ((world (current-world))
-            (client (current-client)))
-        (let ((udp-client (get-udp-client client)))
-          (stop udp-client)
-          (close-live-stream client)
-          (close-send-streams udp-client)
-          (close-receive-streams udp-client))
-        (uninstall-hooks self)
-        (uninstall-stage self)
-        (uninstall-zone self)
-        (set-unbind-camera? #t)
-        (set! stage #f)
-        (no-showcase world)
-        (restore-fov)
-        (uninstall-camera)))
-    (nextmethod self))
-  
-  
-  (method (setup-stage self)
-    (set! stage 'gathering))
-  
-  
-  (method (setup-configuration self)
-    (let ((file (together-file)))
-      (set! configuration (instantiate (read-form file)))))
-  
-  
-  (method override (show-me? self)
-    (and sphere? (eq? stage 'circle)))
-  
-  
-  (method override (mute-audio? self)
-    (neq? stage 'circle))
-  
-  
-  (method (install-zone self)
     (let ((interface (current-interface)))
-      (let ((version (process-version (current-process)))
-            (date (build-short-date))
-            (name (get-character-name configuration)))
-        ;; common
-        (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
-        (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
-        (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border)
-        (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (let ((chat (child interface 'chat)))
-          (set-border-type (child chat 'border) 'solid)
-          (set-border-color (child chat 'border) {Color Dark-Gray})
-          (set-location chat '(-10 100))
-          (set-proportion chat '(220 (bounds -354))))
-        (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40})))
-          (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-          (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
-        (let ((command (child interface 'command)))
-          (set-border-type (child command 'border) 'solid)
-          (set-border-color (child command 'border) {Color Dark-Gray})
-          (set-location command '(-10 -200))
-          (set-size command (new Dimension 220 19)))
-        (new Kind-Label name: 'experiment-label parent: interface title: "Experiment" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-        (new Experiment-Panel name: 'experiment parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
-        (when (developer?)
-          (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-          (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill)
-          (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
-        (update-profile (child interface 'profile))
-        (add-exception-view self)
-        ;; gathering
-        (let ((root (new Together-Root name: 'gathering parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
-          (new Name-Label name: 'name parent: root title: name location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-          (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
-          (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
-          (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
-          (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-          (new Push-Button name: 'join parent: root title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
-          (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
-          (new Kind-Label name: 'circle-label parent: root title: "New circle name" location: '(center -125) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: 'tail)
-          (new Name-View name: 'circle-view parent: root location: '(center -95) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid name-label: "Circle name" max-length: 40)
-          (new Name-Invalid name: 'circle-invalid parent: root location: '(center -77) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
-          (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self)))
-        ;; circle
-        (let ((root (new Together-Root name: 'circle parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Kind-Label name: 'circle-name parent: root title: name location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-          (new Push-Button name: 'audio parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-audio self))
-          (new Push-Button name: 'video parent: root location: '(195 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-video self))
-          (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self))
-          (new Push-Button name: 'layout parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self))
-          (new Push-Button name: 'toggle-people parent: root location: '(-210 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self))
-          (new Push-Button name: 'toggle-chat parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self)))
-        ;; script
-        (let ((root (new Together-Root name: 'script-root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
-        ;; replay
-        (let ((root (new Together-Replay-Panel name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
-          (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
-          (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
-          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
-        ;; simulate
-        (let ((root (new Together-Root name: 'simulate parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-          (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
-          (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
-        ;; hide all
-        (for-each (lambda (child)
-                    (set-visible? child #f))
-                  (get-children interface)))))
-  
-  
-  (method (install-stage self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (case stage
-        ((gathering)
-         (install-gathering self))
-        ((circle)
-         (install-circle self))
-        ((script)
-         (install-script self))
-        ((replay)
-         (install-replay self))
-        ((simulate)
-         (install-simulate self)))
-      (show root)
-      (send-to-back root)
-      (layout-message world)
-      (if (developer?)
-          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
-            (focus-world))
-        (focus-world))))
-  
-  
-  (method (install-gathering self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (hide parent name)
-        (set-visible? (child parent name) #f))
-      
-      (define (visible parent name flag)
-        (set-visible? (child parent name) flag))
-      
-      (define (title parent name str)
-        (set-title (child parent name) str))
-      
-      (define (color parent name color)
-        (set-color (child parent name) color))
-      
-      (define (location parent name loc)
-        (set-location (child parent name) loc))
-      
-      (define (proportion parent name prop)
-        (set-proportion (child parent name) prop))
-      
-      (set! root (child interface 'gathering))
-      (show root 'together)
-      (show root 'version)
-      (show root 'date)
-      (show root 'quit)
-      (show root 'name)
-      (when (developer?)
-        (let ((admin-visible? (get-visible? (child interface 'admin))))
-          (visible root 'circle (not admin-visible?))
-          (visible root 'join (not admin-visible?))))
-      (show root 'circle-label)
-      (show root 'circle-view)
-      (show root 'circle-invalid)
-      (show root 'circle-create)
-      (show interface 'profile)
-      (show interface 'people-label)
-      (show interface 'people)
-      (hide interface 'streams-label)
-      (hide interface 'streams)
-      (show interface 'chat-label)
-      (show interface 'chat)
-      (proportion interface 'chat (chat-proportion self))
-      (show interface 'command-to)
-      (location interface 'command-to (command-to-location self))
-      (show interface 'command)
-      (location interface 'command (command-location self))
-      (show root 'about)
-      (title interface '(command-to to) "The gathering")
-      (color interface '(command-to to) {Color red: 32 green: 205 blue: 33})
-      (update-message-recipient self #f)
-      (update-circle/join self)
-      (layout-view interface)
-      (layout-view root)
-      (no-showcase world)))
-  
-  
-  (method (install-circle self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (visible parent name flag)
-        (set-visible? (child parent name) flag))
-      
-      (define (title parent name str)
-        (set-title (child parent name) str))
-      
-      (define (color parent name color)
-        (set-color (child parent name) color))
-      
-      (define (location parent name loc)
-        (set-location (child parent name) loc))
-      
-      (define (proportion parent name prop)
-        (set-proportion (child parent name) prop))
-      
-      (set! root (child interface 'circle))
-      (show root 'circle-name)
-      (title root 'circle-name circle-name)
-      (show root 'toggle-people)
-      (show root 'toggle-chat)
-      (show root 'leave)
-      (show root 'audio)
-      (show root 'video)
-      (show root 'layout)
-      (show interface 'profile)
-      (visible interface 'people-label (not hide-people?))
-      (visible interface 'people (not hide-people?))
-      (proportion interface 'chat (chat-proportion self))
-      (location interface 'command-to (command-to-location self))
-      (location interface 'command (command-location self))
-      (visible interface 'chat-label (not hide-chat?))
-      (visible interface 'chat (not hide-chat?))
-      (visible interface 'command-to (not hide-chat?))
-      (visible interface 'command (not hide-chat?))
-      (update-message-recipient self (list 'group circle-name))
-      (layout-view interface)
-      (layout-view root)
-      (no-showcase world)
-      (update-audio self)
-      (update-video self)
-      (update-layout self)
-      (update-buttons self)
-      (when auto-hide?
-        (install-hider self)
-        (delay-hide-interface self #t))))
-  
-  
-  (method (install-script self)
-    (let ((interface (current-interface)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (visible parent name flag)
-        (set-visible? (child parent name) flag))
-      
-      (set! root (child interface 'script-root))
-      (show root 'back)
-      (show interface 'script)
-      (visible interface 'profile #f)
-      (visible interface 'people-label #f)
-      (visible interface 'people #f)
-      (visible interface 'streams-label #f)
-      (visible interface 'streams #f)
-      (visible interface 'chat-label #f)
-      (visible interface 'chat #f)
-      (visible interface 'command-to #f)
-      (visible interface 'command #f)
-      (layout-view interface)
-      (layout-view root)))
-  
-  
-  (method (install-replay self)
-    (let ((interface (current-interface)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (visible parent name flag)
-        (set-visible? (child parent name) flag))
-      
-      (set! root (child interface 'replay))
-      (show root 'visualizer)
-      (show root 'timeline)
-      (show root 'evolution)
-      (show root 'back)
-      (visible interface 'profile #f)
-      (visible interface 'people-label #f)
-      (visible interface 'people #f)
-      (visible interface 'streams-label #f)
-      (visible interface 'streams #f)
-      (visible interface 'chat-label #f)
-      (visible interface 'chat #f)
-      (visible interface 'command-to #f)
-      (visible interface 'command #f)
-      (layout-view interface)
-      (layout-view root)))
-  
-  
-  (method (install-simulate self)
-    (let ((interface (current-interface)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (visible parent name flag)
-        (set-visible? (child parent name) flag))
-      
-      (set! root (child interface 'simulate))
-      (show root 'simulator)
-      (show root 'back)
-      (visible interface 'profile #f)
-      (visible interface 'people-label #f)
-      (visible interface 'people #f)
-      (visible interface 'streams-label #f)
-      (visible interface 'streams #f)
-      (visible interface 'chat-label #f)
-      (visible interface 'chat #f)
-      (visible interface 'command-to #f)
-      (visible interface 'command #f)
-      (layout-view interface)
-      (layout-view root)))
-  
-  
-  (method (uninstall-stage self)
-    (let ((interface (current-interface)))
-      (case stage
-        ((circle)
-         (when auto-hide?
-           (uninstall-hider self)))
-        ((script)
-         (let ((panel (child interface 'script)))
-           (let ((manager (locate panel 'manager)))
-             (save-script manager))
-           (hide panel))))
-      (hide root)))
-  
-  
-  (method (uninstall-zone self)
-    (let ((interface (current-interface)))
-      (close (child interface 'profile))
-      (close (child interface 'people-label))
-      (close (child interface 'people))
-      (close (child interface 'streams-label))
-      (close (child interface 'streams))
-      (close (child interface 'chat-label))
-      (close (child interface 'command-to))
-      (when (developer?)
-        (close (child interface 'admin-label))
-        (close (child interface 'admin)))
-      (close (child interface 'gathering))
-      (close (child interface 'circle))
-      (close (child interface 'replay))
-      (close (child interface 'simulate))
-      (close (child interface 'exception))))
-  
-  
-  (method protected (sleep-process self)
-    (with-task-mutex
-      (lambda ()
-        (let ((client (current-client)))
-          (when (eq? stage 'circle)
-            (leave-circle self)
-            (set! disconnected? #t))
-          (sleep-to-server client)))))
-  
-  
-  (method protected (wake-process self)
-    (with-task-mutex
-      (lambda ()
-        ;; this can occur if some other part of the
-        ;; system called bailout-client during wakeup
-        (when (client?)
-          (let ((client (current-client))
-                (world (current-world)))
-            (wake-to-server client)
-            (when disconnected?
-              (display-message world "Disconnected from circle" duration: 5.)
-              (set! disconnected? #f)))))))
-  
-  
-  (method (on-about self evt)
-    (let ((interface (current-interface)))
-      (define (show parent name)
-        (set-visible? (child parent name) #t))
-      
-      (define (closer frame)
-        (show root 'name)
-        (show root 'circle)
-        (show root 'join)
-        (show interface 'profile)
-        (show interface 'people-label)
-        (show interface 'people)
-        (show interface 'chat-label)
-        (show interface 'chat)
-        (show interface 'command-to)
-        (show interface 'command)
-        (show root 'circle-label)
-        (show root 'circle-view)
-        (show root 'circle-invalid)
-        (show root 'circle-create)
-        (when view-focused
-          (inhibit-focus-selects-all self view-focused
-            (lambda ()
-              (acquire-focus view-focused)))))
-      
-      (let ((frame (top-frame)))
-        (if (is? frame World-Document)
-            (begin
-              (close frame)
-              (closer frame))
-          (show-about self closer: closer)))))
-  
-  
-  (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (define (hide parent name)
-        (set-visible? (child parent name) #f))
-      
-      (set! view-focused (active-focus))
-      (hide root 'name)
-      (hide root 'circle)
-      (hide root 'join)
-      (hide interface 'profile)
-      (hide interface 'people-label)
-      (hide interface 'people)
-      (hide interface 'streams-label)
-      (hide interface 'streams)
-      (hide interface 'chat-label)
-      (hide interface 'chat)
-      (hide interface 'command-to)
-      (hide interface 'command)
-      (when (developer?)
-        (hide interface 'admin-label)
-        (hide interface 'admin))
-      (hide root 'circle-label)
-      (hide root 'circle-view)
-      (hide root 'circle-invalid)
-      (hide root 'circle-create)
-      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))
-  
-  
-  (method (update-circle/join self)
-    (let ((interface (current-interface)))
-      (cond ((not selected-group)
-             (set-title (child root 'circle) "")
-             (set-enabled? (child root 'join) #f))
-            (else
-             (set-title (child root 'circle) selected-group)
-             (set-enabled? (child root 'join) #t)
-             (layout-view root)))))
-  
-  
-  (method package (update-message-recipient self recipient)
-    (let ((interface (current-interface)))
-      (let ((to (child interface '(command-to to))))
-        (if (not recipient)
-            (begin
-              (set-title to "The gathering")
-              (set-color to {Color red: 32 green: 205 blue: 33})
-              (set! message-recipient recipient))
-          (bind (kind name) recipient
-            (case kind
-              ((player)
-               (set-title to name)
-               (set-color to {Color World-Blue})
-               (set! message-recipient recipient))
-              ((group)
-               (when (and (eq? stage 'circle)
-                          (equal? name circle-name))
-                 (set-title to name)
-                 (set-color to {Color World-Red})
-                 (set! message-recipient recipient)))))))))
+      (for-each hide (get-children interface))))
   
   
   ;;;
-  ;;;; Mouse
+  ;;;; Interface
   ;;;
   
   
-  (method override (mouse-moved self x y)
-    (unless (script-visible? self)
-      (when (eq? stage 'circle)
-        (cond-expand
-          (windows
-           (let ((point (new Point$fl$ x y)))
-             ;; quick hack around windows sending
-             ;; mouse-moved every second even with
-             ;; the mouse not moving at all
-             (when (or (not hide-last-mouse)
-                       (nu/=? hide-last-mouse point))
-               (show-interface self #t)
-               (set! hide-last-mouse point))))
-          (else
-           (show-interface self #t))))
-      (when (developer?)
-        (show/hide-debug self (fxround x) (fxround y)))))
+  (method protected virtual (show-interface self hide-interface?)
+    )
   
   
-  (method override (mouse-down self h v)
-    (mouse-activity self #f))
-  
-  
-  (method override (mouse-up self h v)
-    (mouse-activity self))
-  
-  
-  (method override (mouse-action self h v)
-    (mouse-activity self))
-  
-  
-  (method override (double-click self h v)
-    (mouse-activity self))
-  
-  
-  (method override (multiple-click self h v)
-    (mouse-activity self))
-  
-  
-  (method (mouse-activity self (hide-interface? #t))
-    (unless (script-visible? self)
-      (when (eq? stage 'circle)
-        (show-interface self hide-interface?))))
-  
-  
-  (method (install-hider self)
-    (unless hide-thread
-      (let ((thread (new-thread
-                      (lambda ()
-                        (declare (proper-tail-calls))
-                        (let (loop)
-                          (let ((proc (wait hide-ring)))
-                            (when proc
-                              (delay-event
-                                (lambda ()
-                                  (proc)))
-                              (loop)))))
-                      'hider)))
-        (set! hide-ring (new Time-Ring 1))
-        (set! hide-thread thread)
-        (thread-start! thread))))
-  
-  
-  (method (uninstall-hider self)
-    (when hide-thread
-      (terminate hide-ring)
-      (thread-join! hide-thread)
-      (set! hide-ring #f)
-      (set! hide-thread #f)))
-  
-  
-  ;; we probably need a tolerance so moving
-  ;; only 1 pixel doesn't show the interface
-  (method protected (show-interface self hide-interface?)
-    (let ((window (current-window))
-          (interface (current-interface))
-          (video (current-video)))
-      (unless buttons-shown?
-        @wait-later-version-as-it-needs-debugging
-        (show-cursor window)
-        (set-visible? (child interface 'profile) #t)
-        (set-visible? (child root 'circle-name) #t)
-        (set-visible? (child root 'toggle-people) #t)
-        (set-visible? (child root 'toggle-chat) #t)
-        (set-visible? (child root 'leave) #t)
-        (set-visible? (child root 'audio) #t)
-        (set-visible? (child root 'video) #t)
-        (set-visible? (child root 'layout) #t)
-        (set-video-interface? #t)
-        (invalidate-outputs video)
-        (set! buttons-shown? #t))
-      (delay-hide-interface self hide-interface?)))
-  
-  
-  (method (delay-hide-interface self hide-interface?)
-    (when auto-hide?
-      (let ((hide-time (+ (current-seconds) 2.)))
-        (empty hide-ring)
-        (when hide-interface?
-          (insert hide-ring hide-time (lambda ()
-                                        (with-task-mutex
-                                          (lambda ()
-                                            (when (and (eq? stage 'circle)
-                                                       auto-hide?
-                                                       buttons-shown?)
-                                              (let ((window (current-window))
-                                                    (interface (current-interface))
-                                                    (video (current-video)))
-                                                @wait-later-version-as-it-needs-debugging
-                                                (hide-cursor window)
-                                                (set-visible? (child interface 'profile) #f)
-                                                (set-visible? (child root 'circle-name) #f)
-                                                (set-visible? (child root 'toggle-people) #f)
-                                                (set-visible? (child root 'toggle-chat) #f)
-                                                (set-visible? (child root 'leave) #f)
-                                                (set-visible? (child root 'audio) #f)
-                                                (set-visible? (child root 'video) #f)
-                                                (set-visible? (child root 'layout) #f)
-                                                (set-video-interface? #f)
-                                                (invalidate-outputs video)
-                                                (set! buttons-shown? #f)))))))))))
-  
-  
-  (method (show/hide-debug self h v)
+  (method (show-bars self)
     (let ((interface (current-interface)))
-      (let ((toolbar (child interface 'debug)))
-        (let ((pos (new Point h v)))
-          (let ((in? (in-rect? pos (get-rect toolbar))))
-            (set-visible? toolbar in?))))))
+      (set-visible? (child interface 'mediabar) #t)
+      (set-visible? (child interface 'layoutbar) #t)
+      (set-visible? (child interface 'showcasesbar) #t)
+      (set-visible? (child interface 'panelbar) #t)
+      (set-visible? (child interface 'sharebar) #t)
+      (set-visible? (child interface 'debugbar) #t)
+      (set-visible? (child interface 'mainbar) #t)
+      (set-visible? (child interface 'windowbar) #t)
+      (set-visible? (child interface 'leavebar) #t)))
+  
+  
+  (method (hide-bars self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'mediabar) #f)
+      (set-visible? (child interface 'layoutbar) #f)
+      (set-visible? (child interface 'showcasesbar) #f)
+      (set-visible? (child interface 'panelbar) #f)
+      (set-visible? (child interface 'sharebar) #f)
+      (set-visible? (child interface 'debugbar) #f)
+      (set-visible? (child interface 'mainbar) #f)
+      (set-visible? (child interface 'windowbar) #f)
+      (set-visible? (child interface 'leavebar) #f)))
   
   
   ;;;
@@ -817,601 +230,35 @@
   
   
   (method (on-toggle-people self evt)
-    (let ((interface (current-interface)))
-      (when (neq? stage 'gathering)
-        (toggle-visible? (child interface 'people-label))
-        (toggle-visible? (child interface 'people))
-        (set-visible? (child interface 'streams-label) #f)
-        (set-visible? (child interface 'streams) #f)
-        (update-buttons self))))
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (toggle-visible? (child interface 'people-label))
+      (toggle-visible? (child interface 'people))
+      (set-visible? (child interface 'streams-label) #f)
+      (set-visible? (child interface 'streams) #f)
+      (update-parameter world 'people)))
   
   
   (method (on-toggle-streams self evt)
-    (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
-        (set-visible? (child interface 'people-label) #f)
-        (set-visible? (child interface 'people) #f)
-        (toggle-visible? (child interface 'streams-label))
-        (toggle-visible? (child interface 'streams))
-        (when (get-visible? (child interface 'streams))
-          (view-streams self)))))
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (toggle-visible? (child interface 'streams-label))
+      (toggle-visible? (child interface 'streams))
+      (when (get-visible? (child interface 'streams))
+        (view-streams self))
+      (update-parameter world 'streams)))
   
   
   (method (on-toggle-chat self evt)
-    (let ((interface (current-interface)))
-      (when (neq? stage 'gathering)
-        (toggle-visible? (child interface 'chat-label))
-        (toggle-visible? (child interface 'chat))
-        (toggle-visible? (child interface 'command-to))
-        (toggle-visible? (child interface 'command))
-        (update-buttons self))))
-  
-  
-  (method (on-message self evt)
-    (let ((interface (current-interface)))
-      (show-chat self)
-      (acquire-focus (locate (child interface 'command) 'text))))
-  
-  
-  (method (update-buttons self)
-    (let ((interface (current-interface)))
-      (when (eq? stage 'circle)
-        (set-title (child root 'toggle-people)
-                   (if (get-visible? (child interface 'people))
-                       "Hide People"
-                     "Show People"))
-        (set-title (child root 'toggle-chat)
-                   (if (get-visible? (child interface 'chat))
-                       "Hide Chat"
-                     "Show Chat")))))
-  
-  
-  (method (on-toggle-denoise self evt)
-    (let ((client (current-client))
+    (let ((interface (current-interface))
           (world (current-world)))
-      (when (eq? stage 'circle)
-        (set-audio-denoise? (not audio-denoise?))
-        (let ((mic-channel (get-mic-channel client)))
-          (when mic-channel
-            (let ((denoiser (get-denoiser (get-src (get-pipeline mic-channel)))))
-              (when denoiser
-                (set-denoising? denoiser audio-denoise?)))))
-        (display-on/off world "Denoise" audio-denoise?))))
-  
-  
-  (method (on-toggle-audio self evt)
-    (let ((client (current-client)))
-      (when (eq? stage 'circle)
-        (require-live-stream client)
-        (toggle-mic client)
-        (update-audio self))))
-  
-  
-  (method (update-audio self)
-    (let ((client (current-client)))
-      (set-title (child root 'audio)
-                 (if (mic-playing? client)
-                     "Stop Audio"
-                   "Start Audio"))))
-  
-  
-  (method (on-toggle-video self evt)
-    (let ((client (current-client))
-          (video (current-video)))
-      (when (eq? stage 'circle)
-        (require-live-stream client)
-        (toggle-camera client)
-        (update-video self)
-        (update-layouts video)
-        (effective-base-profile-update))))
-  
-  
-  (method (update-video self)
-    (let ((client (current-client)))
-      (set-title (child root 'video)
-                 (if (camera-playing? client)
-                     "Stop Video"
-                   "Start Video"))))
-  
-  
-  (method (escape-press self)
-    (if (or (is? (active-focus) Filter-View)
-            (is? (active-focus) Filter-Text))
-        #f
-      (let ((frame (top-frame)))
-        (if frame
-            (close frame)
-          (when (and (developer?) (eq? stage 'gathering))
-            (delay-event
-              (lambda ()
-                (with-task-mutex
-                  (lambda ()
-                    (open-login-zone))))))))
-      #t))
-  
-  
-  (method override (enter-press self)
-    (when (and (eq? stage 'gathering)
-               (eq? (active-focus) (current-interface))
-               selected-group
-               (not selected-player))
-      (join-circle self selected-group)))
-  
-  
-  (method override (tab-press self)
-    )
-  
-  
-  (method package (on-join self evt)
-    (join-circle self selected-group))
-  
-  
-  (method (on-leave self evt)
-    (leave-circle self))
-  
-  
-  (method (on-create&join self evt)
-    (create&join-circle self))
-  
-  
-  (method override (name-return self)
-    (create&join-circle self))
-  
-  
-  (method (check-has-camera? self)
-    (let ((world (current-world)))
-      (if (not-null? (cache-decreasing-camera-resolutions))
-          #t
-        (display-error world "No camera found")
-        #f)))
-  
-  
-  (method (create&join-circle self)
-    (let ((interface (current-interface))
-          (tier (current-client))
-          (world (current-world)))
-      (when (check-has-camera? self)
-        (let ((view (child root 'circle-view)))
-          (let ((text (locate view 'text)))
-            (let ((name (trim-whitespace (get-string-content text))))
-              (let ((no/exception (create-group tier name #f)))
-                (if (string? no/exception)
-                    (display-error world no/exception)
-                  (clear-message world)
-                  (set-string-content text "")
-                  (content-changed view)
-                  (join-circle self name)))))))))
-  
-  
-  (method (join-circle self name)
-    (let ((tier (current-client))
-          (udp (current-udp))
-          (world (current-world))
-          (zone (current-zone))
-          (video (current-video)))
-      (when (check-has-camera? self)
-        (reset-chronology)
-        (reset-evolution)
-        (bind-camera)
-        (let ((no/streams/exception (join-group tier name)))
-          (if (string? no/streams/exception)
-              (display-error world no/streams/exception)
-            (bind (no . streams) no/streams/exception
-              (when auto-live?
-                (require-live-stream tier))
-              (start udp)
-              (when auto-live?
-                (when auto-audio?
-                  (play-mic tier))
-                (when auto-video?
-                  (play-camera tier)))
-              (clear-message world)
-              (uninstall-camera)
-              (remove-skybox zone)
-              (cond-expand
-                (windows (set! hide-last-mouse #f))
-                (else))
-              (set! circle-name name)
-              (set! circle-no no)
-              (set! circle-start (current-seconds))
-              (for-each (lambda (info)
-                          (bind (sender name stream-no origin source-kind video-level channels) info
-                            (stream-add tier no sender name stream-no origin source-kind video-level channels)))
-                        streams)
-              (install-circle-hooks self)
-              (goto-stage self 'circle)
-              (update-layouts video)
-              (effective-base-profile-update)))))))
-  
-  
-  (method (leave-circle self)
-    (let ((tier (current-client))
-          (zone (current-zone)))
-      (uninstall-circle-hooks self)
-      (let ((udp-client (get-udp-client tier)))
-        (stop udp-client)
-        (close-live-stream tier)
-        (close-send-streams udp-client)
-        (close-receive-streams udp-client))
-      (leave-group tier circle-name)
-      (circle-uninstall-camera)
-      (restore-fov)
-      (install-camera)
-      (install-skybox zone (find-skybox together-skybox))
-      (set! draw-grid? #f)
-      (set! circle-name #f)
-      (set! circle-no #f)
-      (goto-stage self 'gathering)))
-  
-  
-  (method (goto-stage self what)
-    (uninstall-stage self)
-    (set! stage what)
-    (install-stage self))
-  
-  
-  (method (on-quit self evt)
-    (quit-process (current-process)))
-  
-  
-  (method (on-back self evt)
-    (goto-stage self 'gathering))
-  
-  
-  ;;;
-  ;;;; Hooks
-  ;;;
-  
-  
-  (method (install-hooks self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (tier (current-client))
-          (audio (current-audio))
-          (video (current-video)))
-      (set-server-entered-hook tier (~ server-entered self))
-      (set-server-exited-hook tier (~ server-exited self))
-      (set-server-disconnected-hook tier (~ server-disconnected self))
-      (set-server-reconnected-hook tier (~ server-reconnected self))
-      (set-hierarchy-update-hook tier (~ hierarchy-update self))
-      (set-stream-addable-hook tier (~ stream-addable self))
-      (set-render-hook video (~ render-video self))
-      (set-layout-circle-hook (~ layout-circle self))
-      (set! draw-hook (~ draw-debug self))
-      (register-draw-hook interface draw-hook)
-      (set-refresh-interface-hook (~ refresh-hook self))
-      (set-matrix-hook (get-eye world) (~ eye-matrix self))
-      (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
-      (set-sender-hook (child interface 'chat) (~ chat-sender self))
-      (set-return-handler (child interface 'command) (~ command-return self))
-      (set-escape-handler (child interface 'command) (~ command-escape self))
-      (set-view-replay-directory (~ view-replay-directory self))))
-  
-  
-  (method (uninstall-hooks self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (tier (current-client))
-          (audio (current-audio))
-          (video (current-video)))
-      (set-server-entered-hook tier #f)
-      (set-server-exited-hook tier #f)
-      (set-server-disconnected-hook tier #f)
-      (set-server-reconnected-hook tier #f)
-      (set-hierarchy-update-hook tier #f)
-      (set-stream-addable-hook tier #f)
-      (set-render-hook video #f)
-      (set-layout-circle-hook #f)
-      (unregister-draw-hook interface draw-hook)
-      (set-refresh-interface-hook #f)
-      (set-matrix-hook (get-eye world) #f)
-      (set-displayed-hook (child interface 'chat) #f)
-      (set-sender-hook (child interface 'chat) #f)
-      (set-return-handler (child interface 'command) #f)
-      (set-escape-handler (child interface 'command) #f)
-      (reset-view-replay-directory)))
-  
-  
-  ;;;
-  ;;;; Server
-  ;;;
-  
-  
-  (method (server-entered self character-name)
-    (let ((world (current-world)))
-      (unless (eq? stage 'circle)
-        (display-message world (format "{a} entered" character-name)))))
-  
-  
-  (method (server-exited self character-name)
-    (let ((world (current-world)))
-      (unless (eq? stage 'circle)
-        (display-message world (format "{a} exited" character-name)))))
-  
-  
-  (method (server-disconnected self character-name)
-    (let ((world (current-world)))
-      (display-message world (format "{a} disconnected" character-name))))
-  
-  
-  (method (server-reconnected self character-name)
-    (let ((world (current-world)))
-      (display-message world (format "{a} reconnected" character-name))))
-  
-  
-  (method (hierarchy-update self hierarchy)
-    (let ((tree (people-tree self)))
-      (define (same-entity? x y)
-        (define (entity info)
-          (if (not info)
-              info
-            (bind (kind name) info
-              (cons kind name))))
-        
-        (equal? (entity x)
-                (entity y)))
-      
-      (with-preserved-selection tree
-        (lambda ()
-          (view-hierarchy self hierarchy))
-        use: 'data
-        test: same-entity?
-        generate-event?: #t)
-      (when (and auto-create
-                 first-hierarchy?
-                 (not (get-single-selection tree))
-                 (> (get-visible-count tree) 3))
-        (set-single-selection tree 3)
-        (set! first-hierarchy? #f))))
-  
-  
-  ;; this rare case can happen if the server had just sent
-  ;; a stream-add moments before receiving our leave circle
-  (method (stream-addable self group-no)
-    (or (not group-no)
-        (eqv? group-no circle-no)))
-  
-  
-  ;;;
-  ;;;; Media
-  ;;;
-  
-  
-  (method (render-video self video)
-    (if (eq? world.video:video-layout 'circle)
-        #f
-      (neq? stage 'circle)))
-  
-  
-  (method (draw-debug self surface)
-    (let ((client (current-client)))
-      (let ((udp-client (get-udp-client client)))
-        (define (media-quality kind)
-          (let ((total 0.)
-                (channels 0))
-            (iterate-table (get-receive-channels udp-client)
-              (lambda (key channel)
-                (when (= (get-media-kind channel) kind)
-                  (let ((mean (mean-average (get-process-average channel))))
-                    (when mean
-                      (increase! total mean)
-                      (increase! channels))))))
-            (if (= channels 0)
-                "N/A"
-              (format "{r precision: 1}% ({a})" (* 100. (/ total (cast <fl> channels))) (if (= kind udp-audio) 'audio 'video)))))
-        
-        (define (outgoing-dropped)
-          (let ((dropped (get-outgoing-dropped (get-statistics udp-client))))
-            (format "{a} (outgoing)" dropped)))
-        
-        (define (outgoing-drop)
-          (let ((drop (get-outgoing-drop (get-statistics udp-client))))
-            (if drop
-                (format "{r precision: 1}% (outgoing)" drop)
-              "N/A")))
-        
-        (define (incoming-dropped)
-          (let ((dropped (get-incoming-dropped (get-statistics udp-client))))
-            (format "{a} (incoming)" dropped)))
-        
-        (define (incoming-drop)
-          (let ((drop (get-incoming-drop (get-statistics udp-client))))
-            (if drop
-                (format "{r precision: 1}% (incoming)" drop)
-              "N/A")))
-        
-        (define (send-rate)
-          (let ((rate (get-last-send-rate (get-statistics udp-client))))
-            (if (and rate (/= rate -1.))
-                (format "{r precision: 1}Mbps (upload)" (bytes->mbps rate))
-              "N/A")))
-        
-        (define (receive-rate)
-          (let ((rate (get-last-receive-rate (get-statistics udp-client))))
-            (if (and rate (/= rate -1.))
-                (format "{r precision: 1}Mbps (download)" (bytes->mbps rate))
-              "N/A")))
-        
-        (define (present-chronology-duration)
-          (let ((chronology (current-chronology)))
-            (let ((duration (chronology-duration chronology)))
-              (if (not duration)
-                  "N/A"
-                (format "{r precision: 1}s (chronology)" duration)))))
-        
-        (define (present-evolution-duration)
-          (let ((evolution (current-evolution)))
-            (let ((duration (evolution-duration evolution)))
-              (if (not duration)
-                  "N/A"
-                (format "{r precision: 1}s (evolution)" duration)))))
-        
-        (define (count-nacks kind)
-          (let ((total 0)
-                (channels 0))
-            (iterate-table (get-receive-channels udp-client)
-              (lambda (key channel)
-                (when (= (get-media-kind channel) kind)
-                  (let ((len (count-missing channel)))
-                    (increase! total len)
-                    (increase! channels)))))
-            (if (= channels 0)
-                "N/A"
-              (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
-        
-        (let ((rank 0))
-          (define (draw text color)
-            (let ((h 20)
-                  (v (+ 80 (* rank 28))))
-              (draw-text surface h v text color))
-            (increase! rank))
-          
-          (when (eq? stage 'circle)
-            (when show-debug?
-              (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-              (draw (format "{a}" (present-duration (- (current-seconds) circle-start))) {Color World-Ochre})
-              (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-              (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
-              (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
-              @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
-              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
-              (let ((leaks (leaks)))
-                (when (not-null? leaks)
-                  (draw (format "Leaks: {a}" (length leaks)) {Color World-Red})))))))))
-  
-  
-  ;;;
-  ;;;; Camera
-  ;;;
-  
-  
-  (method (eye-matrix self camera stable?)
-    (when (eq? stage 'circle)
-      (update-interface-matrices (current-video))
-      @wait
-      (let ((position (get-position camera))
-            (sight (get-sight camera)))
-        (updating-3d-audio position sight
-          (lambda ()
-            (let ((udp-client (get-udp-client (current-client))))
-              (iterate-table (get-receive-streams udp-client)
-                (lambda (stream-no stream)
-                  (let ((audio-channel (locate-stream-audio-channel stream)))
-                    (when audio-channel
-                      (let ((video-channel (locate-stream-video-channel stream)))
-                        (when video-channel
-                          (let ((audio-output (find-output (current-audio) (get-no audio-channel)))
-                                (video-output (find-output (current-video) (get-no video-channel))))
-                            (when (and audio-output video-output)
-                              (when (is? video-output Circle-Video-Sink)
-                                (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
-                                  (update-3d-output audio-output position)))))))))))))))))
-  
-  
-  ;;;
-  ;;;; People
-  ;;;
-  
-  
-  (method (people-tree self)
-    (let ((interface (current-interface)))
-      (locate (child interface 'people) '(people people))))
-  
-  
-  (method (view-people self)
-    (let ((tier (current-tier)))
-      (view-hierarchy self (list-hierarchy tier))))
-  
-  
-  (method (view-hierarchy self hierarchy)
-    (let ((tier (current-tier))
-          (me (current-me)))
-      (let ((tree (people-tree self)))
-        (remove-every-row tree)
-        (with-update-locked tree
-          (lambda ()
-            (define (add-player father info group)
-              (bind (player id no asleep?) info
-                (let ((title (if asleep? (format "{a} (offline)" player) player))
-                      (font {Font Label-User})
-                      (color (if asleep? {Color Medium-Gray} {Color World-Blue})))
-                  (add-row tree
-                           father: father
-                           children: (list (new Tree-Node title: title font: font color: color))
-                           user-data: (list 'player player group)))))
-            
-            (bind (gathering . groups) hierarchy
-              (let ((players (cdr gathering)))
-                (let ((row (add-row tree
-                                    state: 'expanded
-                                    children: (list (new Tree-Node
-                                                      title: "The gathering"
-                                                      font: {Font Label-User}
-                                                      color: {Color red: 32 green: 205 blue: 33})))))
-                  (for-each (lambda (info)
-                              (add-player row info #f))
-                            (let ((me (get-name me)))
-                              (sort di<? players key: (lambda (player)
-                                                        (if (equal? player me)
-                                                            (cons 0 player)
-                                                          (cons 1 player))))))))
-              (when (not-null? hierarchy)
-                (add-row tree
-                         children: (list (new Tree-Node title: "" font: {Font Label-User})))
-                (for-each (lambda (info)
-                            (bind (group . players) info
-                              (let ((row (add-row tree
-                                                  state: 'expanded
-                                                  children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
-                                                  user-data: (list 'group group))))
-                                (for-each (lambda (info)
-                                            (add-player row info group))
-                                          players))))
-                          (sort di<? groups key: car)))))))))
-  
-  
-  (method package (people-selection-change self)
-    (let ((tree (people-tree self)))
-      (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
-        (bind (kind . rest) selected
-          (define (select group player)
-            (set! selected-group group)
-            (set! selected-player player)
-            (when (eq? stage 'gathering)
-              (update-circle/join self)))
-          
-          (case kind
-            ((player)
-             (bind (player group) rest
-               (select group player)))
-            ((group)
-             (bind (group) rest
-               (select group #f))))))))
-  
-  
-  (method package (people-double-click self)
-    (people-action-selected self))
-  
-  
-  (method package (people-return-press self)
-    (people-action-selected self))
-  
-  
-  (method (people-action-selected self)
-    (when (eq? stage 'gathering)
-      (when (and selected-group (not selected-player))
-        (join-circle self selected-group))))
-  
-  
-  (method package (focus-command-text self)
-    (let ((interface (current-interface)))
-      (let ((text (locate (child interface 'command) 'text)))
-        (when (view-visible? text)
-          (acquire-focus text)))))
-  
-  
-  (method package (people-label-action self)
-    )
+      (toggle-visible? (child interface 'chat-label))
+      (toggle-visible? (child interface 'chat))
+      (toggle-visible? (child interface 'command-to))
+      (toggle-visible? (child interface 'command))
+      (update-parameter world 'chat)))
   
   
   ;;;
@@ -1512,63 +359,1485 @@
   
   (method (streams-action-selected self)
     (let ((tier (current-tier)))
-      (when (eq? stage 'circle)
-        (let ((udp-client (get-udp-client tier))
-              (tree (streams-tree self)))
-          (let ((row (get-selected-row tree)))
-            (when row
-              (let ((data (get-user-data row)))
-                (when data
-                  (bind (kind base location) data
-                    (define (update-cell streaming)
-                      (let ((title (streaming-title self streaming base))
-                            (color (streaming-color self streaming))
-                            (line (row->line tree row))
-                            (col 0))
-                        (let ((cell (new Cell line col)))
-                          (let ((data (get-cell-data tree cell)))
-                            (set-title data title)
-                            (set-color data color))
-                          (invalidate-cell tree cell))))
-                    
-                    (let ((streaming (find-streaming udp-client location)))
-                      (if streaming
-                          (begin
-                            (close-send-stream udp-client streaming)
-                            (update-cell #f))
-                        (case kind
-                          ((text)
-                           (let ((name (filename-name location)))
-                             (let ((stream (stream-text location name)))
-                               (update-cell stream)
-                               (delay-streaming
-                                 (lambda ()
-                                   (play stream))))))
-                          ((image)
-                           (let ((name (filename-name location)))
-                             (let ((stream (stream-image location name)))
-                               (update-cell stream)
-                               (delay-streaming
-                                 (lambda ()
-                                   (play stream))))))
-                          ((audio)
-                           (let ((name (filename-name location)))
-                             (let ((stream (stream-video location name)))
-                               (update-cell stream)
-                               (delay-streaming
-                                 (lambda ()
-                                   (play stream))))))
-                          ((video)
-                           (let ((name (filename-name location))
-                                 (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
-                             (let ((stream (stream-video location name audio?: (and audio-file? (not stream-silent?)))))
-                               (update-cell stream)
-                               (delay-streaming
-                                 (lambda ()
-                                   (play stream))))))))))))))))))
+      (let ((udp-client (get-udp-client tier))
+            (tree (streams-tree self)))
+        (let ((row (get-selected-row tree)))
+          (when row
+            (let ((data (get-user-data row)))
+              (when data
+                (bind (kind base location) data
+                  (define (update-cell streaming)
+                    (let ((title (streaming-title self streaming base))
+                          (color (streaming-color self streaming))
+                          (line (row->line tree row))
+                          (col 0))
+                      (let ((cell (new Cell line col)))
+                        (let ((data (get-cell-data tree cell)))
+                          (set-title data title)
+                          (set-color data color))
+                        (invalidate-cell tree cell))))
+                  
+                  (let ((streaming (find-streaming udp-client location)))
+                    (if streaming
+                        (begin
+                          (close-send-stream udp-client streaming)
+                          (update-cell #f))
+                      (case kind
+                        ((text)
+                         (let ((name (filename-name location)))
+                           (let ((stream (stream-text location name)))
+                             (update-cell stream)
+                             (delay-streaming
+                               (lambda ()
+                                 (play stream))))))
+                        ((image)
+                         (let ((name (filename-name location)))
+                           (let ((stream (stream-image location name)))
+                             (update-cell stream)
+                             (delay-streaming
+                               (lambda ()
+                                 (play stream))))))
+                        ((audio)
+                         (let ((name (filename-name location)))
+                           (let ((stream (stream-video location name)))
+                             (update-cell stream)
+                             (delay-streaming
+                               (lambda ()
+                                 (play stream))))))
+                        ((video)
+                         (let ((name (filename-name location))
+                               (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
+                           (let ((stream (stream-video location name audio?: (and audio-file? (not stream-silent?)))))
+                             (update-cell stream)
+                             (delay-streaming
+                               (lambda ()
+                                 (play stream)))))))))))))))))
   
   
   (method package (streams-label-action self)
+    ))
+
+
+;;;
+;;;; Gathering-Space
+;;;
+
+
+(class Gathering-Space extends Sphere-Space
+  
+  
+  (slot view-focused initialize #f getter generate)
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((version (process-version (current-process)))
+            (date (build-short-date)))
+        (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+          (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+          (new Name-Label name: 'name parent: root location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+          (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
+          (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
+          (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
+          (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
+          (new Push-Button name: 'join parent: root title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
+          (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
+          (new Kind-Label name: 'circle-label parent: root title: "New circle name" location: '(center -125) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: 'tail)
+          (new Name-View name: 'circle-view parent: root location: '(center -95) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid name-label: "Circle name" max-length: 40)
+          (new Name-Invalid name: 'circle-invalid parent: root location: '(center -77) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+          (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self))
+          (set! self.root root)))))
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (install-gathering self)
+      (show root)
+      (send-to-back root)
+      (layout-message world)
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+  
+  
+  (method (install-gathering self)
+    (let ((together (current-together))
+          (interface (current-interface))
+          (world (current-world)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (hide parent name)
+        (set-visible? (child parent name) #f))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (define (title parent name str)
+        (set-title (child parent name) str))
+      
+      (define (color parent name color)
+        (set-color (child parent name) color))
+      
+      (define (location parent name loc)
+        (set-location (child parent name) loc))
+      
+      (define (proportion parent name prop)
+        (set-proportion (child parent name) prop))
+      
+      (show root 'together)
+      (show root 'version)
+      (show root 'date)
+      (show root 'quit)
+      (show root 'name)
+      (title root 'name (get-character-name (get-configuration together)))
+      (when (developer?)
+        (let ((admin-visible? (get-visible? (child interface 'admin))))
+          (visible root 'circle (not admin-visible?))
+          (visible root 'join (not admin-visible?))))
+      (show root 'circle-label)
+      (show root 'circle-view)
+      (show root 'circle-invalid)
+      (show root 'circle-create)
+      (show interface 'profile)
+      (show interface 'people-label)
+      (show interface 'people)
+      (hide interface 'streams-label)
+      (hide interface 'streams)
+      (show interface 'chat-label)
+      (show interface 'chat)
+      (proportion interface 'chat (chat-proportion together))
+      (show interface 'command-to)
+      (location interface 'command-to (command-to-location together))
+      (show interface 'command)
+      (location interface 'command (command-location together))
+      (show root 'about)
+      (title interface '(command-to to) "The gathering")
+      (color interface '(command-to to) {Color red: 32 green: 205 blue: 33})
+      (update-message-recipient together #f)
+      (update-circle/join self)
+      (layout-view interface)
+      (layout-view root)
+      (no-showcase world)))
+  
+  
+  (method override (show-me? self)
+    #f)
+  
+  
+  (method override (draw-message-offset self)
+    100)
+  
+  
+  (method override (enter-press self)
+    (let ((together (current-together)))
+      (when (and (eq? (active-focus) (current-interface))
+                 (get-selected-group together)
+                 (not (get-selected-player together)))
+        (join-circle together (get-selected-group together)))))
+  
+  
+  (method override (name-return self)
+    (let ((together (current-together)))
+      (create&join-circle together)))
+  
+  
+  (method package (update-circle/join self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((selected-group (get-selected-group together)))
+        (cond ((not selected-group)
+               (set-title (child root 'circle) "")
+               (set-enabled? (child root 'join) #f))
+              (else
+               (set-title (child root 'circle) selected-group)
+               (set-enabled? (child root 'join) #t)
+               (layout-view root))))))
+  
+  
+  (method (on-join self evt)
+    (let ((together (current-together)))
+      (join-circle together (get-selected-group together))))
+  
+  
+  (method (on-create&join self evt)
+    (let ((together (current-together)))
+      (create&join-circle together)))
+  
+  
+  (method (on-quit self evt)
+    (quit-process (current-process)))
+  
+  
+  (method (on-about self evt)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (closer frame)
+        (show root 'name)
+        (show root 'circle)
+        (show root 'join)
+        (show interface 'profile)
+        (show interface 'people-label)
+        (show interface 'people)
+        (show interface 'chat-label)
+        (show interface 'chat)
+        (show interface 'command-to)
+        (show interface 'command)
+        (show root 'circle-label)
+        (show root 'circle-view)
+        (show root 'circle-invalid)
+        (show root 'circle-create)
+        (when view-focused
+          (inhibit-focus-selects-all view-focused
+            (lambda ()
+              (acquire-focus view-focused)))))
+      
+      (let ((frame (top-frame)))
+        (if (is? frame World-Document)
+            (begin
+              (close frame)
+              (closer frame))
+          (show-about self closer: closer)))))
+  
+  
+  (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (define (hide parent name)
+        (set-visible? (child parent name) #f))
+      
+      (set! view-focused (active-focus))
+      (hide root 'name)
+      (hide root 'circle)
+      (hide root 'join)
+      (hide interface 'profile)
+      (hide interface 'people-label)
+      (hide interface 'people)
+      (hide interface 'streams-label)
+      (hide interface 'streams)
+      (hide interface 'chat-label)
+      (hide interface 'chat)
+      (hide interface 'command-to)
+      (hide interface 'command)
+      (when (developer?)
+        (hide interface 'admin-label)
+        (hide interface 'admin))
+      (hide root 'circle-label)
+      (hide root 'circle-view)
+      (hide root 'circle-invalid)
+      (hide root 'circle-create)
+      (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
+
+
+;;;
+;;;; Circle-Space
+;;;
+
+
+(class Circle-Space extends Sphere-Space
+  
+  
+  (slot hide-ring      initialize #f getter generate)
+  (slot hide-thread    initialize #f getter generate)
+  (slot buttons-shown? initialize #t getter generate)
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (new Kind-Label name: 'circle-name parent: root location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
+        (new Push-Button name: 'audio parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-mic self) visible?: #f)
+        (new Push-Button name: 'video parent: root location: '(195 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-camera self) visible?: #f)
+        (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self) visible?: #f)
+        (new Push-Button name: 'layout parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self) visible?: #f)
+        (new Push-Button name: 'toggle-people parent: root location: '(-210 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self) visible?: #f)
+        (new Push-Button name: 'toggle-chat parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self) visible?: #f)
+        (set! self.root root))))
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (show-bars self)
+      (install-circle self)
+      (show root)
+      (send-to-back root)
+      (layout-message world)
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+  
+  
+  (method (install-circle self)
+    (let ((together (current-together))
+          (interface (current-interface))
+          (world (current-world)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (define (title parent name str)
+        (set-title (child parent name) str))
+      
+      (define (color parent name color)
+        (set-color (child parent name) color))
+      
+      (define (location parent name loc)
+        (set-location (child parent name) loc))
+      
+      (define (proportion parent name prop)
+        (set-proportion (child parent name) prop))
+      
+      (show root 'circle-name)
+      (title root 'circle-name (get-circle-name together))
+      (show interface 'profile)
+      (visible interface 'people-label (not hide-people?))
+      (visible interface 'people (not hide-people?))
+      (proportion interface 'chat (chat-proportion together))
+      (location interface 'command-to (command-to-location together))
+      (location interface 'command (command-location together))
+      (visible interface 'chat-label (not hide-chat?))
+      (visible interface 'chat (not hide-chat?))
+      (visible interface 'command-to (not hide-chat?))
+      (visible interface 'command (not hide-chat?))
+      (update-message-recipient together (list 'group (get-circle-name together)))
+      (layout-view interface)
+      (layout-view root)
+      (no-showcase world)
+      (when auto-hide?
+        (install-hider self)
+        (delay-hide-interface self #t))))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (when auto-hide?
+      (uninstall-hider self)))
+  
+  
+  (method override (draw-message-offset self)
+    65)
+  
+  
+  ;;;
+  ;;;; Events
+  ;;;
+  
+  
+  (method (on-toggle-hide self evt)
+    (let ((world (current-world)))
+      (set! auto-hide? (not auto-hide?))
+      (if auto-hide?
+          (begin
+            (install-hider self)
+            (show-interface self #t))
+        (show-interface self #f))
+      (display-on/off world "Auto hide" auto-hide?)))
+  
+  
+  ;;;
+  ;;;; Mouse
+  ;;;
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (unless (script-visible? self)
+      (cond-expand
+        (windows
+         (let ((point (new Point$fl$ x y)))
+           ;; quick hack around windows sending
+           ;; mouse-moved every second even with
+           ;; the mouse not moving at all
+           (when (or (not hide-last-mouse)
+                     (nu/=? hide-last-mouse point))
+             (show-interface self #t)
+             (set! hide-last-mouse point))))
+        (else
+         (show-interface self #t)))))
+  
+  
+  (method override (mouse-down self h v)
+    (nextmethod self h v)
+    (mouse-activity self #f))
+  
+  
+  (method override (mouse-up self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (mouse-action self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (double-click self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (multiple-click self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method (mouse-activity self (hide-interface? #t))
+    (unless (script-visible? self)
+      (show-interface self hide-interface?)))
+  
+  
+  (method (script-visible? self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (get-visible? panel))))
+  
+  
+  (method (install-hider self)
+    (unless hide-thread
+      (let ((thread (new-thread
+                      (lambda ()
+                        (declare (proper-tail-calls))
+                        (let (loop)
+                          (let ((proc (wait hide-ring)))
+                            (when proc
+                              (delay-event
+                                (lambda ()
+                                  (proc)))
+                              (loop)))))
+                      'hider)))
+        (set! hide-ring (new Time-Ring 1))
+        (set! hide-thread thread)
+        (thread-start! thread))))
+  
+  
+  (method (uninstall-hider self)
+    (when hide-thread
+      (terminate hide-ring)
+      (thread-join! hide-thread)
+      (set! hide-ring #f)
+      (set! hide-thread #f)))
+  
+  
+  ;; we probably need a tolerance so moving
+  ;; only 1 pixel doesn't show the interface
+  (method override (show-interface self hide-interface?)
+    (let ((together (current-together))
+          (window (current-window))
+          (interface (current-interface))
+          (video (current-video)))
+      ;; YOWNU
+      (unless buttons-shown?
+        @wait-later-version-as-it-needs-debugging
+        (show-cursor window)
+        (show-bars self)
+        (set-visible? (child interface 'profile) #t)
+        (set-visible? (child root 'circle-name) #t)
+        (for-each (lambda (child)
+                    (when (and (is? child World-Actionbar)
+                               (get-auto-show/hide? child))
+                      (set-visible? child #t)))
+                  (get-children interface))
+        (set-video-interface? #t)
+        (invalidate-outputs video)
+        (set! buttons-shown? #t))
+      (delay-hide-interface self hide-interface?)))
+  
+  
+  (method (delay-hide-interface self hide-interface?)
+    (when auto-hide?
+      (let ((hide-time (+ (current-seconds) 2.)))
+        (empty hide-ring)
+        (when hide-interface?
+          (insert hide-ring hide-time (lambda ()
+                                        (with-task-mutex
+                                          (lambda ()
+                                            (when (and (is? (current-space) Circle-Space)
+                                                       auto-hide?
+                                                       buttons-shown?)
+                                              (let ((window (current-window))
+                                                    (interface (current-interface))
+                                                    (video (current-video)))
+                                                @wait-later-version-as-it-needs-debugging
+                                                (hide-cursor window)
+                                                (hide-bars self)
+                                                (set-visible? (child interface 'profile) #f)
+                                                (set-visible? (child root 'circle-name) #f)
+                                                (for-each (lambda (child)
+                                                            (when (and (is? child World-Actionbar)
+                                                                       (get-auto-show/hide? child))
+                                                              (set-visible? child #f)))
+                                                          (get-children interface))
+                                                (set-video-interface? #f)
+                                                (invalidate-outputs video)
+                                                (set! buttons-shown? #f))))))))))))
+
+
+;;;
+;;;; Avatar-Space
+;;;
+
+
+(class Avatar-Space extends Sphere-Space
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (set-unbind-camera? #t)
+      (person-motion world feedback?: #f)
+      (show-bars self)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (hide-bars self)))
+
+
+;;;
+;;;; Script-Space
+;;;
+
+
+(class Script-Space extends Sphere-Space
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (set! self.root root))))
+    
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (install-script self)
+      (show root)
+      (send-to-back root)
+      (layout-message world)
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+
+  
+  (method (install-script self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (visible interface 'profile #f)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (let ((manager (locate panel 'manager)))
+          (save-script manager))
+        (hide panel)))))
+
+
+;;;
+;;;; Replay-Space
+;;;
+
+
+(class Replay-Space extends Sphere-Space
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Replay-Panel name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
+        (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
+        (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
+        (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))))
+    
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (install-replay self)
+      (show root)
+      (send-to-back root)
+      (layout-message world)
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+
+  
+  (method (install-replay self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (set! root (child interface 'replay))
+      (show root 'visualizer)
+      (show root 'timeline)
+      (show root 'evolution)
+      (show root 'back)
+      (visible interface 'profile #f)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root)))
+  
+  
+  (method override (draw-message-offset self)
+    65))
+
+
+;;;
+;;;; Simulate-Space
+;;;
+
+
+(class Simulate-Space extends Sphere-Space
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
+        (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
+        (set! self.root root))))
+    
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (install-simulate self)
+      (show root)
+      (send-to-back root)
+      (layout-message world)
+      (if (developer?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+
+  
+  (method (install-simulate self)
+    (let ((interface (current-interface)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (set! root (child interface 'simulate))
+      (show root 'simulator)
+      (show root 'back)
+      (visible interface 'profile #f)
+      (visible interface 'people-label #f)
+      (visible interface 'people #f)
+      (visible interface 'streams-label #f)
+      (visible interface 'streams #f)
+      (visible interface 'chat-label #f)
+      (visible interface 'chat #f)
+      (visible interface 'command-to #f)
+      (visible interface 'command #f)
+      (layout-view interface)
+      (layout-view root))))
+
+
+;;;
+;;;; Together
+;;;
+
+
+(class Together extends Object
+  
+  
+  (slot spaces            initialize #f getter generate)
+  (slot space             initialize #f getter generate)
+  (slot configuration     initialize #f getter generate)
+  (slot selected-group    initialize #f getter generate)
+  (slot selected-player   initialize #f getter generate)
+  (slot circle-name       initialize #f getter generate)
+  (slot circle-no         initialize #f getter generate)
+  (slot circle-start      initialize #f getter generate)
+  (slot message-recipient initialize #f getter generate)
+  (slot draw-hook         initialize #f getter generate)
+  (slot first-hierarchy?  initialize #t getter generate)
+  (slot disconnected?     initialize #f getter generate)
+  (slot chat-wide?        initialize #f getter generate)
+  
+  (cond-expand
+    (windows
+     (slot hide-last-mouse initialize #f getter generate))
+    (else))
+  
+  
+  (method override (initialize self)
+    (nextmethod self)
+    (set! spaces (make-table test: eq?)))
+  
+  
+  (method (need-space self what)
+    (or (table-ref spaces what #f)
+        (let ((space (case what
+                       ((gathering) (new Gathering-Space))
+                       ((circle) (new Circle-Space))
+                       ((avatar) (new Avatar-Space))
+                       ((script) (new Script-Space))
+                       ((replay) (new Replay-Space))
+                       ((simulate) (new Simulate-Space)))))
+          (space-setup space)
+          (table-set! spaces what space)
+          space)))
+  
+  
+  (method (together-enter self)
+    (when (current-space+)
+      (space-uninstall (current-space)))
+    (together-ready self)
+    (set! space (need-space self 'gathering))
+    (space-install space)
+    (set-current-space space))
+  
+  
+  (method (together-exit self)
+    (together-destroy self))
+  
+  
+  (method (together-ready self)
+    (when (window?)
+      (let ((window (current-window))
+            (world (current-world))
+            (client (current-client)))
+        (setup-configuration self)
+        (set-caption-base window "Together")
+        (prepare-skybox self)
+        (install-zone self)
+        (install-hooks self)
+        (set-escape-hook world (~ escape-press self))
+        (install-camera)
+        (view-people self)
+        (when auto-create
+          (for-each (lambda (name)
+                      (create-group client name #t))
+                    (listify auto-create)))
+        (cond (auto-join
+               (join-circle self auto-join))
+              (auto-script
+               (goto-script/last self))))))
+  
+  
+  (method (together-destroy self)
+    (when (window?)
+      (let ((world (current-world))
+            (client (current-client)))
+        (let ((udp-client (get-udp-client client)))
+          (stop udp-client)
+          (close-live-stream client)
+          (close-send-streams udp-client)
+          (close-receive-streams udp-client))
+        (uninstall-hooks self)
+        (space-uninstall space)
+        (uninstall-zone self)
+        (set-unbind-camera? #t)
+        (set! space #f)
+        (no-showcase world)
+        (restore-fov)
+        (uninstall-camera))))
+  
+  
+  (method (setup-configuration self)
+    (let ((file (together-file)))
+      (set! configuration (instantiate (read-form file)))))
+  
+  
+  (method (install-zone self)
+    (let ((interface (current-interface)))
+      ;; common
+      (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
+      (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+      (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
+      (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+      (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border)
+      (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+      (let ((chat (child interface 'chat)))
+        (set-border-type (child chat 'border) 'solid)
+        (set-border-color (child chat 'border) {Color Dark-Gray})
+        (set-location chat '(-10 100))
+        (set-proportion chat '(220 (bounds -354))))
+      (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40})))
+        (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+        (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
+      (let ((command (child interface 'command)))
+        (set-border-type (child command 'border) 'solid)
+        (set-border-color (child command 'border) {Color Dark-Gray})
+        (set-location command '(-10 -200))
+        (set-size command (new Dimension 220 19)))
+      (new Kind-Label name: 'experiment-label parent: interface title: "Experiment" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
+      (new Experiment-Panel name: 'experiment parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
+      (when (developer?)
+        (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
+        (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
+        (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
+      (update-profile (child interface 'profile))
+      (add-exception-view)
+      ;; hide all
+      @YOWNU
+      (for-each (lambda (child)
+                  (set-visible? child #f))
+                (get-children interface))))
+  
+  
+  (method (uninstall-zone self)
+    (let ((interface (current-interface)))
+      (close (child interface 'profile))
+      (close (child interface 'people-label))
+      (close (child interface 'people))
+      (close (child interface 'streams-label))
+      (close (child interface 'streams))
+      (close (child interface 'chat-label))
+      (close (child interface 'command-to))
+      (when (developer?)
+        (close (child interface 'admin-label))
+        (close (child interface 'admin)))
+      (close (child interface 'exception))))
+  
+  
+  (method protected (sleep-process self)
+    (with-task-mutex
+      (lambda ()
+        (let ((client (current-client)))
+          (when (is? space Circle-Space)
+            (leave-circle self)
+            (set! disconnected? #t))
+          (sleep-to-server client)))))
+  
+  
+  (method (prepare-skybox self)
+    (let ((zone (current-zone)))
+      (set-skybox zone (let ((skybox (find-skybox together-skybox)))
+                         (prepare skybox)
+                         skybox))))
+  
+  
+  (method protected (wake-process self)
+    (with-task-mutex
+      (lambda ()
+        ;; this can occur if some other part of the
+        ;; system called bailout-client during wakeup
+        (when (client?)
+          (let ((client (current-client))
+                (world (current-world)))
+            (wake-to-server client)
+            (when disconnected?
+              (display-message world "Disconnected from circle" duration: 5.)
+              (set! disconnected? #f)))))))
+  
+  
+  (method package (update-message-recipient self recipient)
+    (let ((interface (current-interface)))
+      (let ((to (child interface '(command-to to))))
+        (if (not recipient)
+            (begin
+              (set-title to "The gathering")
+              (set-color to {Color red: 32 green: 205 blue: 33})
+              (set! message-recipient recipient))
+          (bind (kind name) recipient
+            (case kind
+              ((player)
+               (set-title to name)
+               (set-color to {Color World-Blue})
+               (set! message-recipient recipient))
+              ((group)
+               (when (and (is? space Circle-Space)
+                          (equal? name circle-name))
+                 (set-title to name)
+                 (set-color to {Color World-Red})
+                 (set! message-recipient recipient)))))))))
+  
+  
+  ;;;
+  ;;;; Events
+  ;;;
+  
+  
+  (method (on-message self evt)
+    (let ((interface (current-interface)))
+      (show-chat self)
+      (acquire-focus (locate (child interface 'command) 'text))))
+  
+  
+  (method (on-toggle-denoise self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (when (is? space Circle-Space)
+        (set-audio-denoise? (not audio-denoise?))
+        (let ((mic-channel (get-mic-channel client)))
+          (when mic-channel
+            (let ((denoiser (get-denoiser (get-src (get-pipeline mic-channel)))))
+              (when denoiser
+                (set-denoising? denoiser audio-denoise?)))))
+        (display-on/off world "Denoise" audio-denoise?))))
+  
+  
+  (method (on-toggle-mic self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (require-live-stream client)
+      (toggle-mic client)
+      (update-parameter world 'mic)))
+  
+  
+  (method (on-toggle-camera self evt)
+    (let ((client (current-client))
+          (video (current-video))
+          (world (current-world)))
+      (require-live-stream client)
+      (toggle-camera client)
+      (update-layouts video)
+      (update-parameter world 'camera)
+      (effective-base-profile-update)))
+  
+  
+  (method (escape-press self)
+    (let ((world (current-world)))
+      (main-menu world #t))
+    @YOWNU
+    (if (or (is? (active-focus) Filter-View)
+            (is? (active-focus) Filter-Text))
+        #f
+      (let ((frame (top-frame)))
+        (if frame
+            (close frame)
+          (when (and (developer?) (is? space Gathering-Space))
+            (delay-event
+              (lambda ()
+                (with-task-mutex
+                  (lambda ()
+                    (open-login-zone))))))))
+      #t))
+  
+  
+  (method (on-leave self evt)
+    (leave-circle self))
+  
+  
+  (method (on-leave-circle self evt)
+    (leave-circle self))
+  
+  
+  (method (check-has-camera? self)
+    (let ((world (current-world)))
+      (if (not-null? (cache-decreasing-camera-resolutions))
+          #t
+        (display-error world "No camera found")
+        #f)))
+  
+  
+  (method package (create&join-circle self)
+    (let ((interface (current-interface))
+          (tier (current-client))
+          (world (current-world)))
+      (when (check-has-camera? self)
+        (let ((view (child (get-root space) 'circle-view)))
+          (let ((text (locate view 'text)))
+            (let ((name (trim-whitespace (get-string-content text))))
+              (let ((no/exception (create-group tier name #f)))
+                (if (string? no/exception)
+                    (display-error world no/exception)
+                  (clear-message world)
+                  (set-string-content text "")
+                  (content-changed view)
+                  (join-circle self name)))))))))
+  
+  
+  (method package (join-circle self name)
+    (let ((tier (current-client))
+          (udp (current-udp))
+          (world (current-world))
+          (zone (current-zone))
+          (video (current-video)))
+      (when (check-has-camera? self)
+        (reset-chronology)
+        (reset-evolution)
+        (bind-camera)
+        (let ((no/streams/exception (join-group tier name)))
+          (if (string? no/streams/exception)
+              (display-error world no/streams/exception)
+            (bind (no . streams) no/streams/exception
+              (when auto-live?
+                (require-live-stream tier))
+              (start udp)
+              (when auto-live?
+                (when auto-audio?
+                  (play-mic tier))
+                (when auto-video?
+                  (play-camera tier)))
+              (clear-message world)
+              (uninstall-camera)
+              @SPACE-think-about
+              (remove-skybox zone)
+              (cond-expand
+                (windows (set! hide-last-mouse #f))
+                (else))
+              (set! circle-name name)
+              (set! circle-no no)
+              (set! circle-start (current-seconds))
+              (for-each (lambda (info)
+                          (bind (sender name stream-no origin source-kind video-level channels) info
+                            (stream-add tier no sender name stream-no origin source-kind video-level channels)))
+                        streams)
+              (install-circle-hooks self)
+              (goto-space self 'avatar)
+              (update-layouts video)
+              (effective-base-profile-update)))))))
+  
+  
+  (method (leave-circle self)
+    (let ((tier (current-client))
+          (zone (current-zone)))
+      (uninstall-circle-hooks self)
+      (let ((udp-client (get-udp-client tier)))
+        (stop udp-client)
+        (close-live-stream tier)
+        (close-send-streams udp-client)
+        (close-receive-streams udp-client))
+      (leave-group tier circle-name)
+      (circle-uninstall-camera)
+      (restore-fov)
+      (install-camera)
+      @SPACE-think-about
+      (install-skybox zone (find-skybox together-skybox))
+      (set! circle-name #f)
+      (set! circle-no #f)
+      (goto-space self 'gathering)))
+  
+  
+  (method (goto-space self what)
+    (space-uninstall (current-space))
+    (set! space (need-space self what))
+    (space-install space)
+    (set-current-space space)
+    space)
+  
+  
+  (method (on-back self evt)
+    (goto-space self 'gathering))
+  
+  
+  ;;;
+  ;;;; Hooks
+  ;;;
+  
+  
+  (method (install-hooks self)
+    (let ((interface (current-interface))
+          (world (current-world))
+          (tier (current-client))
+          (audio (current-audio))
+          (video (current-video)))
+      (set-server-entered-hook tier (~ server-entered self))
+      (set-server-exited-hook tier (~ server-exited self))
+      (set-server-disconnected-hook tier (~ server-disconnected self))
+      (set-server-reconnected-hook tier (~ server-reconnected self))
+      (set-hierarchy-update-hook tier (~ hierarchy-update self))
+      (set-stream-addable-hook tier (~ stream-addable self))
+      (set-render-hook video (~ render-video self))
+      (set-layout-circle-hook (~ layout-circle self))
+      (set! draw-hook (~ draw-debug self))
+      (register-draw-hook interface draw-hook)
+      (set-refresh-interface-hook (~ refresh-hook self))
+      (set-matrix-hook (get-eye world) (~ eye-matrix self))
+      (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
+      (set-sender-hook (child interface 'chat) (~ chat-sender self))
+      (set-return-handler (child interface 'command) (~ command-return self))
+      (set-escape-handler (child interface 'command) (~ command-escape self))
+      (set-view-replay-directory (~ view-replay-directory self))))
+  
+  
+  (method (uninstall-hooks self)
+    (let ((interface (current-interface))
+          (world (current-world))
+          (tier (current-client))
+          (audio (current-audio))
+          (video (current-video)))
+      (set-server-entered-hook tier #f)
+      (set-server-exited-hook tier #f)
+      (set-server-disconnected-hook tier #f)
+      (set-server-reconnected-hook tier #f)
+      (set-hierarchy-update-hook tier #f)
+      (set-stream-addable-hook tier #f)
+      (set-render-hook video #f)
+      (set-layout-circle-hook #f)
+      (unregister-draw-hook interface draw-hook)
+      (set-refresh-interface-hook #f)
+      (set-matrix-hook (get-eye world) #f)
+      (set-displayed-hook (child interface 'chat) #f)
+      (set-sender-hook (child interface 'chat) #f)
+      (set-return-handler (child interface 'command) #f)
+      (set-escape-handler (child interface 'command) #f)
+      (reset-view-replay-directory)))
+  
+  
+  ;;;
+  ;;;; Server
+  ;;;
+  
+  
+  (method (server-entered self character-name)
+    (let ((world (current-world)))
+      (unless (is? space Circle-Space)
+        (display-message world (format "{a} entered" character-name)))))
+  
+  
+  (method (server-exited self character-name)
+    (let ((world (current-world)))
+      (unless (is? space Circle-Space)
+        (display-message world (format "{a} exited" character-name)))))
+  
+  
+  (method (server-disconnected self character-name)
+    (let ((world (current-world)))
+      (display-message world (format "{a} disconnected" character-name))))
+  
+  
+  (method (server-reconnected self character-name)
+    (let ((world (current-world)))
+      (display-message world (format "{a} reconnected" character-name))))
+  
+  
+  (method (hierarchy-update self hierarchy)
+    (let ((tree (people-tree self)))
+      (define (same-entity? x y)
+        (define (entity info)
+          (if (not info)
+              info
+            (bind (kind name) info
+              (cons kind name))))
+        
+        (equal? (entity x)
+                (entity y)))
+      
+      (with-preserved-selection tree
+        (lambda ()
+          (view-hierarchy self hierarchy))
+        use: 'data
+        test: same-entity?
+        generate-event?: #t)
+      (when (and auto-create
+                 first-hierarchy?
+                 (not (get-single-selection tree))
+                 (> (get-visible-count tree) 3))
+        (set-single-selection tree 3)
+        (set! first-hierarchy? #f))))
+  
+  
+  ;; this rare case can happen if the server had just sent
+  ;; a stream-add moments before receiving our leave circle
+  (method (stream-addable self group-no)
+    (or (not group-no)
+        (eqv? group-no circle-no)))
+  
+  
+  ;;;
+  ;;;; Media
+  ;;;
+  
+  
+  (method (render-video self video)
+    (if (eq? world.video:video-layout 'circle)
+        #f
+      (is-not? space Circle-Space)))
+  
+  
+  (method (draw-debug self surface)
+    ;; YOWNU quick hack
+    (when (client?)
+    (let ((client (current-client)))
+      (let ((udp-client (get-udp-client client)))
+        (define (media-quality kind)
+          (let ((total 0.)
+                (channels 0))
+            (iterate-table (get-receive-channels udp-client)
+              (lambda (key channel)
+                (when (= (get-media-kind channel) kind)
+                  (let ((mean (mean-average (get-process-average channel))))
+                    (when mean
+                      (increase! total mean)
+                      (increase! channels))))))
+            (if (= channels 0)
+                "N/A"
+              (format "{r precision: 1}% ({a})" (* 100. (/ total (cast <fl> channels))) (if (= kind udp-audio) 'audio 'video)))))
+        
+        (define (outgoing-dropped)
+          (let ((dropped (get-outgoing-dropped (get-statistics udp-client))))
+            (format "{a} (outgoing)" dropped)))
+        
+        (define (outgoing-drop)
+          (let ((drop (get-outgoing-drop (get-statistics udp-client))))
+            (if drop
+                (format "{r precision: 1}% (outgoing)" drop)
+              "N/A")))
+        
+        (define (incoming-dropped)
+          (let ((dropped (get-incoming-dropped (get-statistics udp-client))))
+            (format "{a} (incoming)" dropped)))
+        
+        (define (incoming-drop)
+          (let ((drop (get-incoming-drop (get-statistics udp-client))))
+            (if drop
+                (format "{r precision: 1}% (incoming)" drop)
+              "N/A")))
+        
+        (define (send-rate)
+          (let ((rate (get-last-send-rate (get-statistics udp-client))))
+            (if (and rate (/= rate -1.))
+                (format "{r precision: 1}Mbps (upload)" (bytes->mbps rate))
+              "N/A")))
+        
+        (define (receive-rate)
+          (let ((rate (get-last-receive-rate (get-statistics udp-client))))
+            (if (and rate (/= rate -1.))
+                (format "{r precision: 1}Mbps (download)" (bytes->mbps rate))
+              "N/A")))
+        
+        (define (present-chronology-duration)
+          (let ((chronology (current-chronology)))
+            (let ((duration (chronology-duration chronology)))
+              (if (not duration)
+                  "N/A"
+                (format "{r precision: 1}s (chronology)" duration)))))
+        
+        (define (present-evolution-duration)
+          (let ((evolution (current-evolution)))
+            (let ((duration (evolution-duration evolution)))
+              (if (not duration)
+                  "N/A"
+                (format "{r precision: 1}s (evolution)" duration)))))
+        
+        (define (count-nacks kind)
+          (let ((total 0)
+                (channels 0))
+            (iterate-table (get-receive-channels udp-client)
+              (lambda (key channel)
+                (when (= (get-media-kind channel) kind)
+                  (let ((len (count-missing channel)))
+                    (increase! total len)
+                    (increase! channels)))))
+            (if (= channels 0)
+                "N/A"
+              (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
+        
+        (let ((rank 0))
+          (define (draw text color)
+            (let ((h 20)
+                  (v (+ 80 (* rank 28))))
+              (draw-text surface h v text color))
+            (increase! rank))
+          
+          (when (is? space Circle-Space)
+            (when show-debug?
+              (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
+              (draw (format "{a}" (present-duration (- (current-seconds) circle-start))) {Color World-Ochre})
+              (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
+              (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
+              (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
+              @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
+              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
+              (let ((leaks (leaks)))
+                (when (not-null? leaks)
+                  (draw (format "Leaks: {a}" (length leaks)) {Color World-Red}))))))))))
+  
+  
+  ;;;
+  ;;;; Camera
+  ;;;
+  
+  
+  (method (eye-matrix self camera stable?)
+    (when (is? space Circle-Space)
+      (update-interface-matrices (current-video))
+      @wait
+      (let ((position (get-position camera))
+            (sight (get-sight camera)))
+        (updating-3d-audio position sight
+          (lambda ()
+            (let ((udp-client (get-udp-client (current-client))))
+              (iterate-table (get-receive-streams udp-client)
+                (lambda (stream-no stream)
+                  (let ((audio-channel (locate-stream-audio-channel stream)))
+                    (when audio-channel
+                      (let ((video-channel (locate-stream-video-channel stream)))
+                        (when video-channel
+                          (let ((audio-output (find-output (current-audio) (get-no audio-channel)))
+                                (video-output (find-output (current-video) (get-no video-channel))))
+                            (when (and audio-output video-output)
+                              (when (is? video-output Circle-Video-Sink)
+                                (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
+                                  (update-3d-output audio-output position)))))))))))))))))
+  
+  
+  ;;;
+  ;;;; People
+  ;;;
+  
+  
+  (method (people-tree self)
+    (let ((interface (current-interface)))
+      (locate (child interface 'people) '(people people))))
+  
+  
+  (method (view-people self)
+    (let ((tier (current-tier)))
+      (view-hierarchy self (list-hierarchy tier))))
+  
+  
+  (method (view-hierarchy self hierarchy)
+    (let ((tier (current-tier))
+          (me (current-me)))
+      (let ((tree (people-tree self)))
+        (remove-every-row tree)
+        (with-update-locked tree
+          (lambda ()
+            (define (add-player father info group)
+              (bind (player id no asleep?) info
+                (let ((title (if asleep? (format "{a} (offline)" player) player))
+                      (font {Font Label-User})
+                      (color (if asleep? {Color Medium-Gray} {Color World-Blue})))
+                  (add-row tree
+                           father: father
+                           children: (list (new Tree-Node title: title font: font color: color))
+                           user-data: (list 'player player group)))))
+            
+            (bind (gathering . groups) hierarchy
+              (let ((players (cdr gathering)))
+                (let ((row (add-row tree
+                                    state: 'expanded
+                                    children: (list (new Tree-Node
+                                                      title: "The gathering"
+                                                      font: {Font Label-User}
+                                                      color: {Color red: 32 green: 205 blue: 33})))))
+                  (for-each (lambda (info)
+                              (add-player row info #f))
+                            (let ((me (get-name me)))
+                              (sort di<? players key: (lambda (player)
+                                                        (if (equal? player me)
+                                                            (cons 0 player)
+                                                          (cons 1 player))))))))
+              (when (not-null? hierarchy)
+                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                (for-each (lambda (info)
+                            (bind (group . players) info
+                              (let ((row (add-row tree
+                                                  state: 'expanded
+                                                  children: (list (new Tree-Node title: group font: {Font Label-User} color: {Color World-Red}))
+                                                  user-data: (list 'group group))))
+                                (for-each (lambda (info)
+                                            (add-player row info group))
+                                          players))))
+                          (sort di<? groups key: car))))
+            (let ((zones (cache-available-zones)))
+              (when (not-null? zones)
+                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                (for-each (lambda (info)
+                            (bind (zone . title) info
+                              (add-row tree
+                                       state: 'expanded
+                                       children: (list (new Tree-Node
+                                                         title: title
+                                                         font: {Font Label-User}
+                                                         color: {Color World-Purple}))
+                                       user-data: zone)))
+                          zones))))))))
+  
+  
+  (method package (people-selection-change self)
+    (let ((tree (people-tree self)))
+      (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
+        (bind (kind . rest) selected
+          (define (select group player)
+            (set! selected-group group)
+            (set! selected-player player)
+            (when (is? space Gathering-Space)
+              (update-circle/join space)))
+          
+          (case kind
+            ((player)
+             (bind (player group) rest
+               (select group player)))
+            ((group)
+             (bind (group) rest
+               (select group #f)))
+            ((zone)
+             (let ((client (current-client)))
+               (change-zone client selected))))))))
+  
+  
+  (method package (people-double-click self)
+    (people-action-selected self))
+  
+  
+  (method package (people-return-press self)
+    (people-action-selected self))
+  
+  
+  (method (people-action-selected self)
+    (when (is? space Gathering-Space)
+      (when (and selected-group (not selected-player))
+        (join-circle self selected-group))))
+  
+  
+  (method package (focus-command-text self)
+    (let ((interface (current-interface)))
+      (let ((text (locate (child interface 'command) 'text)))
+        (when (view-visible? text)
+          (acquire-focus text)))))
+  
+  
+  (method package (people-label-action self)
     )
   
   
@@ -1682,8 +1951,7 @@
       (set-visible? (child interface 'chat-label) #t)
       (set-visible? (child interface 'chat) #t)
       (set-visible? (child interface 'command-to) #t)
-      (set-visible? (child interface 'command) #t)
-      (update-buttons self)))
+      (set-visible? (child interface 'command) #t)))
   
   
   (method (command-return self command)
@@ -1714,7 +1982,7 @@
                (selected-recipient content)))))
     
     (define (group-recipient)
-      (if (eq? stage 'circle)
+      (if (is? space Circle-Space)
           circle-name
         #f))
     
@@ -1774,37 +2042,37 @@
       (layout-view interface)))
   
   
-  (method (chat-label-size self)
+  (method protected (chat-label-size self)
     (if chat-wide?
         {Dimension 420 40}
       {Dimension 220 40}))
   
   
-  (method (chat-proportion self)
+  (method protected (chat-proportion self)
     `(,(if chat-wide? 420 220)
-      (bounds ,(if (eq? stage 'gathering) -300 -354))))
+      (bounds ,(if (is? space Gathering-Space) -300 -354))))
   
   
-  (method (command-to-size self)
+  (method protected (command-to-size self)
     (if chat-wide?
         {Dimension 420 40}
       {Dimension 220 40}))
   
   
-  (method (command-to-location self)
-    (if (eq? stage 'gathering)
+  (method protected (command-to-location self)
+    (if (is? space Gathering-Space)
         '(-10 -158)
       '(-10 -212)))
   
   
-  (method (command-size self)
+  (method protected (command-size self)
     (if chat-wide?
         {Dimension 420 19}
       {Dimension 220 19}))
   
   
-  (method (command-location self)
-    (if (eq? stage 'gathering)
+  (method protected (command-location self)
+    (if (is? space Gathering-Space)
         '(-10 -146)
       '(-10 -200)))
   
@@ -1812,22 +2080,43 @@
   ;;;
   ;;;; Layouts
   ;;;
+  
+  
+  (method (on-circle-layout self evt)
+    (goto-circle-layout self 'circle))
+  
+  
+  (method (on-focus-layout self evt)
+    (goto-circle-layout self 'focus))
+  
+  
+  (method (on-gallery-layout self evt)
+    (goto-circle-layout self 'gallery))
 
 
   (method (on-cycle-layouts self evt)
+    (goto-circle-layout self (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt))))
+  
+  
+  (method (goto-circle-layout self layout)
     (let ((world (current-world))
           (video (current-video)))
-      (when (eq? stage 'circle)
-        (goto-layout video (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt)))
-        (when (eq? video-layout 'focus)
-          (goto-focused self)
-          (when (not bound-camera?)
-            (circle-update-camera (video-count))
-            (bind-camera)
-            (unbind-output)))
-        (show-interface self #t)
-        (update-layout self)
-        (display-message world (capitalize (symbol->string video-layout))))))
+      (goto-space self 'circle)
+      (free-motion world feedback?: #f)
+      (set-unbind-camera? #f)
+      (goto-layout video layout)
+      (when (eq? video-layout 'focus)
+        (goto-focused self)
+        (when (not bound-camera?)
+          (circle-update-camera (video-count))
+          (bind-camera)
+          (unbind-output)))
+      (show-interface (current-space) #t)
+      (update-parameter world 'avatar)
+      (update-parameter world 'circle-layout)
+      (update-parameter world 'focus-layout)
+      (update-parameter world 'gallery-layout)
+      (display-message world (capitalize (symbol->string video-layout)))))
   
   
   (method (goto-focused self)
@@ -1835,15 +2124,6 @@
       (let ((focused-output (effective-focused-output video)))
         (when focused-output
           (circle-goto-focus focused-output)))))
-  
-  
-  (method (update-layout self)
-    (let ((interface (current-interface)))
-      (set-title (child root 'layout)
-                 (case video-layout
-                   ((circle) "Focus")
-                   ((focus) "Gallery")
-                   ((gallery) "Circle")))))
   
   
   ;;;
@@ -1866,14 +2146,14 @@
   (method (stream-add self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (eq? stage 'circle)
+        (unless (is? space Circle-Space)
           (display-message world (format "{a} joined" (get-sender stream)))))))
   
   
   (method (stream-remove self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (eq? stage 'circle)
+        (unless (is? space Circle-Space)
           (display-message world (format "{a} left" (get-sender stream)))))))
   
   
@@ -1881,10 +2161,10 @@
     (let ((count (length ordered-outputs)))
       (when bound-camera?
         (circle-update-camera count))
-      (when (and (eq? stage 'circle)
+      (when (and (is? space Circle-Space)
                  (eq? video-layout 'focus))
         (goto-focused self)
-        (show-interface self #t))
+        (show-interface (current-space) #t))
       (circle-placements count)))
   
   
@@ -1924,7 +2204,7 @@
       (or (world-focused?)
           (is? (active-focus) Circle-View)))
     
-    (if (neq? stage 'circle)
+    (if (is-not? space Circle-Space)
         #f
       (nucase shortcut
         (({Shortcut Left})
@@ -2002,48 +2282,55 @@
 
   
   ;;;
+  ;;;; Avatar
+  ;;;
+  
+  
+  (method (on-goto-avatar self evt)
+    (goto-avatar self))
+  
+  
+  (method (goto-avatar self)
+    (let ((world (current-world)))
+      (goto-space self 'avatar)
+      (update-parameter world 'avatar)
+      (update-parameter world 'circle-layout)
+      (update-parameter world 'focus-layout)
+      (update-parameter world 'gallery-layout)
+      (display-message world "Avatar")))
+
+  
+  ;;;
   ;;;; Debug
   ;;;
   
   
-  (method (on-toggle-hide self evt)
-    (when (eq? stage 'circle)
-      (let ((world (current-world)))
-        (set! auto-hide? (not auto-hide?))
-        (if auto-hide?
-            (begin
-              (install-hider self)
-              (show-interface self #t))
-          (show-interface self #f))
-        (display-on/off world "Auto hide" auto-hide?))))
-  
-  
   (method (on-toggle-debug self evt)
-    (when (eq? stage 'circle)
+    (when (is? space Circle-Space)
       (set-show-debug? (not show-debug?))
       (invalidate-interface)))
   
   
   (method (on-toggle-debug-media self evt)
-    (when (eq? stage 'circle)
+    (when (is? space Circle-Space)
       (let ((video (current-video)))
         (set-debug-stream (if (eq? debug-stream 'media)
                               #f
                             'media))
         (invalidate-outputs video)
         (when debug-stream
-          (show-interface self #t)))))
+          (show-interface (current-space) #t)))))
   
   
   (method (on-toggle-debug-flow self evt)
-    (when (eq? stage 'circle)
+    (when (is? space Circle-Space)
       (let ((video (current-video)))
         (set-debug-stream (if (eq? debug-stream 'flow)
                               #f
                             'flow))
         (invalidate-outputs video)
         (when debug-stream
-          (show-interface self #t)))))
+          (show-interface (current-space) #t)))))
   
   
   (method (on-toggle-admin self evt)
@@ -2065,9 +2352,10 @@
       (when (developer?)
         (set-visible? (child interface 'admin-label) #t)
         (set-visible? (child interface 'admin) #t))
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'join) #f)
-        (set-visible? (child root 'circle) #f))
+      (when (is? space Gathering-Space)
+        (let ((root (get-root space)))
+          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'circle) #f)))
       (layout-view interface)))
   
   
@@ -2076,18 +2364,14 @@
       (when (developer?)
         (set-visible? (child interface 'admin-label) #f)
         (set-visible? (child interface 'admin) #f))
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'join) #t)
-        (set-visible? (child root 'circle) #t))))
+      (when (is? space Gathering-Space)
+        (let ((root (get-root space)))
+          (set-visible? (child root 'join) #t)
+          (set-visible? (child root 'circle) #t)))))
   
   
   (method (on-toggle-script self evt)
     (toggle-script self))
-  
-  
-  (method (on-toggle-grid self evt)
-    (when (eq? stage 'circle)
-      (set! draw-grid? (not draw-grid?))))
   
   
   (method (on-toggle-timeline self evt)
@@ -2110,7 +2394,7 @@
   
   
   (method (on-toggle-visualizer self evt)
-    (if (eq? stage 'replay)
+    (if (is? space Replay-Space)
         (let ((interface (current-interface)))
           (let ((root (child interface 'replay)))
             (let ((visualizer (child root 'visualizer)))
@@ -2125,18 +2409,18 @@
   
   
   (method (on-goto-gathering self evt)
-    (case stage
-      ((gathering))
-      ((circle)
+    (typecase space
+      ((Gathering-Space))
+      ((Circle-Space)
        (leave-circle self))
       (else
-       (goto-stage self 'gathering))))
+       (goto-space self 'gathering))))
   
   
   (method (on-goto-script self evt)
-    (case stage
-      ((script))
-      ((circle)
+    (typecase space
+      ((Script-Space))
+      ((Circle-Space)
        (bell))
       (else
        (goto-script/last self))))
@@ -2159,7 +2443,7 @@
             (panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (if (get-visible? panel)
-              (if (script-modified? manager)
+              (if #f @really-annoys-me-in-the-end (script-modified? manager)
                   (begin
                     (save-script manager)
                     (edited-update manager))
@@ -2183,12 +2467,6 @@
             (set-visible? panel #t))))))
   
   
-  (method (script-visible? self)
-    (let ((interface (current-interface)))
-      (let ((panel (child interface 'script)))
-        (get-visible? panel))))
-  
-  
   (method (goto-script/last self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -2204,18 +2482,17 @@
                       (set-edited-entity entity)
                       (set-edited manager entity)
                       (set-moniker text (get-file script)))))))
-            (goto-script self)
-            (acquire-focus text))))))
+            (goto-script self))))))
   
   
   (method (goto-script self)
-    (goto-stage self 'script))
+    (goto-space self 'script))
   
   
   (method (on-goto-replay self evt)
-    (case stage
-      ((replay))
-      ((circle)
+    (typecase space
+      ((Replay-Space))
+      ((Circle-Space)
        (view-last-replay self))
       (else
        (goto-replay/last self))))
@@ -2247,7 +2524,7 @@
   
   
   (method (goto-replay self)
-    (goto-stage self 'replay))
+    (goto-space self 'replay))
   
   
   (method (view-replay-directory self dir (from #f) (to #f) (now #f))
@@ -2317,7 +2594,7 @@
           (set-evolutions panel evolutions)
           (set-base-time panel base-time))
         
-        (if (eq? stage 'circle)
+        (if (is? space Circle-Space)
             (let ((world (current-world))
                   (udp (current-udp)))
               (define (stream-replay name)
@@ -2366,22 +2643,23 @@
               (play (stream-replay "Replay")))
         (hide-admin self)
         (goto-replay self)
-        (setup-replay-panel root)
-        (setup-visualizer-panel (child root 'visualizer))
-        (setup-timeline-panel (child root 'timeline))
-        (setup-evolution-panel (child root 'evolution))
-        (display-evolutions root now)))))
+        (let ((root (get-root space)))
+          (setup-replay-panel root)
+          (setup-visualizer-panel (child root 'visualizer))
+          (setup-timeline-panel (child root 'timeline))
+          (setup-evolution-panel (child root 'evolution))
+          (display-evolutions root now))))))
   
   
   (method (on-profile-network self evt)
-    (when (eq? stage 'gathering)
+    (when (is? space Gathering-Space)
       (if running-profile
           (cancel-profile)
         (profile-network))))
   
   
   (method (on-profile-pulse self evt)
-    (when (eq? stage 'gathering)
+    (when (is? space Gathering-Space)
       (if running-profile
           (cancel-profile)
         (profile-pulse))))
@@ -2400,16 +2678,16 @@
   
   
   (method (on-goto-simulate self evt)
-    (case stage
-      ((simulate))
-      ((circle)
+    (typecase space
+      ((Simulate-Space))
+      ((Circle-Space)
        (bell))
       (else
        (goto-simulate self))))
   
   
   (method (goto-simulate self)
-    (goto-stage self 'simulate))
+    (goto-space self 'simulate))
   
   
   (method (on-toggle-screen-share self evt)
@@ -2419,19 +2697,13 @@
   (method (toggle-screen-share self)
     (let ((world (current-world))
           (udp (current-udp)))
-      (define (locate-screen-stream)
-        (locate-send-stream udp
-          (lambda (stream)
-            (eq? (get-source-kind stream) 'screen))))
-      
-      (when (eq? stage 'circle)
-        (let ((stream (locate-screen-stream)))
-          (cond ((not stream)
-                 (play (stream-screen "Screen"))
-                 (display-on/off world "Screen sharing" #t))
-                (else
-                 (close-send-stream udp stream)
-                 (display-on/off world "Screen sharing" #f)))))))
+      (let ((stream (locate-screen-stream)))
+        (cond ((not stream)
+               (play (stream-screen "Screen"))
+               (display-on/off world "Screen sharing" #t))
+              (else
+               (close-send-stream udp stream)
+               (display-on/off world "Screen sharing" #f))))))
   
   
   (method (on-toggle-key-bindings self evt)
@@ -2483,9 +2755,10 @@
     (let ((interface (current-interface)))
       (set-visible? (child interface 'experiment-label) #t)
       (set-visible? (child interface 'experiment) #t)
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'join) #f)
-        (set-visible? (child root 'circle) #f))
+      (when (is? space Gathering-Space)
+        (let ((root (get-root space)))
+          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'circle) #f)))
       (view-experiment self)
       (layout-view interface)))
   
@@ -2494,29 +2767,26 @@
     (let ((interface (current-interface)))
       (set-visible? (child interface 'experiment-label) #f)
       (set-visible? (child interface 'experiment) #f)
-      (when (eq? stage 'gathering)
-        (set-visible? (child root 'join) #t)
-        (set-visible? (child root 'circle) #t))))
+      (when (is? space Gathering-Space)
+        (let ((root (get-root space)))
+          (set-visible? (child root 'join) #t)
+          (set-visible? (child root 'circle) #t)))))
   
   
   (method (on-add-image self evt)
-    (when (eq? stage 'circle)
-      (add-image)))
+    (add-image))
   
   
   (method (on-add-video self evt)
-    (when (eq? stage 'circle)
-      (add-video)))
+    (add-video))
   
   
   (method (on-add-music self evt)
-    (when (eq? stage 'circle)
-      (add-music)))
+    (add-music))
   
   
   (method (on-remove-stream self evt)
-    (when (eq? stage 'circle)
-      (remove-random-stream)))
+    (remove-random-stream))
   
   
   (method (on-configure-settings self evt)
@@ -2657,8 +2927,8 @@
   
   
   (method override (mouse-up self evt)
-    (let ((zone (current-zone)))
-      (people-label-action zone))))
+    (let ((together (current-together)))
+      (people-label-action together))))
 
 
 ;;;
@@ -2693,28 +2963,28 @@
   
   
   (method package (on-action self evt)
-    (let ((zone (current-zone)))
+    (let ((together (current-together)))
       (let ((tree (get-sender evt)))
         (let ((recipient (get-single-selected-data tree))
               (previous-focus (get-previous-focus tree)))
-          (update-message-recipient zone recipient)
+          (update-message-recipient together recipient)
           (when (is? previous-focus Command-Bar-Text-View)
-            (focus-command-text zone))))))
+            (focus-command-text together))))))
   
   
   (method package (on-selection-change self evt)
-    (let ((zone (current-zone)))
-      (people-selection-change zone)))
+    (let ((together (current-together)))
+      (people-selection-change together)))
   
   
   (method package (on-double-click self evt)
-    (let ((zone (current-zone)))
-      (people-double-click zone)))
+    (let ((together (current-together)))
+      (people-double-click together)))
   
   
   (method override (on-return-press self evt)
-    (let ((zone (current-zone)))
-      (people-return-press zone))))
+    (let ((together (current-together)))
+      (people-return-press together))))
 
 
 ;;;
@@ -2746,8 +3016,8 @@
   
   
   (method override (mouse-up self evt)
-    (let ((zone (current-zone)))
-      (streams-label-action zone))))
+    (let ((together (current-together)))
+      (streams-label-action together))))
 
 
 ;;;
@@ -2782,8 +3052,8 @@
   
   
   (method package (on-action self evt)
-    (let ((zone (current-zone)))
-      (streams-action zone))))
+    (let ((space (current-space)))
+      (streams-action space))))
 
 
 ;;;
@@ -2823,8 +3093,8 @@
   
   
   (method override (mouse-up self evt)
-    (let ((zone (current-zone)))
-      (chat-label-action zone))))
+    (let ((together (current-together)))
+      (chat-label-action together))))
 
 
 ;;;
@@ -2870,9 +3140,9 @@
   
   
   (method package (on-action self evt)
-    (let ((zone (current-zone)))
+    (let ((together (current-together)))
       (let ((clear? (get-shift? evt)))
-        (experiment-action zone clear?)))))
+        (experiment-action together clear?)))))
 
 
 ;;;

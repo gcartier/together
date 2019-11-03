@@ -15,7 +15,6 @@
                               together.boot
                               together.boot-processor
                               together.boot-server
-                              together.circle
                               together.debugger
                               together.devel
                               together.domain
@@ -40,7 +39,7 @@
                               together.settings
                               together.simulation
                               together.simulator
-                              together.sphere
+                              together.space
                               together.validate
                               together.visualizer
                               together.window

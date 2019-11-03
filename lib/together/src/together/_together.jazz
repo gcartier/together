@@ -30,6 +30,8 @@
 
 (hub get-in-circle?)
 (hub get-replay)
+(hub together-enter)
+(hub together-exit)
 
 
 ;;;
@@ -109,6 +111,18 @@
 
 
 ;;;
+;;;; Client
+;;;
+
+
+(definition public circle?
+  #f)
+
+(definition public (set-circle? flag)
+  (set! circle? flag))
+
+
+;;;
 ;;;; Server
 ;;;
 
@@ -136,6 +150,21 @@
 (definition public (determine-worker-filename)
   (cond-expand (mac "together-worker.app/Contents/MacOS/Together-Worker")
                (else "Together-Worker")))
+
+
+;;;
+;;;; Together
+;;;
+
+
+(definition protected *current-together*
+  #f)
+
+(definition public (current-together)
+  *current-together*)
+
+(definition public (set-current-together together)
+  (set! *current-together* together))
 
 
 ;;;

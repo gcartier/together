@@ -10,5 +10,6 @@ testlib() {
     cp $LIB/$1 $DEST/$1
 }
 
-testlib lib/gstreamer-1.0/libgstaudiorate.dylib
-testlib lib/gstreamer-1.0/libgstwavenc.dylib
+#testlib lib/gstreamer-1.0/libgstaudiorate.dylib
+#testlib lib/gstreamer-1.0/libgstwavenc.dylib
+testlib lib/gstreamer-1.0/libgstrsvg.dylib

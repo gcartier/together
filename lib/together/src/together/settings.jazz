@@ -20,9 +20,12 @@
         (jazz.settings)
         (world)
         (world.autoload)
+        (world.context)
         (world.io)
         (world.profile)
         (world.settings)
+        (world.space)
+        (together)
         (together.exception))
 
 
@@ -37,24 +40,32 @@
 
 
 (definition protected (open-login-zone)
+  (when (current-together)
+    (together-exit (current-together)))
   (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
 
 
+(definition protected (open-circle-zone remote-file (from-login? #f))
+  (let ((obj (open-client remote-file)))
+    (if (is? obj Zone)
+        (if (current-together)
+            (together-enter (current-together))
+          (let ((together (new together.gathering:Together)))
+            (set-current-together together)
+            (together-enter together)))
+      (let ((title (if (string? obj) obj "Unable to connect to server"))
+            (zone (if from-login? (current-zone) (open-login-zone))))
+        (world.interface.exception:report-exception title obj)
+        zone))))
+
+
 (definition protected (open-welcome/circle-zone (force-welcome?: force-welcome? #f))
-  (define (open-circle remote-file)
-    (let ((obj (open-client remote-file)))
-      (if (is? obj Zone)
-          obj
-        (let ((title (if (string? obj) obj "Unable to connect to server"))
-              (zone (open-login-zone)))
-          (report-exception zone title obj)))))
-  
   (let ((file (together-file)))
     (if (or force-welcome?
             (not (exists? file))
             (shift-down?))
         (open-login-zone)
-      (open-circle file))))
+      (open-circle-zone file))))
 
 
 (welcome-zone-open-set! open-welcome/circle-zone)
@@ -69,7 +80,10 @@
   (define (determine-world)
     (let ((worlds (determine-worlds)))
       (and worlds
-           (let ((world (new-directory worlds "together")))
+           (let ((world (new-directory worlds (cond-expand
+                                                (devel "yownu")
+                                                (test "yownu")
+                                                (else "together")))))
              (and (exists? world)
                   world)))))
   

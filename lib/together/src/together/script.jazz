@@ -52,6 +52,7 @@
       (else (nextmethod self form))))
   
   
+  @YOWNU-get-asset-not-in-creature
   (method override (edited-update self)
     (define (present-edited edited)
       (let ((spine (get-spine (get-asset edited))))
@@ -87,11 +88,13 @@
 (class Together-Script-Text-View extends Script-Text-View
   
   
+  ;@YOWNU
   (method override (content-changed self range strings undo-range undo-strings)
     (let ((manager (find-ascendant self Script-Manager)))
       (edited-update manager)))
   
   
+  ;@YOWNU
   (method override (evaluate-selection self)
     (let ((interface (current-interface))
           (world (current-world)))

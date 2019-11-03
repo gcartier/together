@@ -51,131 +51,12 @@
         (world.music)
         (world.settings)
         (world.skybox)
+        (world.space)
         (world.task)
         (world.video)
         (world.window)
-        (together.settings))
-
-
-(class Together-Zone extends Zone
-  
-  
-  (slot stage initialize #f getter generate)
-  (slot root  initialize #f getter generate)
-  
-  
-  (form
-    (<install> sun-cycle?: #f draw-grid?: #f))
-  
-  
-  (method override (destroy self)
-    (when (window?)
-      (let ((world (current-world)))
-        (clear-message world)))
-    (nextmethod self))
-  
-  
-  (method override (camera-update self)
-    (nextmethod self)
-    (when (window?)
-      (install-camera)))
-  
-  
-  (method override (title-update self)
-    (when (window?)
-      (let ((window (current-window)))
-        (set-caption-base window "Together"))))
-  
-  
-  (method override (main-menu? self)
-    #f)
-  
-  
-  (method override (show-me? self)
-    #f)
-
-  
-  (method override (show-belt? self)
-    #f)
-  
-  
-  (method override (show-compass? self)
-    #f)
-  
-  
-  (method override (show-combat? self)
-    #f)
-  
-  
-  (method override (show-chat? self)
-    #f)
-  
-  
-  (method override (about-size self)
-    {Dimension 715 385})
-  
-  
-  (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox together-skybox)))
-                   (prepare skybox)
-                   skybox)))
-  
-  
-  (method (close-frame self)
-    (let ((frame (top-frame)))
-      (when frame
-        (close frame))))
-  
-  
-  (method (inhibit-focus-selects-all self view thunk)
-    (if (and (is? view Text-View)
-             (get-focus-selects-all? view))
-        (begin
-          (set-focus-selects-all? view #f)
-          (prog1 (thunk)
-            (set-focus-selects-all? view #t)))
-      (thunk)))
-
-  
-  ;;;
-  ;;;; Events
-  ;;;
-  
-  
-  (method protected virtual (name-return self)
-    )
-  
-  
-  (method protected virtual (name-escape self)
-    )
-  
-  
-  ;;;
-  ;;;; Exception
-  ;;;
-  
-  
-  (method (add-exception-view self)
-    (let ((interface (current-interface)))
-      (new Exception-Label name: 'exception parent: interface title: "" location: '(center 107) size: {Dimension 600 40} font: {Font font-name: tahoma point-size: 28 shadow: thin} justification: 'center)))
-  
-  
-  (method (find-exception-view self)
-    (let ((interface (current-interface)))
-      (child interface 'exception)))
-  
-  
-  (method package (report-exception self title exc (stack #f))
-    (let ((view (find-exception-view self)))
-      (set-title view title)
-      (set-exception view exc)
-      (set-stack view stack)))
-  
-  
-  (method (clear-exception self)
-    (let ((view (find-exception-view self)))
-      (set-title view "")
-      (set-exception view #f))))
+        (together.settings)
+        (together.space))
 
 
 ;;;
@@ -254,23 +135,23 @@
             (else
              #f)))
     
-    (let ((zone (current-zone)))
+    (let ((space (current-space)))
       (let ((text (locate self 'text)))
         (let ((name (trim-whitespace (get-string-content text))))
           (let ((invalid (name-invalid name)))
-            (set-enabled? (child (get-root zone) action-view) (not invalid))
+            (set-enabled? (child (get-root space) action-view) (not invalid))
             (set-title (brother self invalid-view) (or invalid "")))))))
   
   
   (method (on-return self evt)
-    (let ((zone (current-zone)))
-      (when (get-enabled? (child (get-root zone) action-view))
-        (name-return zone))))
+    (let ((space (current-space)))
+      (when (get-enabled? (child (get-root space) action-view))
+        (name-return space))))
   
   
   (method (on-escape self evt)
-    (let ((zone (current-zone)))
-      (name-escape zone))))
+    (let ((space (current-space)))
+      (name-escape space))))
 
 
 ;;;
@@ -291,6 +172,7 @@
 
 ;;;
 ;;;; Name-Invalid
+;;;
 
 
 (class Name-Invalid extends Label-View
@@ -302,45 +184,6 @@
   
   (method override (text-color self)
     {Color World-Red}))
-
-
-;;;
-;;;; Exception-Label
-;;;
-
-
-(class Exception-Label extends Label-View
-  
-  
-  (property exception initialize #f accessors generate)
-  (property stack     initialize #f accessors generate)
-  
-  
-  (method override (text-color self)
-    {Color World-Red})
-  
-  
-  (method override (get-tooltip? self)
-    #t)
-  
-  
-  (method override (get-tooltip-text self)
-    (define (present-exception)
-      (split-string (exception-reason exception) #\newline))
-    
-    (define (present-stack)
-      (if (and (developer?) stack)
-          (map (lambda (frame)
-                 (format "> {a}" frame))
-               (if (> (length stack) 16)
-                   (subseq stack 0 16)
-                 stack))
-        '()))
-    
-    (if exception
-        (append (present-exception)
-                (present-stack))
-      #f)))
 
 
 ;;;
@@ -379,7 +222,7 @@
   (let ((world (current-world)))
     (unless sleeping?
       (increase! camera-angle (/ elapse 10.))
-      (let ((target (vertex -11.500 8.500 -32.500))
+      (let ((target (vertex -65. 110. 225.) @GATHERING (vertex 170. 8.500 260.))
             (angle camera-angle)
             (radius 75.)
             (elevation 20.))
