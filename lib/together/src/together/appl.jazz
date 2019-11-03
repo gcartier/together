@@ -1391,8 +1391,8 @@
 
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-mic    resource: {Icon-Resource "Logogram/__Tornado"} action-handler: {Action circle toggle-mic} parameter: mic)
-      (<World-Parameter-Button> name: toggle-camera resource: {Icon-Resource "Logogram/__Seeker-"} action-handler: {Action circle toggle-camera} parameter: camera))))
+      (<World-Parameter-Button> name: toggle-mic    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action circle toggle-mic} parameter: mic)
+      (<World-Parameter-Button> name: toggle-camera resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action circle toggle-camera} parameter: camera))))
 
 
 ;;;
@@ -1405,10 +1405,10 @@
 
   (form
     (<install>
-      (<World-Parameter-Button> name: goto-avatar    resource: {Icon-Resource "Logogram/__Shapes"} action-handler: {Action circle goto-avatar} parameter: avatar)
-      (<World-Parameter-Button> name: circle-layout  resource: {Icon-Resource "Logogram/__logogram-five"} action-handler: {Action circle circle-layout} parameter: circle-layout)
-      (<World-Parameter-Button> name: focus-layout   resource: {Icon-Resource "Logogram/__logogram-shapes-three"} action-handler: {Action circle focus-layout} parameter: focus-layout)
-      (<World-Parameter-Button> name: gallery-layout resource: {Icon-Resource "Logogram/__circular-logogram"} action-handler: {Action circle gallery-layout} parameter: gallery-layout))))
+      (<World-Parameter-Button> name: goto-avatar    resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action circle goto-avatar} parameter: avatar)
+      (<World-Parameter-Button> name: circle-layout  resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action circle circle-layout} parameter: circle-layout)
+      (<World-Parameter-Button> name: focus-layout   resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action circle focus-layout} parameter: focus-layout)
+      (<World-Parameter-Button> name: gallery-layout resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action circle gallery-layout} parameter: gallery-layout))))
 
 
 ;;;
@@ -1421,7 +1421,7 @@
   
   (form
     (<install>
-      (<World-Action-Button> name: showcase-menu resource: {Icon-Resource "Logogram/__Flower-Floral"} action-handler: {Action world-edition showcase-menu}))))
+      (<World-Action-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu}))))
 
 
 ;;;
@@ -1454,12 +1454,12 @@
   
   (form
     (<install>
-      (<World-Action-Button>    name: showcase-menu    resource: {Icon-Resource "Logogram/__Flower-Floral"} action-handler: {Action world-edition showcase-menu})
-      (<World-Parameter-Button> name: no-showcase      resource: {Icon-Resource "_Interface/no_showcase"} action-handler: {Action world-edition no-showcase} parameter: no-showcase)
-      (<World-Parameter-Button> name: blocks-showcase  resource: {Icon-Resource "_Interface/blocks_showcase"} action-handler: {Action world-edition blocks-showcase} parameter: blocks-showcase)
-      (<World-Parameter-Button> name: models-showcase  resource: {Icon-Resource "_Interface/models_showcase"} action-handler: {Action world-edition models-showcase} parameter: models-showcase)
-      (<World-Parameter-Button> name: gadgets-showcase resource: {Icon-Resource "_Interface/gadgets_showcase"} action-handler: {Action world-edition gadgets-showcase} parameter: gadgets-showcase)
-      (<World-Parameter-Button> name: avatars-showcase resource: {Icon-Resource "_Interface/avatars_showcase"} action-handler: {Action world-edition avatars-showcase} parameter: avatars-showcase))))
+      (<World-Action-Button>    name: showcase-menu    resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu})
+      (<World-Parameter-Button> name: no-showcase      resource: {Icon-Resource "Interface/No-Showcase"} action-handler: {Action world-edition no-showcase} parameter: no-showcase)
+      (<World-Parameter-Button> name: blocks-showcase  resource: {Icon-Resource "Interface/Blocks-Showcase"} action-handler: {Action world-edition blocks-showcase} parameter: blocks-showcase)
+      (<World-Parameter-Button> name: models-showcase  resource: {Icon-Resource "Interface/Models-Showcase"} action-handler: {Action world-edition models-showcase} parameter: models-showcase)
+      (<World-Parameter-Button> name: gadgets-showcase resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-edition gadgets-showcase} parameter: gadgets-showcase)
+      (<World-Parameter-Button> name: avatars-showcase resource: {Icon-Resource "Interface/Avatars-Showcase"} action-handler: {Action world-edition avatars-showcase} parameter: avatars-showcase))))
 
 
 ;;;
@@ -1473,7 +1473,7 @@
   (form
     (<install>
       (<World-Parameter-Button> name: toggle-people  resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action circle toggle-people} parameter: people)
-      (<World-Parameter-Button> name: toggle-chat    resource: {Icon-Resource "Symbol/__Symbol-Two"} action-handler: {Action circle toggle-chat} parameter: chat))))
+      (<World-Parameter-Button> name: toggle-chat    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action circle toggle-chat} parameter: chat))))
 
 
 ;;;
@@ -1486,7 +1486,7 @@
   
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-screen-share    resource: {Icon-Resource "Symbol/__Circles-Symbol-Twelve"} action-handler: {Action circle toggle-screen-share} parameter: screen-share))))
+      (<World-Parameter-Button> name: toggle-screen-share    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action circle toggle-screen-share} parameter: screen-share))))
 
 
 ;;;
@@ -1499,7 +1499,7 @@
   
   (form
     (<install>
-      (<World-Action-Button> name: main-menu    resource: {Icon-Resource "Beliefs Symbols/__Hinduism"} action-handler: {Action world-menu main-menu}))))
+      (<World-Action-Button> name: main-menu    resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action world-menu main-menu}))))
 
 
 ;;;
@@ -1512,7 +1512,7 @@
   
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/__Cultural-Symbol-Eight"} action-handler: {Action together toggle-windowed-mode} parameter: fullscreen-mode))))
+      (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action together toggle-windowed-mode} parameter: fullscreen-mode))))
 
 
 ;;;
@@ -1525,7 +1525,7 @@
   
   (form
     (<install>
-      (<World-Action-Button> name: leave-circle    resource: {Icon-Resource "Beliefs Symbols/__Bahae"} action-handler: {Action circle leave-circle}))))
+      (<World-Action-Button> name: leave-circle    resource: {Icon-Resource "Beliefs Symbols/Bahae"} action-handler: {Action circle leave-circle}))))
 
 
 ;;;
@@ -1538,7 +1538,7 @@
 
   (form
     (<install>
-      (<World-Action-Button> name: debug-menu resource: {Icon-Resource "Chemistry/__Science"} action-handler: {Action world-debug debug-menu}))))
+      (<World-Action-Button> name: debug-menu resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu}))))
 
 
 ;;;
@@ -1551,14 +1551,14 @@
   
   (form
     (<install>
-      (<World-Action-Button>    name: debug-menu              resource: {Icon-Resource "Chemistry/__Science"} action-handler: {Action world-debug debug-menu})
+      (<World-Action-Button>    name: debug-menu              resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
       (<World-Parameter-Button> name: toggle-info             resource: {Icon-Resource "Web and Apps/Light"} action-handler: {Action world-debug toggle-info} parameter: info)
       (<World-Parameter-Button> name: toggle-profiler         resource: {Icon-Resource "Audio/Specifics"} action-handler: {Action world-debug toggle-profiler} parameter: profiler)
       (<World-Parameter-Button> name: toggle-timeline         resource: {Icon-Resource "Audio/Music-Specifics"} action-handler: {Action world-debug toggle-timeline} parameter: timeline)
       ;(<World-Parameter-Button> name: toggle-evolution        resource: {Image-Resource "Preview"} action-handler: {Action world-debug toggle-evolution} parameter: evolution)
       (<World-Action-Button>    name: clear-terminal          resource: {Icon-Resource "Photography UI/No-Flash"} action-handler: {Action world-debug clear-terminal})
       (<World-Action-Button>    name: clear-console           resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-debug clear-console})
-      (<World-Action-Button>    name: explore-interface       resource: {Icon-Resource "Games/__Visual"} action-handler: {Action world-debug explore-interface}))))
+      (<World-Action-Button>    name: explore-interface       resource: {Icon-Resource "Games/Visual"} action-handler: {Action world-debug explore-interface}))))
 
 
 ;;;
