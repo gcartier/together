@@ -23,7 +23,6 @@
 
 
 (definition protected (prepare-processor)
-  (set-together? #t)
   (set-window? #f)
   (set-capability 'window? #f)
   (set-tier-title "Together")

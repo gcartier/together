@@ -43,7 +43,6 @@
 
 
 (definition protected (prepare-together)
-  (set-together? #t)
   (set-window? #t)
   (set-tier-title "Together")
   (set-tier-kind 'client)

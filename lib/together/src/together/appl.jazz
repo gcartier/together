@@ -972,7 +972,7 @@
     (let ((platform (cond-expand
                       (windows (list windows-bindings))
                       (else '())))
-          (sphere (if sphere? (list sphere-bindings) '())))
+          (sphere (list sphere-bindings)))
       (case role
         ((user) `((:bindings ,user-bindings ,@platform ,@sphere)))
         ((developer) developer-role @YOWNU `((,@developer-role ,@platform ,@sphere)))
