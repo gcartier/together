@@ -159,13 +159,7 @@
             (changing-name?
              (change-remote-name self #t))
             (else
-             (remote-open zone (together-file))
-             @customize
-             (let ((file (together-file)))
-               (if (exists? file)
-                   (remote-open zone file)
-                 (goto-stage self 'customize)
-                 (text-content-set self (info-text self 'server-port) (port->string together-port))))))))
+             (remote-open zone (together-file))))))
   
   
   (method override (tab-press self)
@@ -310,37 +304,6 @@
     (end-change-name self)))
 
 
-@customize
-(class Customize-Space extends Space
-  
-  
-  (slot root initialize #f getter generate)
-  
-  
-  (method override (show-me? self)
-    #f)
-  
-  
-  (method override (space-setup self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (let ((root (new Layout-View parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-        (new Label-View name: 'welcome parent: root title: tier-title location: '(40 30) size: {Dimension 400 80} font: {Font font-name: tahoma point-size: 60 shadow: thin})
-        (new Info-Label name: 'server-address-label parent: root title: "Server Address" location: '(-40 -240) color: {Color red: .892 green: .773 blue: .290})
-        (new Info-View name: 'server-address parent: root location: '(-40 -220))
-        (new Info-Label name: 'server-port-label parent: root title: "Server Port" location: '(-40 -200) color: {Color red: .892 green: .773 blue: .290})
-        (new Info-View name: 'server-port parent: root location: '(-40 -180))
-        (new Info-Label name: 'name-label parent: root title: "Name" location: '(-40 -140) color: {Color red: .892 green: .773 blue: .290})
-        (new Info-View name: 'name parent: root location: '(-40 -120))
-        (new Push-Button name: 'back parent: root title: "Back" location: '(40 -40) size: {Dimension 100 24} action-handler: (~ on-back self))
-        (new Push-Button name: 'create parent: root title: "Enter" location: '(-40 -40) size: {Dimension 100 24} action-handler: (~ on-create-remote self))
-        (text-content-set self (info-text self 'server-address) (host->string together-host))
-        (text-content-set self (info-text self 'server-port) (port->string together-port))
-        (add-exception-view)
-        (set! self.root root)))))
-
-
 (class Login-Zone extends Zone
   
   
@@ -399,24 +362,6 @@
   
   
   ;;;
-  ;;;; Mouse
-  ;;;
-  
-  
-  @customize
-  (method override (mouse-track self elapse dx dy)
-    (when (memq? stage '(customize))
-      (let ((world (current-world)))
-        (let ((entity (get-selection-entity (get-showcase world))))
-          (let ((angle (/ dx 200.))
-                (lookat (get-lookat entity))
-                (up (get-world-up world)))
-            (set-lookat entity (rotate-lookat& lookat angle up))
-            (update-matrix entity)))))
-    #t)
-  
-  
-  ;;;
   ;;;; Events
   ;;;
   
@@ -432,128 +377,11 @@
         (close frame))))
   
   
-  @customize
-  (method (on-customize self evt)
-    (change-remote self (together-file)
-      (if configuration (get-server-host configuration) together-host)
-      (if configuration (get-server-service configuration) together-port)))
-  
-  
-  @customize
-  (method (change-remote self file server-address server-port)
-    (let ((world (current-world)))
-      (when (exists? file)
-        (let ((configuration (instantiate (read-form file))))
-          (let ((name (get-character-name configuration))
-                (avatar (and use-sphere? (get-character-avatar configuration))))
-            (goto-stage self 'customize)
-            (text-content-set self (info-text self 'server-address) (host->string server-address))
-            (text-content-set self (info-text self 'server-port) (port->string server-port))
-            (text-content-set self (info-text self 'name) name)
-            (when use-sphere?
-              (let ((showcase (get-showcase world)))
-                (let ((avatar (find-avatar showcase avatar)))
-                  (when avatar
-                    (set-selection showcase avatar)
-                    (selection-update showcase avatar)))))
-            (delay-event
-              (lambda ()
-                (acquire-focus (info-text self 'name)))))))))
-  
-  
-  @customize
-  (method (on-back self evt)
-    (goto-stage self (case stage
-                       ((customize) 'login))))
-  
-  
-  @customize
-  (method (goto-stage self what)
-    (uninstall-stage self)
-    (set! stage what)
-    (install-stage self))
-  
-  
-  @customize
-  (method (selected-avatar self)
-    (let ((world (current-world)))
-      (get-model (get-selection-entity (find-showcase world 'avatars)))))
-  
-  
-  @customize
-  (method (on-create-remote self evt)
-    (create-remote self))
-  
-  
-  @customize
-  (method (info-return self)
-    (case stage
-      ((customize) (create-remote self))))
-  
-  
-  @customize
-  (method package (create-remote self)
-    (let ((fields (remote-fields self)))
-      (let ((client-name "Together")
-            (contents (map (lambda (field)
-                             (bind (label view) field
-                               (text-content self (info-text self view))))
-                           fields))
-            (avatar (and use-sphere? (selected-avatar self)))
-            (script #f)
-            (zone (if use-sphere?
-                      '(zone "Sphere")
-                    '(zone "Circle"))))
-        (bind (server-address server-port name) contents
-          (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
-            (setup-configuration self)
-            (update-name-views self)
-            (remote-open self file))))))
-  
-  
-  @customize
-  (method (remote-fields self)
-    '((server-address-label server-address #t)
-      (server-port-label server-port #f)
-      (name-label name #t)))
-  
-  
-  @customize
-  (method (remote-stops self)
-    (map (~ info-text self) (map second (remote-fields self))))
-  
-  
   (method (remote-open self remote-file)
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone remote-file))))
-  
-  
-  @customize
-  (method (info-text self view)
-    (let ((interface (current-interface)))
-      (locate (child root view) 'text)))
-  
-  
-  @customize
-  (method (text-content self text)
-    (let ((content (get-string-content text)))
-      (if (empty-string? content)
-          #f
-        content)))
-  
-  
-  @customize
-  (method (text-content-set self text content)
-    (set-string-content text (->string content)))
-  
-  
-  @customize
-  (method package (tab-stops self)
-    (case stage
-      ((customize) (remote-stops self))
-      (else #f))))
+        (open-circle-zone remote-file)))))
 
 
 ;;;
@@ -570,43 +398,4 @@
   
   (method override (mouse-up self evt)
     (let ((space (current-space)))
-      (change-name space))))
-
-
-;;;
-;;;; Info-Label
-;;;
-
-
-@customize
-(class Info-Label extends Label-View
-  
-  
-  (form
-    (<install> size: {Dimension 150 16} color: {Color red: .892 green: .773 blue: .290})))
-
-
-;;;
-;;;; Info-View
-;;;
-
-
-@customize
-(class Info-View extends Border-View
-  
-  
-  (form
-    (<install>                          size: {Dimension 150 19} border-type: edge style: entry
-      (<Scroller-View>                  hscroll?: #f vscroll?: #f
-        (<content~>                     layout-type: fill
-          (<World-Text-View> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t return-press-handler: {Event-Handler :form on-return})))))
-  
-  
-  (method override (get-tab-stops self)
-    (let ((zone (current-zone)))
-      (tab-stops zone)))
-  
-  
-  (method (on-return self evt)
-    (let ((zone (current-zone)))
-      (info-return zone)))))
+      (change-name space)))))
