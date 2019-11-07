@@ -170,22 +170,24 @@
 (class Gathering-Zone extends Together-Zone
   
   
-  (slot configuration      initialize #f getter generate)
-  (slot selected-group     initialize #f getter generate)
-  (slot selected-player    initialize #f getter generate)
-  (slot circle-name        initialize #f getter generate)
-  (slot circle-no          initialize #f getter generate)
-  (slot circle-audio-only? initialize #f getter generate)
-  (slot circle-start       initialize #f getter generate)
-  (slot message-recipient  initialize #f getter generate)
-  (slot view-focused       initialize #f getter generate)
-  (slot draw-hook          initialize #f getter generate)
-  (slot hide-ring          initialize #f getter generate)
-  (slot hide-thread        initialize #f getter generate)
-  (slot first-hierarchy?   initialize #t getter generate)
-  (slot buttons-shown?     initialize #t getter generate)
-  (slot disconnected?      initialize #f getter generate)
-  (slot chat-wide?         initialize #f getter generate)
+  (slot configuration        initialize #f getter generate)
+  (slot selected-group       initialize #f getter generate)
+  (slot selected-audio-only? initialize #f getter generate)
+  (slot selected-player      initialize #f getter generate)
+  (slot circle-name          initialize #f getter generate)
+  (slot circle-no            initialize #f getter generate)
+  (slot circle-audio-only?   initialize #f getter generate)
+  (slot circle-start         initialize #f getter generate)
+  (slot message-recipient    initialize #f getter generate)
+  (slot view-focused         initialize #f getter generate)
+  (slot draw-hook            initialize #f getter generate)
+  (slot hide-ring            initialize #f getter generate)
+  (slot hide-thread          initialize #f getter generate)
+  (slot first-hierarchy?     initialize #t getter generate)
+  (slot buttons-shown?       initialize #t getter generate)
+  (slot disconnected?        initialize #f getter generate)
+  (slot chat-wide?           initialize #f getter generate)
+  (slot leave-seconds        initialize #f getter generate)
   
   (cond-expand
     (windows
@@ -211,7 +213,7 @@
                       (create-group client name #t #f))
                     (listify auto-create)))
         (cond (auto-join
-               (join-circle self auto-join))
+               (join-circle self auto-join #f))
               (auto-script
                (goto-script/last self))))))
   
@@ -950,7 +952,7 @@
                (eq? (active-focus) (current-interface))
                selected-group
                (not selected-player))
-      (join-circle self selected-group)))
+      (join-circle self selected-group selected-audio-only?)))
   
   
   (method override (tab-press self)
@@ -958,7 +960,7 @@
   
   
   (method package (on-join self evt)
-    (join-circle self selected-group))
+    (join-circle self selected-group selected-audio-only?))
   
   
   (method (on-leave self evt)
@@ -1002,16 +1004,16 @@
                     (clear-message world)
                     (set-string-content text "")
                     (content-changed view)
-                    (join-circle self name))))))))))
+                    (join-circle self name audio-only?))))))))))
   
   
-  (method (join-circle self name)
+  (method (join-circle self name audio-only?)
     (let ((tier (current-client))
           (udp (current-udp))
           (world (current-world))
           (zone (current-zone))
           (video (current-video)))
-      (when (check-has-camera? self)
+      (when (or audio-only? (check-has-camera? self))
         (reset-chronology)
         (reset-evolution)
         (bind-camera)
@@ -1399,7 +1401,7 @@
                                 (let ((row (add-row tree
                                                     state: 'expanded
                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
-                                                    user-data: (list 'group group))))
+                                                    user-data: (list 'group group audio-only?))))
                                   (for-each (lambda (info)
                                               (add-player row info group))
                                             players)))))
@@ -1408,10 +1410,11 @@
   
   (method package (people-selection-change self)
     (let ((tree (people-tree self)))
-      (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
+      (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
         (bind (kind . rest) selected
-          (define (select group player)
+          (define (select group audio-only? player)
             (set! selected-group group)
+            (set! selected-audio-only? audio-only?)
             (set! selected-player player)
             (when (eq? stage 'gathering)
               (update-circle/join self)))
@@ -1419,10 +1422,10 @@
           (case kind
             ((player)
              (bind (player group) rest
-               (select group player)))
+               (select group #f player)))
             ((group)
-             (bind (group) rest
-               (select group #f))))))))
+             (bind (group audio-only?) rest
+               (select group audio-only? #f))))))))
   
   
   (method package (people-double-click self)
@@ -1436,7 +1439,7 @@
   (method (people-action-selected self)
     (when (eq? stage 'gathering)
       (when (and selected-group (not selected-player))
-        (join-circle self selected-group))))
+        (join-circle self selected-group selected-audio-only?))))
   
   
   (method package (focus-command-text self)
