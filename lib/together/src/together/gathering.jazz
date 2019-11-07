@@ -1022,7 +1022,7 @@
               (display-error world no/streams/exception)
             (bind (no audio-only? . streams) no/streams/exception
               (when auto-live?
-                (require-live-stream tier))
+                (require-live-stream tier audio-only?))
               (start udp)
               (when auto-live?
                 (when auto-audio?
