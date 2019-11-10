@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Gathering Zone
+;;;; Gathering Space
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -1161,7 +1161,8 @@
     (together-ready self)
     (set! space (need-space self 'gathering))
     (space-install space)
-    (set-current-space space))
+    (set-current-space space)
+    (space-finish space))
   
   
   (method (together-exit self)
@@ -1487,6 +1488,7 @@
     (set! space (need-space self what))
     (space-install space)
     (set-current-space space)
+    (space-finish space)
     space)
   
   

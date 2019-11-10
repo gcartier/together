@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Login Zone
+;;;; Login Space
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -54,6 +54,7 @@
         (world.space)
         (world.task)
         (world.window)
+        (together.customize)
         (together.settings)
         (together.space)
         (together.zone))
@@ -87,10 +88,25 @@
     #f)
   
   
-  (method override (space-setup self)
+  (method override (showcase-avatar? self)
+    #t)
+  
+  
+  (method override (showcase-avatar-y self)
+    -3.5)
+  
+  
+  (method override (showcase-avatar-scaling self)
+    .8)
+  
+  
+  (method override (showcase-avatars? self)
+    #f)
+  
+  
+  (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
+    (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
@@ -101,48 +117,60 @@
             (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
             (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
-            (new Kind-Label name: 'new-label parent: root title: "Please enter your name" location: '(center (center -88)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
-            (new Name-View name: 'new-name parent: root location: '(center (center -58)) action-view: 'new-enter invalid-view: 'new-invalid name-label: "Name" max-length: 30)
-            (new Name-Invalid name: 'new-invalid parent: root location: '(center (center -36)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
-            (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
-            (new Name-Label name: 'name parent: root title: name location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-            (new Push-Button name: 'enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
+            (new Kind-Label name: 'new-label parent: root title: "Please enter your name" location: '(center (center -188)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
+            (new Name-View name: 'new-name parent: root location: '(center (center -158)) action-view: 'new-enter invalid-view: 'new-invalid name-label: "Name" max-length: 30)
+            (new Name-Invalid name: 'new-invalid parent: root location: '(center (center -136)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+            (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
+            (new Name-Label name: 'name parent: root title: name location: '(center (center -140)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
+            (new Push-Button name: 'enter parent: root title: "Enter" location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
             (when name
-              (new Push-Button name: 'customize parent: root title: "Customize" location: '(center -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self)))
+              (new Push-Button name: 'customize parent: root title: "Change Avatar" location: '(center -30) size: {Dimension 180 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self)))
             (set! self.root root)
             (update-name-views self)
-            (add-exception-view))))))
-  
-  
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (let ((configuration (get-configuration zone)))
+            (add-exception-view)))
         (when (not configuration)
           (delay-event
             (lambda ()
               (acquire-focus (locate (child root 'new-name) 'text)))))
         (layout-view interface)
         (layout-view root)
-        (no-showcase world)
         (show root)
         (send-to-back root)
         (focus-world))))
   
   
+  (method override (space-finish self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (goto-showcase world 'avatars)))
+  
+  
   (method override (space-uninstall self)
     (nextmethod self)
-    (close root)
     (let ((interface (current-interface)))
+      (close root)
       (for-each hide (get-children interface))))
-  
+
+
+  @wait
+  (method override (mouse-track self elapse dx dy)
+    (let ((world (current-world)))
+      (let ((entity (get-selection-entity (get-showcase world))))
+        (let ((angle (/ dx 200.))
+              (lookat (get-lookat entity))
+              (up (get-world-up world)))
+          (set-lookat entity (rotate-lookat& lookat angle up))
+          (update-matrix entity))))
+    #t)
+
   
   (method (on-enter-press self evt)
     (enter-press self))
   
   
   (method (on-customize self evt)
+    (goto-space zone 'customize)
+    @CUSTOMIZE
     (if changing-name?
         (end-change-name self)
       (change-name self)))
@@ -307,6 +335,7 @@
 (class Login-Zone extends Zone
   
   
+  (slot spaces         initialize #f getter generate)
   (slot space          initialize #f getter generate)
   (slot configuration  initialize #f getter generate)
   
@@ -315,14 +344,34 @@
     (<install> sun-cycle?: #f start-grid?: #t))
   
   
+  (method (need-space self what)
+    (or (table-ref spaces what #f)
+        (let ((space (case what
+                       ((login) (new Login-Space self))
+                       ((customize) (new Customize-Space self)))))
+          (space-setup space)
+          (table-set! spaces what space)
+          space)))
+  
+  
+  (method protected (goto-space self what)
+    (space-uninstall (current-space))
+    (set! space (need-space self what))
+    (space-install space)
+    (set-current-space space)
+    (space-finish space)
+    space)
+  
+  
   (method override (setup-space self)
     (setup-configuration self)
+    (set! spaces (make-table test: eq?))
     (when (current-space+)
       (space-uninstall (current-space)))
-    (set! space (new Login-Space self))
-    (space-setup space)
+    (set! space (need-space self 'login))
     (space-install space)
-    (set-current-space space))
+    (set-current-space space)
+    (space-finish space))
   
   
   (method override (zone-ready self)
@@ -381,7 +430,7 @@
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone remote-file)))))
+        (open-circle-zone remote-file #t)))))
 
 
 ;;;

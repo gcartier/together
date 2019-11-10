@@ -30,6 +30,7 @@
 
 (hub get-in-circle?)
 (hub get-replay)
+(hub goto-space)
 (hub together-enter)
 (hub together-exit)
 

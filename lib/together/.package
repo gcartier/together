@@ -15,6 +15,7 @@
                               together.boot
                               together.boot-processor
                               together.boot-server
+                              together.customize
                               together.debugger
                               together.devel
                               together.domain
