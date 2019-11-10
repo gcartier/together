@@ -143,19 +143,7 @@
                        world.show-belt?           #f
                        ;; audio
                        world.music?               #f
-                       world.ambience?            #f
-                       ;; video
-                       world.sun-cycle?           #f
-                       world.start-time           day ;; night
-                       ;; generation
-                       ;; YOWNU quick try
-                       ;; *** are linear and nearest inverted??? ***
-                       ;world.tile-pack            "minecraft"
-                       ;world.tile-resolution      16
-                       ;world.generate-mipmap?     #t
-                       ;world.min-filter           linear
-                       ;world.mag-filter           nearest
-                       )))
+                       world.ambience?            #f)))
 
 
 (definition (create-documents)
