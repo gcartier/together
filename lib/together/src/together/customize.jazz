@@ -1,0 +1,143 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Customize Space
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.customize jazz
+
+
+(import (jazz.component)
+        (jazz.event)
+        (jazz.graphic)
+        (jazz.handler)
+        (jazz.io)
+        (jazz.markup)
+        (jazz.network)
+        (jazz.opengl.window)
+        (jazz.outline)
+        (jazz.platform)
+        (jazz.process)
+        (jazz.resource)
+        (jazz.time)
+        (jazz.text)
+        (jazz.tree)
+        (jazz.ui)
+        (jazz.view)
+        (jazz.window)
+        (world)
+        (world.autoload)
+        (world.build)
+        (world.client)
+        (world.context)
+        (world.geometry)
+        (world.interface)
+        (world.interface.avatars)
+        (world.interface.clients)
+        (world.interface.dialogs)
+        (world.interface.documents)
+        (world.interface.exception)
+        (world.interface.frame)
+        (world.interface.panel)
+        (world.interface.servers)
+        (world.interface.text)
+        (world.interface.tiers)
+        (world.io)
+        (world.settings)
+        (world.skybox)
+        (world.space)
+        (world.task)
+        (world.window)
+        (together)
+        (together.settings)
+        (together.space)
+        (together.zone))
+
+
+(class Customize-Space extends Together-Space
+  
+  
+  (slot zone getter generate)
+  
+  
+  (method override (initialize self zone)
+    (nextmethod self)
+    (set! self.zone zone))
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
+        (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+        (new Push-Button name: 'done parent: root title: "Done" location: '(center -30) size: {Dimension 160 26} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-done self))
+        (set! self.root root))
+      (layout-view interface)
+      (layout-view root)))
+  
+  
+  (method override (space-finish self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (goto-showcase world 'avatars)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (close root)
+      (for-each hide (get-children interface))))
+  
+  
+  (method override (mouse-track self elapse dx dy)
+    (let ((world (current-world)))
+      (track-avatar (get-showcase world) dx dy))
+    #t)
+  
+  
+  (method override (show-me? self)
+    #f)
+  
+  
+  (method override (showcase-avatar? self)
+    #t)
+  
+  
+  (method override (showcase-avatar-y self avatar)
+    (if orb-avatars?
+        -3.1
+      -2.93))
+  
+  
+  (method override (showcase-avatar-scaling self avatar)
+    (if orb-avatars?
+        (nextmethod self avatar)
+      (cond ((equal? avatar "character/draeneifemale")
+             .75)
+            ((equal? avatar "character/nightelffemale")
+             .75)
+            ((equal? avatar "creature/cat")
+             .85)
+            (else
+             .8))))
+  
+  
+  (method override (showcase-avatars-vertical self)
+    (if orb-avatars?
+        80
+      95))
+  
+  
+  (method override (showcase-avatars-double-click self h v)
+    (goto-space zone 'login))
+  
+  
+  (method (on-done self evt)
+    (goto-space zone 'login))))

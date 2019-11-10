@@ -39,6 +39,7 @@
         (world.context)
         (world.geometry)
         (world.interface)
+        (world.interface.avatars)
         (world.interface.clients)
         (world.interface.dialogs)
         (world.interface.documents)
@@ -89,15 +90,24 @@
   
   
   (method override (showcase-avatar? self)
-    #t)
+    (not (top-frame)))
   
   
-  (method override (showcase-avatar-y self)
-    -3.5)
+  (method override (showcase-avatar-y self avatar)
+    -3.8)
   
   
-  (method override (showcase-avatar-scaling self)
-    .8)
+  (method override (showcase-avatar-scaling self avatar)
+    (if orb-avatars?
+        .8
+      (cond ((equal? avatar "character/draeneifemale")
+             .75)
+            ((equal? avatar "character/nightelffemale")
+             .75)
+            ((equal? avatar "creature/cat")
+             .85)
+            (else
+             .8))))
   
   
   (method override (showcase-avatars? self)
@@ -150,17 +160,11 @@
     (let ((interface (current-interface)))
       (close root)
       (for-each hide (get-children interface))))
-
-
-  @wait
+  
+  
   (method override (mouse-track self elapse dx dy)
     (let ((world (current-world)))
-      (let ((entity (get-selection-entity (get-showcase world))))
-        (let ((angle (/ dx 200.))
-              (lookat (get-lookat entity))
-              (up (get-world-up world)))
-          (set-lookat entity (rotate-lookat& lookat angle up))
-          (update-matrix entity))))
+      (track-avatar (get-showcase world) dx dy))
     #t)
 
   
