@@ -345,7 +345,7 @@
   
   
   (form
-    (<install> sun-cycle?: #f start-grid?: #t))
+    (<install> sun-cycle?: #f start-grid?: #f draw-grid?: #f))
   
   
   (method (need-space self what)
