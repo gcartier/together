@@ -61,8 +61,7 @@
 
 (definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
   (let ((file (together-file)))
-    (if (or #t
-            force-welcome?
+    (if (or force-welcome?
             (not (exists? file))
             (shift-down?))
         (open-login-zone)

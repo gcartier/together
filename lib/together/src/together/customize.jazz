@@ -47,6 +47,7 @@
         (world.interface.frame)
         (world.interface.panel)
         (world.interface.servers)
+        (world.interface.showcase)
         (world.interface.text)
         (world.interface.tiers)
         (world.io)
@@ -86,7 +87,8 @@
   (method override (space-finish self)
     (nextmethod self)
     (let ((world (current-world)))
-      (goto-showcase world 'avatars)))
+      (goto-showcase world 'avatars)
+      (select-avatar self)))
   
   
   (method override (space-uninstall self)
@@ -137,6 +139,27 @@
   
   (method override (showcase-avatars-double-click self h v)
     (change-avatar self))
+    
+  
+  (method override (enter-press self)
+    (change-avatar self))
+    
+  
+  (method override (escape-press self)
+    (select-avatar self)
+    (goto-space zone 'login)
+    #t)
+  
+  
+  (method (select-avatar self)
+    (let ((world (current-world)))
+      (let ((showcase (get-showcase world)))
+        (let ((elements (get-elements showcase))
+              (avatar (get-character-avatar (get-configuration zone))))
+          (let ((element (find elements avatar key: get-model test: equal? return: 'item)))
+            (when element
+              (set-selection showcase element)
+              (selection-update showcase element)))))))
   
   
   (method (on-done self evt)

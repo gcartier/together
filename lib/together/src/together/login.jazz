@@ -120,7 +120,7 @@
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
-              (name (and configuration (get-character-name configuration))))
+              (name (get-character-name configuration)))
           (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
             (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
@@ -133,20 +133,19 @@
             (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
             (new Name-Label name: 'name parent: root title: name location: '(center (center -140)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
             (new Push-Button name: 'enter parent: root title: "Enter" location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
-            (when name
-              (new Push-Button name: 'customize parent: root title: "Change Avatar" location: '(center -30) size: {Dimension 180 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self)))
+            (new Push-Button name: 'customize parent: root title: "Change Avatar" location: '(center -30) size: {Dimension 180 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self))
             (set! self.root root)
             (update-name-views self)
-            (add-exception-view)))
-        (when (not configuration)
-          (delay-event
-            (lambda ()
-              (acquire-focus (locate (child root 'new-name) 'text)))))
-        (layout-view interface)
-        (layout-view root)
-        (show root)
-        (send-to-back root)
-        (focus-world))))
+            (add-exception-view))
+          (when (not name)
+            (delay-event
+              (lambda ()
+                (acquire-focus (locate (child root 'new-name) 'text)))))
+          (layout-view interface)
+          (layout-view root)
+          (show root)
+          (send-to-back root)
+          (focus-world)))))
   
   
   (method override (space-finish self)
@@ -173,11 +172,7 @@
   
   
   (method (on-customize self evt)
-    (goto-space zone 'customize)
-    @CUSTOMIZE
-    (if changing-name?
-        (end-change-name self)
-      (change-name self)))
+    (goto-space zone 'customize))
   
   
   (method (on-quit self evt)
@@ -186,27 +181,35 @@
   
   (method override (enter-press self)
     (let ((configuration (get-configuration zone)))
-      (cond ((not configuration)
-             (let ((file (create-configuration zone (extract-new-name self))))
-               (update-name-views self)
-               (open-configuration zone file)))
+      (cond ((not (get-character-name configuration))
+             (update-configuration-name self)
+             (save-configuration zone)
+             (update-name-views self)
+             (open-configuration zone (together-file)))
             (changing-name?
              (update-configuration-name self)
-             (let ((file (save-configuration zone)))
-               (end-change-name self)
-               (open-configuration zone file)))
+             (save-configuration zone)
+             (end-change-name self)
+             (open-configuration zone (together-file)))
             (else
              (open-configuration zone (together-file))))))
   
   
   (method override (tab-press self)
     )
+  
+  
+  (method override (escape-press self)
+    (let ((frame (top-frame)))
+      (when frame
+        (close frame)))
+    #t)
 
   
   (method (update-name-views self)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not configuration) changing-name?)))
+        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
           (set-visible? (child root 'new-label) new?)
           (set-visible? (child root 'new-name) new?)
           (set-visible? (child root 'new-invalid) new?)
@@ -244,7 +247,7 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not configuration) changing-name?)))
+        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
           (define (closer frame)
             (let ((customize (find-component root 'customize)))
               (cond (new?
@@ -276,7 +279,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not configuration) changing-name?)))
+        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
           (let ((customize (find-component root 'customize)))
             (cond (new?
                    (set! view-focused (active-focus))
@@ -309,10 +312,11 @@
   
   (method override (name-return self)
     (let ((configuration (get-configuration zone)))
-      (if (not configuration)
-          (let ((file (create-configuration zone (extract-new-name self))))
-            (update-name-views self)
-            (open-configuration zone file))
+      (if (not (get-character-name configuration))
+          (begin
+            (update-configuration-name self)
+            (save-configuration zone)
+            (update-name-views self))
         (update-configuration-name self)
         (save-configuration zone)
         (end-change-name self))))
@@ -396,21 +400,21 @@
   
   (method package (setup-configuration self)
     (let ((file (together-file)))
-      (set! configuration (and (exists? file) (instantiate (read-form file))))))
+      (set! configuration (if (exists? file)
+                              (instantiate (read-form file))
+                            (create-configuration self)))))
   
   
   (method (setup-avatar self)
     (let ((me (current-me)))
-      (if (not configuration)
-          #f
-        (if (get-character-avatar configuration)
-            (begin
-              (set-avatar me (get-character-avatar configuration))
-              #f)
-          (let ((avatar (random-element (collect-avatar-models))))
-            (set-character-avatar configuration avatar)
-            (set-avatar me avatar)
-            #t)))))
+      (if (get-character-avatar configuration)
+          (begin
+            (set-avatar me (get-character-avatar configuration))
+            #f)
+        (let ((avatar (random-element (collect-avatar-models))))
+          (set-character-avatar configuration avatar)
+          (set-avatar me avatar)
+          #t))))
     
   
   (method override (welcome? self)
@@ -423,39 +427,29 @@
   
   
   (method (escape-press self)
-    (close-frame self)
-    #t)
+    (let ((space (current-space)))
+      (escape-press space)))
   
   
-  (method (close-frame self)
-    (let ((frame (top-frame)))
-      (when frame
-        (close frame))))
-    
-  
-  (method package (create-configuration self name)
-    (let ((client-name "Together")
-          (server-address (host->string together-host))
-          (server-port (port->string together-port))
-          (avatar #f)
-          (script #f)
-          (zone '(zone "Circle")))
-      (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
-        (setup-configuration self)
-        file)))
+  (method package (create-configuration self)
+    (new Client
+      server-host: (string->host "localhost") @w together-host
+      server-service: (string->port "50000") @w together-port
+      character-name: #f
+      character-avatar: #f
+      character-script: #f
+      character-zone: 'start))
 
   
   (method package (save-configuration self)
-    (let ((file (get-origin (get-form configuration))))
+    (let ((file (together-file)))
       (let ((server-address (get-server-host configuration))
             (server-port (get-server-service configuration))
             (name (get-character-name configuration))
             (avatar (get-character-avatar configuration))
             (script (get-character-script configuration))
             (zone (get-character-zone configuration)))
-        (let ((file (save-client-file file server-address server-port name avatar script zone)))
-          (setup-configuration self)
-          file))))
+        (save-client-file file server-address server-port name avatar script zone))))
 
   
   (method package (open-configuration self file)

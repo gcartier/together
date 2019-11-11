@@ -31,6 +31,10 @@
   
   (method protected virtual (tab-press self)
     )
+  
+  
+  (method protected virtual (escape-press self)
+    #f)
     
   
   (method protected virtual (name-return self)
