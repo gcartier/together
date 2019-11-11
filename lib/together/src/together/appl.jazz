@@ -957,9 +957,8 @@
           (,Together-Panel-Bar     panelbar     horizontal (attach showcasesbar) #f)
           (,Together-Share-Bar     sharebar     horizontal (attach panelbar) #f)
           (,Together-Debug-TopBar  debugbar     horizontal (attach sharebar) #f)
-          (,Together-Main-Bar      mainbar      horizontal (attach debugbar) #f)
-          (,Together-Window-Bar    windowbar    horizontal (attach mainbar) #f)
-          (,Together-Leave-Bar     leavebar     horizontal (attach windowbar) #f)
+          (,Together-Window-Bar    windowbar    horizontal (attach debugbar) #f)
+          (,Together-Main-Bar      mainbar      horizontal (attach windowbar) #f)
           (,Together-Showcase-Bar  showcasebar  horizontal center #f)
           (,Together-Debug-Bar     debug        horizontal center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
@@ -1185,20 +1184,15 @@
       (<install>
         (<!>             name: debug-menu              visible?: #t))))
   
-  (define-trait developer-main World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: main-menu               visible?: #t))))
-  
   (define-trait developer-window World-Actionbar
     (<Role-Trait>
       (<install>
         (<!>             name: toggle-fullscreen       visible?: #t))))
   
-  (define-trait developer-leave World-Actionbar
+  (define-trait developer-main World-Actionbar
     (<Role-Trait>
       (<install>
-        (<!>             name: leave-circle            visible?: #t))))
+        (<!>             name: main-menu               visible?: #t))))
   
   @w
   (define-trait developer-debug World-Actionbar
@@ -1224,9 +1218,8 @@
       (panelbar ,developer-panel)
       (sharebar ,developer-share)
       (debugbar ,developer-debug)
-      (mainbar ,developer-main)
       (windowbar ,developer-window)
-      (leavebar ,developer-leave)
+      (mainbar ,developer-main)
       @w
       (debug ,developer-debug)))
   
@@ -1374,7 +1367,7 @@
       @wait
       (<Label-Item>     title: "Help" action-handler: {Action world-menu view-help})
       (<Separator-Item>)
-      (<Label-Item>     title: "Welcome Screen" action-handler: {Action world-menu open-welcome})
+      (<Label-Item>     title: "Gathering Screen" action-handler: {Action circle leave-circle})
       (<Label-Item>     name: quit title: "Quit Together" action-handler: {Action world-menu quit-world})))
   
   
@@ -1516,19 +1509,6 @@
   (form
     (<install>
       (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action together toggle-windowed-mode} parameter: fullscreen-mode))))
-
-
-;;;
-;;;; Leave
-;;;
-
-
-(class Together-Leave-Bar extends World-Actionbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button> name: leave-circle    resource: {Icon-Resource "Beliefs Symbols/Bahae"} action-handler: {Action circle leave-circle}))))
 
 
 ;;;
