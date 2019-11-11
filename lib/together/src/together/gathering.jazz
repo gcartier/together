@@ -1171,11 +1171,9 @@
   
   (method (together-ready self)
     (when (window?)
-      (let ((window (current-window))
-            (world (current-world))
+      (let ((world (current-world))
             (client (current-client)))
         (setup-configuration self)
-        (set-caption-base window "Together")
         (prepare-skybox self)
         (install-zone self)
         (install-hooks self)

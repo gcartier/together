@@ -48,6 +48,7 @@
         (jazz.time)
         (jazz.tree)
         (jazz.view)
+        (jazz.window)
         (world)
         (world.appl)
         (world.asset)
@@ -119,7 +120,9 @@
     (let ((fullscreen? window-fullscreen?)
           (pos (world-setting 'world.position {Point 150 50}))
           (size (world-setting 'world.size {Dimension 1100 750})))
-      (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size visible?: #f)))
+      (let ((toplevel (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size visible?: #f)))
+        (set-caption-base toplevel "Together")
+        toplevel)))
   
   
   (method override (initialize-settings self)
