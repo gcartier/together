@@ -222,7 +222,7 @@
   (let ((world (current-world)))
     (unless sleeping?
       (increase! camera-angle (/ elapse 10.))
-      (let ((target (vertex -65. 110. 225.) @GATHERING (vertex 170. 8.500 260.))
+      (let ((target (vertex 0. 5. 0.))
             (angle camera-angle)
             (radius 75.)
             (elevation 20.))
