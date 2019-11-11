@@ -187,11 +187,16 @@
   (method override (enter-press self)
     (let ((configuration (get-configuration zone)))
       (cond ((not configuration)
-             (create-default-remote self))
+             (let ((file (create-configuration zone (extract-new-name self))))
+               (update-name-views self)
+               (open-configuration zone file)))
             (changing-name?
-             (change-remote-name self #t))
+             (update-configuration-name self)
+             (let ((file (save-configuration zone)))
+               (end-change-name self)
+               (open-configuration zone file)))
             (else
-             (remote-open zone (together-file))))))
+             (open-configuration zone (together-file))))))
   
   
   (method override (tab-press self)
@@ -289,47 +294,28 @@
           (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))))
   
   
-  (method (create-default-remote self)
+  (method (extract-new-name self)
     (let ((interface (current-interface)))
       (let ((view (child root 'new-name)))
         (let ((text (locate view 'text)))
-          (let ((name (trim-whitespace (get-string-content text))))
-            (let ((client-name "Together")
-                  (server-address (host->string together-host))
-                  (server-port (port->string together-port))
-                  (avatar #f)
-                  (script #f)
-                  (zone '(zone "Circle")))
-              (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
-                (setup-configuration zone)
-                (update-name-views self)
-                (remote-open zone file))))))))
+          (trim-whitespace (get-string-content text))))))
+    
   
-  
-  (method (change-remote-name self (open? #f))
-    (let ((interface (current-interface)))
-      (let ((configuration (get-configuration zone))
-            (view (child root 'new-name)))
-        (let ((text (locate view 'text)))
-          (let ((name (trim-whitespace (get-string-content text))))
-            (let ((file (get-origin (get-form configuration))))
-              (let ((server-address (get-server-host configuration))
-                    (server-port (get-server-service configuration))
-                    (avatar (get-character-avatar configuration))
-                    (script (get-character-script configuration))
-                    (charzone (get-character-zone configuration)))
-                (let ((file (save-client-file file server-address server-port name avatar script charzone)))
-                  (setup-configuration zone)
-                  (end-change-name self)
-                  (when open?
-                    (remote-open zone file))))))))))
+  (method (update-configuration-name self)
+    (let ((configuration (get-configuration zone))
+          (name (extract-new-name self)))
+      (set-character-name configuration name)))
   
   
   (method override (name-return self)
     (let ((configuration (get-configuration zone)))
       (if (not configuration)
-          (create-default-remote self)
-        (change-remote-name self))))
+          (let ((file (create-configuration zone (extract-new-name self))))
+            (update-name-views self)
+            (open-configuration zone file))
+        (update-configuration-name self)
+        (save-configuration zone)
+        (end-change-name self))))
   
   
   (method override (name-escape self)
@@ -369,13 +355,16 @@
   
   (method override (setup-space self)
     (setup-configuration self)
-    (set! spaces (make-table test: eq?))
-    (when (current-space+)
-      (space-uninstall (current-space)))
-    (set! space (need-space self 'login))
-    (space-install space)
-    (set-current-space space)
-    (space-finish space))
+    (let ((avatar-change? (setup-avatar self)))
+      (set! spaces (make-table test: eq?))
+      (when (current-space+)
+        (space-uninstall (current-space)))
+      (set! space (need-space self 'login))
+      (space-install space)
+      (set-current-space space)
+      (space-finish space)
+      (when avatar-change?
+        (save-configuration self))))
   
   
   (method override (zone-ready self)
@@ -408,6 +397,20 @@
   (method package (setup-configuration self)
     (let ((file (together-file)))
       (set! configuration (and (exists? file) (instantiate (read-form file))))))
+  
+  
+  (method (setup-avatar self)
+    (let ((me (current-me)))
+      (if (not configuration)
+          #f
+        (if (get-character-avatar configuration)
+            (begin
+              (set-avatar me (get-character-avatar configuration))
+              #f)
+          (let ((avatar (random-element (collect-avatar-models))))
+            (set-character-avatar configuration avatar)
+            (set-avatar me avatar)
+            #t)))))
     
   
   (method override (welcome? self)
@@ -428,13 +431,38 @@
     (let ((frame (top-frame)))
       (when frame
         (close frame))))
+    
   
+  (method package (create-configuration self name)
+    (let ((client-name "Together")
+          (server-address (host->string together-host))
+          (server-port (port->string together-port))
+          (avatar #f)
+          (script #f)
+          (zone '(zone "Circle")))
+      (let ((file (create-client-file client-name server-address server-port name avatar script zone)))
+        (setup-configuration self)
+        file)))
+
   
-  (method (remote-open self remote-file)
+  (method package (save-configuration self)
+    (let ((file (get-origin (get-form configuration))))
+      (let ((server-address (get-server-host configuration))
+            (server-port (get-server-service configuration))
+            (name (get-character-name configuration))
+            (avatar (get-character-avatar configuration))
+            (script (get-character-script configuration))
+            (zone (get-character-zone configuration)))
+        (let ((file (save-client-file file server-address server-port name avatar script zone)))
+          (setup-configuration self)
+          file))))
+
+  
+  (method package (open-configuration self file)
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone remote-file #t)))))
+        (open-circle-zone file #t)))))
 
 
 ;;;

@@ -59,16 +59,17 @@
         zone))))
 
 
-(definition protected (open-welcome/circle-zone (force-welcome?: force-welcome? #f))
+(definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
   (let ((file (together-file)))
-    (if (or force-welcome?
+    (if (or #t
+            force-welcome?
             (not (exists? file))
             (shift-down?))
         (open-login-zone)
       (open-circle-zone file))))
 
 
-(welcome-zone-open-set! open-welcome/circle-zone)
+(welcome-zone-open-set! open-login/circle-zone)
 
 
 ;;;

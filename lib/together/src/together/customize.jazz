@@ -136,8 +136,16 @@
   
   
   (method override (showcase-avatars-double-click self h v)
-    (goto-space zone 'login))
+    (change-avatar self))
   
   
   (method (on-done self evt)
-    (goto-space zone 'login))))
+    (change-avatar self))
+  
+  
+  (method (change-avatar self)
+    (let ((world (current-world)))
+      (let ((avatar (get-avatar (get-selection-entity (get-showcase world)))))
+        (set-character-avatar (get-configuration zone) avatar)
+        (save-configuration zone)
+        (goto-space zone 'login))))))
