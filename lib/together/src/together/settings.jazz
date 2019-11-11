@@ -14,7 +14,8 @@
 (module together.settings jazz
 
 
-(import (jazz.debuggee)
+(import (jazz.component)
+        (jazz.debuggee)
         (jazz.io)
         (jazz.platform)
         (jazz.settings)
@@ -63,6 +64,7 @@
   (let ((file (together-file)))
     (if (or force-welcome?
             (not (exists? file))
+            (not (get-character-avatar (instantiate (read-form file))))
             (shift-down?))
         (open-login-zone)
       (open-circle-zone file))))
