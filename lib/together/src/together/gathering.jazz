@@ -223,7 +223,7 @@
       (set-visible? (child interface 'mediabar) #t)
       (set-visible? (child interface 'layoutbar) #t)
       (set-visible? (child interface 'showcasesbar) #t)
-      (set-visible? (child interface 'panelbar) #t)
+      (set-visible? (child interface 'viewbar) #t)
       (set-visible? (child interface 'sharebar) #t)
       (set-visible? (child interface 'debugbar) #t)
       (set-visible? (child interface 'windowbar) #t)
@@ -237,7 +237,7 @@
       (set-visible? (child interface 'mediabar) #f)
       (set-visible? (child interface 'layoutbar) #f)
       (set-visible? (child interface 'showcasesbar) #f)
-      (set-visible? (child interface 'panelbar) #f)
+      (set-visible? (child interface 'viewbar) #f)
       (set-visible? (child interface 'sharebar) #f)
       (set-visible? (child interface 'debugbar) #f)
       (set-visible? (child interface 'windowbar) #f)
@@ -548,6 +548,13 @@
       (no-showcase world)))
   
   
+  (method override (space-actions self)
+    (append (list (find-actions 'together-call)
+                  (find-actions 'together-chat)
+                  (find-actions 'together-gathering))
+            (nextmethod self)))
+  
+  
   (method override (show-me? self)
     #f)
   
@@ -659,11 +666,43 @@
 
 
 ;;;
-;;;; Circle-Space
+;;;; Avatar-Space
 ;;;
 
 
-(class Circle-Space extends Sphere-Space
+(class Avatar-Space extends Sphere-Space
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world))
+          (video (current-video)))
+      (set-unbind-camera? #t)
+      (person-motion world feedback?: #f)
+      (goto-layout video 'circle)
+      (show-bars self)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (hide-bars self))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'together-call)
+                  (find-actions 'together-chat)
+                  (find-actions 'together-view)
+                  (find-actions 'together-space))
+            (nextmethod self))))
+
+
+;;;
+;;;; Circling-Space
+;;;
+
+
+(class Circling-Space extends Sphere-Space
   
   
   (slot hide-ring      initialize #f getter generate)
@@ -677,12 +716,6 @@
           (interface (current-interface)))
       (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
         (new Kind-Label name: 'circle-name parent: root location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
-        (new Push-Button name: 'audio parent: root location: '(30 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-mic self) visible?: #f)
-        (new Push-Button name: 'video parent: root location: '(195 30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-camera self) visible?: #f)
-        (new Push-Button name: 'leave parent: root title: "Leave" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-leave self) visible?: #f)
-        (new Push-Button name: 'layout parent: root location: '(180 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-cycle-layouts self) visible?: #f)
-        (new Push-Button name: 'toggle-people parent: root location: '(-210 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-people self) visible?: #f)
-        (new Push-Button name: 'toggle-chat parent: root location: '(-30 -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-toggle-chat self) visible?: #f)
         (set! self.root root))))
   
   
@@ -691,7 +724,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (show-bars self)
-      (install-circle self)
+      (install-circling self)
       (show root)
       (send-to-back root)
       (layout-message world)
@@ -701,7 +734,7 @@
         (focus-world))))
   
   
-  (method (install-circle self)
+  (method (install-circling self)
     (let ((together (current-together))
           (interface (current-interface))
           (world (current-world)))
@@ -748,6 +781,15 @@
     (nextmethod self)
     (when auto-hide?
       (uninstall-hider self)))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'together-call)
+                  (find-actions 'together-chat)
+                  (find-actions 'together-view)
+                  (find-actions 'together-space)
+                  (find-actions 'together-circle))
+            (nextmethod self)))
   
   
   (method override (draw-message-offset self)
@@ -887,7 +929,7 @@
           (insert hide-ring hide-time (lambda ()
                                         (with-task-mutex
                                           (lambda ()
-                                            (when (and (is? (current-space) Circle-Space)
+                                            (when (and (is? (current-space) Circling-Space)
                                                        auto-hide?
                                                        buttons-shown?)
                                               (let ((window (current-window))
@@ -909,25 +951,32 @@
 
 
 ;;;
-;;;; Avatar-Space
+;;;; Circle-Space
 ;;;
 
 
-(class Avatar-Space extends Sphere-Space
+(class Circle-Space extends Circling-Space
   
   
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (set-unbind-camera? #t)
-      (person-motion world feedback?: #f)
-      (show-bars self)))
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    (hide-bars self)))
+  (method override (space-actions self)
+    (append (list (find-actions 'together-lookat))
+            (nextmethod self))))
+
+
+;;;
+;;;; Focus-Space
+;;;
+
+
+(class Focus-Space extends Circling-Space)
+
+
+;;;
+;;;; Gallery-Space
+;;;
+
+
+(class Gallery-Space extends Circling-Space)
 
 
 ;;;
@@ -1148,6 +1197,8 @@
         (let ((space (case what
                        ((gathering) (new Gathering-Space))
                        ((circle) (new Circle-Space))
+                       ((focus) (new Focus-Space))
+                       ((gallery) (new Gallery-Space))
                        ((avatar) (new Avatar-Space))
                        ((script) (new Script-Space))
                        ((replay) (new Replay-Space))
@@ -1164,7 +1215,7 @@
     (set! space (need-space self 'gathering))
     (space-install space)
     (set-current-space space)
-    (space-finish space))
+    (space-activate space))
   
   
   (method (together-exit self)
@@ -1272,7 +1323,7 @@
     (with-task-mutex
       (lambda ()
         (let ((client (current-client)))
-          (when (is? space Circle-Space)
+          (when (is? space Sphere-Space)
             (leave-circle self)
             (set! disconnected? #t))
           (sleep-to-server client)))))
@@ -1314,7 +1365,7 @@
                (set-color to {Color World-Blue})
                (set! message-recipient recipient))
               ((group)
-               (when (and (is? space Circle-Space)
+               (when (and (is? space Sphere-Space)
                           (equal? name circle-name))
                  (set-title to name)
                  (set-color to {Color World-Red})
@@ -1381,10 +1432,6 @@
                   (lambda ()
                     (open-login-zone))))))))
       #t))
-  
-  
-  (method (on-leave self evt)
-    (leave-circle self))
   
   
   (method (on-leave-circle self evt)
@@ -1488,7 +1535,7 @@
     (set! space (need-space self what))
     (space-install space)
     (set-current-space space)
-    (space-finish space)
+    (space-activate space)
     space)
   
   
@@ -1558,7 +1605,7 @@
   
   (method (server-entered self character-name)
     (let ((world (current-world)))
-      (unless (is? space Circle-Space)
+      (unless (is? space Sphere-Space)
         (display-message world (format "{a} entered" character-name)))
       (when (cond ((eqv? connect-sound #t) #t)
                   ((eqv? connect-sound 'gathering) (is? space Gathering-Space))
@@ -1572,7 +1619,7 @@
   
   (method (server-exited self character-name)
     (let ((world (current-world)))
-      (unless (is? space Circle-Space)
+      (unless (is? space Sphere-Space)
         (display-message world (format "{a} exited" character-name)))))
   
   
@@ -1627,7 +1674,7 @@
   (method (render-video self video)
     (if (eq? world.video:video-layout 'circle)
         #f
-      (is-not? space Circle-Space)))
+      (is-not? space Sphere-Space)))
   
   
   (method (draw-debug self surface)
@@ -1715,7 +1762,7 @@
               (draw-text surface h v text color))
             (increase! rank))
           
-          (when (is? space Circle-Space)
+          (when (is? space Circling-Space)
             (when show-debug?
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
               (draw (format "{a}" (present-duration (- (current-seconds) circle-start))) {Color World-Ochre})
@@ -2135,26 +2182,22 @@
   ;;;
   
   
-  (method (on-circle-layout self evt)
-    (goto-circle-layout self 'circle))
+  (method (on-circle-space self evt)
+    (goto-circle-space self 'circle))
   
   
-  (method (on-focus-layout self evt)
-    (goto-circle-layout self 'focus))
+  (method (on-focus-space self evt)
+    (goto-circle-space self 'focus))
   
   
-  (method (on-gallery-layout self evt)
-    (goto-circle-layout self 'gallery))
-
-
-  (method (on-cycle-layouts self evt)
-    (goto-circle-layout self (cycle-element '(circle focus gallery) video-layout reversed?: (get-shift? evt))))
+  (method (on-gallery-space self evt)
+    (goto-circle-space self 'gallery))
   
   
-  (method (goto-circle-layout self layout)
+  (method (goto-circle-space self layout)
     (let ((world (current-world))
           (video (current-video)))
-      (goto-space self 'circle)
+      (goto-space self layout)
       (free-motion world feedback?: #f)
       (set-unbind-camera? #f)
       (goto-layout video layout)
@@ -2165,10 +2208,10 @@
           (bind-camera)
           (unbind-output)))
       (show-interface (current-space) #t)
-      (update-parameter world 'avatar)
-      (update-parameter world 'circle-layout)
-      (update-parameter world 'focus-layout)
-      (update-parameter world 'gallery-layout)
+      (update-parameter world 'avatar-space)
+      (update-parameter world 'circle-space)
+      (update-parameter world 'focus-space)
+      (update-parameter world 'gallery-space)
       (display-message world (capitalize (symbol->string video-layout)))))
   
   
@@ -2346,10 +2389,10 @@
   (method (avatar-space self)
     (let ((world (current-world)))
       (goto-space self 'avatar)
-      (update-parameter world 'avatar)
-      (update-parameter world 'circle-layout)
-      (update-parameter world 'focus-layout)
-      (update-parameter world 'gallery-layout)
+      (update-parameter world 'avatar-space)
+      (update-parameter world 'circle-space)
+      (update-parameter world 'focus-space)
+      (update-parameter world 'gallery-space)
       (display-message world "Avatar")))
 
   

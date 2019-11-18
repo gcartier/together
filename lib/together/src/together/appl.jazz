@@ -307,9 +307,7 @@
   
   
   (method override (class-actions self)
-    (append (list (find-actions 'together)
-                  (find-actions 'gathering)
-                  (find-actions 'circle))
+    (append (list (find-actions 'together))
             (nextmethod self)))
   
   
@@ -333,48 +331,6 @@
       (tab-press space)))
   
   
-  (method (on-message self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-message together evt))))
-  
-  
-  (method (on-toggle-denoise self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-denoise together evt))))
-  
-  
-  (method (on-circle-layout self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-circle-layout together evt))))
-  
-  
-  (method (on-focus-layout self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-focus-layout together evt))))
-  
-  
-  (method (on-gallery-layout self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-gallery-layout together evt))))
-  
-  
-  (method (on-cycle-layouts self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-cycle-layouts together evt))))
-  
-  
-  (method (on-avatar-space self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-avatar-space together evt))))
-  
-  
   (method (on-add-bookmark self evt)
     (let ((world (current-world)))
       (record-event udp-id-bookmark
@@ -388,192 +344,11 @@
       (display-message world "Bookmarked!")))
   
   
-  (method (on-evaluate-script self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-evaluate-script together evt))))
-  
-  
-  (method (on-toggle-hide self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-hide together evt))))
-  
-  
-  (method (on-toggle-debug self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-debug together evt))))
-  
-  
-  (method (on-toggle-debug-media self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-debug-media together evt))))
-  
-  
-  (method (on-toggle-debug-flow self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-debug-flow together evt))))
-  
-  
-  (method (on-toggle-admin self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-admin together evt))))
-  
-  
-  (method (on-toggle-script self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-script together evt))))
-  
-  
-  (method (on-toggle-timeline self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-timeline together evt))))
-  
-  
-  (method (on-toggle-visualizer self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-visualizer together evt))))
-  
-  
-  (method (on-goto-together self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-goto-together together evt))))
-  
-  
-  (method (on-goto-script self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-goto-script together evt))))
-  
-  
-  (method (on-goto-replay self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-goto-replay together evt))))
-  
-  
-  @wait
-  (method (on-goto-simulate self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-goto-simulate together evt))))
-  
-  
-  (method (on-profile-network self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-profile-network together evt))))
-  
-  
-  (method (on-profile-pulse self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-profile-pulse together evt))))
-  
-  
-  (method (on-request-replays self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-request-replays together evt))))
-  
-  
-  (method (on-toggle-screen-share self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-screen-share together evt))))
-  
-  
-  (method (on-leave-circle self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-leave-circle together evt))))
-  
-  
-  (method (on-toggle-key-bindings self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-key-bindings together evt))))
-  
-  
-  (method (on-toggle-mode self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-mode together evt))))
-  
-  
-  (method (on-toggle-experiment self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-toggle-experiment together evt))))
-  
-  
-  (method (on-run-experiment7 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-run-experiment7 together evt))))
-  
-  
-  (method (on-run-experiment8 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-run-experiment8 together evt))))
-  
-  
-  (method (on-run-experiment9 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-run-experiment9 together evt))))
-  
-  
-  (method (on-run-experiment0 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-run-experiment0 together evt))))
-  
-  
-  (method (on-add-image self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-add-image together evt))))
-  
-  
-  (method (on-add-video self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-add-video together evt))))
-  
-  
-  (method (on-add-music self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-add-music together evt))))
-  
-  
-  (method (on-remove-stream self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-remove-stream together evt))))
-  
-  
   (method (on-garbage-collect self evt)
     (let ((world (current-world)))
       (let ((timer (new Timer)))
         (gc)
         (display-message world (format "Garbage collect ({a}ms)" (real-duration-in-milliseconds timer))))))
-  
-  
-  (method (on-configure-settings self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-configure-settings together evt))))
   
   
   (method (on-show-info self evt)
@@ -604,66 +379,6 @@
                                (add-history self history-item)
                                (edit-document self file selection: range))))
                       (else (display-message world (format "Ambiguous definition: {a}" target)))))))))))))
-  
-  
-  (method (on-edit-script1 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script1 together evt))))
-  
-  
-  (method (on-edit-script2 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script2 together evt))))
-  
-  
-  (method (on-edit-script3 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script3 together evt))))
-  
-  
-  (method (on-edit-script4 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script4 together evt))))
-  
-  
-  (method (on-edit-script5 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script5 together evt))))
-  
-  
-  (method (on-edit-script6 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script6 together evt))))
-  
-  
-  (method (on-edit-script7 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script7 together evt))))
-  
-  
-  (method (on-edit-script8 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script8 together evt))))
-  
-  
-  (method (on-edit-script9 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script9 together evt))))
-  
-  
-  (method (on-edit-script0 self evt)
-    (let ((together (current-together)))
-      (when together
-        (on-edit-script0 together evt))))
   
   
   ;;;
@@ -954,8 +669,8 @@
           (,Together-Media-Bar     mediabar     horizontal (10 10) #f)
           (,Together-Layout-Bar    layoutbar    horizontal (attach mediabar) #f)
           (,Together-Showcases-Bar showcasesbar horizontal (attach layoutbar) #f)
-          (,Together-Panel-Bar     panelbar     horizontal (attach showcasesbar) #f)
-          (,Together-Share-Bar     sharebar     horizontal (attach panelbar) #f)
+          (,Together-View-Bar      viewbar      horizontal (attach showcasesbar) #f)
+          (,Together-Share-Bar     sharebar     horizontal (attach viewbar) #f)
           (,Together-Debug-TopBar  debugbar     horizontal (attach sharebar) #f)
           (,Together-Window-Bar    windowbar    horizontal (attach debugbar) #f)
           (,Together-Main-Bar      mainbar      horizontal (attach windowbar) #f)
@@ -974,10 +689,11 @@
     (let ((platform (cond-expand
                       (windows (list windows-bindings))
                       (else '())))
+          @YOWNU
           (sphere (list sphere-bindings)))
       (case role
-        ((user) `((:bindings ,user-bindings ,@platform ,@sphere)))
-        ((developer) developer-role @YOWNU `((,@developer-role ,@platform ,@sphere)))
+        ((user) `((:bindings ,user-bindings ,@platform @YOWNU ,@sphere)))
+        ((developer) developer-role @YOWNU `((,@developer-role ,@platform @YOWNU ,@sphere)))
         (else (nextmethod self role)))))
 
 
@@ -1072,55 +788,20 @@
           (<!>                 name: toggle-gc-sound           visible?: #t shortcut: {Shortcut :control :alt #\K})
           (<!>                 name: explore-interface         visible?: #t)
           (<!>                 name: toggle-axes               visible?: #t shortcut: {Shortcut :alt #\X})
-          (<!>                 name: test                      visible?: #t)
-          (<!>                 name: test1                     visible?: #t shortcut: {Shortcut :alt #\1})
-          (<!>                 name: test2                     visible?: #t shortcut: {Shortcut :alt #\2})
-          (<!>                 name: test3                     visible?: #t shortcut: {Shortcut :alt #\3})
-          (<!>                 name: test4                     visible?: #t shortcut: {Shortcut :alt #\4})
-          (<!>                 name: test5                     visible?: #t shortcut: {Shortcut :alt #\5})
-          (<!>                 name: test6                     visible?: #t shortcut: {Shortcut :alt #\6})
-          (<!>                 name: test7                     visible?: #t shortcut: {Shortcut :alt #\7})
-          (<!>                 name: test8                     visible?: #t shortcut: {Shortcut :alt #\8})
-          (<!>                 name: test9                     visible?: #t shortcut: {Shortcut :alt #\9})
-          (<!>                 name: test0                     visible?: #t shortcut: {Shortcut :alt #\0})
-          (<World-Action-Item> name: update-catalogs           visible?: #t shortcut: {Shortcut :control :alt #\U} title: "Update catalogs" action-handler: {Event-Handler :application on-update-catalogs})
-          (<World-Action-Item> name: edit-definition           visible?: #t shortcut: {Shortcut F12} alternate-shortcut: {Shortcut :alt #\.} title: "Edit definition" action-handler: {Event-Handler :application on-edit-definition})
-          (<World-Action-Item> name: edit-script1              visible?: #t shortcut: {Shortcut :control :alt #\1} title: "Edit script #1" action-handler: {Event-Handler :application on-edit-script1})
-          (<World-Action-Item> name: edit-script2              visible?: #t shortcut: {Shortcut :control :alt #\2} title: "Edit script #2" action-handler: {Event-Handler :application on-edit-script2})
-          (<World-Action-Item> name: edit-script3              visible?: #t shortcut: {Shortcut :control :alt #\3} title: "Edit script #3" action-handler: {Event-Handler :application on-edit-script3})
-          (<World-Action-Item> name: edit-script4              visible?: #t shortcut: {Shortcut :control :alt #\4} title: "Edit script #4" action-handler: {Event-Handler :application on-edit-script4})
-          (<World-Action-Item> name: edit-script5              visible?: #t shortcut: {Shortcut :control :alt #\5} title: "Edit script #5" action-handler: {Event-Handler :application on-edit-script5})
-          (<World-Action-Item> name: edit-script6              visible?: #t shortcut: {Shortcut :control :alt #\6} title: "Edit script #6" action-handler: {Event-Handler :application on-edit-script6})
-          (<World-Action-Item> name: edit-script7              visible?: #t shortcut: {Shortcut :control :alt #\7} title: "Edit script #7" action-handler: {Event-Handler :application on-edit-script7})
-          (<World-Action-Item> name: edit-script8              visible?: #t shortcut: {Shortcut :control :alt #\8} title: "Edit script #8" action-handler: {Event-Handler :application on-edit-script8})
-          (<World-Action-Item> name: edit-script9              visible?: #t shortcut: {Shortcut :control :alt #\9} title: "Edit script #9" action-handler: {Event-Handler :application on-edit-script9})
-          (<World-Action-Item> name: edit-script0              visible?: #t shortcut: {Shortcut :control :alt #\0} title: "Edit script #0" action-handler: {Event-Handler :application on-edit-script0})
-          (<World-Action-Item> name: toggle-script             visible?: #t shortcut: {Shortcut :control :alt #\S} title: "Toggle script" action-handler: {Event-Handler :application on-toggle-script} description: "Toggle script.")
-          (<World-Action-Item> name: evaluate-script           visible?: #t shortcut: {Shortcut :control Return} title: "Evaluate script" action-handler: {Event-Handler :application on-evaluate-script} description: "Evaluate script.")
           (<World-Action-Item> name: toggle-grid               visible?: #t shortcut: {Shortcut :alt #\G} title: "Grid" action-handler: {Event-Handler :application on-toggle-grid} description: "Display a grid that will be used to position elements added to the world.")
-          (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :application on-toggle-mode} description: "Toggle mode.")
+          (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :together on-toggle-mode} description: "Toggle mode.")
           (<World-Action-Item> name: toggle-hide               visible?: #t shortcut: {Shortcut :alt :shift #\H} title: "Toggle hide" action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle hide.")
-          (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :application on-toggle-debug} description: "Toggle debug.")
-          (<World-Action-Item> name: toggle-debug-media        visible?: #t shortcut: {Shortcut :alt :shift #\M} title: "Toggle debug media" action-handler: {Event-Handler :application on-toggle-debug-media} description: "Toggle debug media.")
-          (<World-Action-Item> name: toggle-debug-flow         visible?: #t shortcut: {Shortcut :alt :shift #\F} title: "Toggle debug flow" action-handler: {Event-Handler :application on-toggle-debug-flow} description: "Toggle debug flow.")
-          (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :application on-toggle-admin} description: "Toggle admin.")
-          (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :application on-toggle-timeline} description: "Toggle timeline.")
-          (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :application on-toggle-visualizer} description: "Toggle visualizer.")
-          (<World-Action-Item> name: toggle-denoise            title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :application on-toggle-denoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle denoise.")
-          (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :together on-goto-gathering} description: "Goto gathering.")
-          (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :application on-goto-script} description: "Goto script.")
-          (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :application on-goto-replay} description: "Goto replay.")
-          @wait
-          (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :application on-goto-simulate} description: "Goto simulate.")
-          (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :application on-request-replays} description: "Request replays.")
-          (<World-Action-Item> name: toggle-streams            visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle streams" action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
-          (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :application on-add-image} description: "Add image.")
-          (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :application on-add-video} description: "Add video.")
-          (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :application on-add-music} description: "Add music.")
-          (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :application on-remove-stream} description: "Remove stream.")
+          (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :alt :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :together on-toggle-debug} description: "Toggle debug.")
+          (<World-Action-Item> name: toggle-debug-media        visible?: #t shortcut: {Shortcut :alt :shift #\M} title: "Toggle debug media" action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
+          (<World-Action-Item> name: toggle-debug-flow         visible?: #t shortcut: {Shortcut :alt :shift #\F} title: "Toggle debug flow" action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
+          (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
+          (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :together on-toggle-timeline} description: "Toggle timeline.")
+          (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
+          (<World-Action-Item> name: toggle-denoise            title: "Toggle denoise" visible?: #t action-handler: {Event-Handler :together on-toggle-denoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle denoise.")
+          (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :together on-request-replays} description: "Request replays.")
           (<World-Action-Item> name: add-bookmark              title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
           (<World-Action-Item> name: garbage-collect           visible?: #t shortcut: {Shortcut :alt :shift #\K} title: "Garbage collect" action-handler: {Event-Handler :application on-garbage-collect} description: "Garbage collect.")
-          (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\Z} title: "Configure settings" action-handler: {Event-Handler :application on-configure-settings} description: "Configure settings.")
+          (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :alt :shift #\Z} title: "Configure settings" action-handler: {Event-Handler :together on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :alt :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
   
   (define-trait developer-edition World-Actionbar
@@ -1149,9 +830,9 @@
     (<Role-Trait>
       (<install>
         (<!>             name: avatar-space            visible?: #t)
-        (<!>             name: circle-layout           visible?: #t)
-        (<!>             name: focus-layout            visible?: #t)
-        (<!>             name: gallery-layout          visible?: #t))))
+        (<!>             name: circle-space            visible?: #t)
+        (<!>             name: focus-space             visible?: #t)
+        (<!>             name: gallery-space           visible?: #t))))
   
   (define-trait developer-showcases World-Actionbar
     (<Role-Trait>
@@ -1168,7 +849,7 @@
         (<!>             name: gadgets-showcase        visible?: #t)
         (<!>             name: avatars-showcase        visible?: #t))))
   
-  (define-trait developer-panel World-Actionbar
+  (define-trait developer-view World-Actionbar
     (<Role-Trait>
       (<install>
         (<!>             name: toggle-people           visible?: #t)
@@ -1215,7 +896,7 @@
       (layoutbar ,developer-layout)
       (showcasesbar ,developer-showcases)
       (showcasebar ,developer-showcase)
-      (panelbar ,developer-panel)
+      (viewbar ,developer-view)
       (sharebar ,developer-share)
       (debugbar ,developer-debug)
       (windowbar ,developer-window)
@@ -1293,31 +974,28 @@
         (get-visible? (child interface 'chat))))))
 
 
-(define-parameter avatar
+(define-parameter avatar-space
   (new World-Parameter
     (lambda ()
       (is? (current-space) Avatar-Space))))
 
 
-(define-parameter circle-layout
+(define-parameter circle-space
   (new World-Parameter
     (lambda ()
-      (and (is? (current-space) Circle-Space)
-           (eq? video-layout 'circle)))))
+      (is? (current-space) Circle-Space))))
 
 
-(define-parameter focus-layout
+(define-parameter focus-space
   (new World-Parameter
     (lambda ()
-      (and (is? (current-space) Circle-Space)
-           (eq? video-layout 'focus)))))
+      (is? (current-space) Focus-Space))))
 
 
-(define-parameter gallery-layout
+(define-parameter gallery-space
   (new World-Parameter
     (lambda ()
-      (and (is? (current-space) Circle-Space)
-           (eq? video-layout 'gallery)))))
+      (is? (current-space) Gallery-Space))))
 
 
 ;;;
@@ -1367,7 +1045,7 @@
       @wait
       (<Label-Item>     title: "Help" action-handler: {Action world-menu view-help})
       (<Separator-Item>)
-      (<Label-Item>     title: "Gathering Screen" action-handler: {Action circle leave-circle})
+      (<Label-Item>     title: "Gathering Screen" action-handler: {Action together-circle leave-circle})
       (<Label-Item>     name: quit title: "Quit Together" action-handler: {Action world-menu quit-world})))
   
   
@@ -1387,8 +1065,8 @@
 
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-mic    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action circle toggle-mic} parameter: mic)
-      (<World-Parameter-Button> name: toggle-camera resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action circle toggle-camera} parameter: camera))))
+      (<World-Parameter-Button> name: toggle-mic    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-circle toggle-mic} parameter: mic)
+      (<World-Parameter-Button> name: toggle-camera resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-circle toggle-camera} parameter: camera))))
 
 
 ;;;
@@ -1401,10 +1079,10 @@
 
   (form
     (<install>
-      (<World-Parameter-Button> name: avatar-space   resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action circle avatar-space} parameter: avatar)
-      (<World-Parameter-Button> name: circle-layout  resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action circle circle-layout} parameter: circle-layout)
-      (<World-Parameter-Button> name: focus-layout   resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action circle focus-layout} parameter: focus-layout)
-      (<World-Parameter-Button> name: gallery-layout resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action circle gallery-layout} parameter: gallery-layout))))
+      (<World-Parameter-Button> name: avatar-space   resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-space avatar-space} parameter: avatar-space)
+      (<World-Parameter-Button> name: circle-space   resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
+      (<World-Parameter-Button> name: focus-space    resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
+      (<World-Parameter-Button> name: gallery-space  resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space))))
 
 
 ;;;
@@ -1459,17 +1137,17 @@
 
 
 ;;;
-;;;; Panel
+;;;; View
 ;;;
 
 
-(class Together-Panel-Bar extends World-Actionbar
+(class Together-View-Bar extends World-Actionbar
   
   
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-people  resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action circle toggle-people} parameter: people)
-      (<World-Parameter-Button> name: toggle-chat    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action circle toggle-chat} parameter: chat))))
+      (<World-Parameter-Button> name: toggle-people  resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
+      (<World-Parameter-Button> name: toggle-chat    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat))))
 
 
 ;;;
@@ -1482,7 +1160,7 @@
   
   (form
     (<install>
-      (<World-Parameter-Button> name: toggle-screen-share    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action circle toggle-screen-share} parameter: screen-share))))
+      (<World-Parameter-Button> name: toggle-screen-share    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share))))
 
 
 ;;;
@@ -1626,22 +1304,33 @@
       (<World-World-Actions>         name: world-world)
       (<World-Zone-Actions>          name: world-zone)
       (<World-Movement-Actions>      name: world-movement)
-      (<World-Camera-Actions>        name: world-camera)
       (<World-Game-Actions>          name: world-game)
       (<World-Spell-Actions>         name: world-spell)
       (<World-Edition-Actions>       name: world-edition)
       (<World-History-Actions>       name: world-history)
       (<World-Window-Actions>        name: world-window)
-      (<World-Debug-Actions>         name: world-debug)
       (<World-Tutorial-Actions>      name: world-tutorial)
       (<World-Objective-Actions>     name: world-objective)
       (<World-Anonymous-Actions>     name: world-anonymous)
       (<World-User-Actions>          name: world-user)
-        ;; Together
+      ;; Together
       (<Together-Actions>            name: together)
-      (<Gathering-Actions>           name: gathering)
-      (<Circle-Actions>              name: circle)
-      (<Circle-View-Actions>         name: circle-view))))
+      (<Together-Call-Actions>       name: together-call)
+      (<Together-Chat-Actions>       name: together-chat)
+      (<Together-View-Actions>       name: together-view)
+      (<Together-Gathering-Actions>  name: together-gathering)
+      (<Together-Space-Actions>      name: together-space)
+      (<Together-Circle-Actions>     name: together-circle)
+      (<Together-Share-Actions>      name: together-share)
+      (<Together-Lookat-Actions>     name: together-lookat)
+      (<Together-Viewer-Actions>     name: together-viewer)
+      (<Together-Stream-Actions>     name: together-stream)
+      (<Together-Navigate-Actions>   name: together-navigate)
+      (<Together-Profile-Actions>    name: together-profile)
+      (<Together-Experiment-Actions> name: together-experiment)
+      (<Together-Script-Actions>     name: together-script)
+      (<World-Camera-Actions>        name: world-camera)
+      (<World-Debug-Actions>         name: world-debug))))
 
 
 ;;;
@@ -1654,43 +1343,78 @@
   
   (form
     (<install>                                        title: "Together"
-      (<World-Action-Item> name: change-quality       title: "Change call quality" visible?: #t shortcut: {Shortcut "Click call quality"})
-      (<World-Action-Item> name: send-message         title: "Send message" visible?: #t action-handler: {Event-Handler :application on-message} shortcut: {Shortcut :alt Return} description: "Message.")
-      (<World-Action-Item> name: toggle-key-bindings  title: "Toggle keyboard shortcuts" visible?: #t action-handler: {Event-Handler :application on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle keyboard shortcuts.")
+      (<World-Action-Item> name: toggle-key-bindings  title: "Toggle keyboard shortcuts" visible?: #t action-handler: {Event-Handler :together on-toggle-key-bindings} shortcut: {Shortcut :alt #\K} description: "Toggle keyboard shortcuts.")
       (<World-Action-Item> name: toggle-windowed-mode title: "Toggle fullscreen window" visible?: #t action-handler: {Event-Handler :world on-toggle-windowed-mode} shortcut: {Shortcut :meta #\F} alternate-shortcut: {Shortcut :alt :shift #\F} description: "Toggle between windowed and fullscreen mode.")
-      (<World-Action-Item> name: toggle-experiment    title: "Toggle experiment panel" visible?: #t action-handler: {Event-Handler :application on-toggle-experiment} description: "Toggle experiment panel.")
-      (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" visible?: #t action-handler: {Event-Handler :application on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
-      (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" visible?: #t action-handler: {Event-Handler :application on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
-      (<World-Action-Item> name: run-experiment9      title: "Run experiment #9" visible?: #t action-handler: {Event-Handler :application on-run-experiment9} shortcut: {Shortcut :control #\9} description: "Run experiment #9.")
-      (<World-Action-Item> name: run-experiment0      title: "Run experiment #0" visible?: #t action-handler: {Event-Handler :application on-run-experiment0} shortcut: {Shortcut :control #\0} description: "Run experiment #0.")
       (<World-Action-Item> name: quit                 title: "Quit Together" visible?: #t shortcut: {Shortcut :meta #\Q} description: "Quit."))))
 
 
-(class Gathering-Actions extends World-Actions
+(class Together-Call-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Call"
+      (<World-Action-Item> name: change-quality       title: "Change call quality" visible?: #t shortcut: {Shortcut "Click call quality"}))))
+
+
+(class Together-Chat-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Chat"
+      (<World-Action-Item> name: send-message         title: "Send message" visible?: #t action-handler: {Event-Handler :together on-message} shortcut: {Shortcut :alt Return} description: "Message."))))
+
+
+(class Together-View-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "View"
+      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :space on-toggle-people} shortcut: {Shortcut :alt :shift #\P} description: "Toggle people.")
+      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :space on-toggle-chat} shortcut: {Shortcut :alt :shift #\C} description: "Toggle chat."))))
+
+
+(class Together-Gathering-Actions extends World-Actions
   
   
   (form
     (<install>                                        title: "Gathering"
-      (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login.")
-      (<World-Action-Item> name: profile-pulse        title: "Profile pulse" visible?: #t shortcut: {Shortcut :alt :shift #\P} action-handler: {Event-Handler :application on-profile-pulse} description: "Profile pulse.")
-      (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :application on-profile-network} description: "Profile network."))))
+      (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login."))))
 
 
-(class Circle-Actions extends World-Actions
+(class Together-Space-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Space"
+      (<World-Action-Item> name: avatar-space         title: "Avatar" visible?: #t action-handler: {Event-Handler :together on-avatar-space} shortcut: {Shortcut :alt #\D} description: "Avatar space.")
+      (<World-Action-Item> name: circle-space         title: "Circle" visible?: #t action-handler: {Event-Handler :together on-circle-space} shortcut: {Shortcut :alt #\C} description: "Circle space.")
+      (<World-Action-Item> name: focus-space          title: "Focus" visible?: #t action-handler: {Event-Handler :together on-focus-space} shortcut: {Shortcut :alt #\F} description: "Focus space.")
+      (<World-Action-Item> name: gallery-space        title: "Gallery" visible?: #t action-handler: {Event-Handler :together on-gallery-space} shortcut: {Shortcut :alt #\G} description: "Gallery space."))))
+
+
+(class Together-Circle-Actions extends World-Actions
   
   
   (form
     (<install>                                        title: "Circle"
       (<World-Action-Item> name: toggle-mic           title: "Toggle audio" visible?: #t action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
       (<World-Action-Item> name: toggle-camera        title: "Toggle video" visible?: #t action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\V} description: "Toggle video.")
-      (<World-Action-Item> name: avatar-space         title: "Avatar" visible?: #t action-handler: {Event-Handler :application on-avatar-space} shortcut: {Shortcut :alt #\D} description: "Avatar.")
-      (<World-Action-Item> name: circle-layout        title: "Circle layout" visible?: #t action-handler: {Event-Handler :application on-circle-layout} shortcut: {Shortcut :alt #\C} description: "Circle layout.")
-      (<World-Action-Item> name: focus-layout         title: "Focus layout" visible?: #t action-handler: {Event-Handler :application on-focus-layout} shortcut: {Shortcut :alt #\F} description: "Focus layout.")
-      (<World-Action-Item> name: gallery-layout       title: "Gallery layout" visible?: #t action-handler: {Event-Handler :application on-gallery-layout} shortcut: {Shortcut :alt #\G} description: "Gallery layout.")
-      (<World-Action-Item> name: cycle-layouts        title: "Cycle layouts" visible?: #t action-handler: {Event-Handler :application on-cycle-layouts} shortcut: {Shortcut :alt #\L} alternate-shortcut: {Shortcut :alt :shift #\L} description: "Cycle layouts.")
-      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :space on-toggle-people} shortcut: {Shortcut :alt :shift #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :space on-toggle-chat} shortcut: {Shortcut :alt :shift #\C} description: "Toggle chat.")
-      (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :application on-toggle-screen-share} description: "Toggle screen share.")
+      (<World-Action-Item> name: leave-circle         title: "Leave circle" visible?: #t action-handler: {Event-Handler :together on-leave-circle} description: "Leave circle."))))
+
+
+(class Together-Share-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Share"
+      (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share."))))
+
+
+(class Together-Lookat-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Lookat"
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" visible?: #t shortcut: {Shortcut "Click image"})
       (<World-Action-Item> name: enter-press          title: "Go to home view" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: space-press          title: "Toggle rotation" visible?: #t shortcut: {Shortcut Space} description: "Space.")
@@ -1699,5 +1423,81 @@
       (<World-Action-Item> name: up-press             title: "Increase speed" visible?: #t shortcut: {Shortcut "Up Arrow"} description: "Up.")
       (<World-Action-Item> name: down-press           title: "Decrease speed" visible?: #t shortcut: {Shortcut "Down Arrow"} description: "Down.")
       (<World-Action-Item> name: tab-press            title: "Cycle focus" visible?: #t shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
-      (<World-Action-Item> name: number-press         title: "Change focus" visible?: #t shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image")
-      (<World-Action-Item> name: leave-circle         title: "Leave circle" visible?: #t action-handler: {Event-Handler :application on-leave-circle} description: "Leave circle.")))))
+      (<World-Action-Item> name: number-press         title: "Change focus" visible?: #t shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image"))))
+
+
+(class Together-Stream-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Stream"
+      (<World-Action-Item> name: toggle-streams            visible?: #t shortcut: {Shortcut :alt #\S} title: "Toggle streams" action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
+      (<World-Action-Item> name: add-image                 visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :together on-add-image} description: "Add image.")
+      (<World-Action-Item> name: add-video                 visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :together on-add-video} description: "Add video.")
+      (<World-Action-Item> name: add-music                 visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :together on-add-music} description: "Add music.")
+      (<World-Action-Item> name: remove-stream             visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream."))))
+
+
+(class Together-Navigate-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Navigate"
+      (<World-Action-Item> name: goto-gathering            visible?: #t shortcut: {Shortcut :alt :shift #\G} title: "Goto gathering" action-handler: {Event-Handler :together on-goto-gathering} description: "Goto gathering.")
+      (<World-Action-Item> name: goto-script               visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :together on-goto-script} description: "Goto script.")
+      (<World-Action-Item> name: goto-replay               visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :together on-goto-replay} description: "Goto replay.")
+      @wait
+      (<World-Action-Item> name: goto-simulate             visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :together on-goto-simulate} description: "Goto simulate."))))
+
+
+(class Together-Profile-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Profile"
+      (<World-Action-Item> name: profile-pulse        title: "Profile pulse" visible?: #t shortcut: {Shortcut :control :shift #\P} action-handler: {Event-Handler :together on-profile-pulse} description: "Profile pulse.")
+      (<World-Action-Item> name: profile-network      title: "Profile network" visible?: #t shortcut: {Shortcut :control :shift #\N} action-handler: {Event-Handler :together on-profile-network} description: "Profile network."))))
+
+
+(class Together-Experiment-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Experiment"
+      (<World-Action-Item> name: toggle-experiment    title: "Toggle experiment panel" visible?: #t action-handler: {Event-Handler :together on-toggle-experiment} description: "Toggle experiment panel.")
+      (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" visible?: #t action-handler: {Event-Handler :together on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
+      (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" visible?: #t action-handler: {Event-Handler :together on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
+      (<World-Action-Item> name: run-experiment9      title: "Run experiment #9" visible?: #t action-handler: {Event-Handler :together on-run-experiment9} shortcut: {Shortcut :control #\9} description: "Run experiment #9.")
+      (<World-Action-Item> name: run-experiment0      title: "Run experiment #0" visible?: #t action-handler: {Event-Handler :together on-run-experiment0} shortcut: {Shortcut :control #\0} description: "Run experiment #0."))))
+
+
+(class Together-Script-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Script"
+      (<World-Action-Item> name: test                 title: "Run test" visible?: #t action-handler: {Event-Handler :world on-test-script} shortcut: {Shortcut :control :alt #\T} description: "Run test.")
+      (<World-Action-Item> name: test1                title: "Run test #1" visible?: #t action-handler: {Event-Handler :world on-test1-script} shortcut: {Shortcut :alt #\1} description: "Run test #1.")
+      (<World-Action-Item> name: test2                title: "Run test #2" visible?: #t action-handler: {Event-Handler :world on-test2-script} shortcut: {Shortcut :alt #\2} description: "Run test #2.")
+      (<World-Action-Item> name: test3                title: "Run test #3" visible?: #t action-handler: {Event-Handler :world on-test3-script} shortcut: {Shortcut :alt #\3} description: "Run test #3.")
+      (<World-Action-Item> name: test4                title: "Run test #4" visible?: #t action-handler: {Event-Handler :world on-test4-script} shortcut: {Shortcut :alt #\4} description: "Run test #4.")
+      (<World-Action-Item> name: test5                title: "Run test #5" visible?: #t action-handler: {Event-Handler :world on-test5-script} shortcut: {Shortcut :alt #\5} description: "Run test #5.")
+      (<World-Action-Item> name: test6                title: "Run test #6" visible?: #t action-handler: {Event-Handler :world on-test6-script} shortcut: {Shortcut :alt #\6} description: "Run test #6.")
+      (<World-Action-Item> name: test7                title: "Run test #7" visible?: #t action-handler: {Event-Handler :world on-test7-script} shortcut: {Shortcut :alt #\7} description: "Run test #7.")
+      (<World-Action-Item> name: test8                title: "Run test #8" visible?: #t action-handler: {Event-Handler :world on-test8-script} shortcut: {Shortcut :alt #\8} description: "Run test #8.")
+      (<World-Action-Item> name: test9                title: "Run test #9" visible?: #t action-handler: {Event-Handler :world on-test9-script} shortcut: {Shortcut :alt #\9} description: "Run test #9.")
+      (<World-Action-Item> name: test0                title: "Run test #0" visible?: #t action-handler: {Event-Handler :world on-test0-script} shortcut: {Shortcut :alt #\0} description: "Run test #0.")
+      (<World-Action-Item> name: update-catalogs      title: "Update catalogs" visible?: #t shortcut: {Shortcut :control :alt #\U} action-handler: {Event-Handler :application on-update-catalogs})
+      (<World-Action-Item> name: edit-definition      title: "Edit definition" visible?: #t shortcut: {Shortcut F12} alternate-shortcut: {Shortcut :alt #\.} action-handler: {Event-Handler :application on-edit-definition})
+      (<World-Action-Item> name: edit-script1         title: "Edit script #1" visible?: #t shortcut: {Shortcut :control :alt #\1} action-handler: {Event-Handler :together on-edit-script1})
+      (<World-Action-Item> name: edit-script2         title: "Edit script #2" visible?: #t shortcut: {Shortcut :control :alt #\2} action-handler: {Event-Handler :together on-edit-script2})
+      (<World-Action-Item> name: edit-script3         title: "Edit script #3" visible?: #t shortcut: {Shortcut :control :alt #\3} action-handler: {Event-Handler :together on-edit-script3})
+      (<World-Action-Item> name: edit-script4         title: "Edit script #4" visible?: #t shortcut: {Shortcut :control :alt #\4} action-handler: {Event-Handler :together on-edit-script4})
+      (<World-Action-Item> name: edit-script5         title: "Edit script #5" visible?: #t shortcut: {Shortcut :control :alt #\5} action-handler: {Event-Handler :together on-edit-script5})
+      (<World-Action-Item> name: edit-script6         title: "Edit script #6" visible?: #t shortcut: {Shortcut :control :alt #\6} action-handler: {Event-Handler :together on-edit-script6})
+      (<World-Action-Item> name: edit-script7         title: "Edit script #7" visible?: #t shortcut: {Shortcut :control :alt #\7} action-handler: {Event-Handler :together on-edit-script7})
+      (<World-Action-Item> name: edit-script8         title: "Edit script #8" visible?: #t shortcut: {Shortcut :control :alt #\8} action-handler: {Event-Handler :together on-edit-script8})
+      (<World-Action-Item> name: edit-script9         title: "Edit script #9" visible?: #t shortcut: {Shortcut :control :alt #\9} action-handler: {Event-Handler :together on-edit-script9})
+      (<World-Action-Item> name: edit-script0         title: "Edit script #0" visible?: #t shortcut: {Shortcut :control :alt #\0} action-handler: {Event-Handler :together on-edit-script0})
+      (<World-Action-Item> name: toggle-script        title: "Toggle script" visible?: #t shortcut: {Shortcut :control :alt #\S} action-handler: {Event-Handler :together on-toggle-script} description: "Toggle script.")
+      (<World-Action-Item> name: evaluate-script      title: "Evaluate script" visible?: #t shortcut: {Shortcut :control Return} action-handler: {Event-Handler :together on-evaluate-script} description: "Evaluate script.")))))

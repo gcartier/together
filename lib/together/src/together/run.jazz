@@ -57,7 +57,6 @@
   (set-valid-roles '(user designer developer))
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
-  @YOWNU-quicky
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
   (register-domain-names)
