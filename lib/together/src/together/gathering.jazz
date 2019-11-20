@@ -2529,16 +2529,6 @@
        (goto-script/last self))))
   
   
-  (method (on-evaluate-script self evt)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (cond (edited-entity
-             (let ((asset (get-asset edited-entity)))
-               (execute-script world (get-path asset))))
-            (edited-script
-             (execute-script world edited-script)))))
-  
-  
   (method (toggle-script self)
     (let ((interface (current-interface))
           (world (current-world)))
