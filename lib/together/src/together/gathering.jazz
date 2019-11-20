@@ -786,6 +786,7 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (circle-uninstall-camera)
     (when auto-hide?
       (uninstall-hider self)))
   
