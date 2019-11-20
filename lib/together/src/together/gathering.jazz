@@ -694,6 +694,13 @@
                   (find-actions 'together-chat)
                   (find-actions 'together-view)
                   (find-actions 'together-space))
+            (if (developer?)
+                (list (find-actions 'together-stream)
+                      (find-actions 'together-navigate)
+                      (find-actions 'together-profile)
+                      (find-actions 'together-experiment)
+                      (find-actions 'together-script))
+              '())
             (nextmethod self))))
 
 
@@ -1215,7 +1222,16 @@
     (set! space (need-space self 'gathering))
     (space-install space)
     (set-current-space space)
-    (space-activate space))
+    (space-activate space)
+    (when auto-create
+      (let ((client (current-client)))
+        (for-each (lambda (name)
+                    (create-group client name #t #f))
+                  (listify auto-create))))
+    (cond (auto-join
+           (join-circle self auto-join))
+          (auto-script
+           (goto-script/last self))))
   
   
   (method (together-exit self)
@@ -1224,23 +1240,14 @@
   
   (method (together-ready self)
     (when (window?)
-      (let ((world (current-world))
-            (client (current-client)))
+      (let ((world (current-world)))
         (setup-configuration self)
         (prepare-skybox self)
         (install-zone self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
         (install-camera)
-        (view-people self)
-        (when auto-create
-          (for-each (lambda (name)
-                      (create-group client name #t #f))
-                    (listify auto-create)))
-        (cond (auto-join
-               (join-circle self auto-join))
-              (auto-script
-               (goto-script/last self))))))
+        (view-people self))))
   
   
   (method (together-destroy self)
@@ -2507,7 +2514,7 @@
   (method (on-goto-gathering self evt)
     (typecase space
       ((Gathering-Space))
-      ((Circle-Space)
+      ((Sphere-Space)
        (leave-circle self))
       (else
        (goto-space self 'gathering))))
@@ -2800,15 +2807,6 @@
               (else
                (close-send-stream udp stream)
                (display-on/off world "Screen sharing" #f))))))
-  
-  
-  (method (on-toggle-key-bindings self evt)
-    (let ((interface (current-interface)))
-      (let ((viewer (find-component interface 'bindings)))
-        (if viewer
-            (close viewer)
-           (open-frame (new Together-Bindings-Viewer name: 'bindings size: {Dimension 406 588} location: 'center))
-           (focus-world)))))
   
   
   (method (on-toggle-mode self evt)
@@ -3191,19 +3189,6 @@
   (method override (mouse-up self evt)
     (let ((together (current-together)))
       (chat-label-action together))))
-
-
-;;;
-;;;; Bindings-Viewer
-;;;
-
-
-(class Together-Bindings-Viewer extends World-Bindings-Viewer
-  
-  
-  (form
-    (<install>
-      (<caption~> title: "Keyboard Shortcuts"))))
 
 
 ;;;
