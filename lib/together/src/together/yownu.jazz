@@ -799,9 +799,6 @@
           (<!>           name: toggle-music            visible?: #f)
           (<!>           name: toggle-ambience         visible?: #f)
           (<!>           name: toggle-sound            visible?: #f))
-        (<world-media!>
-          (<!>           name: toggle-audio            visible?: #f)
-          (<!>           name: toggle-video            visible?: #f))
         (<world-edition!>
           (<!>           name: select-target-mode      visible?: #f)
           (<!>           name: move-target-mode        visible?: #f)

@@ -1303,7 +1303,6 @@
       (<World-Interface-Actions>     name: world-interface)
       (<World-Graphics-Actions>      name: world-graphics)
       (<World-Sound-Actions>         name: world-sound)
-      (<World-Media-Actions>         name: world-media)
       (<World-Client-Actions>        name: world-client)
       (<World-World-Actions>         name: world-world)
       (<World-Zone-Actions>          name: world-zone)
