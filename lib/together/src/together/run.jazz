@@ -16,6 +16,7 @@
 
 (import (jazz.action)
         (jazz.git.foreign)
+        (jazz.graphic.image)
         (jazz.io)
         (jazz.logger)
         (jazz.platform)
@@ -58,6 +59,7 @@
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
   (set-action-item-visibility #f)
+  (set-image-portfolio-size 32)
   (snapshot-prefix "Together")
   (register-domain-names)
   (register-binaries-properties)
