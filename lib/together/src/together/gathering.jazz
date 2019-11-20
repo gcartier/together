@@ -2191,7 +2191,9 @@
   
   
   (method (on-circle-space self evt)
-    (goto-circle-space self 'circle))
+    (unless (is? (current-space) Circle-Space)
+      (goto-circle-space self 'circle)
+      (circle-return)))
   
   
   (method (on-focus-space self evt)
