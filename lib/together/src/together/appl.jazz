@@ -669,8 +669,8 @@
           (,Together-Debug-TopBar  debugbar     horizontal (attach sharebar) #f)
           (,Together-Window-Bar    windowbar    horizontal (attach debugbar) #f)
           (,Together-Main-Bar      mainbar      horizontal (attach windowbar) #f)
-          (,Together-Showcase-Menu showcasemenu horizontal center #f)
-          (,Together-Debug-Menu    debugmenu    horizontal center #f)))
+          (,Together-Showcase-Menu showcasemenu radial     center #f)
+          (,Together-Debug-Menu    debugmenu    radial     center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
