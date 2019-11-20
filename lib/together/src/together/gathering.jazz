@@ -797,6 +797,13 @@
                   (find-actions 'together-view)
                   (find-actions 'together-space)
                   (find-actions 'together-circle))
+            (if (developer?)
+                (list (find-actions 'together-stream)
+                      (find-actions 'together-navigate)
+                      (find-actions 'together-profile)
+                      (find-actions 'together-experiment)
+                      (find-actions 'together-script))
+              '())
             (nextmethod self)))
   
   
