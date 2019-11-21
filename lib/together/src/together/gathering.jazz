@@ -2200,7 +2200,7 @@
   (method (on-circle-space self evt)
     (unless (is? (current-space) Circle-Space)
       (goto-circle-space self 'circle)
-      (circle-return)))
+      (circle-home)))
   
   
   (method (on-focus-space self evt)
