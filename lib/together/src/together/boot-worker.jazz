@@ -17,12 +17,9 @@
 (import (jazz.process)
         (jazz.settings)
         (world)
-        (together.worker-application)
-        (together.worker-process))
+        (world.worker.process))
 
 
 (set-boot-process
   (lambda ()
-    (boot-environment (new (if (boolean-argument "window" #f)
-                               Together-Worker-Application
-                             Together-Worker-Process))))))
+    (boot-environment (new Worker-Process)))))

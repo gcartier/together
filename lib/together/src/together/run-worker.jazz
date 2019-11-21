@@ -14,8 +14,6 @@
 (module together.run-worker jazz
 
 
-(require (together.worker-settings))
-
 (import (jazz.io)
         (world)
         (world.build)
@@ -35,6 +33,7 @@
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user designer developer admin))
   (register-domain-names)
+  (initialize-aliases)
   (setup-build ".together-worker")
   (setup-presence))
 

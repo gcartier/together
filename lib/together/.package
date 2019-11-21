@@ -78,10 +78,7 @@
                              (build (together-worker executable: "Together-Worker" minimum-heap: 500000 bundle: "together-worker" resources: "resources/together-worker" include-compiler?: #t))
                              (update together.boot-worker
                                      together.product-worker
-                                     together.run-worker
-                                     together.worker-application
-                                     together.worker-process
-                                     together.worker-settings)
+                                     together.run-worker)
                              (dependencies world.worker))
             (together-world (product together.product-world))
             (together-all (dependencies together
