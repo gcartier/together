@@ -1770,6 +1770,10 @@
                 "N/A"
               (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
         
+        (define (cpu-percentage)
+          (bind (main . others) (f64vector->list (platformProcessThreads))
+            (values main (apply + others))))
+        
         (let ((rank 0))
           (define (draw text color)
             (let ((h 20)
@@ -1786,6 +1790,9 @@
               (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
               @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
               (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
+              (receive (main others) (cpu-percentage)
+                (let ((total (+ main others)))
+                  (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})))
               (let ((leaks (leaks)))
                 (when (not-null? leaks)
                   (draw (format "Leaks: {a}" (length leaks)) {Color World-Red}))))))))))
