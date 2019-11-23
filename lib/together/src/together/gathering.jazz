@@ -964,6 +964,7 @@
   
   
   (method (on-leave self evt)
+    (set! leave-seconds (current-seconds))
     (leave-circle self))
   
   
@@ -1079,7 +1080,9 @@
   
   
   (method (on-quit self evt)
-    (quit-process (current-process)))
+    (when (or (not leave-seconds)
+              (> (- (current-seconds) leave-seconds) 1.))
+      (quit-process (current-process))))
   
   
   (method (on-back self evt)
@@ -2182,6 +2185,7 @@
     (case stage
       ((gathering))
       ((circle)
+       (set! leave-seconds #f)
        (leave-circle self))
       (else
        (goto-stage self 'gathering))))
