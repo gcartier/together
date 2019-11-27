@@ -672,7 +672,8 @@
   
   
   (method override (space-actions self)
-    (append (list (find-actions 'together-call)
+    (append (list (find-actions 'world-showcase)
+                  (find-actions 'together-call)
                   (find-actions 'together-chat)
                   (find-actions 'together-view)
                   (find-actions 'together-space))
@@ -774,7 +775,8 @@
   
   
   (method override (space-actions self)
-    (append (list (find-actions 'together-call)
+    (append (list (find-actions 'world-showcase)
+                  (find-actions 'together-call)
                   (find-actions 'together-chat)
                   (find-actions 'together-view)
                   (find-actions 'together-space)
