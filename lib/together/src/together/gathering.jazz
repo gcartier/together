@@ -218,12 +218,12 @@
     )
   
   
-  (method (show-bars self)
+  (method (show-mainbar self)
     (let ((interface (current-interface)))
       (set-visible? (child interface 'mainbar) #t)))
   
   
-  (method (hide-bars self)
+  (method (hide-mainbar self)
     (let ((interface (current-interface)))
       (set-visible? (child interface 'bar) #f)))
   
@@ -663,12 +663,12 @@
       (set-unbind-camera? #t)
       (person-motion world feedback?: #f)
       (goto-layout video 'circle)
-      (show-bars self)))
+      (show-mainbar self)))
   
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (hide-bars self))
+    (hide-mainbar self))
   
   
   (method override (space-actions self)
@@ -713,7 +713,7 @@
     (nextmethod self)
     (let ((interface (current-interface))
           (world (current-world)))
-      (show-bars self)
+      (show-mainbar self)
       (install-circling self)
       (show root)
       (send-to-back root)
@@ -906,7 +906,7 @@
       (unless buttons-shown?
         @wait-later-version-as-it-needs-debugging
         (show-cursor window)
-        (show-bars self)
+        (show-mainbar self)
         (set-visible? (child interface 'profile) #t)
         (set-visible? (child root 'circle-name) #t)
         (for-each (lambda (child)
@@ -936,7 +936,7 @@
                                                     (video (current-video)))
                                                 @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
-                                                (hide-bars self)
+                                                (hide-mainbar self)
                                                 (set-visible? (child interface 'profile) #f)
                                                 (set-visible? (child root 'circle-name) #f)
                                                 (for-each (lambda (child)
