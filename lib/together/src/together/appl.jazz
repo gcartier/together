@@ -662,9 +662,9 @@
       (install-bars
         `((,World-Models-Bar    models      horizontal none #f)
           (,World-Blocks-Bar    blocks      horizontal none #f)
-          (,Together-Main-Bar   mainbar     horizontal (10 10) #f)
           (,World-Showcase-Bar  showcasebar radial     center #f)
-          (,Together-Debug-Menu debugmenu   radial     center #f)))
+          (,World-Debug-Bar     debugbar    radial     center #f)
+          (,Together-Main-Bar   mainbar     horizontal (10 10) #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -983,26 +983,6 @@
       (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
       (<World-Separator>)
       (<World-Action-Button>    name: main-menu           resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action world-menu main-menu}))))
-
-
-;;;
-;;;; Debug Menu
-;;;
-
-
-(class Together-Debug-Menu extends World-Radialbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: debug-menu              resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
-      (<World-Parameter-Button> name: toggle-info             resource: {Icon-Resource "Web and Apps/Light"} action-handler: {Action world-debug toggle-info} parameter: info)
-      (<World-Parameter-Button> name: toggle-profiler         resource: {Icon-Resource "Audio/Specifics"} action-handler: {Action world-debug toggle-profiler} parameter: profiler)
-      (<World-Parameter-Button> name: toggle-timeline         resource: {Icon-Resource "Audio/Music-Specifics"} action-handler: {Action world-debug toggle-timeline} parameter: timeline)
-      ;(<World-Parameter-Button> name: toggle-evolution        resource: {Image-Resource "Preview"} action-handler: {Action world-debug toggle-evolution} parameter: evolution)
-      (<World-Action-Button>    name: clear-terminal          resource: {Icon-Resource "Photography UI/No-Flash"} action-handler: {Action world-debug clear-terminal})
-      (<World-Action-Button>    name: clear-console           resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-debug clear-console})
-      (<World-Action-Button>    name: explore-interface       resource: {Icon-Resource "Games/Visual"} action-handler: {Action world-debug explore-interface}))))
 
 
 ;;;
