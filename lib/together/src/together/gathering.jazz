@@ -225,7 +225,7 @@
   
   (method (hide-mainbar self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'bar) #f)))
+      (set-visible? (child interface 'mainbar) #f)))
   
   
   ;;;
