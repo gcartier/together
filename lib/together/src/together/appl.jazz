@@ -660,11 +660,11 @@
           (let ((content (locate panel 'content)))
             (set-parent menu content))))
       (install-bars
-        `((,World-Models-Bar       models       horizontal none #f)
-          (,World-Blocks-Bar       blocks       horizontal none #f)
-          (,Together-Main-Bar      mainbar      horizontal (10 10) #f)
-          (,Together-Showcase-Menu showcasemenu radial     center #f)
-          (,Together-Debug-Menu    debugmenu    radial     center #f)))
+        `((,World-Models-Bar    models      horizontal none #f)
+          (,World-Blocks-Bar    blocks      horizontal none #f)
+          (,Together-Main-Bar   mainbar     horizontal (10 10) #f)
+          (,World-Showcase-Bar  showcasebar radial     center #f)
+          (,Together-Debug-Menu debugmenu   radial     center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -765,6 +765,12 @@
           (<!>                 name: highlight                 visible?: #t))
         (<world-camera!>
           (<!>                 name: toggle-cursor-mode        visible?: #t))
+        (<world-showcase!>
+          (<!>                 name: showcase-menu             visible?: #t)
+          (<!>                 name: no-showcase               visible?: #t)
+          (<!>                 name: blocks-showcase           visible?: #t)
+          (<!>                 name: models-showcase           visible?: #t)
+          (<!>                 name: gadgets-showcase          visible?: #t))
         (<world-edition!>
           (<!>                 name: toggle-grid               visible?: #t))
         (<world-debug!>
@@ -936,22 +942,6 @@
 
 
 ;;;
-;;;; Iconbar
-;;;
-
-
-(class Together-Iconbar extends World-Actionbar
-  
-  
-  (form
-    (<install> background: #f))
-  
-  
-  (method override (bar-height self)
-    38))
-
-
-;;;
 ;;;; Separator
 ;;;
 
@@ -968,7 +958,7 @@
 ;;;
 
 
-(class Together-Main-Bar extends Together-Iconbar
+(class Together-Main-Bar extends World-Iconbar
   
   
   (form
@@ -981,7 +971,7 @@
       (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
       (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space)
       (<World-Separator>)
-      (<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu})
+      (<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat)
@@ -996,55 +986,11 @@
 
 
 ;;;
-;;;; Radial Iconbar
-;;;
-
-
-(class Radial-Iconbar extends Together-Iconbar
-  
-  
-  (form
-    (<install> layout-type: radial layout-insets: {Rect 20 20 20 20}))
-  
-  
-  (method override (draw-children self surface nodes context)
-    (set-font surface {Font Label-User})
-    (for-each (lambda (child)
-                (let ((bounds (inflate-rect (acquire self child (get-bounds child)) 9 9)))
-                  (ellipse surface bounds {Color Black alpha: .0} {Color Black alpha: .45})
-                  (unless (eq? child (car children))
-                    (let ((action-item (require-action-item (get-action-handler child))))
-                      (let ((title (get-title action-item)))
-                        (let ((width (get-text-width surface title)))
-                          (let ((h (+ (get-left bounds) (center width (rect-width bounds)))))
-                            (draw-text surface h (get-bottom bounds) title {Color World-Ochre}))))))))
-              children)
-    (nextmethod self surface nodes context)))
-
-
-;;;
-;;;; Showcase Menu
-;;;
-
-
-(class Together-Showcase-Menu extends Radial-Iconbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: showcase-menu    resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu})
-      (<World-Parameter-Button> name: no-showcase      resource: {Icon-Resource "Interface/No-Showcase"} action-handler: {Action world-edition no-showcase} parameter: no-showcase)
-      (<World-Parameter-Button> name: blocks-showcase  resource: {Icon-Resource "Interface/Blocks-Showcase"} action-handler: {Action world-edition blocks-showcase} parameter: blocks-showcase)
-      (<World-Parameter-Button> name: models-showcase  resource: {Icon-Resource "Interface/Models-Showcase"} action-handler: {Action world-edition models-showcase} parameter: models-showcase)
-      (<World-Parameter-Button> name: gadgets-showcase resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-edition gadgets-showcase} parameter: gadgets-showcase))))
-
-
-;;;
 ;;;; Debug Menu
 ;;;
 
 
-(class Together-Debug-Menu extends Radial-Iconbar
+(class Together-Debug-Menu extends World-Radialbar
   
   
   (form
@@ -1147,6 +1093,7 @@
       (<World-Camera-Actions>        name: world-camera)
       (<World-Game-Actions>          name: world-game)
       (<World-Spell-Actions>         name: world-spell)
+      (<World-Showcase-Actions>      name: world-showcase)
       (<World-Edition-Actions>       name: world-edition)
       (<World-History-Actions>       name: world-history)
       (<World-Window-Actions>        name: world-window
