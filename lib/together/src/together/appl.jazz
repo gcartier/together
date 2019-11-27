@@ -47,6 +47,7 @@
         (jazz.text)
         (jazz.time)
         (jazz.tree)
+        (jazz.ui)
         (jazz.view)
         (jazz.window)
         (world)
@@ -661,14 +662,7 @@
       (install-bars
         `((,World-Models-Bar       models       horizontal none #f)
           (,World-Blocks-Bar       blocks       horizontal none #f)
-          (,Together-Media-Bar     mediabar     horizontal (10 10) #f)
-          (,Together-Layout-Bar    layoutbar    horizontal (attach mediabar) #f)
-          (,Together-Showcases-Bar showcasesbar horizontal (attach layoutbar) #f)
-          (,Together-View-Bar      viewbar      horizontal (attach showcasesbar) #f)
-          (,Together-Share-Bar     sharebar     horizontal (attach viewbar) #f)
-          (,Together-Debug-TopBar  debugbar     horizontal (attach sharebar) #f)
-          (,Together-Window-Bar    windowbar    horizontal (attach debugbar) #f)
-          (,Together-Main-Bar      mainbar      horizontal (attach windowbar) #f)
+          (,Together-Main-Bar      mainbar      horizontal (10 10) #f)
           (,Together-Showcase-Menu showcasemenu radial     center #f)
           (,Together-Debug-Menu    debugmenu    radial     center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
@@ -685,7 +679,7 @@
                       (windows (list windows-bindings))
                       (else '()))))
       (case role
-        ((user) `((:bindings ,user-bindings ,@platform)))
+        ((user) user-role @YOWNU `((,@user-role ,@platform)))
         ((developer) developer-role @YOWNU `((,@developer-role ,@platform)))
         (else (nextmethod self role)))))
 
@@ -698,6 +692,9 @@
   (define-trait user-bindings Bindings
     (<Role-Trait>        name: user
       (<install>)))
+  
+  (definition user-role
+    `((:bindings ,user-bindings)))
 
 
   ;;;
@@ -797,103 +794,8 @@
           (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :control :shift #\Z} title: "Configure settings" action-handler: {Event-Handler :together on-configure-settings} description: "Configure settings.")
           (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :control :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
   
-  (define-trait developer-edition World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: no-showcase             visible?: #t)
-        (<!>             name: blocks-showcase         visible?: #t)
-        (<!>             name: models-showcase         visible?: #t)
-        (<!>             name: gadgets-showcase        visible?: #t))))
-  
-  (define-trait developer-interface World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: run-script              visible?: #t)
-        (<!>             name: run-last-script         visible?: #t)
-        (<!>             name: toggle-glow             visible?: #t))))
-  
-  (define-trait developer-media World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-mic              visible?: #t)
-        (<!>             name: toggle-camera           visible?: #t))))
-  
-  (define-trait developer-layout World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: avatar-space            visible?: #t)
-        (<!>             name: circle-space            visible?: #t)
-        (<!>             name: focus-space             visible?: #t)
-        (<!>             name: gallery-space           visible?: #t))))
-  
-  (define-trait developer-showcases World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: showcase-menu           visible?: #t))))
-  
-  (define-trait developer-showcasemenu World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: showcase-menu           visible?: #t)
-        (<!>             name: no-showcase             visible?: #t)
-        (<!>             name: blocks-showcase         visible?: #t)
-        (<!>             name: models-showcase         visible?: #t)
-        (<!>             name: gadgets-showcase        visible?: #t))))
-  
-  (define-trait developer-view World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-people           visible?: #t)
-        (<!>             name: toggle-chat             visible?: #t))))
-  
-  (define-trait developer-share World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-screen-share     visible?: #t))))
-  
-  (define-trait developer-debug World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: debug-menu              visible?: #t))))
-  
-  (define-trait developer-window World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-fullscreen       visible?: #t))))
-  
-  (define-trait developer-main World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: main-menu               visible?: #t))))
-  
-  @w
-  (define-trait developer-debug World-Actionbar
-    (<Role-Trait>
-      (<install>
-        (<!>             name: toggle-info             visible?: #t)
-        (<!>             name: toggle-timeline         visible?: #t)
-        (<!>             name: toggle-profiler         visible?: #t)
-        (<!>             name: toggle-script           visible?: #t)
-        (<!>             name: toggle-axes             visible?: #t)
-        (<!>             name: clear-terminal          visible?: #t)
-        (<!>             name: clear-console           visible?: #t)
-        (<!>             name: explore-interface       visible?: #t))))
-  
   (definition developer-role
-    `((:bindings ,developer-bindings)
-      (edition ,developer-edition)
-      (interface ,developer-interface)
-      (mediabar ,developer-media)
-      (layoutbar ,developer-layout)
-      (showcasesbar ,developer-showcases)
-      (showcasemenu ,developer-showcasemenu)
-      (viewbar ,developer-view)
-      (sharebar ,developer-share)
-      (debugbar ,developer-debug)
-      (windowbar ,developer-window)
-      (mainbar ,developer-main)
-      @w
-      (debug ,developer-debug)))
+    `((:bindings ,developer-bindings)))
   
 
   ;;;
@@ -1050,50 +952,51 @@
 
 
 ;;;
-;;;; Media
+;;;; Separator
 ;;;
 
 
-(class Together-Media-Bar extends Together-Iconbar
-
-
+(class World-Separator extends Separator-View
+  
+  
   (form
-    (<install>
-      (<World-Parameter-Button> name: toggle-mic    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-circle toggle-mic} parameter: mic)
-      (<World-Parameter-Button> name: toggle-camera resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-circle toggle-camera} parameter: camera))))
+    (<install> size: {Dimension 38 0})))
 
 
 ;;;
-;;;; Layout
+;;;; Main Bar
 ;;;
 
 
-(class Together-Layout-Bar extends Together-Iconbar
-
-
-  (form
-    (<install>
-      (<World-Parameter-Button> name: avatar-space   resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-space avatar-space} parameter: avatar-space)
-      (<World-Parameter-Button> name: circle-space   resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
-      (<World-Parameter-Button> name: focus-space    resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
-      (<World-Parameter-Button> name: gallery-space  resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space))))
-
-
-;;;
-;;;; Showcases
-;;;
-
-
-(class Together-Showcases-Bar extends Together-Iconbar
+(class Together-Main-Bar extends Together-Iconbar
   
   
   (form
     (<install>
-      (<World-Action-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu}))))
+      (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-circle toggle-mic} parameter: mic)
+      (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-circle toggle-camera} parameter: camera)
+      (<World-Separator>)
+      (<World-Parameter-Button> name: avatar-space        resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-space avatar-space} parameter: avatar-space)
+      (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
+      (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
+      (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space)
+      (<World-Separator>)
+      (<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-edition showcase-menu})
+      (<World-Separator>)
+      (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
+      (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat)
+      (<World-Separator>)
+      (<World-Parameter-Button> name: toggle-screen-share resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Separator>)
+      (<World-Action-Button>    name: debug-menu          resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
+      (<World-Separator>)
+      (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
+      (<World-Separator>)
+      (<World-Action-Button>    name: main-menu           resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action world-menu main-menu}))))
 
 
 ;;;
-;;;; Radial
+;;;; Radial Iconbar
 ;;;
 
 
@@ -1120,7 +1023,7 @@
 
 
 ;;;
-;;;; Showcase
+;;;; Showcase Menu
 ;;;
 
 
@@ -1137,73 +1040,7 @@
 
 
 ;;;
-;;;; View
-;;;
-
-
-(class Together-View-Bar extends Together-Iconbar
-  
-  
-  (form
-    (<install>
-      (<World-Parameter-Button> name: toggle-people  resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
-      (<World-Parameter-Button> name: toggle-chat    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat))))
-
-
-;;;
-;;;; Share
-;;;
-
-
-(class Together-Share-Bar extends Together-Iconbar
-  
-  
-  (form
-    (<install>
-      (<World-Parameter-Button> name: toggle-screen-share    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share))))
-
-
-;;;
-;;;; Main
-;;;
-
-
-(class Together-Main-Bar extends Together-Iconbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button> name: main-menu    resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action world-menu main-menu}))))
-
-
-;;;
-;;;; Window
-;;;
-
-
-(class Together-Window-Bar extends Together-Iconbar
-  
-  
-  (form
-    (<install>
-      (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode))))
-
-
-;;;
-;;;; Debug
-;;;
-
-
-(class Together-Debug-TopBar extends Together-Iconbar
-
-
-  (form
-    (<install>
-      (<World-Action-Button> name: debug-menu resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu}))))
-
-
-;;;
-;;;; Debug
+;;;; Debug Menu
 ;;;
 
 

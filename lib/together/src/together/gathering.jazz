@@ -220,30 +220,12 @@
   
   (method (show-bars self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'mediabar) #t)
-      (set-visible? (child interface 'layoutbar) #t)
-      (set-visible? (child interface 'showcasesbar) #t)
-      (set-visible? (child interface 'viewbar) #t)
-      (set-visible? (child interface 'sharebar) #t)
-      (set-visible? (child interface 'debugbar) #t)
-      (set-visible? (child interface 'windowbar) #t)
-      (set-visible? (child interface 'mainbar) #t)
-      @w
-      (set-visible? (child interface 'leavebar) #t)))
+      (set-visible? (child interface 'mainbar) #t)))
   
   
   (method (hide-bars self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'mediabar) #f)
-      (set-visible? (child interface 'layoutbar) #f)
-      (set-visible? (child interface 'showcasesbar) #f)
-      (set-visible? (child interface 'viewbar) #f)
-      (set-visible? (child interface 'sharebar) #f)
-      (set-visible? (child interface 'debugbar) #f)
-      (set-visible? (child interface 'windowbar) #f)
-      (set-visible? (child interface 'mainbar) #f)
-      @w
-      (set-visible? (child interface 'leavebar) #f)))
+      (set-visible? (child interface 'bar) #f)))
   
   
   ;;;
