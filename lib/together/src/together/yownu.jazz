@@ -77,17 +77,11 @@
             (close child))))
       
       (if (find-component interface 'main)
-          (for-each close-bar '(main game media graphicsmenu cameramenu debug targetmenu history historymenu interface))
+          (for-each close-bar '(main game media graphicsmenu cameramenu debug targetmenu history historybar interface))
         (install-bar World-Main-Bar      'main         'horizontal '(center -10))
         (install-bar World-Game-Bar      'game         'horizontal '(center -56))
         ;(install-bar World-Media-Bar     'media        'horizontal '(-10 -10))
         ;(install-bar World-Debug-Bar     'debug        'horizontal '(10 -10))
-        (install-bar Yownu-Graphics-Menu 'graphicsmenu 'radial 'center #f)
-        (install-bar Yownu-Camera-Menu   'cameramenu   'radial 'center #f)
-        (install-bar Yownu-Target-Menu   'targetmenu   'radial 'center #f)
-        (install-bar Yownu-History-Bar   'history      'horizontal '(10 -56) #f)
-        (install-bar Yownu-History-Menu  'historymenu  'radial 'center #f)
-        ;(install-bar World-Interface-Bar 'interface    'horizontal '(-10 -56))
         (layout-interface)))
     @w
     (let ((interface (current-interface)))
@@ -944,118 +938,4 @@
       (window ,admin-window)
       (tutorial ,admin-tutorial)
       (objective ,admin-objective)
-      (debug ,admin-debug))))
-
-
-;;;
-;;;; Radial
-;;;
-
-
-(class Radial-Actionbar extends World-Actionbar
-  
-  
-  (form
-    (<install> background: #f layout-type: radial layout-insets: {Rect 20 20 20 20}))
-  
-  
-  (method override (draw-children self surface nodes context)
-    (set-font surface {Font Label-User})
-    (for-each (lambda (child)
-                (let ((bounds (inflate-rect (acquire self child (get-bounds child)) 9 9)))
-                  (ellipse surface bounds {Color Medium alpha: 0.} {Color Medium alpha: .7})
-                  (unless (eq? child (car children))
-                    (let ((action-item (require-action-item (get-action-handler child))))
-                      (let ((title (get-title action-item)))
-                        (let ((width (get-text-width surface title)))
-                          (let ((h (+ (get-left bounds) (center width (rect-width bounds)))))
-                            (draw-text surface h (+ (get-bottom bounds) 2) title {Color World-Ochre}))))))))
-              children)
-    (nextmethod self surface nodes context)))
-
-
-;;;
-;;;; Graphics
-;;;
-
-
-(class Yownu-Graphics-Menu extends Radial-Actionbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: graphics-menu          resource: {Image-Resource "Model"})
-      (<World-Parameter-Button> name: toggle-lighting        resource: {Image-Resource "ProcessDead"} action-handler: {Action world-graphics toggle-lighting} parameter: lighting)
-      (<World-Parameter-Button> name: toggle-fog             resource: {Image-Resource "Architecture"} action-handler: {Action world-graphics toggle-fog} parameter: fog)
-      (<World-Parameter-Button> name: toggle-gadgets         resource: {Image-Resource "Gray"} action-handler: {Action world-graphics toggle-gadgets} parameter: gadgets)
-      (<World-Parameter-Button> name: toggle-normals         resource: {Image-Resource "FullScreen"} action-handler: {Action world-graphics toggle-normals} parameter: normals)
-      (<World-Parameter-Button> name: toggle-x-rays          resource: {Image-Resource "Spy"} action-handler: {Action world-graphics toggle-x-rays} parameter: x-rays)
-      (<World-Parameter-Button> name: toggle-redstone-x-rays resource: {Image-Resource "Red"} action-handler: {Action world-graphics toggle-redstone-x-rays} parameter: redstone-x-rays)
-      (<World-Parameter-Button> name: toggle-blocks          resource: {Image-Resource "Symbol"} action-handler: {Action world-graphics toggle-blocks} parameter: blocks)
-      (<World-Parameter-Button> name: toggle-models          resource: {Image-Resource "Model"} action-handler: {Action world-graphics toggle-models} parameter: models))))
-
-
-;;;
-;;;; Camera
-;;;
-
-
-(class Yownu-Camera-Menu extends Radial-Actionbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: camera-menu             resource: {Image-Resource "Spy"})
-      (<World-Parameter-Button> name: person-motion           resource: {Image-Resource "MsgUser"} action-handler: {Action world-camera person-motion} parameter: person-motion)
-      (<World-Parameter-Button> name: orbit-motion            resource: {Image-Resource "WebServer"} action-handler: {Action world-camera orbit-motion} parameter: orbit-motion)
-      (<World-Parameter-Button> name: free-motion             resource: {Image-Resource "Empty"} action-handler: {Action world-camera free-motion} parameter: free-motion)
-      (<World-Parameter-Button> name: toggle-camera-smoothing resource: {Image-Resource "Spy"} action-handler: {Action world-camera toggle-camera-smoothing} parameter: camera-smoothing)
-      (<World-Parameter-Button> name: toggle-camera-follow    resource: {Image-Resource "DesignRelation"} action-handler: {Action world-camera toggle-camera-follow} parameter: camera-follow)
-      (<World-Parameter-Button> name: toggle-cursor-mode      resource: {Image-Resource "ModeSelect"} action-handler: {Action world-camera toggle-cursor-mode} parameter: cursor-mode))))
-
-
-;;;
-;;;; Target
-;;;
-
-
-(class Yownu-Target-Menu extends Radial-Actionbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: target-menu          resource: {Image-Resource "Model"})
-      (<World-Parameter-Button> name: select-target-mode   resource: {Image-Resource "Empty"} action-handler: {Action world-edition select-target-mode} parameter: select-target-mode)
-      (<World-Parameter-Button> name: move-target-mode     resource: {Image-Resource "ClassConstructor"} action-handler: {Action world-edition move-target-mode} parameter: move-target-mode)
-      (<World-Parameter-Button> name: rotate-target-mode   resource: {Image-Resource "JemUpdateCategories"} action-handler: {Action world-edition rotate-target-mode} parameter: rotate-target-mode)
-      (<World-Parameter-Button> name: scale-target-mode    resource: {Image-Resource "FullScreen"} action-handler: {Action world-edition scale-target-mode} parameter: scale-target-mode)
-      (<World-Parameter-Button> name: skeleton-target-mode resource: {Image-Resource "DesignRelations"} action-handler: {Action world-edition skeleton-target-mode} parameter: skeleton-target-mode))))
-
-
-;;;
-;;;; History
-;;;
-
-
-(class Yownu-History-Bar extends World-Actionbar
-  
-  
-  (form
-    (<install>
-      (<Label-View>             name: at-logic               size: {Dimension 100 20} justification: center))))
-
-
-(class Yownu-History-Menu extends Radial-Actionbar
-  
-  
-  (form
-    (<install>
-      (<World-Action-Button>    name: history-menu           resource: {Image-Resource "Spy"})
-      (<World-Parameter-Button> name: toggle-paused          resource: {Image-Resource "Pause"} action-handler: {Action world-history toggle-paused} parameter: paused)
-      (<World-Action-Button>    name: backward-history       resource: {Image-Resource "Backward"} action-handler: {Action world-history backward-history})
-      (<World-Action-Button>    name: forward-history        resource: {Image-Resource "Forward"} action-handler: {Action world-history forward-history})
-      (<World-Action-Button>    name: reset-history          resource: {Image-Resource "ClearResults"} action-handler: {Action world-history reset-history})
-      (<World-Parameter-Button> name: toggle-evaluate-future resource: {Image-Resource "Constructor"} action-handler: {Action world-history toggle-evaluate-future} parameter: evaluate-future)
-      (<World-Action-Button>    name: step-backward          resource: {Image-Resource "StepRewind"} action-handler: {Action world-history step-backward})
-      (<World-Action-Button>    name: step-forward           resource: {Image-Resource "StepInto"} action-handler: {Action world-history step-forward})
-      (<World-Action-Button>    name: step-over              resource: {Image-Resource "StepOver"} action-handler: {Action world-history step-over})))))
+      (debug ,admin-debug)))))
