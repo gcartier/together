@@ -655,20 +655,18 @@
   (method override (setup-application-interface self)
     (let ((interface (current-interface)))
       (new History-Slider name: 'slider parent: interface visible?: #f)
-      (let ((menu (new Together-Main-Menu visible?: #t)))
-        (let ((panel (new World-Menu parent: interface name: 'main-menu size: (nu+ (get-size menu) {Dimension 2 2}) location: 'center layout-type: 'border visible?: #f)))
-          (let ((content (locate panel 'content)))
-            (set-parent menu content))))
       (install-bars
-        `((,World-Models-Bar   models      horizontal none #f)
-          (,World-Blocks-Bar   blocks      horizontal none #f)
-          (,World-Showcase-Bar showcasebar radial     center #f)
-          (,World-Graphics-Bar graphicsbar radial     center #f)
-          (,World-Camera-Bar   camerabar   radial     center #f)
-          (,World-Target-Bar   targetbar   radial     center #f)
-          (,World-History-Bar  historybar  radial     center #f)
-          (,World-Debug-Bar    debugbar    radial     center #f)
-          (,Together-Main-Bar  mainbar     horizontal (10 10) #f)))
+        `((,World-Models-Bar      models        horizontal none #f)
+          (,World-Blocks-Bar      blocks        horizontal none #f)
+          (,Together-Main-Bar     mainbar       horizontal (10 10) #f)
+          (,Together-Central-Menu central-menu  central    center #f)
+          (,Together-Main-Menu    main-menu     radial     center #f)
+          (,World-Showcase-Menu   showcase-menu radial     center #f)
+          (,World-Graphics-Menu   graphics-menu radial     center #f)
+          (,World-Camera-Menu     camera-menu   radial     center #f)
+          (,World-Target-Menu     target-menu   radial     center #f)
+          (,World-History-Menu    history-menu  radial     center #f)
+          (,World-Debug-Menu      debug-menu    radial     center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -947,32 +945,22 @@
 ;;;
 
 
-(class Together-Main-Menu extends Menu
+(class Together-Main-Menu extends World-Radial-Menu
   
   
   (form
-    (<install>          title: "Help" display-shortcuts?: #f
-      (<Label-Item>     title: "Resume" action-handler: {Action world-anonymous resume-world})
-      (<Separator-Item>)
-      (<Label-Item>     title: "Video Options" action-handler: {Action world-menu video-options})
-      (<Label-Item>     title: "Audio Options" action-handler: {Action world-menu audio-options})
-      (<Label-Item>     title: "Interface Options" action-handler: {Action world-menu interface-options})
-      (<Label-Item>     title: "Keyboard Shortcuts" action-handler: {Action world-menu bindings-viewer})
-      (<Separator-Item>)
-      (<Label-Item>     title: "News" action-handler: {Action world-menu view-news})
-      (<Label-Item>     title: "Roadmap" action-handler: {Action world-menu view-roadmap})
-      (<Label-Item>     title: "About" action-handler: {Action world-menu open-about})
+    (<install>               title: "Together"
+      (<World-Action-Button> resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action world-menu video-options})
+      (<World-Action-Button> resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action world-menu audio-options})
+      (<World-Action-Button> resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action world-menu interface-options})
+      (<World-Action-Button> resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action world-menu bindings-viewer})
+      (<World-Action-Button> resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-menu view-news})
+      (<World-Action-Button> resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-menu view-roadmap})
+      (<World-Action-Button> resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-menu open-about})
       @wait
-      (<Label-Item>     title: "Help" action-handler: {Action world-menu view-help})
-      (<Separator-Item>)
-      (<Label-Item>     title: "Gathering Screen" action-handler: {Action together-circle leave-circle})
-      (<Label-Item>     name: quit title: "Quit Together" action-handler: {Action world-menu quit-world})))
-  
-  
-  (method override (destroy self)
-    (nextmethod self)
-    (let ((world (current-world)))
-      (main-menu-destroyed world))))
+      (<World-Action-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu view-help})
+      (<World-Action-Button> resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action together-circle leave-circle})
+      (<World-Action-Button> resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-menu quit-world}))))
 
 
 ;;;
@@ -1004,19 +992,40 @@
       (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
       (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
       (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space)
-      (<World-Separator>)
-      (<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
+      @w(<World-Separator>)
+      @w(<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat)
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-screen-share resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Separator>)
-      (<World-Action-Button>    name: debug-menu          resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
-      (<World-Separator>)
-      (<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
-      (<World-Separator>)
-      (<World-Action-Button>    name: main-menu           resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action world-menu main-menu}))))
+      @w(<World-Action-Button>    name: debug-menu          resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
+      @w(<World-Separator>)
+      @w(<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
+      @w(<World-Separator>)
+      (<World-Action-Button>    name: central-menu          resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu}))))
+
+
+;;;
+;;;; Central Menu
+;;;
+
+
+(class Together-Central-Menu extends World-Central-Menu
+  
+  
+  (form
+    (<install>
+      (<World-Central-Wheel>   name: wheel
+        (<World-Action-Button> name: central-menu  resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
+        (<World-Action-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-menu main-menu})
+        (<World-Action-Button> name: graphics-menu resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action world-graphics graphics-menu})
+        (<World-Action-Button> name: camera-menu   resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-camera camera-menu})
+        (<World-Action-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
+        (<World-Action-Button> name: target-menu   resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-target target-menu})
+        (<World-Action-Button> name: history-menu  resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-history history-menu})
+        (<World-Action-Button> name: debug-menu    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})))))
 
 
 ;;;
@@ -1093,8 +1102,14 @@
       (<Find-Mode-Actions>           name: find-mode)
       ;; World
       (<World-Menu-Actions>          name: world-menu
-        (<!>                         name: main-menu            visible?: #t)
+        (<!>                         name: video-options        visible?: #t)
+        (<!>                         name: audio-options        visible?: #t)
+        (<!>                         name: interface-options    visible?: #t)
         (<!>                         name: bindings-viewer      visible?: #t)
+        (<!>                         name: view-news            visible?: #t)
+        (<!>                         name: view-roadmap         visible?: #t)
+        (<!>                         name: view-help            visible?: #t)
+        (<!>                         name: open-about           visible?: #t)
         (<!>                         name: open-welcome         visible?: #t title: "Gathering Screen" shortcut: {Shortcut :alt :shift #\G} action-handler: {Event-Handler :together on-goto-gathering})
         (<!>                         name: quit-world           visible?: #t title: "Quit Together"))
       (<World-Interface-Actions>     name: world-interface)
@@ -1120,6 +1135,7 @@
       (<World-Anonymous-Actions>     name: world-anonymous)
       (<World-User-Actions>          name: world-user)
       ;; Together
+      (<Together-Menu-Actions>       name: together-menu)
       (<Together-Call-Actions>       name: together-call)
       (<Together-Chat-Actions>       name: together-chat)
       (<Together-View-Actions>       name: together-view)
@@ -1141,6 +1157,14 @@
 ;;;
 ;;;; Actions
 ;;;
+
+
+(class Together-Menu-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Menu"
+      (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show main menu."))))
 
 
 (class Together-Call-Actions extends World-Actions

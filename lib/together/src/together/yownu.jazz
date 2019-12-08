@@ -80,8 +80,6 @@
           (for-each close-bar '(main game media graphicsmenu cameramenu debug targetmenu history historybar interface))
         (install-bar World-Main-Bar      'main         'horizontal '(center -10))
         (install-bar World-Game-Bar      'game         'horizontal '(center -56))
-        ;(install-bar World-Media-Bar     'media        'horizontal '(-10 -10))
-        ;(install-bar World-Debug-Bar     'debug        'horizontal '(10 -10))
         (layout-interface)))
     @w
     (let ((interface (current-interface)))

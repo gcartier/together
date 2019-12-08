@@ -1382,6 +1382,11 @@
   ;;;
   
   
+  (method (on-central-menu self evt)
+    (let ((world (current-world)))
+      (toggle-radial-menu world)))
+  
+  
   (method (on-message self evt)
     (let ((interface (current-interface)))
       (show-chat self)
@@ -1422,7 +1427,7 @@
   
   (method (escape-press self)
     (let ((world (current-world)))
-      (main-menu world #t))
+      (toggle-radial-menu world))
     @YOWNU
     (if (or (is? (active-focus) Filter-View)
             (is? (active-focus) Filter-Text))
