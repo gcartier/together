@@ -949,18 +949,19 @@
   
   
   (form
-    (<install>               title: "Together"
-      (<World-Action-Button> resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action world-menu video-options})
-      (<World-Action-Button> resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action world-menu audio-options})
-      (<World-Action-Button> resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action world-menu interface-options})
-      (<World-Action-Button> resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action world-menu bindings-viewer})
-      (<World-Action-Button> resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-menu view-news})
-      (<World-Action-Button> resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-menu view-roadmap})
-      (<World-Action-Button> resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-menu open-about})
+    (<install>                  title: "Together"
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action world-menu video-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action world-menu audio-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action world-menu interface-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action world-menu bindings-viewer})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-menu view-news})
+      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-menu view-roadmap})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-menu open-about})
       @wait
-      (<World-Action-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu view-help})
-      (<World-Action-Button> resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action together-circle leave-circle})
-      (<World-Action-Button> resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-menu quit-world}))))
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu view-help})
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
+      (<World-Action-Button>    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action together-circle leave-circle})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu quit-world}))))
 
 
 ;;;
@@ -992,18 +993,12 @@
       (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
       (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
       (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space)
-      @w(<World-Separator>)
-      @w(<World-Action-Button>    name: showcase-menu       resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat)
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-screen-share resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Separator>)
-      @w(<World-Action-Button>    name: debug-menu          resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})
-      @w(<World-Separator>)
-      @w(<World-Parameter-Button> name: toggle-fullscreen   resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
-      @w(<World-Separator>)
       (<World-Action-Button>    name: central-menu          resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu}))))
 
 
@@ -1017,15 +1012,15 @@
   
   (form
     (<install>
-      (<World-Central-Wheel>   name: wheel
-        (<World-Action-Button> name: central-menu  resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
-        (<World-Action-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-menu main-menu})
-        (<World-Action-Button> name: graphics-menu resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action world-graphics graphics-menu})
-        (<World-Action-Button> name: camera-menu   resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-camera camera-menu})
-        (<World-Action-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
-        (<World-Action-Button> name: target-menu   resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-target target-menu})
-        (<World-Action-Button> name: history-menu  resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-history history-menu})
-        (<World-Action-Button> name: debug-menu    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})))))
+      (<World-Central-Wheel>    name: wheel
+        (<World-Central-Button> name: central-menu  resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
+        (<World-Central-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-menu main-menu})
+        (<World-Central-Button> name: graphics-menu resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action world-graphics graphics-menu})
+        (<World-Central-Button> name: camera-menu   resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-camera camera-menu})
+        (<World-Central-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
+        (<World-Central-Button> name: target-menu   resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-target target-menu})
+        (<World-Central-Button> name: history-menu  resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-history history-menu})
+        (<World-Central-Button> name: debug-menu    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})))))
 
 
 ;;;
