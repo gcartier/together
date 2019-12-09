@@ -46,7 +46,6 @@
                               together.window
                               together.windows
                               together.world
-                              together.yownu
                               together.zone)
                       (dependencies gambit.walk
                                     jazz.editor.commonlisp

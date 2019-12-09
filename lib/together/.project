@@ -61,7 +61,6 @@
         (<Jazz-File>       name: product-base      source: {File :context "src" "together" "product-base.jazz"})
         (<Jazz-File>       name: gathering         source: {File :context "src" "together" "gathering.jazz"})
         (<Jazz-File>       name: space             source: {File :context "src" "together" "space.jazz"})
-        (<Jazz-File>       name: customize         source: {File :context "src" "together" "customize.jazz"})
-        (<Jazz-File>       name: yownu             source: {File :context "src" "together" "yownu.jazz"}))
+        (<Jazz-File>       name: customize         source: {File :context "src" "together" "customize.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))
