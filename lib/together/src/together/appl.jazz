@@ -678,11 +678,11 @@
   
   (method override (role-traits self role)
     (let ((platform (cond-expand
-                      (windows (list windows-bindings))
+                      (windows `((:bindings ,windows-bindings)))
                       (else '()))))
       (case role
-        ((user) user-role @YOWNU `((,@user-role ,@platform)))
-        ((developer) developer-role @YOWNU `((,@developer-role ,@platform)))
+        ((user) `(,@user-role ,@platform))
+        ((developer) `(,@developer-role ,@platform))
         (else (nextmethod self role)))))
 
 
