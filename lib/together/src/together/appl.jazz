@@ -661,11 +661,14 @@
           (,Together-Main-Bar     mainbar       horizontal (10 10) #f)
           (,Together-Central-Menu central-menu  central    center #f)
           (,Together-Main-Menu    main-menu     radial     center #f)
-          (,World-Showcase-Menu   showcase-menu radial     center #f)
           (,World-Graphics-Menu   graphics-menu radial     center #f)
           (,World-Camera-Menu     camera-menu   radial     center #f)
+          @wait (,World-People-Menu     people-menu   radial     center #f)
+          @wait (,World-Chat-Menu       chat-menu     radial     center #f)
+          (,World-Showcase-Menu   showcase-menu radial     center #f)
           (,World-Target-Menu     target-menu   radial     center #f)
           (,World-History-Menu    history-menu  radial     center #f)
+          (,World-Script-Menu     script-menu   radial     center #f)
           (,World-Debug-Menu      debug-menu    radial     center #f)))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
@@ -693,7 +696,13 @@
 
   (define-trait user-bindings Bindings
     (<Role-Trait>        name: user
-      (<install>)))
+      (<install>
+        (<world-camera!>
+          (<!>                 name: toggle-cursor-mode         visible?: #t))
+        (<world-showcase!>
+          (<!>                 name: no-showcase                visible?: #t)
+          (<!>                 name: blocks-showcase            visible?: #t)
+          (<!>                 name: models-showcase            visible?: #t)))))
   
   (definition user-role
     `((:bindings ,user-bindings)))
@@ -708,129 +717,210 @@
     (<Role-Trait>              name: developer
       (<install>
         (<application!>
-          (<!>                 name: backward-history          visible?: #t)
-          (<!>                 name: forward-history           visible?: #t))
+          (<!>                 name: backward-history           visible?: #t)
+          (<!>                 name: forward-history            visible?: #t))
         (<view!>
-          (<!>                 name: select-all                visible?: #t shortcut: {Shortcut :control :alt #\A}))
+          (<!>                 name: select-all                 visible?: #t shortcut: {Shortcut :control :alt #\A}))
         (<text!>
-          (<!>                 name: move-backward-word        visible?: #t)
-          (<!>                 name: extend-backward-word      visible?: #t)
-          (<!>                 name: move-forward-word         visible?: #t)
-          (<!>                 name: extend-forward-word       visible?: #t)
-          (<!>                 name: move-upward               visible?: #t)
-          (<!>                 name: extend-upward             visible?: #t)
-          (<!>                 name: move-downward             visible?: #t)
-          (<!>                 name: extend-downward           visible?: #t)
-          (<!>                 name: delete-char               visible?: #t)
-          (<!>                 name: delete-word               visible?: #t)
-          (<!>                 name: home                      visible?: #t)
-          (<!>                 name: extend-home               visible?: #t)
-          (<!>                 name: end                       visible?: #t)
-          (<!>                 name: extend-end                visible?: #t)
-          (<!>                 name: document-home             visible?: #t alternate-shortcut: {Shortcut :meta Up})
-          (<!>                 name: document-end              visible?: #t alternate-shortcut: {Shortcut :meta Down})
-          (<!>                 name: paste&next                visible?: #t)
-          (<!>                 name: paste-cycle-ring          visible?: #t shortcut: {Shortcut :alt #\V})
-          (<!>                 name: paste-cycle-ring-reversed visible?: #t shortcut: {Shortcut :alt :shift #\V})
-          (<!>                 name: kill-line                 visible?: #t)
-          (<!>                 name: center-caret              visible?: #t)
-          (<!>                 name: top-caret                 visible?: #t)
-          (<!>                 name: one/no-space              visible?: #t))
+          (<!>                 name: move-backward-word         visible?: #t)
+          (<!>                 name: extend-backward-word       visible?: #t)
+          (<!>                 name: move-forward-word          visible?: #t)
+          (<!>                 name: extend-forward-word        visible?: #t)
+          (<!>                 name: move-upward                visible?: #t)
+          (<!>                 name: extend-upward              visible?: #t)
+          (<!>                 name: move-downward              visible?: #t)
+          (<!>                 name: extend-downward            visible?: #t)
+          (<!>                 name: delete-char                visible?: #t)
+          (<!>                 name: delete-word                visible?: #t)
+          (<!>                 name: home                       visible?: #t)
+          (<!>                 name: extend-home                visible?: #t)
+          (<!>                 name: end                        visible?: #t)
+          (<!>                 name: extend-end                 visible?: #t)
+          (<!>                 name: document-home              visible?: #t alternate-shortcut: {Shortcut :meta Up})
+          (<!>                 name: document-end               visible?: #t alternate-shortcut: {Shortcut :meta Down})
+          (<!>                 name: paste&next                 visible?: #t)
+          (<!>                 name: paste-cycle-ring           visible?: #t shortcut: {Shortcut :alt #\V})
+          (<!>                 name: paste-cycle-ring-reversed  visible?: #t shortcut: {Shortcut :alt :shift #\V})
+          (<!>                 name: kill-line                  visible?: #t)
+          (<!>                 name: center-caret               visible?: #t)
+          (<!>                 name: top-caret                  visible?: #t)
+          (<!>                 name: one/no-space               visible?: #t))
         (<code-text!>
-          (<!>                 name: evaluate                  visible?: #t)
-          (<!>                 name: backward-outline          visible?: #t)
-          (<!>                 name: forward-outline           visible?: #t))
+          (<!>                 name: evaluate                   visible?: #t)
+          (<!>                 name: backward-outline           visible?: #t)
+          (<!>                 name: forward-outline            visible?: #t))
         (<lisp-text!>
-          (<!>                 name: tabulate                  visible?: #t)
-          (<!>                 name: highlight-declaration     visible?: #t)
-          (<!>                 name: remove-highlights         visible?: #t))
+          (<!>                 name: tabulate                   visible?: #t)
+          (<!>                 name: highlight-declaration      visible?: #t)
+          (<!>                 name: remove-highlights          visible?: #t))
         (<script-text!>
-          (<Action-Item>       name: search-forward-mode       visible?: #t action-handler: {Event-Handler :focus on-search-forward-mode} shortcut: {Shortcut :control #\S})
-          (<Action-Item>       name: search-backward-mode      visible?: #t action-handler: {Event-Handler :focus on-search-backward-mode} shortcut: {Shortcut :control #\R})
-          (<Action-Item>       name: search-current            visible?: #t action-handler: {Event-Handler :focus on-search-current} shortcut: {Shortcut :alt #\S})
-          (<Action-Item>       name: select-outer              visible?: #t action-handler: {Event-Handler :focus on-select-outer} shortcut: {Shortcut :control Space}))
+          (<Action-Item>       name: search-forward-mode        visible?: #t action-handler: {Event-Handler :focus on-search-forward-mode} shortcut: {Shortcut :control #\S})
+          (<Action-Item>       name: search-backward-mode       visible?: #t action-handler: {Event-Handler :focus on-search-backward-mode} shortcut: {Shortcut :control #\R})
+          (<Action-Item>       name: search-current             visible?: #t action-handler: {Event-Handler :focus on-search-current} shortcut: {Shortcut :alt #\S})
+          (<Action-Item>       name: select-outer               visible?: #t action-handler: {Event-Handler :focus on-select-outer} shortcut: {Shortcut :control Space}))
         (<search-mode!>
-          (<!>                 name: whole-words               visible?: #t)
-          (<!>                 name: ignore-case               visible?: #t)
-          (<!>                 name: regexp                    visible?: #t)
-          (<!>                 name: forward                   visible?: #t)
-          (<!>                 name: backward                  visible?: #t)
-          (<!>                 name: current                   visible?: #t)
-          (<!>                 name: widen                     visible?: #t)
-          (<!>                 name: center-caret              visible?: #t)
-          (<!>                 name: home                      visible?: #t)
-          (<!>                 name: end                       visible?: #t)
-          (<!>                 name: highlight                 visible?: #t)
-          (<!>                 name: finish                    visible?: #t)
-          (<!>                 name: cancel                    visible?: #t))
+          (<!>                 name: whole-words                visible?: #t)
+          (<!>                 name: ignore-case                visible?: #t)
+          (<!>                 name: regexp                     visible?: #t)
+          (<!>                 name: forward                    visible?: #t)
+          (<!>                 name: backward                   visible?: #t)
+          (<!>                 name: current                    visible?: #t)
+          (<!>                 name: widen                      visible?: #t)
+          (<!>                 name: center-caret               visible?: #t)
+          (<!>                 name: home                       visible?: #t)
+          (<!>                 name: end                        visible?: #t)
+          (<!>                 name: highlight                  visible?: #t)
+          (<!>                 name: finish                     visible?: #t)
+          (<!>                 name: cancel                     visible?: #t))
         (<highlight-mode!>
-          (<!>                 name: highlight                 visible?: #t))
+          (<!>                 name: highlight                  visible?: #t))
         (<world-graphics!>
-          (<!>                 name: graphics-menu             visible?: #t)
-          (<!>                 name: toggle-glow               visible?: #t)
-          (<!>                 name: toggle-lighting           visible?: #t)
-          (<!>                 name: toggle-fog                visible?: #t)
-          (<!>                 name: toggle-gadgets            visible?: #t)
-          (<!>                 name: toggle-normals            visible?: #t)
-          (<!>                 name: toggle-x-rays             visible?: #t)
-          (<!>                 name: toggle-redstone-x-rays    visible?: #t)
-          (<!>                 name: toggle-blocks             visible?: #t)
-          (<!>                 name: toggle-models             visible?: #t)
-          (<!>                 name: toggle-post-processing    visible?: #t))
+          (<!>                 name: toggle-occlusion           visible?: #t)
+          (<!>                 name: toggle-wireframe           visible?: #t)
+          (<!>                 name: toggle-lighting            visible?: #t)
+          (<!>                 name: toggle-fog                 visible?: #t)
+          (<!>                 name: toggle-gadgets             visible?: #t)
+          (<!>                 name: toggle-normals             visible?: #t)
+          (<!>                 name: toggle-x-rays              visible?: #t)
+          (<!>                 name: toggle-redstone-x-rays     visible?: #t)
+          (<!>                 name: toggle-blocks              visible?: #t)
+          (<!>                 name: toggle-models              visible?: #t)
+          (<!>                 name: toggle-post-processing     visible?: #t))
+        (<world-sound!>
+          (<!>                 name: toggle-music               visible?: #t)
+          (<!>                 name: change-music               visible?: #t)
+          (<!>                 name: display-music              visible?: #t)
+          (<!>                 name: toggle-ambience            visible?: #t)
+          (<!>                 name: toggle-sound               visible?: #t))
+        (<world-interface!>
+          (<!>                 name: toggle-interface           visible?: #t)
+          (<!>                 name: toggle-user                visible?: #t))
+        (<world-zone!>
+          (<!>                 name: zone-new                   visible?: #t)
+          (<!>                 name: zone-open                  visible?: #t)
+          (<!>                 name: zone-open-content          visible?: #t)
+          (<!>                 name: zone-reload                visible?: #t)
+          (<!>                 name: zone-regenerate            visible?: #t))
+        (<world-movement!>
+          (<!>                 name: rotate-player              visible?: #t)
+          (<!>                 name: move-forward               visible?: #t)
+          (<!>                 name: move-backward              visible?: #t)
+          (<!>                 name: move-left                  visible?: #t)
+          (<!>                 name: move-right                 visible?: #t)
+          (<!>                 name: rotate-left                visible?: #t)
+          (<!>                 name: rotate-right               visible?: #t)
+          (<!>                 name: toggle-run                 visible?: #t))
         (<world-camera!>
-          (<!>                 name: camera-menu               visible?: #t)
-          (<!>                 name: toggle-cursor-mode        visible?: #t))
+          (<!>                 name: rotate-camera              visible?: #t)
+          (<!>                 name: zoom-in/out                visible?: #t)
+          (<!>                 name: move-up                    visible?: #t)
+          (<!>                 name: move-down                  visible?: #t)
+          (<!>                 name: person-motion              visible?: #t)
+          (<!>                 name: orbit-motion               visible?: #t)
+          (<!>                 name: free-motion                visible?: #t)
+          (<!>                 name: toggle-camera-smoothing    visible?: #t)
+          (<!>                 name: toggle-camera-follow       visible?: #t)
+          (<!>                 name: toggle-cursor-mode         visible?: #t))
+        (<world-game!>
+          (<!>                 name: jump                       visible?: #t)
+          (<!>                 name: mind-control               visible?: #t)
+          (<!>                 name: toggle-aim                 visible?: #t)
+          (<!>                 name: toggle-free-aim            visible?: #t)
+          (<!>                 name: toggle-ride                visible?: #t)
+          (<!>                 name: toggle-fly                 visible?: #t)
+          (<!>                 name: toggle-vehicle             visible?: #t)
+          (<!>                 name: toggle-glow                visible?: #t)
+          (<!>                 name: compass-panel              visible?: #t)
+          (<!>                 name: map-panel                  visible?: #t)
+          (<!>                 name: combat-panel               visible?: #t)
+          (<!>                 name: character-panel            visible?: #t)
+          (<!>                 name: bag-panel                  visible?: #t)
+          (<!>                 name: belt-panel                 visible?: #t))
+        (<world-spell!>
+          (<!>                 name: bullet                     visible?: #t)
+          (<!>                 name: arrow                      visible?: #t)
+          @wait
+          (<!>                 name: rapid-fire                 visible?: #t)
+          (<!>                 name: sprint                     visible?: #t)
+          (<!>                 name: blink                      visible?: #t)
+          (<!>                 name: warp                       visible?: #t)
+          (<!>                 name: dash                       visible?: #t))
+        (<world-people!>
+          (<!>                 name: who-panel                  visible?: #t))
+        (<world-chat!>
+          (<!>                 name: command-message            visible?: #t)
+          (<!>                 name: command-slash              visible?: #t))
         (<world-showcase!>
-          (<!>                 name: showcase-menu             visible?: #t)
-          (<!>                 name: no-showcase               visible?: #t)
-          (<!>                 name: blocks-showcase           visible?: #t)
-          (<!>                 name: models-showcase           visible?: #t)
-          (<!>                 name: gadgets-showcase          visible?: #t))
-        (<world-edition!>
-          (<!>                 name: toggle-grid               visible?: #t))
+          (<!>                 name: showcase-menu              visible?: #t)
+          (<!>                 name: no-showcase                visible?: #t)
+          (<!>                 name: blocks-showcase            visible?: #t)
+          (<!>                 name: models-showcase            visible?: #t)
+          (<!>                 name: gadgets-showcase           visible?: #t)
+          (<!>                 name: avatars-showcase           visible?: #t)
+          (<!>                 name: tiles-showcase             visible?: #t)
+          (<!>                 name: shaders-showcase           visible?: #t)
+          (<!>                 name: animations-showcase        visible?: #t)
+          (<!>                 name: meshes-showcase            visible?: #t)
+          (<!>                 name: textures-showcase          visible?: #t)
+          (<!>                 name: skyboxes-showcase          visible?: #t))
+        (<world-build!>
+          (<!>                 name: add-element                visible?: #t)
+          (<!>                 name: remove-element             visible?: #t)
+          (<!>                 name: change-element             visible?: #t)
+          (<!>                 name: import-model               visible?: #t)
+          (<!>                 name: select-target              visible?: #t)
+          (<!>                 name: delete-target              visible?: #t)
+          (<!>                 name: toggle-grid                visible?: #t)
+          (<!>                 name: toggle-grid-z              visible?: #t)
+          (<!>                 name: toggle-grid-y              visible?: #t)
+          (<!>                 name: toggle-grid-x              visible?: #t)
+          (<!>                 name: move-grid                  visible?: #t)
+          (<!>                 name: decrease-grid              visible?: #t)
+          (<!>                 name: increase-grid              visible?: #t)
+          (<!>                 name: reload-textures            visible?: #t)
+          (<!>                 name: change-editor-mode         visible?: #t))
         (<world-target!>
-          (<!>                 name: target-menu               visible?: #t)
-          (<!>                 name: select-target-mode        visible?: #t)
-          (<!>                 name: move-target-mode          visible?: #t)
-          (<!>                 name: rotate-target-mode        visible?: #t)
-          (<!>                 name: scale-target-mode         visible?: #t)
-          (<!>                 name: skeleton-target-mode      visible?: #t))
+          (<!>                 name: select-target-mode         visible?: #t)
+          (<!>                 name: move-target-mode           visible?: #t)
+          (<!>                 name: rotate-target-mode         visible?: #t)
+          (<!>                 name: scale-target-mode          visible?: #t)
+          (<!>                 name: skeleton-target-mode       visible?: #t))
         (<world-history!>
-          (<!>                 name: history-menu              visible?: #t)
-          (<!>                 name: toggle-paused             visible?: #t)
-          (<!>                 name: backward-history          visible?: #t)
-          (<!>                 name: forward-history           visible?: #t)
-          (<!>                 name: step-backward             visible?: #t)
-          (<!>                 name: step-forward              visible?: #t)
-          (<!>                 name: step-over                 visible?: #t)
-          (<!>                 name: reset-history             visible?: #t)
-          (<!>                 name: toggle-evaluate-future    visible?: #t))
+          (<!>                 name: toggle-paused              visible?: #t)
+          (<!>                 name: backward-history           visible?: #t)
+          (<!>                 name: forward-history            visible?: #t)
+          (<!>                 name: step-backward              visible?: #t)
+          (<!>                 name: step-forward               visible?: #t)
+          (<!>                 name: step-over                  visible?: #t)
+          (<!>                 name: reset-history              visible?: #t)
+          (<!>                 name: toggle-evaluate-future     visible?: #t)
+          (<!>                 name: toggle-synchronize-cameras visible?: #t)
+          (<!>                 name: toggle-simulate-protocol   visible?: #t))
         (<world-script!>
-          (<!>                 name: test1                     visible?: #t)
-          (<!>                 name: test2                     visible?: #t)
-          (<!>                 name: test3                     visible?: #t)
-          (<!>                 name: test4                     visible?: #t)
-          (<!>                 name: test5                     visible?: #t)
-          (<!>                 name: test6                     visible?: #t)
-          (<!>                 name: test7                     visible?: #t)
-          (<!>                 name: test8                     visible?: #t)
-          (<!>                 name: test9                     visible?: #t)
-          (<!>                 name: test0                     visible?: #t)
-          (<!>                 name: run-script                visible?: #t)
-          (<!>                 name: run-last-script           visible?: #t)
-          (<!>                 name: view-script               visible?: #t))
+          (<!>                 name: test1                      visible?: #t)
+          (<!>                 name: test2                      visible?: #t)
+          (<!>                 name: test3                      visible?: #t)
+          (<!>                 name: test4                      visible?: #t)
+          (<!>                 name: test5                      visible?: #t)
+          (<!>                 name: test6                      visible?: #t)
+          (<!>                 name: test7                      visible?: #t)
+          (<!>                 name: test8                      visible?: #t)
+          (<!>                 name: test9                      visible?: #t)
+          (<!>                 name: test0                      visible?: #t)
+          (<!>                 name: run-script                 visible?: #t)
+          (<!>                 name: run-last-script            visible?: #t)
+          (<!>                 name: view-script                visible?: #t)
+          (<!>                 name: view-workspace             visible?: #t)
+          (<!>                 name: clear-console              visible?: #t)
+          (<!>                 name: clear-terminal             visible?: #t))
         (<world-debug!>
-          (<!>                 name: debug-menu                visible?: #t)
-          (<!>                 name: toggle-info               visible?: #t)
-          (<!>                 name: toggle-profiler           visible?: #t)
-          (<!>                 name: reset-profiling           visible?: #t)
-          (<!>                 name: view-workspace            visible?: #t)
-          (<!>                 name: clear-console             visible?: #t)
-          (<!>                 name: clear-terminal            visible?: #t)
-          (<!>                 name: toggle-gc-sound           visible?: #t)
-          (<!>                 name: explore-interface         visible?: #t)
-          (<!>                 name: toggle-axes               visible?: #t)
-          (<!>                 name: garbage-collect           visible?: #t)))))
+          (<!>                 name: toggle-info                visible?: #t)
+          (<!>                 name: toggle-profiler            visible?: #t)
+          (<!>                 name: reset-profiling            visible?: #t)
+          (<!>                 name: toggle-gc-sound            visible?: #t)
+          (<!>                 name: explore-interface          visible?: #t)
+          (<!>                 name: toggle-axes                visible?: #t)
+          (<!>                 name: garbage-collect            visible?: #t)))))
   
   (definition developer-role
     `((:bindings ,developer-bindings)))
@@ -860,9 +950,9 @@
           (<!>          name: redo                         shortcut: {Shortcut :control #\Y}))
         (<text~>
           (<!>          name: delete-char                  alternate-shortcut: {Shortcut :control #\D}))
-        (<world-menu~>
+        (<world-main~>
           (<!>          name: quit-world                   shortcut: {Shortcut :alt F4}))
-        (<world-window~>
+        (<world-interface~>
           (<!>          name: toggle-windowed-mode         shortcut: {Shortcut F11}))))))
 
 
@@ -949,19 +1039,18 @@
   
   
   (form
-    (<install>                  title: "Together"
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action world-menu video-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action world-menu audio-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action world-menu interface-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action world-menu bindings-viewer})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-menu view-news})
-      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-menu view-roadmap})
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-menu open-about})
+    (<install>                  title: "Main"
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action world-main video-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action world-main audio-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action world-main interface-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action world-main bindings-viewer})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-main view-news})
+      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-main open-about})
       @wait
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu view-help})
-      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-window toggle-windowed-mode} parameter: fullscreen-mode)
-      (<World-Action-Button>    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action together-circle leave-circle})
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-menu quit-world}))))
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
+      (<World-Action-Button>    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-main open-welcome})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main quit-world}))))
 
 
 ;;;
@@ -989,13 +1078,13 @@
       (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-media toggle-mic} parameter: mic)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-media toggle-camera} parameter: camera)
       (<World-Separator>)
-      (<World-Parameter-Button> name: avatar-space        resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-space avatar-space} parameter: avatar-space)
-      (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-space circle-space} parameter: circle-space)
-      (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-space focus-space} parameter: focus-space)
-      (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-space gallery-space} parameter: gallery-space)
+      (<World-Parameter-Button> name: avatar-space        resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-space} parameter: avatar-space)
+      (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-space} parameter: circle-space)
+      (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-circle focus-space} parameter: focus-space)
+      (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-circle gallery-space} parameter: gallery-space)
       (<World-Separator>)
-      (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action together-view toggle-people} parameter: people)
-      (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action together-view toggle-chat} parameter: chat)
+      (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-people toggle-people} parameter: people)
+      (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-chat toggle-chat} parameter: chat)
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-screen-share resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Separator>)
@@ -1014,12 +1103,13 @@
     (<install>
       (<World-Central-Wheel>    name: wheel
         (<World-Central-Button> name: central-menu  resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
-        (<World-Central-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-menu main-menu})
+        (<World-Central-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-main main-menu})
         (<World-Central-Button> name: graphics-menu resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action world-graphics graphics-menu})
         (<World-Central-Button> name: camera-menu   resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-camera camera-menu})
         (<World-Central-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
         (<World-Central-Button> name: target-menu   resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-target target-menu})
         (<World-Central-Button> name: history-menu  resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-history history-menu})
+        (<World-Central-Button> name: script-menu   resource: {Icon-Resource "Symbol/Waves-"} action-handler: {Action world-script script-menu})
         (<World-Central-Button> name: debug-menu    resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-debug debug-menu})))))
 
 
@@ -1095,8 +1185,10 @@
       (<Extended-Mode-Actions>       name: extended-mode)
       (<Execute-Mode-Actions>        name: execute-mode)
       (<Find-Mode-Actions>           name: find-mode)
+      ;; Together
+      (<Together-Menu-Actions>       name: together-menu)
       ;; World
-      (<World-Menu-Actions>          name: world-menu
+      (<World-Main-Actions>          name: world-main
         (<!>                         name: video-options        visible?: #t)
         (<!>                         name: audio-options        visible?: #t)
         (<!>                         name: interface-options    visible?: #t)
@@ -1105,43 +1197,38 @@
         (<!>                         name: view-roadmap         visible?: #t)
         (<!>                         name: view-help            visible?: #t)
         (<!>                         name: open-about           visible?: #t)
-        (<!>                         name: open-welcome         visible?: #t title: "Gathering Screen" shortcut: {Shortcut :alt :shift #\G} action-handler: {Event-Handler :together on-goto-gathering})
+        (<!>                         name: open-welcome         visible?: #t title: "Gathering Screen" shortcut: {Shortcut :alt :shift #\G} action-handler: {Event-Handler :together on-goto-gathering} description: "Open the gathering screen.")
         (<!>                         name: quit-world           visible?: #t title: "Quit Together"))
-      (<World-Interface-Actions>     name: world-interface)
       (<World-Graphics-Actions>      name: world-graphics)
       (<World-Sound-Actions>         name: world-sound)
-      (<World-Client-Actions>        name: world-client)
-      (<World-World-Actions>         name: world-world)
+      (<World-Interface-Actions>     name: world-interface
+        (<!>                         name: toggle-windowed-mode visible?: #t)
+        (<!>                         name: toggle-user          visible?: #t))
       (<World-Zone-Actions>          name: world-zone)
       (<World-Movement-Actions>      name: world-movement)
       (<World-Camera-Actions>        name: world-camera)
       (<World-Game-Actions>          name: world-game)
       (<World-Spell-Actions>         name: world-spell)
+      (<World-People-Actions>        name: world-people
+        (<!>                         name: toggle-people        visible?: #t))
+      (<World-Chat-Actions>          name: world-chat
+        (<!>                         name: toggle-chat          visible?: #t))
       (<World-Showcase-Actions>      name: world-showcase)
-      (<World-Edition-Actions>       name: world-edition)
+      (<World-Build-Actions>         name: world-build)
       (<World-Target-Actions>        name: world-target)
       (<World-History-Actions>       name: world-history)
-      (<World-Window-Actions>        name: world-window
-        (<!>                         name: toggle-windowed-mode visible?: #t))
+      (<World-Tile-Actions>          name: world-tile)
       (<World-Script-Actions>        name: world-script)
       (<World-Debug-Actions>         name: world-debug)
       (<World-Tutorial-Actions>      name: world-tutorial)
       (<World-Objective-Actions>     name: world-objective)
       (<World-Anonymous-Actions>     name: world-anonymous)
-      (<World-User-Actions>          name: world-user)
       ;; Together
-      (<Together-Menu-Actions>       name: together-menu)
-      (<Together-Call-Actions>       name: together-call)
-      (<Together-Chat-Actions>       name: together-chat)
-      (<Together-View-Actions>       name: together-view)
-      (<Together-Gathering-Actions>  name: together-gathering)
-      (<Together-Space-Actions>      name: together-space)
       (<Together-Media-Actions>      name: together-media)
       (<Together-Circle-Actions>     name: together-circle)
-      (<Together-Share-Actions>      name: together-share)
-      (<Together-Lookat-Actions>     name: together-lookat)
       (<Together-Viewer-Actions>     name: together-viewer)
-      (<Together-Stream-Actions>     name: together-stream)
+      (<Together-Share-Actions>      name: together-share)
+      @wait
       (<Together-Navigate-Actions>   name: together-navigate)
       (<Together-Profile-Actions>    name: together-profile)
       (<Together-Experiment-Actions> name: together-experiment)
@@ -1158,52 +1245,9 @@
   
   
   (form
-    (<install>                                        title: "Menu"
-      (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show main menu."))))
-
-
-(class Together-Call-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Call"
-      (<World-Action-Item> name: change-quality       title: "Change call quality" visible?: #t shortcut: {Shortcut "Click call quality"}))))
-
-
-(class Together-Chat-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Chat"
-      (<World-Action-Item> name: send-message         title: "Send message" visible?: #t action-handler: {Event-Handler :together on-message} shortcut: {Shortcut :alt Return} description: "Message."))))
-
-
-(class Together-View-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "View"
-      (<World-Action-Item> name: toggle-people        title: "Toggle people" visible?: #t action-handler: {Event-Handler :space on-toggle-people} shortcut: {Shortcut :alt :shift #\P} description: "Toggle people.")
-      (<World-Action-Item> name: toggle-chat          title: "Toggle chat" visible?: #t action-handler: {Event-Handler :space on-toggle-chat} shortcut: {Shortcut :alt :shift #\C} description: "Toggle chat."))))
-
-
-(class Together-Gathering-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Gathering"
+    (<install>                                        title: "Together"
+      (<World-Action-Item> name: central-menu         title: "Central menu" visible?: #t action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show central menu.")
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" visible?: #t shortcut: {Shortcut "Click your name"} description: "Login."))))
-
-
-(class Together-Space-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Space"
-      (<World-Action-Item> name: avatar-space         title: "Avatar" visible?: #t action-handler: {Event-Handler :together on-avatar-space} shortcut: {Shortcut :alt #\D} description: "Avatar space.")
-      (<World-Action-Item> name: circle-space         title: "Circle" visible?: #t action-handler: {Event-Handler :together on-circle-space} shortcut: {Shortcut :alt #\C} description: "Circle space.")
-      (<World-Action-Item> name: focus-space          title: "Focus" visible?: #t action-handler: {Event-Handler :together on-focus-space} shortcut: {Shortcut :alt #\F} description: "Focus space.")
-      (<World-Action-Item> name: gallery-space        title: "Gallery" visible?: #t action-handler: {Event-Handler :together on-gallery-space} shortcut: {Shortcut :alt #\G} description: "Gallery space."))))
 
 
 (class Together-Media-Actions extends World-Actions
@@ -1211,8 +1255,10 @@
   
   (form
     (<install>                                        title: "Media"
-      (<World-Action-Item> name: toggle-mic           title: "Toggle audio" visible?: #t action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\A} description: "Toggle audio.")
-      (<World-Action-Item> name: toggle-camera        title: "Toggle video" visible?: #t action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\V} description: "Toggle video."))))
+      (<World-Action-Item> name: toggle-mic           title: "Microphone" visible?: #t action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
+      (<World-Action-Item> name: toggle-camera        title: "Camera" visible?: #t action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
+      (<World-Action-Item> name: change-quality       title: "Change video quality" visible?: #t shortcut: {Shortcut "Click video quality"})
+      (<World-Action-Item> name: toggle-denoise       title: "Denoise" visible?: #t action-handler: {Event-Handler :together on-toggle-denoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle denoise."))))
 
 
 (class Together-Circle-Actions extends World-Actions
@@ -1220,25 +1266,13 @@
   
   (form
     (<install>                                        title: "Circle"
-      (<World-Action-Item> name: leave-circle         title: "Leave circle" visible?: #t action-handler: {Event-Handler :together on-leave-circle} description: "Leave circle."))))
-
-
-(class Together-Share-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Share"
-      (<World-Action-Item> name: toggle-screen-share  title: "Toggle screen share" visible?: #t shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share."))))
-
-
-(class Together-Lookat-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Lookat"
+      (<World-Action-Item> name: avatar-space         title: "Avatar" visible?: #t action-handler: {Event-Handler :together on-avatar-space} shortcut: {Shortcut :alt #\A} description: "Avatar space.")
+      (<World-Action-Item> name: circle-space         title: "Circle" visible?: #t action-handler: {Event-Handler :together on-circle-space} shortcut: {Shortcut :alt #\D} description: "Circle space.")
+      (<World-Action-Item> name: focus-space          title: "Focus" visible?: #t action-handler: {Event-Handler :together on-focus-space} shortcut: {Shortcut :alt #\F} description: "Focus space.")
+      (<World-Action-Item> name: gallery-space        title: "Gallery" visible?: #t action-handler: {Event-Handler :together on-gallery-space} shortcut: {Shortcut :alt #\G} description: "Gallery space.")
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" visible?: #t shortcut: {Shortcut "Click image"})
       (<World-Action-Item> name: enter-press          title: "Go to home view" visible?: #t action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
-      (<World-Action-Item> name: space-press          title: "Toggle rotation" visible?: #t shortcut: {Shortcut Space} description: "Space.")
+      (<World-Action-Item> name: space-press          title: "Rotate" visible?: #t shortcut: {Shortcut Space} description: "Space.")
       (<World-Action-Item> name: left-press           title: "Rotate left" visible?: #t shortcut: {Shortcut "Left Arrow"} description: "Left.")
       (<World-Action-Item> name: right-press          title: "Rotate right" visible?: #t shortcut: {Shortcut "Right Arrow"} description: "Right.")
       (<World-Action-Item> name: up-press             title: "Increase speed" visible?: #t shortcut: {Shortcut "Up Arrow"} description: "Up.")
@@ -1247,28 +1281,28 @@
       (<World-Action-Item> name: number-press         title: "Change focus" visible?: #t shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image"))))
 
 
-(class Together-Stream-Actions extends World-Actions
+(class Together-Share-Actions extends World-Actions
   
   
   (form
-    (<install>                                        title: "Stream"
-      (<World-Action-Item> name: toggle-streams       visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Toggle streams" action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
-      (<World-Action-Item> name: add-image            visible?: #t shortcut: {Shortcut :alt :shift #\7} title: "Add image" action-handler: {Event-Handler :together on-add-image} description: "Add image.")
-      (<World-Action-Item> name: add-video            visible?: #t shortcut: {Shortcut :alt :shift #\8} title: "Add video" action-handler: {Event-Handler :together on-add-video} description: "Add video.")
-      (<World-Action-Item> name: add-music            visible?: #t shortcut: {Shortcut :alt :shift #\9} title: "Add music" action-handler: {Event-Handler :together on-add-music} description: "Add music.")
-      (<World-Action-Item> name: remove-stream        visible?: #t shortcut: {Shortcut :alt :shift #\0} title: "Remove stream" action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream."))))
+    (<install>                                        title: "Share"
+      (<World-Action-Item> name: toggle-streams       title: "Streams" visible?: #t shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
+      (<World-Action-Item> name: add-image            title: "Add image" visible?: #t shortcut: {Shortcut :alt :shift #\7} action-handler: {Event-Handler :together on-add-image} description: "Add image.")
+      (<World-Action-Item> name: add-video            title: "Add video" visible?: #t shortcut: {Shortcut :alt :shift #\8} action-handler: {Event-Handler :together on-add-video} description: "Add video.")
+      (<World-Action-Item> name: add-music            title: "Add music" visible?: #t shortcut: {Shortcut :alt :shift #\9} action-handler: {Event-Handler :together on-add-music} description: "Add music.")
+      (<World-Action-Item> name: remove-stream        title: "Remove stream" visible?: #t shortcut: {Shortcut :alt :shift #\0} action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream.")
+      (<World-Action-Item> name: toggle-screen-share  title: "Share screen" visible?: #t shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share."))))
 
 
+@wait
 (class Together-Navigate-Actions extends World-Actions
   
   
   (form
     (<install>                                        title: "Navigate"
-      @wait
-      (<World-Action-Item> name: goto-script          visible?: #t shortcut: {Shortcut :alt :shift #\S} title: "Goto script" action-handler: {Event-Handler :together on-goto-script} description: "Goto script.")
-      (<World-Action-Item> name: goto-replay          visible?: #t shortcut: {Shortcut :alt :shift #\R} title: "Goto replay" action-handler: {Event-Handler :together on-goto-replay} description: "Goto replay.")
-      @wait
-      (<World-Action-Item> name: goto-simulate        visible?: #t shortcut: {Shortcut :alt :shift #\T} title: "Goto simulate" action-handler: {Event-Handler :together on-goto-simulate} description: "Goto simulate."))))
+      (<World-Action-Item> name: goto-script          title: "Goto script" visible?: #t shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :together on-goto-script} description: "Goto script.")
+      (<World-Action-Item> name: goto-replay          title: "Goto replay" visible?: #t shortcut: {Shortcut :alt :shift #\R} action-handler: {Event-Handler :together on-goto-replay} description: "Goto replay.")
+      (<World-Action-Item> name: goto-simulate        title: "Goto simulate" visible?: #t shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :together on-goto-simulate} description: "Goto simulate."))))
 
 
 (class Together-Profile-Actions extends World-Actions
@@ -1285,7 +1319,7 @@
   
   (form
     (<install>                                        title: "Experiment"
-      (<World-Action-Item> name: toggle-experiment    title: "Toggle experiment panel" visible?: #t action-handler: {Event-Handler :together on-toggle-experiment} description: "Toggle experiment panel.")
+      (<World-Action-Item> name: toggle-experiment    title: "Experiment" visible?: #t action-handler: {Event-Handler :together on-toggle-experiment} description: "Toggle experiment panel.")
       (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" visible?: #t action-handler: {Event-Handler :together on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
       (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" visible?: #t action-handler: {Event-Handler :together on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
       (<World-Action-Item> name: run-experiment9      title: "Run experiment #9" visible?: #t action-handler: {Event-Handler :together on-run-experiment9} shortcut: {Shortcut :control #\9} description: "Run experiment #9.")
@@ -1317,16 +1351,15 @@
   
   (form
     (<install>                                             title: "Debug"
-      (<World-Action-Item> name: toggle-mode               visible?: #t shortcut: {Shortcut :alt #\M} title: "Toggle mode" action-handler: {Event-Handler :together on-toggle-mode} description: "Toggle mode.")
-      (<World-Action-Item> name: toggle-hide               visible?: #t shortcut: {Shortcut :alt :shift #\H} title: "Toggle hide" action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle hide.")
-      (<World-Action-Item> name: toggle-debug              visible?: #t shortcut: {Shortcut :control :shift #\D} title: "Toggle debug" action-handler: {Event-Handler :together on-toggle-debug} description: "Toggle debug.")
-      (<World-Action-Item> name: toggle-debug-media        visible?: #t shortcut: {Shortcut :control :shift #\M} title: "Toggle debug media" action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
-      (<World-Action-Item> name: toggle-debug-flow         visible?: #t shortcut: {Shortcut :control :shift #\F} title: "Toggle debug flow" action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
-      (<World-Action-Item> name: toggle-admin              visible?: #t shortcut: {Shortcut :alt :shift #\A} title: "Toggle admin" action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
-      (<World-Action-Item> name: toggle-timeline           visible?: #t shortcut: {Shortcut :alt #\T} title: "Toggle timeline" action-handler: {Event-Handler :together on-toggle-timeline} description: "Toggle timeline.")
-      (<World-Action-Item> name: toggle-visualizer         visible?: #t shortcut: {Shortcut :alt :shift #\V} title: "Toggle visualizer" action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
-      (<World-Action-Item> name: toggle-denoise            visible?: #t title: "Toggle denoise" action-handler: {Event-Handler :together on-toggle-denoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle denoise.")
-      (<World-Action-Item> name: request-replays           visible?: #t shortcut: {Shortcut :alt :shift #\E} title: "Request replays" action-handler: {Event-Handler :together on-request-replays} description: "Request replays.")
-      (<World-Action-Item> name: add-bookmark              visible?: #t title: "Add bookmark" action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
-      (<World-Action-Item> name: configure-settings        visible?: #t shortcut: {Shortcut :control :shift #\Z} title: "Configure settings" action-handler: {Event-Handler :together on-configure-settings} description: "Configure settings.")
-      (<World-Action-Item> name: show-info                 visible?: #t shortcut: {Shortcut :control :shift #\I} title: "Show info" action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))
+      (<World-Action-Item> name: toggle-mode               title: "Fill mode" visible?: #t shortcut: {Shortcut :alt :shift #\M} action-handler: {Event-Handler :together on-toggle-mode} description: "Toggle mode.")
+      (<World-Action-Item> name: toggle-hide               title: "Hide widget" visible?: #t shortcut: {Shortcut :alt :shift #\H} action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle hide.")
+      (<World-Action-Item> name: toggle-debug              title: "Debug" visible?: #t shortcut: {Shortcut :control :shift #\D} action-handler: {Event-Handler :together on-toggle-debug} description: "Toggle debug.")
+      (<World-Action-Item> name: toggle-debug-media        title: "Debug media" visible?: #t shortcut: {Shortcut :control :shift #\M} action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
+      (<World-Action-Item> name: toggle-debug-flow         title: "Debug flow" visible?: #t shortcut: {Shortcut :control :shift #\F} action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
+      (<World-Action-Item> name: toggle-admin              title: "Admin" visible?: #t shortcut: {Shortcut :alt :shift #\A} action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
+      (<World-Action-Item> name: toggle-timeline           title: "Timeline" visible?: #t shortcut: {Shortcut :alt #\T} action-handler: {Event-Handler :together on-toggle-timeline} description: "Toggle timeline.")
+      (<World-Action-Item> name: toggle-visualizer         title: "Visualizer" visible?: #t shortcut: {Shortcut :alt :shift #\V} action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
+      (<World-Action-Item> name: request-replays           title: "Request replays" visible?: #t shortcut: {Shortcut :alt :shift #\E} action-handler: {Event-Handler :together on-request-replays} description: "Request replays.")
+      (<World-Action-Item> name: add-bookmark              title: "Add bookmark" visible?: #t action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
+      (<World-Action-Item> name: configure-settings        title: "Configure settings" visible?: #t shortcut: {Shortcut :control :shift #\Z} action-handler: {Event-Handler :together on-configure-settings} description: "Configure settings.")
+      (<World-Action-Item> name: show-info                 title: "Show info" visible?: #t shortcut: {Shortcut :control :shift #\I} action-handler: {Event-Handler :application on-show-info} description: "Show info.")))))

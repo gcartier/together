@@ -531,9 +531,7 @@
   
   
   (method override (space-actions self)
-    (append (list (find-actions 'together-call)
-                  (find-actions 'together-chat)
-                  (find-actions 'together-gathering))
+    (append (list (find-actions 'together-menu))
             (nextmethod self)))
   
   
@@ -663,7 +661,49 @@
       (set-unbind-camera? #t)
       (person-motion world feedback?: #f)
       (goto-layout video 'circle)
-      (show-mainbar self)))
+      (show-mainbar self)
+      (install-avatar self)))
+  
+  
+  (method (install-avatar self)
+    (let ((together (current-together))
+          (interface (current-interface))
+          (world (current-world)))
+      (define (show parent name)
+        (set-visible? (child parent name) #t))
+      
+      (define (hide parent name)
+        (set-visible? (child parent name) #f))
+      
+      (define (visible parent name flag)
+        (set-visible? (child parent name) flag))
+      
+      (define (title parent name str)
+        (set-title (child parent name) str))
+      
+      (define (color parent name color)
+        (set-color (child parent name) color))
+      
+      (define (location parent name loc)
+        (set-location (child parent name) loc))
+      
+      (define (proportion parent name prop)
+        (set-proportion (child parent name) prop))
+      
+      (show interface 'profile)
+      (visible interface 'people-label (not hide-people?))
+      (visible interface 'people (not hide-people?))
+      (proportion interface 'chat (chat-proportion together))
+      (location interface 'command-to (command-to-location together))
+      (location interface 'command (command-location together))
+      (visible interface 'chat-label (not hide-chat?))
+      (visible interface 'chat (not hide-chat?))
+      (visible interface 'command-to (not hide-chat?))
+      (visible interface 'command (not hide-chat?))
+      ;; quicky
+      (hide interface 'streams-label)
+      (hide interface 'streams)
+      (layout-view interface)))
   
   
   (method override (space-uninstall self)
@@ -673,15 +713,12 @@
   
   (method override (space-actions self)
     (append (list (find-actions 'world-showcase)
-                  (find-actions 'together-call)
-                  (find-actions 'together-chat)
-                  (find-actions 'together-view)
-                  (find-actions 'together-space)
-                  (find-actions 'together-media))
+                  (find-actions 'together-menu)
+                  (find-actions 'together-media)
+                  (find-actions 'together-circle))
             (if (developer?)
                 (list (find-actions 'world-script)
-                      (find-actions 'together-stream)
-                      (find-actions 'together-navigate)
+                      (find-actions 'together-share)
                       (find-actions 'together-profile)
                       (find-actions 'together-experiment)
                       (find-actions 'together-script)
@@ -779,16 +816,12 @@
   
   (method override (space-actions self)
     (append (list (find-actions 'world-showcase)
-                  (find-actions 'together-call)
-                  (find-actions 'together-chat)
-                  (find-actions 'together-view)
-                  (find-actions 'together-space)
+                  (find-actions 'together-menu)
                   (find-actions 'together-media)
                   (find-actions 'together-circle))
             (if (developer?)
                 (list (find-actions 'world-script)
-                      (find-actions 'together-stream)
-                      (find-actions 'together-navigate)
+                      (find-actions 'together-share)
                       (find-actions 'together-profile)
                       (find-actions 'together-experiment)
                       (find-actions 'together-script)
@@ -964,7 +997,7 @@
   
   
   (method override (space-actions self)
-    (append (list (find-actions 'together-lookat))
+    (append (list (find-actions 'together-circle))
             (nextmethod self))))
 
 
@@ -1301,12 +1334,7 @@
         (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
         (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
       (update-profile (child interface 'profile))
-      (add-exception-view)
-      ;; hide all
-      @YOWNU
-      (for-each (lambda (child)
-                  (set-visible? child #f))
-                (get-children interface))))
+      (add-exception-view)))
   
   
   (method (uninstall-zone self)
@@ -1388,9 +1416,7 @@
   
   
   (method (on-message self evt)
-    (let ((interface (current-interface)))
-      (show-chat self)
-      (acquire-focus (locate (child interface 'command) 'text))))
+    (chat-message self))
   
   
   (method (on-toggle-denoise self evt)
@@ -2061,6 +2087,12 @@
                (set-color to {Color World-Blue})
                (set! message-recipient (list 'player sender))))
         (focus-command-text self))))
+  
+  
+  (method package (chat-message self)
+    (let ((interface (current-interface)))
+      (show-chat self)
+      (acquire-focus (locate (child interface 'command) 'text))))
   
   
   (method (show-chat self)
