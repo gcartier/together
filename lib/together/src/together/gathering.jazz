@@ -206,6 +206,7 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    ;; quicky
     (let ((interface (current-interface)))
       (for-each hide (get-children interface))))
   
@@ -428,7 +429,7 @@
 ;;;
 
 
-(class Gathering-Space extends Sphere-Space
+(class Gathering-Space extends Together-Space
   
   
   (slot view-focused initialize #f getter generate)
@@ -530,6 +531,25 @@
       (layout-view root)
       (no-showcase world)))
   
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    ;; quicky
+    (let ((interface (current-interface)))
+      (for-each hide (get-children interface))))
+  
+  
+  (define-trait gathering-bindings Bindings
+    (<Trait>                   name: gathering
+      (<install>
+        (<world-main!>
+          (<!>                 name: bindings-viewer            active?: #t)
+          (<!>                 name: quit-world                 active?: #t)))))
+  
+  
+  (method override (space-bindings self)
+    (list gathering-bindings))
+
   
   (method override (space-actions self)
     (append (list (find-actions 'together-menu)
@@ -712,6 +732,225 @@
     (nextmethod self)
     (hide-mainbar self))
   
+
+  (define-trait avatar-bindings Bindings
+    (<Trait>                   name: avatar
+      (<install>
+        (<world-main!>
+          (<!>                 name: video-options              active?: #t)
+          (<!>                 name: audio-options              active?: #t)
+          (<!>                 name: interface-options          active?: #t)
+          (<!>                 name: bindings-viewer            active?: #t)
+          (<!>                 name: view-news                  active?: #t)
+          (<!>                 name: view-roadmap               active?: #t)
+          (<!>                 name: view-help                  active?: #t)
+          (<!>                 name: open-about                 active?: #t)
+          (<!>                 name: open-welcome               active?: #t)
+          (<!>                 name: quit-world                 active?: #t))
+        (<world-graphics!>
+          (<!>                 name: toggle-occlusion           active?: #t)
+          (<!>                 name: toggle-wireframe           active?: #t)
+          (<!>                 name: toggle-lighting            active?: #t)
+          (<!>                 name: toggle-fog                 active?: #t)
+          (<!>                 name: toggle-gadgets             active?: #t)
+          (<!>                 name: toggle-normals             active?: #t)
+          (<!>                 name: toggle-x-rays              active?: #t)
+          (<!>                 name: toggle-redstone-x-rays     active?: #t)
+          (<!>                 name: toggle-blocks              active?: #t)
+          (<!>                 name: toggle-models              active?: #t)
+          (<!>                 name: toggle-post-processing     active?: #t))
+        (<world-sound!>
+          (<!>                 name: toggle-music               active?: #t)
+          (<!>                 name: change-music               active?: #t)
+          (<!>                 name: display-music              active?: #t)
+          (<!>                 name: toggle-ambience            active?: #t)
+          (<!>                 name: toggle-sound               active?: #t))
+        (<world-interface!>
+          (<!>                 name: toggle-interface           active?: #t)
+          (<!>                 name: toggle-windowed-mode       active?: #t)
+          (<!>                 name: toggle-user                active?: #t))
+        (<world-zone!>
+          (<!>                 name: zone-new                   active?: #t)
+          (<!>                 name: zone-open                  active?: #t)
+          (<!>                 name: zone-open-content          active?: #t)
+          (<!>                 name: zone-reload                active?: #t)
+          (<!>                 name: zone-regenerate            active?: #t))
+        (<world-movement!>
+          (<!>                 name: rotate-player              active?: #t)
+          (<!>                 name: move-forward               active?: #t)
+          (<!>                 name: move-backward              active?: #t)
+          (<!>                 name: move-left                  active?: #t)
+          (<!>                 name: move-right                 active?: #t)
+          (<!>                 name: rotate-left                active?: #t)
+          (<!>                 name: rotate-right               active?: #t)
+          (<!>                 name: toggle-run                 active?: #t))
+        (<world-camera!>
+          (<!>                 name: rotate-camera              active?: #t)
+          (<!>                 name: zoom-in/out                active?: #t)
+          (<!>                 name: move-up                    active?: #t)
+          (<!>                 name: move-down                  active?: #t)
+          (<!>                 name: person-motion              active?: #t)
+          (<!>                 name: orbit-motion               active?: #t)
+          (<!>                 name: free-motion                active?: #t)
+          (<!>                 name: toggle-camera-smoothing    active?: #t)
+          (<!>                 name: toggle-camera-follow       active?: #t)
+          (<!>                 name: toggle-cursor-mode         active?: #t))
+        (<world-game!>
+          (<!>                 name: jump                       active?: #t)
+          (<!>                 name: mind-control               active?: #t)
+          (<!>                 name: toggle-aim                 active?: #t)
+          (<!>                 name: toggle-free-aim            active?: #t)
+          (<!>                 name: toggle-ride                active?: #t)
+          (<!>                 name: toggle-fly                 active?: #t)
+          (<!>                 name: toggle-vehicle             active?: #t)
+          (<!>                 name: toggle-glow                active?: #t)
+          (<!>                 name: compass-panel              active?: #t)
+          (<!>                 name: map-panel                  active?: #t)
+          (<!>                 name: combat-panel               active?: #t)
+          (<!>                 name: character-panel            active?: #t)
+          (<!>                 name: bag-panel                  active?: #t)
+          (<!>                 name: belt-panel                 active?: #t))
+        (<world-spell!>
+          (<!>                 name: bullet                     active?: #t)
+          (<!>                 name: arrow                      active?: #t)
+          @wait
+          (<!>                 name: rapid-fire                 active?: #t)
+          (<!>                 name: sprint                     active?: #t)
+          (<!>                 name: blink                      active?: #t)
+          (<!>                 name: warp                       active?: #t)
+          (<!>                 name: dash                       active?: #t))
+        (<world-people!>
+          (<!>                 name: toggle-people              active?: #t)
+          (<!>                 name: who-panel                  active?: #t))
+        (<world-chat!>
+          (<!>                 name: toggle-chat                active?: #t)
+          (<!>                 name: command-message            active?: #t)
+          (<!>                 name: command-slash              active?: #t))
+        (<world-showcase!>
+          (<!>                 name: showcase-menu              active?: #t)
+          (<!>                 name: no-showcase                active?: #t)
+          (<!>                 name: blocks-showcase            active?: #t)
+          (<!>                 name: models-showcase            active?: #t)
+          (<!>                 name: gadgets-showcase           active?: #t)
+          (<!>                 name: avatars-showcase           active?: #t)
+          (<!>                 name: tiles-showcase             active?: #t)
+          (<!>                 name: shaders-showcase           active?: #t)
+          (<!>                 name: animations-showcase        active?: #t)
+          (<!>                 name: meshes-showcase            active?: #t)
+          (<!>                 name: textures-showcase          active?: #t)
+          (<!>                 name: skyboxes-showcase          active?: #t))
+        (<world-build!>
+          (<!>                 name: add-element                active?: #t)
+          (<!>                 name: remove-element             active?: #t)
+          (<!>                 name: change-element             active?: #t)
+          (<!>                 name: import-model               active?: #t)
+          (<!>                 name: select-target              active?: #t)
+          (<!>                 name: delete-target              active?: #t)
+          (<!>                 name: toggle-grid                active?: #t)
+          (<!>                 name: toggle-grid-z              active?: #t)
+          (<!>                 name: toggle-grid-y              active?: #t)
+          (<!>                 name: toggle-grid-x              active?: #t)
+          (<!>                 name: move-grid                  active?: #t)
+          (<!>                 name: decrease-grid              active?: #t)
+          (<!>                 name: increase-grid              active?: #t)
+          (<!>                 name: reload-textures            active?: #t)
+          (<!>                 name: change-editor-mode         active?: #t))
+        (<world-target!>
+          (<!>                 name: select-target-mode         active?: #t)
+          (<!>                 name: move-target-mode           active?: #t)
+          (<!>                 name: rotate-target-mode         active?: #t)
+          (<!>                 name: scale-target-mode          active?: #t)
+          (<!>                 name: skeleton-target-mode       active?: #t))
+        (<world-history!>
+          (<!>                 name: toggle-paused              active?: #t)
+          (<!>                 name: backward-history           active?: #t)
+          (<!>                 name: forward-history            active?: #t)
+          (<!>                 name: step-backward              active?: #t)
+          (<!>                 name: step-forward               active?: #t)
+          (<!>                 name: step-over                  active?: #t)
+          (<!>                 name: reset-history              active?: #t)
+          (<!>                 name: toggle-evaluate-future     active?: #t)
+          (<!>                 name: toggle-synchronize-cameras active?: #t)
+          (<!>                 name: toggle-simulate-protocol   active?: #t))
+        (<world-script!>
+          (<!>                 name: test1                      active?: #t)
+          (<!>                 name: test2                      active?: #t)
+          (<!>                 name: test3                      active?: #t)
+          (<!>                 name: test4                      active?: #t)
+          (<!>                 name: test5                      active?: #t)
+          (<!>                 name: test6                      active?: #t)
+          (<!>                 name: test7                      active?: #t)
+          (<!>                 name: test8                      active?: #t)
+          (<!>                 name: test9                      active?: #t)
+          (<!>                 name: test0                      active?: #t)
+          (<!>                 name: run-script                 active?: #t)
+          (<!>                 name: run-last-script            active?: #t)
+          (<!>                 name: toggle-script              active?: #t)
+          (<!>                 name: view-script                active?: #t)
+          (<!>                 name: view-workspace             active?: #t)
+          (<!>                 name: clear-console              active?: #t)
+          (<!>                 name: clear-terminal             active?: #t))
+        (<world-debug!>
+          (<!>                 name: toggle-info                active?: #t)
+          (<!>                 name: toggle-profiler            active?: #t)
+          (<!>                 name: toggle-timeline            active?: #t)
+          (<!>                 name: toggle-target              active?: #t)
+          (<!>                 name: reset-profiling            active?: #t)
+          (<!>                 name: toggle-gc-sound            active?: #t)
+          (<!>                 name: explore-interface          active?: #t)
+          (<!>                 name: toggle-axes                active?: #t)
+          (<!>                 name: garbage-collect            active?: #t))
+        (<together-menu!>
+          (<!>                 name: central-menu               active?: #t))
+        (<together-media!>
+          (<!>                 name: toggle-mic                 active?: #t)
+          (<!>                 name: toggle-camera              active?: #t)
+          (<!>                 name: change-quality             active?: #t)
+          (<!>                 name: toggle-denoise             active?: #t))
+        (<together-circle!>
+          (<!>                 name: avatar-space               active?: #t)
+          (<!>                 name: circle-space               active?: #t)
+          (<!>                 name: focus-space                active?: #t)
+          (<!>                 name: gallery-space              active?: #t))
+        (<together-share!>
+          (<!>                 name: toggle-streams             active?: #t)
+          (<!>                 name: add-image                  active?: #t)
+          (<!>                 name: add-video                  active?: #t)
+          (<!>                 name: add-music                  active?: #t)
+          (<!>                 name: remove-stream              active?: #t)
+          (<!>                 name: toggle-screen-share        active?: #t))
+        (<together-script!>
+          (<!>                 name: update-catalogs            active?: #t)
+          (<!>                 name: edit-definition            active?: #t)
+          (<!>                 name: edit-script1               active?: #t)
+          (<!>                 name: edit-script2               active?: #t)
+          (<!>                 name: edit-script3               active?: #t)
+          (<!>                 name: edit-script4               active?: #t)
+          (<!>                 name: edit-script5               active?: #t)
+          (<!>                 name: edit-script6               active?: #t)
+          (<!>                 name: edit-script7               active?: #t)
+          (<!>                 name: edit-script8               active?: #t)
+          (<!>                 name: edit-script9               active?: #t)
+          (<!>                 name: edit-script0               active?: #t)
+          (<!>                 name: toggle-script              active?: #t))
+        (<together-debug!>
+          (<!>                 name: toggle-mode                active?: #t)
+          (<!>                 name: toggle-hide                active?: #t)
+          (<!>                 name: toggle-debug               active?: #t)
+          (<!>                 name: toggle-debug-media         active?: #t)
+          (<!>                 name: toggle-debug-flow          active?: #t)
+          (<!>                 name: toggle-admin               active?: #t)
+          (<!>                 name: toggle-timeline            active?: #t)
+          (<!>                 name: toggle-visualizer          active?: #t)
+          (<!>                 name: request-replays            active?: #t)
+          (<!>                 name: add-bookmark               active?: #t)
+          (<!>                 name: configure-settings         active?: #t)
+          (<!>                 name: show-info                  active?: #t)))))
+
+  
+  (method override (space-bindings self)
+    (list avatar-bindings))
+  
   
   (method override (space-actions self)
     (append (list (find-actions 'world-main)
@@ -732,8 +971,6 @@
                   (find-actions 'world-tile)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
-                  (find-actions 'world-tutorial)
-                  (find-actions 'world-anonymous)
                   (find-actions 'together-menu)
                   (find-actions 'together-media)
                   (find-actions 'together-circle)
@@ -827,18 +1064,162 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (restore-fov)
     (circle-uninstall-camera)
     (when auto-hide?
       (uninstall-hider self)))
   
   
+  (define-trait circling-bindings Bindings
+    (<Trait>                   name: circling
+      (<install>
+        (<world-main!>
+          (<!>                 name: video-options              active?: #t)
+          (<!>                 name: audio-options              active?: #t)
+          (<!>                 name: interface-options          active?: #t)
+          (<!>                 name: bindings-viewer            active?: #t)
+          (<!>                 name: view-news                  active?: #t)
+          (<!>                 name: view-roadmap               active?: #t)
+          (<!>                 name: view-help                  active?: #t)
+          (<!>                 name: open-about                 active?: #t)
+          (<!>                 name: open-welcome               active?: #t)
+          (<!>                 name: quit-world                 active?: #t))
+        (<world-graphics!>
+          (<!>                 name: toggle-occlusion           active?: #t)
+          (<!>                 name: toggle-wireframe           active?: #t)
+          (<!>                 name: toggle-lighting            active?: #t)
+          (<!>                 name: toggle-fog                 active?: #t)
+          (<!>                 name: toggle-gadgets             active?: #t)
+          (<!>                 name: toggle-normals             active?: #t)
+          (<!>                 name: toggle-x-rays              active?: #t)
+          (<!>                 name: toggle-redstone-x-rays     active?: #t)
+          (<!>                 name: toggle-blocks              active?: #t)
+          (<!>                 name: toggle-models              active?: #t)
+          (<!>                 name: toggle-post-processing     active?: #t))
+        (<world-sound!>
+          (<!>                 name: toggle-music               active?: #t)
+          (<!>                 name: change-music               active?: #t)
+          (<!>                 name: display-music              active?: #t)
+          (<!>                 name: toggle-ambience            active?: #t)
+          (<!>                 name: toggle-sound               active?: #t))
+        (<world-interface!>
+          (<!>                 name: toggle-interface           active?: #t)
+          (<!>                 name: toggle-windowed-mode       active?: #t)
+          (<!>                 name: toggle-user                active?: #t))
+        (<world-history!>
+          (<!>                 name: toggle-paused              active?: #t)
+          (<!>                 name: backward-history           active?: #t)
+          (<!>                 name: forward-history            active?: #t)
+          (<!>                 name: step-backward              active?: #t)
+          (<!>                 name: step-forward               active?: #t)
+          (<!>                 name: step-over                  active?: #t)
+          (<!>                 name: reset-history              active?: #t)
+          (<!>                 name: toggle-evaluate-future     active?: #t)
+          (<!>                 name: toggle-synchronize-cameras active?: #t)
+          (<!>                 name: toggle-simulate-protocol   active?: #t))
+        (<world-script!>
+          (<!>                 name: test1                      active?: #t)
+          (<!>                 name: test2                      active?: #t)
+          (<!>                 name: test3                      active?: #t)
+          (<!>                 name: test4                      active?: #t)
+          (<!>                 name: test5                      active?: #t)
+          (<!>                 name: test6                      active?: #t)
+          (<!>                 name: test7                      active?: #t)
+          (<!>                 name: test8                      active?: #t)
+          (<!>                 name: test9                      active?: #t)
+          (<!>                 name: test0                      active?: #t)
+          (<!>                 name: run-script                 active?: #t)
+          (<!>                 name: run-last-script            active?: #t)
+          (<!>                 name: toggle-script              active?: #t)
+          (<!>                 name: view-script                active?: #t)
+          (<!>                 name: view-workspace             active?: #t)
+          (<!>                 name: clear-console              active?: #t)
+          (<!>                 name: clear-terminal             active?: #t))
+        (<world-debug!>
+          (<!>                 name: toggle-info                active?: #t)
+          (<!>                 name: toggle-profiler            active?: #t)
+          (<!>                 name: toggle-timeline            active?: #t)
+          (<!>                 name: toggle-target              active?: #t)
+          (<!>                 name: reset-profiling            active?: #t)
+          (<!>                 name: toggle-gc-sound            active?: #t)
+          (<!>                 name: explore-interface          active?: #t)
+          (<!>                 name: toggle-axes                active?: #t)
+          (<!>                 name: garbage-collect            active?: #t))
+        (<together-menu!>
+          (<!>                 name: central-menu               active?: #t))
+        (<together-media!>
+          (<!>                 name: toggle-mic                 active?: #t)
+          (<!>                 name: toggle-camera              active?: #t)
+          (<!>                 name: change-quality             active?: #t)
+          (<!>                 name: toggle-denoise             active?: #t))
+        (<together-circle!>
+          (<!>                 name: avatar-space               active?: #t)
+          (<!>                 name: circle-space               active?: #t)
+          (<!>                 name: focus-space                active?: #t)
+          (<!>                 name: gallery-space              active?: #t))
+        (<together-share!>
+          (<!>                 name: toggle-streams             active?: #t)
+          (<!>                 name: add-image                  active?: #t)
+          (<!>                 name: add-video                  active?: #t)
+          (<!>                 name: add-music                  active?: #t)
+          (<!>                 name: remove-stream              active?: #t)
+          (<!>                 name: toggle-screen-share        active?: #t))
+        (<together-script!>
+          (<!>                 name: update-catalogs            active?: #t)
+          (<!>                 name: edit-definition            active?: #t)
+          (<!>                 name: edit-script1               active?: #t)
+          (<!>                 name: edit-script2               active?: #t)
+          (<!>                 name: edit-script3               active?: #t)
+          (<!>                 name: edit-script4               active?: #t)
+          (<!>                 name: edit-script5               active?: #t)
+          (<!>                 name: edit-script6               active?: #t)
+          (<!>                 name: edit-script7               active?: #t)
+          (<!>                 name: edit-script8               active?: #t)
+          (<!>                 name: edit-script9               active?: #t)
+          (<!>                 name: edit-script0               active?: #t)
+          (<!>                 name: toggle-script              active?: #t))
+        (<together-debug!>
+          (<!>                 name: toggle-mode                active?: #t)
+          (<!>                 name: toggle-hide                active?: #t)
+          (<!>                 name: toggle-debug               active?: #t)
+          (<!>                 name: toggle-debug-media         active?: #t)
+          (<!>                 name: toggle-debug-flow          active?: #t)
+          (<!>                 name: toggle-admin               active?: #t)
+          (<!>                 name: toggle-timeline            active?: #t)
+          (<!>                 name: toggle-visualizer          active?: #t)
+          (<!>                 name: request-replays            active?: #t)
+          (<!>                 name: add-bookmark               active?: #t)
+          (<!>                 name: configure-settings         active?: #t)
+          (<!>                 name: show-info                  active?: #t)))))
+  
+  
   (method override (space-actions self)
-    (append (list (find-actions 'world-showcase)
+    (append (list (find-actions 'world-main)
+                  (find-actions 'world-graphics)
+                  (find-actions 'world-sound)
+                  (find-actions 'world-interface)
+                  (find-actions 'world-zone)
+                  (find-actions 'world-movement)
+                  (find-actions 'world-camera)
+                  (find-actions 'world-game)
+                  (find-actions 'world-spell)
+                  (find-actions 'world-people)
+                  (find-actions 'world-chat)
+                  (find-actions 'world-showcase)
+                  (find-actions 'world-build)
+                  (find-actions 'world-target)
+                  (find-actions 'world-history)
+                  (find-actions 'world-tile)
                   (find-actions 'world-script)
+                  (find-actions 'world-debug)
                   (find-actions 'together-menu)
                   (find-actions 'together-media)
                   (find-actions 'together-circle)
-                  (find-actions 'together-share))
+                  (find-actions 'together-share)
+                  (find-actions 'together-profile)
+                  (find-actions 'together-experiment)
+                  (find-actions 'together-script)
+                  (find-actions 'together-debug))
             (nextmethod self)))
   
   
@@ -1005,7 +1386,26 @@
 ;;;
 
 
-(class Circle-Space extends Circling-Space)
+(class Circle-Space extends Circling-Space
+  
+  
+  (define-trait circle-bindings Bindings
+    (<Trait>                   name: circle
+      (<install>
+        (<together-circle!>
+          (<!>                 name: bring-to-front             active?: #t)
+          (<!>                 name: enter-press                active?: #t)
+          (<!>                 name: space-press                active?: #t)
+          (<!>                 name: left-press                 active?: #t)
+          (<!>                 name: right-press                active?: #t)
+          (<!>                 name: up-press                   active?: #t)
+          (<!>                 name: down-press                 active?: #t)
+          (<!>                 name: tab-press                  active?: #t)
+          (<!>                 name: number-press               active?: #t)))))
+  
+  
+  (method override (space-bindings self)
+    (list circling-bindings circle-bindings)))
 
 
 ;;;
@@ -1013,7 +1413,15 @@
 ;;;
 
 
-(class Focus-Space extends Circling-Space)
+(class Focus-Space extends Circling-Space
+  
+  
+  (method override (draw-world? self)
+    #f)
+  
+  
+  (method override (space-bindings self)
+    (list circling-bindings)))
 
 
 ;;;
@@ -1021,7 +1429,15 @@
 ;;;
 
 
-(class Gallery-Space extends Circling-Space)
+(class Gallery-Space extends Circling-Space
+  
+  
+  (method override (draw-world? self)
+    #f)
+  
+  
+  (method override (space-bindings self)
+    (list circling-bindings)))
 
 
 ;;;
@@ -1255,6 +1671,7 @@
   
   (method (together-enter self)
     (when (current-space+)
+      (space-deactivate (current-space))
       (space-uninstall (current-space)))
     (together-ready self)
     (set! space (need-space self 'gathering))
@@ -1298,6 +1715,7 @@
           (close-send-streams udp-client)
           (close-receive-streams udp-client))
         (uninstall-hooks self)
+        (space-deactivate space)
         (space-uninstall space)
         (uninstall-zone self)
         (set-unbind-camera? #t)
@@ -1460,7 +1878,8 @@
   
   (method (escape-press self)
     (let ((world (current-world)))
-      (toggle-radial-menu world))
+      (when (is? (current-space) Sphere-Space)
+        (toggle-radial-menu world)))
     @YOWNU
     (if (or (is? (active-focus) Filter-View)
             (is? (active-focus) Filter-Text))
@@ -1574,6 +1993,7 @@
   
   
   (method (goto-space self what)
+    (space-deactivate (current-space))
     (space-uninstall (current-space))
     (set! space (need-space self what))
     (space-install space)
@@ -2581,6 +3001,8 @@
   
   
   (method (toggle-script self)
+    @unify
+    (interface-script (not interface-script?))
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((toplevel (current-toplevel))

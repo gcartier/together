@@ -14,7 +14,8 @@
 (module together.login jazz
 
 
-(import (jazz.component)
+(import (jazz.action)
+        (jazz.component)
         (jazz.event)
         (jazz.graphic)
         (jazz.handler)
@@ -159,6 +160,23 @@
     (let ((interface (current-interface)))
       (close root)
       (for-each hide (get-children interface))))
+  
+  
+  (define-trait login-bindings Bindings
+    (<Trait>                   name: login
+      (<install>
+        (<world-main!>
+          (<!>                 name: bindings-viewer            active?: #t)
+          (<!>                 name: quit-world                 active?: #t)))))
+  
+  
+  (method override (space-bindings self)
+    (list login-bindings))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'world-main))
+            (nextmethod self)))
   
   
   (method override (mouse-track self elapse dx dy)
@@ -349,6 +367,7 @@
   
   
   (method protected (goto-space self what)
+    (space-deactivate (current-space))
     (space-uninstall (current-space))
     (set! space (need-space self what))
     (space-install space)
@@ -362,6 +381,7 @@
     (let ((avatar-change? (setup-avatar self)))
       (set! spaces (make-table test: eq?))
       (when (current-space+)
+        (space-deactivate (current-space))
         (space-uninstall (current-space)))
       (set! space (need-space self 'login))
       (space-install space)
