@@ -31,7 +31,7 @@
   (set-settings-root (determine-settings-root))
   (set-documents-root (determine-documents-root))
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user designer developer admin))
+  (set-valid-roles '(user builder developer admin))
   (register-domain-names)
   (initialize-aliases)
   (setup-build ".together-worker")

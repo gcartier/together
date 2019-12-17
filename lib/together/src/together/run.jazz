@@ -55,7 +55,7 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user designer developer))
+  (set-valid-roles '(user builder developer))
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
   (set-action-item-visibility #f)

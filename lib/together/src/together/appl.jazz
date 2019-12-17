@@ -675,14 +675,23 @@
   ;;;
   
   
-  (method override (role-traits self role)
+  (method override (role-bindings self)
+    (case current-role
+      ((user) user-bindings)
+      ((builder) builder-bindings)
+      ((developer) developer-bindings)
+      (else (nextmethod self))))
+  
+  
+  (method override (role-traits self)
     (let ((platform (cond-expand
                       (windows `((:bindings ,windows-bindings)))
                       (else '()))))
-      (case role
+      (case current-role
         ((user) `(,@user-role ,@platform))
+        ((builder) `(,@builder-role ,@platform))
         ((developer) `(,@developer-role ,@platform))
-        (else (nextmethod self role))))))
+        (else (nextmethod self))))))
 
 
 ;;;
@@ -1172,12 +1181,6 @@
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t)
         (<!>                 name: toggle-user                visible?: #t))
-      (<world-zone!>
-        (<!>                 name: zone-new                   visible?: #t)
-        (<!>                 name: zone-open                  visible?: #t)
-        (<!>                 name: zone-open-content          visible?: #t)
-        (<!>                 name: zone-reload                visible?: #t)
-        (<!>                 name: zone-regenerate            visible?: #t))
       (<world-movement!>
         (<!>                 name: rotate-player              visible?: #t)
         (<!>                 name: move-forward               visible?: #t)
@@ -1264,42 +1267,9 @@
         (<!>                 name: rotate-target-mode         visible?: #t)
         (<!>                 name: scale-target-mode          visible?: #t)
         (<!>                 name: skeleton-target-mode       visible?: #t))
-      (<world-history!>
-        (<!>                 name: toggle-paused              visible?: #t)
-        (<!>                 name: backward-history           visible?: #t)
-        (<!>                 name: forward-history            visible?: #t)
-        (<!>                 name: step-backward              visible?: #t)
-        (<!>                 name: step-forward               visible?: #t)
-        (<!>                 name: step-over                  visible?: #t)
-        (<!>                 name: reset-history              visible?: #t)
-        (<!>                 name: toggle-evaluate-future     visible?: #t)
-        (<!>                 name: toggle-synchronize-cameras visible?: #t)
-        (<!>                 name: toggle-simulate-protocol   visible?: #t))
-      (<world-script!>
-        (<!>                 name: test1                      visible?: #t)
-        (<!>                 name: test2                      visible?: #t)
-        (<!>                 name: test3                      visible?: #t)
-        (<!>                 name: test4                      visible?: #t)
-        (<!>                 name: test5                      visible?: #t)
-        (<!>                 name: test6                      visible?: #t)
-        (<!>                 name: test7                      visible?: #t)
-        (<!>                 name: test8                      visible?: #t)
-        (<!>                 name: test9                      visible?: #t)
-        (<!>                 name: test0                      visible?: #t)
-        (<!>                 name: run-script                 visible?: #t)
-        (<!>                 name: run-last-script            visible?: #t)
-        (<!>                 name: view-script                visible?: #t)
-        (<!>                 name: view-workspace             visible?: #t)
-        (<!>                 name: clear-console              visible?: #t)
-        (<!>                 name: clear-terminal             visible?: #t))
       (<world-debug!>
         (<!>                 name: toggle-info                visible?: #t)
-        (<!>                 name: toggle-profiler            visible?: #t)
-        (<!>                 name: reset-profiling            visible?: #t)
-        (<!>                 name: toggle-gc-sound            visible?: #t)
-        (<!>                 name: explore-interface          visible?: #t)
-        (<!>                 name: toggle-axes                visible?: #t)
-        (<!>                 name: garbage-collect            visible?: #t))
+        (<!>                 name: toggle-axes                visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
@@ -1428,6 +1398,7 @@
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t)
         (<!>                 name: toggle-user                visible?: #t))
+      @wait
       (<world-zone!>
         (<!>                 name: zone-new                   visible?: #t)
         (<!>                 name: zone-open                  visible?: #t)

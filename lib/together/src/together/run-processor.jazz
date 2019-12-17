@@ -34,7 +34,7 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user designer developer admin))
+  (set-valid-roles '(user builder developer admin))
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-build ".together-processor")
