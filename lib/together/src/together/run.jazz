@@ -112,7 +112,7 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; role
-                       world.role                 user
+                       world.role                 builder ;; user
                        ;; configure
                        world.render-rate          30.
                        world.render-rate-inactive 30.

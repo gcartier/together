@@ -167,7 +167,9 @@
       (<install>
         (<world-main!>
           (<!>                 name: bindings-viewer            active?: #t)
-          (<!>                 name: quit-world                 active?: #t)))))
+          (<!>                 name: quit-world                 active?: #t))
+        (<world-interface!>
+          (<!>                 name: toggle-windowed-mode       active?: #t)))))
   
   
   (method override (space-bindings self)
@@ -175,7 +177,8 @@
   
   
   (method override (space-actions self)
-    (append (list (find-actions 'world-main))
+    (append (list (find-actions 'world-main)
+                  (find-actions 'world-interface))
             (nextmethod self)))
   
   
