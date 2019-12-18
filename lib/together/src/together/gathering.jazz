@@ -584,6 +584,10 @@
   (method package (update-circle/join self)
     (let ((together (current-together))
           (interface (current-interface)))
+      (let ((selected-zone (get-selected-zone together)))
+        (set-title (child root 'join) (if (zone-loaded? together selected-zone)
+                                          "Join"
+                                        "Loading...")))
       (let ((selected-group (get-selected-group together)))
         (cond ((not selected-group)
                (set-title (child root 'circle) "")
@@ -1632,6 +1636,8 @@
   (slot spaces             initialize #f getter generate)
   (slot space              initialize #f getter generate)
   (slot configuration      initialize #f getter generate)
+  (slot selected-zone      initialize #f getter generate)
+  (slot loaded-zones       initialize #f getter generate)
   (slot selected-group     initialize #f getter generate)
   (slot selected-player    initialize #f getter generate)
   (slot circle-name        initialize #f getter generate)
@@ -1652,7 +1658,10 @@
   
   (method override (initialize self)
     (nextmethod self)
-    (set! spaces (make-table test: eq?)))
+    (set! spaces (make-table test: eq?))
+    (set! selected-zone 'start)
+    (set! loaded-zones (make-table test: equal?))
+    (table-set! loaded-zones selected-zone #t))
   
   
   (method (need-space self what)
@@ -1830,6 +1839,10 @@
                  (set-title to name)
                  (set-color to {Color World-Red})
                  (set! message-recipient recipient)))))))))
+  
+  
+  (method package (zone-loaded? self zone)
+    (table-ref loaded-zones zone #f))
   
   
   ;;;
@@ -2023,6 +2036,7 @@
       (set-server-exited-hook tier (~ server-exited self))
       (set-server-disconnected-hook tier (~ server-disconnected self))
       (set-server-reconnected-hook tier (~ server-reconnected self))
+      (set-zone-loaded-hook tier (~ zone-loaded self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
@@ -2049,6 +2063,7 @@
       (set-server-exited-hook tier #f)
       (set-server-disconnected-hook tier #f)
       (set-server-reconnected-hook tier #f)
+      (set-zone-loaded-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-stream-addable-hook tier #f)
       (set-render-hook video #f)
@@ -2096,6 +2111,12 @@
   (method (server-reconnected self character-name)
     (let ((world (current-world)))
       (display-message world (format "{a} reconnected" character-name))))
+  
+  
+  (method (zone-loaded self zone)
+    (table-set! loaded-zones zone #t)
+    (when (is? space Gathering-Space)
+      (update-circle/join space)))
   
   
   (method (hierarchy-update self hierarchy)
@@ -2370,7 +2391,12 @@
                (select group #f)))
             ((zone)
              (let ((client (current-client)))
-               (change-zone client selected))))))))
+               (load-zone client selected)
+               (set! selected-zone selected)
+               (when (is? space Gathering-Space)
+                 (update-circle/join space))
+               (when (zone-loaded? self selected)
+                 (change-zone client selected)))))))))
   
   
   (method package (people-double-click self)
