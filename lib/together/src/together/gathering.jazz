@@ -1965,8 +1965,6 @@
                   (play-camera tier)))
               (clear-message world)
               (uninstall-camera)
-              @SPACE-think-about
-              (remove-skybox zone)
               (cond-expand
                 (windows (set! hide-last-mouse #f))
                 (else))
