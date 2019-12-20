@@ -447,13 +447,15 @@
           (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
+          (new Kind-Label name: 'zone parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
+          (new Push-Button name: 'zone-enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter self))
           (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-          (new Push-Button name: 'join parent: root title: "Join" enabled?: #f location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
+          (new Push-Button name: 'circle-join parent: root title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
-          (new Kind-Label name: 'circle-label parent: root title: "New circle name" location: '(center -125) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: 'tail)
-          (new Name-View name: 'circle-view parent: root location: '(center -95) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid name-label: "Circle name" max-length: 40)
-          (new Name-Invalid name: 'circle-invalid parent: root location: '(center -77) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
-          (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self))
+          (new Kind-Label name: 'circle-label parent: root title: "New circle name" location: '(center (center -50)) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: 'tail)
+          (new Name-View name: 'circle-view parent: root location: '(center (center -20)) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid name-label: "Circle name" max-length: 40)
+          (new Name-Invalid name: 'circle-invalid parent: root location: '(center (center -2)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+          (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center (center 45)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self))
           (set! self.root root)))))
   
   
@@ -505,7 +507,7 @@
       (when (developer?)
         (let ((admin-visible? (get-visible? (child interface 'admin))))
           (visible root 'circle (not admin-visible?))
-          (visible root 'join (not admin-visible?))))
+          (visible root 'circle-join (not admin-visible?))))
       (show root 'circle-label)
       (show root 'circle-view)
       (show root 'circle-invalid)
@@ -584,18 +586,47 @@
   (method package (update-circle/join self)
     (let ((together (current-together))
           (interface (current-interface)))
-      (let ((selected-zone (get-selected-zone together)))
-        (set-title (child root 'join) (if (zone-loaded? together selected-zone)
-                                          "Join"
-                                        "Loading...")))
-      (let ((selected-group (get-selected-group together)))
-        (cond ((not selected-group)
-               (set-title (child root 'circle) "")
-               (set-enabled? (child root 'join) #f))
-              (else
+      (let ((selected-zone (get-selected-zone together))
+            (selected-group (get-selected-group together)))
+        (define (enter-visible flag)
+          (set-visible? (child root 'zone) flag)
+          (set-visible? (child root 'zone-enter) flag))
+        
+        (define (join-visible flag)
+          (set-visible? (child root 'circle) flag)
+          (set-visible? (child root 'circle-join) flag))
+        
+        (define (create-visible flag)
+          (set-visible? (child root 'circle-label) flag)
+          (set-visible? (child root 'circle-view) flag)
+          (set-visible? (child root 'circle-invalid) flag)
+          (set-visible? (child root 'circle-create) flag))
+        
+        (cond (selected-group
                (set-title (child root 'circle) selected-group)
-               (set-enabled? (child root 'join) #t)
+               (enter-visible #f)
+               (join-visible #t)
+               (create-visible #f)
+               (layout-view root))
+              (selected-zone
+               (let ((loaded? (zone-loaded? together selected-zone)))
+                 (set-title (child root 'zone) (cadr selected-zone))
+                 (set-title (child root 'zone-enter) (if loaded? "Enter" "Loading..."))
+                 (set-enabled? (child root 'zone-enter) loaded?)
+                 (enter-visible #t)
+                 (join-visible #f)
+                 (create-visible #f)
+                 (layout-view root)))
+              (else
+               (enter-visible #f)
+               (join-visible #f)
+               (create-visible #t)
                (layout-view root))))))
+  
+  
+  (method (on-enter self evt)
+    (let ((together (current-together)))
+      (enter-zone together)))
   
   
   (method (on-join self evt)
@@ -620,7 +651,7 @@
       (define (closer frame)
         (show root 'name)
         (show root 'circle)
-        (show root 'join)
+        (show root 'circle-join)
         (show interface 'profile)
         (show interface 'people-label)
         (show interface 'people)
@@ -654,7 +685,7 @@
       (set! view-focused (active-focus))
       (hide root 'name)
       (hide root 'circle)
-      (hide root 'join)
+      (hide root 'circle-join)
       (hide interface 'profile)
       (hide interface 'people-label)
       (hide interface 'people)
@@ -1659,7 +1690,6 @@
   (method override (initialize self)
     (nextmethod self)
     (set! spaces (make-table test: eq?))
-    (set! selected-zone 'start)
     (set! loaded-zones (make-table test: equal?))
     (table-set! loaded-zones selected-zone #t))
   
@@ -1915,6 +1945,11 @@
     (leave-circle self))
   
   
+  (method package (enter-zone self)
+    (uninstall-camera)
+    (goto-space self 'avatar))
+  
+  
   (method (check-has-camera? self)
     (let ((world (current-world)))
       (if (not-null? (cache-decreasing-camera-resolutions))
@@ -2113,6 +2148,8 @@
   
   (method (zone-loaded self zone)
     (table-set! loaded-zones zone #t)
+    (when (equal? zone selected-zone)
+      (change-zone self zone))
     (when (is? space Gathering-Space)
       (update-circle/join space)))
   
@@ -2374,7 +2411,13 @@
     (let ((tree (people-tree self)))
       (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
         (bind (kind . rest) selected
-          (define (select group player)
+          (define (select zone group player)
+            (unless (equal? zone selected-zone)
+              (let ((effective-zone (or zone 'start)))
+                (if (not (zone-loaded? self effective-zone))
+                    (load-zone self effective-zone)
+                  (change-zone self effective-zone))))
+            (set! selected-zone zone)
             (set! selected-group group)
             (set! selected-player player)
             (when (is? space Gathering-Space)
@@ -2383,18 +2426,12 @@
           (case kind
             ((player)
              (bind (player group) rest
-               (select group player)))
+               (select #f group player)))
             ((group)
              (bind (group) rest
-               (select group #f)))
+               (select #f group #f)))
             ((zone)
-             (let ((client (current-client)))
-               (load-zone client selected)
-               (set! selected-zone selected)
-               (when (is? space Gathering-Space)
-                 (update-circle/join space))
-               (when (zone-loaded? self selected)
-                 (change-zone client selected)))))))))
+             (select selected #f #f)))))))
   
   
   (method package (people-double-click self)
@@ -2727,6 +2764,23 @@
   
   
   ;;;
+  ;;;; Zone
+  ;;;
+  
+  
+  (method (load-zone self zone)
+    (let ((client (current-client)))
+      (load-zone client zone)))
+  
+  
+  (method (change-zone self zone)
+    (let ((client (current-client)))
+      (uninstall-camera)
+      (change-zone client zone)
+      (install-camera)))
+  
+  
+  ;;;
   ;;;; Circle
   ;;;
   
@@ -2954,7 +3008,7 @@
         (set-visible? (child interface 'admin) #t))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'circle-join) #f)
           (set-visible? (child root 'circle) #f)))
       (layout-view interface)))
   
@@ -2966,7 +3020,7 @@
         (set-visible? (child interface 'admin) #f))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'join) #t)
+          (set-visible? (child root 'circle-join) #t)
           (set-visible? (child root 'circle) #t)))))
   
   
@@ -3340,7 +3394,7 @@
       (set-visible? (child interface 'experiment) #t)
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'circle-join) #f)
           (set-visible? (child root 'circle) #f)))
       (view-experiment self)
       (layout-view interface)))
@@ -3352,7 +3406,7 @@
       (set-visible? (child interface 'experiment) #f)
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'join) #t)
+          (set-visible? (child root 'circle-join) #t)
           (set-visible? (child root 'circle) #t)))))
   
   
