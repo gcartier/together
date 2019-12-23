@@ -608,6 +608,11 @@
             (nextmethod self)))
   
   
+  (method override (zone-change self zone)
+    (let ((together (current-together)))
+      (prepare-skybox together)))
+  
+  
   (method override (show-me? self)
     #f)
   
