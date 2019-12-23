@@ -197,6 +197,18 @@
 
 
 ;;;
+;;;; Gathering-Zone
+;;;
+
+
+(class Gathering-Zone extends Zone
+  
+  
+  (method override (gathering? self)
+    #t))
+
+
+;;;
 ;;;; Sphere-Space
 ;;;
 
@@ -1260,6 +1272,11 @@
             (nextmethod self)))
   
   
+  (method override (draw-world? self)
+    (let ((zone (current-zone)))
+      (not (gathering? zone))))
+  
+  
   (method override (draw-message-offset self)
     65)
   
@@ -2012,7 +2029,7 @@
                             (stream-add tier no sender name stream-no origin source-kind video-level channels)))
                         streams)
               (install-circle-hooks self)
-              (goto-space self 'avatar)
+              (goto-space self (if (gathering? zone) 'circle 'avatar))
               (update-layouts video)
               (effective-base-profile-update)
               (when audio-only?
