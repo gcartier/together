@@ -1513,6 +1513,11 @@
         (<!>                 name: toggle-script              visible?: #t)
         (<!>                 name: view-script                visible?: #t)
         (<!>                 name: view-workspace             visible?: #t)
+        (<!>                 name: view-console               visible?: #t)
+        (<!>                 name: view-debugger              visible?: #t)
+        (<!>                 name: view-toolbox               visible?: #t)
+        (<!>                 name: cycle-panes                visible?: #t)
+        (<!>                 name: run-selected-script        visible?: #t)
         (<!>                 name: clear-console              visible?: #t)
         (<!>                 name: clear-terminal             visible?: #t))
       (<world-debug!>
