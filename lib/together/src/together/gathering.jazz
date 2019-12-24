@@ -49,6 +49,7 @@
         (world.camera)
         (world.chronology)
         (world.circle)
+        (world.client)
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
@@ -657,7 +658,12 @@
                (join-visible #t)
                (create-visible #f)
                (layout-view root))
-              (selected-zone
+              ((eq? selected-zone 'start)
+               (enter-visible #f)
+               (join-visible #f)
+               (create-visible #t)
+               (layout-view root))
+              (else
                (let ((loaded? (zone-loaded? together selected-zone)))
                  (set-title (child root 'zone) (cadr selected-zone))
                  (set-title (child root 'zone-enter) (if loaded? "Enter" "Loading..."))
@@ -665,12 +671,7 @@
                  (enter-visible #t)
                  (join-visible #f)
                  (create-visible #f)
-                 (layout-view root)))
-              (else
-               (enter-visible #f)
-               (join-visible #f)
-               (create-visible #t)
-               (layout-view root))))))
+                 (layout-view root)))))))
   
   
   (method (on-enter self evt)
@@ -1746,8 +1747,9 @@
   (method override (initialize self)
     (nextmethod self)
     (set! spaces (make-table test: eq?))
+    (set! selected-zone 'start)
     (set! loaded-zones (make-table test: equal?))
-    (table-set! loaded-zones selected-zone #t))
+    (table-set! loaded-zones (get-character-zone (get-configuration (current-tier))) #t))
   
   
   (method (need-space self what)
@@ -2469,10 +2471,9 @@
         (bind (kind . rest) selected
           (define (select zone group player)
             (unless (equal? zone selected-zone)
-              (let ((effective-zone (or zone 'start)))
-                (if (not (zone-loaded? self effective-zone))
-                    (load-zone self effective-zone)
-                  (change-zone self effective-zone))))
+              (if (not (zone-loaded? self zone))
+                  (load-zone self zone)
+                (change-zone self zone)))
             (set! selected-zone zone)
             (set! selected-group group)
             (set! selected-player player)
@@ -2482,10 +2483,10 @@
           (case kind
             ((player)
              (bind (player group) rest
-               (select #f group player)))
+               (select 'start group player)))
             ((group)
              (bind (group) rest
-               (select #f group #f)))
+               (select 'start group #f)))
             ((zone)
              (select selected #f #f)))))))
   
