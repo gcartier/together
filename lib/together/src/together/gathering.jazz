@@ -578,6 +578,8 @@
           (<!>                 name: view-workspace             active?: #t)
           (<!>                 name: clear-console              active?: #t)
           (<!>                 name: clear-terminal             active?: #t))
+        (<together-debug!>
+          (<!>                 name: toggle-admin               active?: #t))
         (<together-script!>
           (<!>                 name: update-catalogs            active?: #t)
           (<!>                 name: edit-definition            active?: #t)
@@ -603,6 +605,7 @@
                   (find-actions 'world-main)
                   (find-actions 'world-interface)
                   (find-actions 'world-script)
+                  (find-actions 'together-debug)
                   (find-actions 'together-script))
             (nextmethod self)))
   
