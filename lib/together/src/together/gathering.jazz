@@ -712,10 +712,7 @@
         (show interface 'chat)
         (show interface 'command-to)
         (show interface 'command)
-        (show root 'circle-label)
-        (show root 'circle-view)
-        (show root 'circle-invalid)
-        (show root 'circle-create)
+        (update-circle/join self)
         (when view-focused
           (inhibit-focus-selects-all view-focused
             (lambda ()
@@ -751,6 +748,10 @@
       (when (developer?)
         (hide interface 'admin-label)
         (hide interface 'admin))
+      (hide root 'zone)
+      (hide root 'zone-enter)
+      (hide root 'circle)
+      (hide root 'circle-join)
       (hide root 'circle-label)
       (hide root 'circle-view)
       (hide root 'circle-invalid)
@@ -3068,8 +3069,17 @@
         (set-visible? (child interface 'admin) #t))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'circle-join) #f)
-          (set-visible? (child root 'circle) #f)))
+          (define (hide parent name)
+            (set-visible? (child parent name) #f))
+          
+          (hide root 'zone)
+          (hide root 'zone-enter)
+          (hide root 'circle)
+          (hide root 'circle-join)
+          (hide root 'circle-label)
+          (hide root 'circle-view)
+          (hide root 'circle-invalid)
+          (hide root 'circle-create)))
       (layout-view interface)))
   
   
@@ -3080,8 +3090,7 @@
         (set-visible? (child interface 'admin) #f))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'circle-join) #t)
-          (set-visible? (child root 'circle) #t)))))
+          (update-circle/join space)))))
   
   
   (method (on-toggle-script self evt)
