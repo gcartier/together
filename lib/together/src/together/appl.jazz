@@ -149,7 +149,6 @@
   ;; copy-pasted from IDE
   (method override (install-process self)
     (nextmethod self)
-    (start-socket-server)
     ;; quick hack for starting two togethers locally
     (unless (and (developer?)
                  (world-setting 'world.inhibit-empty-fifos? #f))
@@ -1395,11 +1394,7 @@
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t)
         (<!>                 name: toggle-user                visible?: #t))
-      @wait
       (<world-zone!>
-        (<!>                 name: zone-new                   visible?: #t)
-        (<!>                 name: zone-open                  visible?: #t)
-        (<!>                 name: zone-open-content          visible?: #t)
         (<!>                 name: zone-reload                visible?: #t)
         (<!>                 name: zone-regenerate            visible?: #t))
       (<world-movement!>

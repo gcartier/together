@@ -43,7 +43,7 @@
 (definition protected (open-login-zone)
   (when (current-together)
     (together-exit (current-together)))
-  (open-standalone (find-tier (copy-zone-template "welcome" 'standalone) 'standalone)))
+  (open-login (find-tier (copy-zone-template "welcome" 'login) 'login)))
 
 
 (definition protected (open-circle-zone remote-file (from-login? #f))

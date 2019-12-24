@@ -60,7 +60,6 @@
         (world.interface.actions)
         (world.interface.bindings)
         (world.interface.chat)
-        (world.interface.clients)
         (world.interface.command)
         (world.interface.dialogs)
         (world.interface.documents)
@@ -71,7 +70,6 @@
         (world.interface.script)
         (world.interface.sheet)
         (world.interface.text)
-        (world.interface.tiers)
         (world.interface.timeline)
         (world.io)
         (world.manager)
@@ -859,9 +857,6 @@
           (<!>                 name: toggle-windowed-mode       active?: #t)
           (<!>                 name: toggle-user                active?: #t))
         (<world-zone!>
-          (<!>                 name: zone-new                   active?: #t)
-          (<!>                 name: zone-open                  active?: #t)
-          (<!>                 name: zone-open-content          active?: #t)
           (<!>                 name: zone-reload                active?: #t)
           (<!>                 name: zone-regenerate            active?: #t))
         (<world-movement!>
