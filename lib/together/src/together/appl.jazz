@@ -23,6 +23,7 @@
         (jazz.debugger)
         (jazz.debugger.stub)
         (jazz.editor)
+        (jazz.editor.c)
         (jazz.editor.commonlisp)
         (jazz.editor.jazz)
         (jazz.editor.lisp)
@@ -729,6 +730,7 @@
     (<install>                                         toplevel-state: restored toolbar-classes: ((:menubar . {Reference World-Menubar}) (:toolbar . {Reference World-Toolbar}) (:status . {Reference World-Status}))
       (<documents~>
         ;; Scripting
+        (<C-Text-Preferences>          name: c-text)
         (<Jazz-Text-Preferences>       name: jazz-text)
         (<Scheme-Text-Preferences>     name: scheme-text)
         (<CommonLisp-Text-Preferences> name: commonlisp-text)
