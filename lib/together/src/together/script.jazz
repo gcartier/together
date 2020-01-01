@@ -88,33 +88,35 @@
 (class Together-Script-Text-View extends Script-Text-View
   
   
-  ;@YOWNU
   (method override (content-changed self range strings undo-range undo-strings)
-    (let ((manager (find-ascendant self Script-Manager)))
-      (edited-update manager)))
+    (if (is? edited-entity world.script.asset:Asset-Entity)
+        (let ((manager (find-ascendant self Script-Manager)))
+          (edited-update manager))
+      (nextmethod self range strings undo-range undo-strings)))
   
   
-  ;@YOWNU
   (method override (evaluate-selection self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (clear-message world)
-      ;; quicky for now
-      (if (and edited-entity
-               ;; quick hack
-               (let ((root (get-root (get-asset edited-entity))))
-                 (or (null? root)
-                     (equal? (car root) "module"))))
-          (let ((manager (find-ascendant self Script-Manager)))
-            (save-script manager)
-            (nextmethod self))
-          (let ((panel (child interface 'script)))
-            (let ((manager (locate panel 'manager)))
-              (if edited-entity
-                  (let ((asset (get-asset edited-entity)))
-                    (save-script manager)
-                    (execute-script world (get-path asset)))
-                ;; initial quick try for unsaved scripts
-                (let ((entity (new Entity)))
-                  (let ((script (new Script parent: entity text: (get-string-content self))))
-                    (run-task entity script)))))))))))
+    (if (is? edited-entity world.script.asset:Asset-Entity)
+        (let ((interface (current-interface))
+              (world (current-world)))
+          (clear-message world)
+          ;; quicky for now
+          (if (and edited-entity
+                   ;; quick hack
+                   (let ((root (get-root (get-asset edited-entity))))
+                     (or (null? root)
+                         (equal? (car root) "module"))))
+              (let ((manager (find-ascendant self Script-Manager)))
+                (save-script manager)
+                (nextmethod self))
+            (let ((panel (child interface 'script)))
+              (let ((manager (locate panel 'manager)))
+                (if edited-entity
+                    (let ((asset (get-asset edited-entity)))
+                      (save-script manager)
+                      (execute-script world (get-path asset)))
+                  ;; initial quick try for unsaved scripts
+                  (let ((entity (new Entity)))
+                    (let ((script (new Script parent: entity text: (get-string-content self))))
+                      (run-task entity script))))))))
+      (nextmethod self)))))
