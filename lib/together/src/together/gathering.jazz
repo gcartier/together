@@ -78,6 +78,7 @@
         (world.profile)
         (world.profiling)
         (world.ring)
+        (world.screenshot)
         (world.script.asset)
         (world.settings)
         (world.skybox)
@@ -1014,7 +1015,8 @@
           (<!>                 name: add-video                  active?: #t)
           (<!>                 name: add-music                  active?: #t)
           (<!>                 name: remove-stream              active?: #t)
-          (<!>                 name: toggle-screen-share        active?: #t))
+          (<!>                 name: toggle-screen-share        active?: #t)
+          (<!>                 name: capture-screen             active?: #t))
         (<together-script!>
           (<!>                 name: update-catalogs            active?: #t)
           (<!>                 name: edit-definition            active?: #t)
@@ -1259,7 +1261,8 @@
           (<!>                 name: add-video                  active?: #t)
           (<!>                 name: add-music                  active?: #t)
           (<!>                 name: remove-stream              active?: #t)
-          (<!>                 name: toggle-screen-share        active?: #t))
+          (<!>                 name: toggle-screen-share        active?: #t)
+          (<!>                 name: capture-screen             active?: #t))
         (<together-script!>
           (<!>                 name: update-catalogs            active?: #t)
           (<!>                 name: edit-definition            active?: #t)
@@ -3422,6 +3425,17 @@
               (else
                (close-send-stream udp stream)
                (display-on/off world "Screen sharing" #f))))))
+  
+  
+  (method (on-capture-screen self evt)
+    (capture-screen self))
+  
+  
+  (method (capture-screen self)
+    (let ((world (current-world)))
+      (let ((file {File Home "Screenshot.png"}))
+        (capture-screen-to-file file)
+        (display-message world (format "Screen capture to: {a}" (parse file))))))
   
   
   (method (on-toggle-mode self evt)
