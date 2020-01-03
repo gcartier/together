@@ -543,14 +543,19 @@
       (update-circle/join self)
       (layout-view interface)
       (layout-view root)
+      (install-camera)
       (no-showcase world)))
   
   
   (method override (space-uninstall self)
     (nextmethod self)
-    ;; quicky
-    (let ((interface (current-interface)))
-      (for-each hide (get-children interface))))
+    (let ((world (current-world)))
+      ;; quicky
+      (let ((interface (current-interface)))
+        (for-each hide (get-children interface)))
+      (no-showcase world)
+      (restore-fov)
+      (uninstall-camera)))
   
   
   (define-trait gathering-bindings Bindings
@@ -777,7 +782,7 @@
           (world (current-world))
           (video (current-video)))
       (set-unbind-camera? #t)
-      (person-motion world feedback?: #f)
+      (person-motion world eye-center?: #f feedback?: #f)
       (goto-layout video 'circle)
       (show-mainbar self)
       (install-avatar self)))
@@ -1783,10 +1788,6 @@
       (space-deactivate (current-space))
       (space-uninstall (current-space)))
     (together-ready self)
-    (set! space (need-space self 'gathering))
-    (space-install space)
-    (set-current-space space)
-    (space-activate space)
     (when auto-create
       (let ((client (current-client)))
         (for-each (lambda (name)
@@ -1795,7 +1796,12 @@
     (cond (auto-join
            (join-circle self auto-join))
           (auto-script
-           (goto-script/last self))))
+           (goto-script/last self))
+          (else
+           (set! space (need-space self 'gathering))
+           (space-install space)
+           (set-current-space space)
+           (space-activate space))))
   
   
   (method (together-exit self)
@@ -1810,7 +1816,6 @@
         (install-zone self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
-        (install-camera)
         (view-people self))))
   
   
@@ -1828,10 +1833,7 @@
         (space-uninstall space)
         (uninstall-zone self)
         (set-unbind-camera? #t)
-        (set! space #f)
-        (no-showcase world)
-        (restore-fov)
-        (uninstall-camera))))
+        (set! space #f))))
   
   
   (method (setup-configuration self)
