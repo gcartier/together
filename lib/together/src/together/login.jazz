@@ -476,7 +476,7 @@
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone file #t)))))
+        (open-circle-zone file from-login?: #t)))))
 
 
 ;;;

@@ -46,8 +46,8 @@
   (open-login (find-tier (copy-zone-template "welcome" 'login) 'login)))
 
 
-(definition protected (open-circle-zone remote-file (from-login? #f))
-  (let ((obj (open-client remote-file)))
+(definition protected (open-circle-zone remote-file (zone: zone #f) (from-login?: from-login? #f))
+  (let ((obj (open-client remote-file zone: zone)))
     (if (is? obj Zone)
         (if (current-together)
             (together-enter (current-together))
@@ -67,7 +67,8 @@
             (not (get-character-avatar (instantiate (read-form file))))
             (shift-down?))
         (open-login-zone)
-      (open-circle-zone file))))
+      (let ((zone (world-setting 'world.auto-zone #f)))
+        (open-circle-zone file zone: zone)))))
 
 
 (welcome-zone-open-set! open-login/circle-zone)
