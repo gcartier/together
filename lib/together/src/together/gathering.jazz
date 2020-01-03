@@ -783,7 +783,6 @@
           (video (current-video)))
       (set-unbind-camera? #t)
       (person-motion world eye-center?: #f feedback?: #f)
-      (goto-layout video 'circle)
       (show-mainbar self)
       (install-avatar self)))
   
@@ -2083,7 +2082,6 @@
                         streams)
               (install-circle-hooks self)
               (goto-space self (if (gathering? zone) 'circle 'avatar))
-              (update-layouts video)
               (effective-base-profile-update)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
