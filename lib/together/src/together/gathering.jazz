@@ -782,7 +782,7 @@
           (world (current-world))
           (video (current-video)))
       (set-unbind-camera? #t)
-      (person-motion world eye-center?: #f feedback?: #f)
+      (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
       (show-mainbar self)
       (install-avatar self)))
   
