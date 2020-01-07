@@ -1165,7 +1165,6 @@
       (<world-graphics!>
         (<!>                 name: toggle-occlusion           visible?: #t)
         (<!>                 name: toggle-wireframe           visible?: #t)
-        @wait (<!>                 name: toggle-lighting            visible?: #t)
         @wait (<!>                 name: toggle-fog                 visible?: #t)
         @wait (<!>                 name: toggle-gadgets             visible?: #t)
         @wait (<!>                 name: toggle-normals             visible?: #t)
@@ -1380,7 +1379,6 @@
       (<world-graphics!>
         (<!>                 name: toggle-occlusion           visible?: #t)
         (<!>                 name: toggle-wireframe           visible?: #t)
-        (<!>                 name: toggle-lighting            visible?: #t)
         (<!>                 name: toggle-fog                 visible?: #t)
         (<!>                 name: toggle-gadgets             visible?: #t)
         (<!>                 name: toggle-normals             visible?: #t)

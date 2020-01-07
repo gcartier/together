@@ -850,7 +850,6 @@
         (<world-graphics!>
           (<!>                 name: toggle-occlusion           active?: #t)
           (<!>                 name: toggle-wireframe           active?: #t)
-          (<!>                 name: toggle-lighting            active?: #t)
           (<!>                 name: toggle-fog                 active?: #t)
           (<!>                 name: toggle-gadgets             active?: #t)
           (<!>                 name: toggle-normals             active?: #t)
@@ -1189,7 +1188,6 @@
         (<world-graphics!>
           (<!>                 name: toggle-occlusion           active?: #t)
           (<!>                 name: toggle-wireframe           active?: #t)
-          (<!>                 name: toggle-lighting            active?: #t)
           (<!>                 name: toggle-fog                 active?: #t)
           (<!>                 name: toggle-gadgets             active?: #t)
           (<!>                 name: toggle-normals             active?: #t)
