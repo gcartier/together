@@ -1866,8 +1866,7 @@
         (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
         (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
         (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
-      (update-profile (child interface 'profile))
-      (add-exception-view)))
+      (update-profile (child interface 'profile))))
   
   
   (method (uninstall-zone self)
@@ -1881,8 +1880,7 @@
       (close (child interface 'command-to))
       (when (developer?)
         (close (child interface 'admin-label))
-        (close (child interface 'admin)))
-      (close (child interface 'exception))))
+        (close (child interface 'admin)))))
   
   
   (method protected (sleep-process self)
