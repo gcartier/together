@@ -1001,6 +1001,7 @@
           (<!>                 name: toggle-gc-sound            active?: #t)
           (<!>                 name: explore-interface          active?: #t)
           (<!>                 name: toggle-axes                active?: #t)
+          (<!>                 name: toggle-orientation         active?: #t)
           (<!>                 name: garbage-collect            active?: #t))
         (<together-menu!>
           (<!>                 name: central-menu               active?: #t))
@@ -1244,7 +1245,6 @@
           (<!>                 name: reset-profiling            active?: #t)
           (<!>                 name: toggle-gc-sound            active?: #t)
           (<!>                 name: explore-interface          active?: #t)
-          (<!>                 name: toggle-axes                active?: #t)
           (<!>                 name: garbage-collect            active?: #t))
         (<together-menu!>
           (<!>                 name: central-menu               active?: #t))

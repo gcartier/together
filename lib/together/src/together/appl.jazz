@@ -1254,7 +1254,8 @@
         (<!>                 name: skeleton-target-mode       visible?: #t))
       (<world-debug!>
         (<!>                 name: toggle-info                visible?: #t)
-        (<!>                 name: toggle-axes                visible?: #t))
+        (<!>                 name: toggle-axes                visible?: #t)
+        (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
@@ -1516,6 +1517,7 @@
         (<!>                 name: toggle-gc-sound            visible?: #t)
         (<!>                 name: explore-interface          visible?: #t)
         (<!>                 name: toggle-axes                visible?: #t)
+        (<!>                 name: toggle-orientation         visible?: #t)
         (<!>                 name: garbage-collect            visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
