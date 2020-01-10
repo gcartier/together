@@ -51,12 +51,12 @@
     (clear-terminal))
   
   
-  (method override (evaluate-code self thunk)
+  (method override (evaluating-code self thunk)
     (with-exception-catcher
       (lambda (exc)
         (let ((world (current-world)))
           (display-message world (split-string (exception-reason exc) #\newline)
-            duration: 60.)))
+            duration: 15.)))
       thunk))
   
   
@@ -67,4 +67,4 @@
                                         (equal? (car all) "Walk problems encountered"))
                                    (subseq all 2 (length all))
                                  all))
-        duration: 60.)))))
+        duration: 15.)))))
