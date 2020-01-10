@@ -363,18 +363,9 @@
         (when (is? text Together-Script-Text-View)
           (let ((form (current-expr text)))
             (when (symbol? form)
-              (let ((target (standardize-form text form #t)))
-                (let ((definitions (get-coalesced-definitions (get-cataloguer) target)))
-                  (if (null? definitions)
-                      (bell)
-                    (case (length definitions)
-                      ((1) (let ((history-item (current-history-item text))
-                                 (entry (car definitions)))
-                             (let ((file (get-moniker entry))
-                                   (range (get-range entry)))
-                               (add-history self history-item)
-                               (edit-document self file selection: range))))
-                      (else (display-message world (format "Ambiguous definition: {a}" target)))))))))))))
+              (let ((target (standardize-form text form #t))
+                    (history-item (current-history-item text)))
+                (edit-catalog-target target history-item: history-item))))))))
   
   
   ;;;
@@ -384,11 +375,7 @@
   
   (method override (edit-document self moniker . rest)
     (bind-keywords ((selection #f)) rest
-      (let ((together (current-together)))
-        ;; quick hack
-        (let ((assets (new Assets #f #f (get-parent moniker))))
-          (let ((asset (new Asset assets '() (list (get-name moniker)))))
-            (edit-script together asset selection: selection))))))
+      (edit-catalog-script moniker selection: selection)))
   
   
   ;;;
@@ -967,8 +954,7 @@
       (<World-Action-Item> name: edit-script7         title: "Edit script #7" shortcut: {Shortcut :control :alt #\7} action-handler: {Event-Handler :together on-edit-script7} description: "Edit test #7.")
       (<World-Action-Item> name: edit-script8         title: "Edit script #8" shortcut: {Shortcut :control :alt #\8} action-handler: {Event-Handler :together on-edit-script8} description: "Edit test #8.")
       (<World-Action-Item> name: edit-script9         title: "Edit script #9" shortcut: {Shortcut :control :alt #\9} action-handler: {Event-Handler :together on-edit-script9} description: "Edit test #9.")
-      (<World-Action-Item> name: edit-script0         title: "Edit script #0" shortcut: {Shortcut :control :alt #\0} action-handler: {Event-Handler :together on-edit-script0} description: "Edit test #0.")
-      (<World-Action-Item> name: toggle-script        title: "Toggle script" shortcut: {Shortcut :control :alt #\S} action-handler: {Event-Handler :together on-toggle-script} description: "Toggle script."))))
+      (<World-Action-Item> name: edit-script0         title: "Edit script #0" shortcut: {Shortcut :control :alt #\0} action-handler: {Event-Handler :together on-edit-script0} description: "Edit test #0."))))
 
 
 (class Together-Debug-Actions extends World-Actions
@@ -1508,12 +1494,12 @@
         (<!>                 name: test0                      visible?: #t)
         (<!>                 name: run-script                 visible?: #t)
         (<!>                 name: run-last-script            visible?: #t)
-        (<!>                 name: toggle-script              visible?: #t)
         (<!>                 name: view-script                visible?: #t)
         (<!>                 name: view-workspace             visible?: #t)
         (<!>                 name: view-console               visible?: #t)
         (<!>                 name: view-debugger              visible?: #t)
         (<!>                 name: view-toolbox               visible?: #t)
+        (<!>                 name: target-script              visible?: #t)
         (<!>                 name: cycle-panes                visible?: #t)
         (<!>                 name: run-selected-script        visible?: #t)
         (<!>                 name: clear-console              visible?: #t)
@@ -1570,8 +1556,7 @@
         (<!>                 name: edit-script7               visible?: #t)
         (<!>                 name: edit-script8               visible?: #t)
         (<!>                 name: edit-script9               visible?: #t)
-        (<!>                 name: edit-script0               visible?: #t)
-        (<!>                 name: toggle-script              visible?: #t))
+        (<!>                 name: edit-script0               visible?: #t))
       (<together-debug!>
         (<!>                 name: toggle-mode                visible?: #t)
         (<!>                 name: toggle-hide                visible?: #t)

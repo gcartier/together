@@ -579,9 +579,9 @@
           (<!>                 name: test0                      active?: #t)
           (<!>                 name: run-script                 active?: #t)
           (<!>                 name: run-last-script            active?: #t)
-          (<!>                 name: toggle-script              active?: #t)
           (<!>                 name: view-script                active?: #t)
           (<!>                 name: view-workspace             active?: #t)
+          (<!>                 name: target-script              active?: #t)
           (<!>                 name: clear-console              active?: #t)
           (<!>                 name: clear-terminal             active?: #t))
         (<world-debug!>
@@ -600,8 +600,7 @@
           (<!>                 name: edit-script7               active?: #t)
           (<!>                 name: edit-script8               active?: #t)
           (<!>                 name: edit-script9               active?: #t)
-          (<!>                 name: edit-script0               active?: #t)
-          (<!>                 name: toggle-script              active?: #t)))))
+          (<!>                 name: edit-script0               active?: #t)))))
   
   
   (method override (space-bindings self)
@@ -980,12 +979,12 @@
           (<!>                 name: test0                      active?: #t)
           (<!>                 name: run-script                 active?: #t)
           (<!>                 name: run-last-script            active?: #t)
-          (<!>                 name: toggle-script              active?: #t)
           (<!>                 name: view-script                active?: #t)
           (<!>                 name: view-workspace             active?: #t)
           (<!>                 name: view-console               active?: #t)
           (<!>                 name: view-debugger              active?: #t)
           (<!>                 name: view-toolbox               active?: #t)
+          (<!>                 name: target-script              active?: #t)
           (<!>                 name: cycle-panes                active?: #t)
           (<!>                 name: run-selected-script        active?: #t)
           (<!>                 name: clear-console              active?: #t)
@@ -1032,8 +1031,7 @@
           (<!>                 name: edit-script7               active?: #t)
           (<!>                 name: edit-script8               active?: #t)
           (<!>                 name: edit-script9               active?: #t)
-          (<!>                 name: edit-script0               active?: #t)
-          (<!>                 name: toggle-script              active?: #t))
+          (<!>                 name: edit-script0               active?: #t))
         (<together-debug!>
           (<!>                 name: toggle-mode                active?: #t)
           (<!>                 name: toggle-hide                active?: #t)
@@ -1230,9 +1228,9 @@
           (<!>                 name: test0                      active?: #t)
           (<!>                 name: run-script                 active?: #t)
           (<!>                 name: run-last-script            active?: #t)
-          (<!>                 name: toggle-script              active?: #t)
           (<!>                 name: view-script                active?: #t)
           (<!>                 name: view-workspace             active?: #t)
+          (<!>                 name: target-script              active?: #t)
           (<!>                 name: clear-console              active?: #t)
           (<!>                 name: clear-terminal             active?: #t))
         (<world-debug!>
@@ -1277,8 +1275,7 @@
           (<!>                 name: edit-script7               active?: #t)
           (<!>                 name: edit-script8               active?: #t)
           (<!>                 name: edit-script9               active?: #t)
-          (<!>                 name: edit-script0               active?: #t)
-          (<!>                 name: toggle-script              active?: #t))
+          (<!>                 name: edit-script0               active?: #t))
         (<together-debug!>
           (<!>                 name: toggle-mode                active?: #t)
           (<!>                 name: toggle-hide                active?: #t)
@@ -3101,10 +3098,6 @@
           (update-circle/join space)))))
   
   
-  (method (on-toggle-script self evt)
-    (toggle-script self))
-  
-  
   (method (on-toggle-timeline self evt)
     (let ((interface (current-interface))
           (world (current-world))
@@ -3157,19 +3150,15 @@
        (goto-script/last self))))
   
   
+  @convert!?
   (method (toggle-script self)
-    @unify
-    (interface-script (not interface-script?))
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((toplevel (current-toplevel))
             (panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (if (get-visible? panel)
-              (if #f @really-annoys-me-in-the-end (script-modified? manager)
-                  (begin
-                    (save-script manager)
-                    (edited-update manager))
+              (begin
                 (set-visible? panel #f)
                 (set-caption toplevel #f)
                 (focus-world))
@@ -3519,65 +3508,43 @@
   
   
   (method (on-edit-script1 self evt)
-    (edit-script self (world-setting 'world.test1-script "test/test1")))
+    (edit-asset-script (world-setting 'world.test1-script "test/test1")))
   
   
   (method (on-edit-script2 self evt)
-    (edit-script self (world-setting 'world.test2-script "test/test2")))
+    (edit-asset-script (world-setting 'world.test2-script "test/test2")))
   
   
   (method (on-edit-script3 self evt)
-    (edit-script self (world-setting 'world.test3-script "test/test3")))
+    (edit-asset-script (world-setting 'world.test3-script "test/test3")))
   
   
   (method (on-edit-script4 self evt)
-    (edit-script self (world-setting 'world.test4-script "test/test4")))
+    (edit-asset-script (world-setting 'world.test4-script "test/test4")))
   
   
   (method (on-edit-script5 self evt)
-    (edit-script self (world-setting 'world.test5-script "test/test5")))
+    (edit-asset-script (world-setting 'world.test5-script "test/test5")))
   
   
   (method (on-edit-script6 self evt)
-    (edit-script self (world-setting 'world.test6-script "test/test6")))
+    (edit-asset-script (world-setting 'world.test6-script "test/test6")))
   
   
   (method (on-edit-script7 self evt)
-    (edit-script self (world-setting 'world.test7-script "test/test7")))
+    (edit-asset-script (world-setting 'world.test7-script "test/test7")))
   
   
   (method (on-edit-script8 self evt)
-    (edit-script self (world-setting 'world.test8-script "test/test8")))
+    (edit-asset-script (world-setting 'world.test8-script "test/test8")))
   
   
   (method (on-edit-script9 self evt)
-    (edit-script self (world-setting 'world.test9-script "test/test9")))
+    (edit-asset-script (world-setting 'world.test9-script "test/test9")))
   
   
   (method (on-edit-script0 self evt)
-    (edit-script self (world-setting 'world.test0-script "test/test0")))
-  
-  
-  (method protected (edit-script self script/name (selection: selection #f))
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (let ((panel (child interface 'script)))
-        (let ((manager (locate panel 'manager)))
-          (let ((text (locate manager '(script text))))
-            (let ((script (if (is? script/name Asset)
-                              script/name
-                            (find-script world script/name))))
-              (when script
-                (save-script manager)
-                (call-setup-catalogs)
-                (let ((entity (register-asset-script script)))
-                  (set-edited-entity entity)
-                  (set-edited manager entity)
-                  (set-moniker text (get-file script))
-                  (when selection
-                    (set-selection-safe text selection reposition: 'vertical ensure-displayed?: 'center-caret)))))
-            (acquire-focus text)))
-        (set-visible? panel #t)))))
+    (edit-asset-script (world-setting 'world.test0-script "test/test0"))))
 
 
 ;;;
