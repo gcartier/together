@@ -394,9 +394,9 @@
                 (receiver (get-receiver-evolution visualizer))
                 (server? (equal? tier "_server")))
             (case events-mode
-              ((origin) (plot origin 0 24.))
-              ((server) (plot server 0 24.))
-              ((receiver) (plot receiver 0 24.))
+              ((origin) (when origin (plot origin 0 24.)))
+              ((server) (when server (plot server 0 24.)))
+              ((receiver) (when receiver (plot receiver 0 24.)))
               ((all) (let ((width (cast <fl> (get-width self))))
                        (when origin
                          (set-color surface {Color Gray alpha: .4})
