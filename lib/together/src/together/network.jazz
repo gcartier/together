@@ -37,24 +37,6 @@
         (together))
 
 
-(definition protected pulse-upload
-  0)
-
-(definition protected pulse-download
-  0)
-
-(definition protected pulse-values
-  '(0 100 200 500 1000 2000 5000 10000 20000))
-
-(definition protected (cycle-pulse-upload (reversed?: reversed? #f))
-  (set! pulse-upload (or (cycle-element pulse-values pulse-upload cycle?: #f reversed?: reversed?) pulse-upload))
-  pulse-upload)
-
-(definition protected (cycle-pulse-download (reversed?: reversed? #f))
-  (set! pulse-download (or (cycle-element pulse-values pulse-download cycle?: #f reversed?: reversed?) pulse-download))
-  pulse-download)
-
-
 (definition protected running-profile
   #f)
 
@@ -148,8 +130,7 @@
                     (loop (+ n 1))))
                 'redraw)))
         (let ((send-thread
-                (and (or (not pulse?)
-                         (> pulse-upload 0))
+                (and (not pulse?)
                      (new-thread
                        (lambda ()
                          (let ((start 0.))
@@ -189,17 +170,11 @@
                              (profile 16))
                            
                            (declare (proper-tail-calls))
-                           (cond (pulse?
-                                  (when (> pulse-download 0)
-                                    (test-profile client 'download (list pulse-download)))
-                                  (when (> pulse-upload 0)
-                                    (profile-upload pulse-upload feedback?: #f)))
-                                 (else
-                                  (wait (+ start recuperate))
-                                  (increase! start recuperate)
-                                  (profile-bandwiths profile-upload)
-                                  (profile-bandwiths profile-download)
-                                  (profile-bandwiths profile-both)))
+                           (wait (+ start recuperate))
+                           (increase! start recuperate)
+                           (profile-bandwiths profile-upload)
+                           (profile-bandwiths profile-download)
+                           (profile-bandwiths profile-both)
                            (exit-thread pulse-thread)
                            (thread-join! pulse-thread)
                            (exit-thread redraw-thread)
