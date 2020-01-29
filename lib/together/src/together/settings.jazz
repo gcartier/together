@@ -67,7 +67,7 @@
             (not (get-character-avatar (instantiate (read-form file))))
             (shift-down?))
         (open-login-zone)
-      (let ((zone (world-setting 'world.auto-zone #f)))
+      (let ((zone (and sphere? (world-setting 'world.auto-zone #f))))
         (open-circle-zone file zone: zone)))))
 
 

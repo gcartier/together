@@ -653,6 +653,11 @@
           (,World-Build-Menu      build-menu    radial     center #f)
           (,World-Script-Menu     script-menu   radial     center #f)
           (,World-Debug-Menu      debug-menu    radial     center #f)))
+      (when (not sphere?)
+        (let ((menu (child interface '(central-menu main-menu))))
+          (close (child menu 'video-options))
+          (close (child menu 'audio-options))
+          (close (child menu 'interface-options))))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -663,22 +668,25 @@
   
   
   (method override (role-bindings self)
-    (case current-role
-      ((user) user-bindings)
-      ((builder) builder-bindings)
-      ((developer) developer-bindings)
-      (else (nextmethod self))))
+    (let ((platform (cond-expand
+                      (windows `(,windows-bindings))
+                      (else '())))
+          (backward (if (not sphere?)
+                        `(,backward-bindings)
+                      '())))
+      (case current-role
+        ((user) `(,user-bindings ,@platform ,@backward))
+        ((builder) `(,builder-bindings ,@platform))
+        ((developer) `(,developer-bindings ,@platform))
+        (else (nextmethod self)))))
   
   
   (method override (role-traits self)
-    (let ((platform (cond-expand
-                      (windows `((:bindings ,windows-bindings)))
-                      (else '()))))
-      (case current-role
-        ((user) `(,@user-role ,@platform))
-        ((builder) `(,@builder-role ,@platform))
-        ((developer) `(,@developer-role ,@platform))
-        (else (nextmethod self))))))
+    (case current-role
+      ((user) `(,@user-role))
+      ((builder) `(,@builder-role))
+      ((developer) `(,@developer-role))
+      (else (nextmethod self)))))
 
 
 ;;;
@@ -777,30 +785,6 @@
 
 
 ;;;
-;;;; Main
-;;;
-
-
-(class Together-Main-Menu extends World-Radial-Menu
-  
-  
-  (form
-    (<install>                  title: "Main"
-      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action world-main video-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main audio-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
-      (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
-      @wait
-      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
-      (<World-Action-Button>    resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-main open-about})
-      @wait
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
-      (<World-Action-Button>    resource: {Icon-Resource "Landmarks/Japanese-Gate"} action-handler: {Action world-main open-welcome})
-      (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
-
-
-;;;
 ;;;; Main Bar
 ;;;
 
@@ -821,9 +805,34 @@
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-people toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-chat toggle-chat} parameter: chat)
       (<World-Separator>)
-      (<World-Parameter-Button> name: toggle-screen-share resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
       (<World-Separator>)
-      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu}))))
+      (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Symbol/Sunny-Sun"} action-handler: {Action world-main open-welcome}))))
+
+
+;;;
+;;;; Main Menu
+;;;
+
+
+(class Together-Main-Menu extends World-Radial-Menu
+  
+  
+  (form
+    (<install>                  title: "Main"
+      (<World-Action-Button>    name: video-options resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action world-main video-options})
+      (<World-Action-Button>    name: audio-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main audio-options})
+      (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
+      (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
+      @wait
+      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
+      (<World-Action-Button>    resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-main open-about})
+      @wait
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode} parameter: fullscreen-mode)
+      (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
 
 
 ;;;
@@ -963,7 +972,7 @@
   (form
     (<install>                                             title: "Debug"
       (<World-Action-Item> name: toggle-mode               title: "Fill mode" shortcut: {Shortcut :alt :shift #\M} action-handler: {Event-Handler :together on-toggle-mode} description: "Toggle mode.")
-      (<World-Action-Item> name: toggle-hide               title: "Hide widget" shortcut: {Shortcut :alt :shift #\H} action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle hide.")
+      (<World-Action-Item> name: toggle-hide               title: "Autohide interface" shortcut: {Shortcut :alt :shift #\H} action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle autohide interface.")
       (<World-Action-Item> name: toggle-debug              title: "Debug" shortcut: {Shortcut :control :shift #\D} action-handler: {Event-Handler :together on-toggle-debug} description: "Toggle debug.")
       (<World-Action-Item> name: toggle-debug-media        title: "Debug media" shortcut: {Shortcut :control :shift #\M} action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
       (<World-Action-Item> name: toggle-debug-flow         title: "Debug flow" shortcut: {Shortcut :control :shift #\F} action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
@@ -1549,6 +1558,9 @@
         (<!>                 name: remove-stream              visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t))
+      (<together-profile!>
+        (<!>                 name: profile-pulse              visible?: #t)
+        (<!>                 name: profile-network            visible?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            visible?: #t)
         (<!>                 name: edit-definition            visible?: #t)
@@ -1578,6 +1590,36 @@
 
 (definition developer-role
   `((:bindings ,developer-bindings)))
+
+
+;;;
+;;;; Backward
+;;;
+
+
+(define-trait backward-bindings Bindings
+  (<Role-Trait>        name: backward
+    (<install>
+      (<world-main!>
+        (<!>                 name: video-options              visible?: #f)
+        (<!>                 name: audio-options              visible?: #f)
+        (<!>                 name: interface-options          visible?: #f)
+        (<!>                 name: view-roadmap               visible?: #f)
+        (<!>                 name: view-help                  visible?: #f)
+        (<!>                 name: open-welcome               title: "Leave circle" description: "Leave circle."))
+      (<world-interface!>
+        (<!>                 name: toggle-interface           visible?: #f)
+        (<!>                 name: toggle-user                visible?: #f))
+      (<world-camera!>
+        (<!>                 name: toggle-cursor-mode         visible?: #f))
+      (<world-showcase!>
+        (<!>                 name: no-showcase                visible?: #f)
+        (<!>                 name: blocks-showcase            visible?: #f)
+        (<!>                 name: models-showcase            visible?: #f))
+      (<together-circle!>
+        (<!>                 name: avatar-space               visible?: #f))
+      (<together-share!>
+        (<!>                 name: capture-screen             visible?: #f)))))
 
 
 ;;;

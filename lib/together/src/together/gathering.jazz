@@ -121,12 +121,6 @@
       (world-setting 'together.auto-live? #t)
     #t))
 
-(definition hide-people?
-  (world-setting 'together.hide-people? #t))
-
-(definition hide-chat?
-  (world-setting 'together.hide-chat? #t))
-
 
 (definition auto-create
   (world-setting 'together.auto-create #f))
@@ -214,13 +208,6 @@
 
 
 (class Sphere-Space extends Together-Space
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    ;; quicky
-    (let ((interface (current-interface)))
-      (for-each hide (get-children interface))))
   
   
   ;;;
@@ -586,6 +573,9 @@
           (<!>                 name: clear-terminal             active?: #t))
         (<world-debug!>
           (<!>                 name: toggle-profiler            active?: #t))
+        (<together-profile!>
+          (<!>                   name: profile-pulse              active?: #t)
+          (<!>                   name: profile-network            active?: #t))
         (<together-debug!>
           (<!>                 name: toggle-admin               active?: #t))
         (<together-script!>
@@ -812,23 +802,15 @@
         (set-proportion (child parent name) prop))
       
       (show interface 'profile)
-      (visible interface 'people-label (not hide-people?))
-      (visible interface 'people (not hide-people?))
       (proportion interface 'chat (chat-proportion together))
       (location interface 'command-to (command-to-location together))
       (location interface 'command (command-location together))
-      (visible interface 'chat-label (not hide-chat?))
-      (visible interface 'chat (not hide-chat?))
-      (visible interface 'command-to (not hide-chat?))
-      (visible interface 'command (not hide-chat?))
-      ;; quicky
-      (hide interface 'streams-label)
-      (hide interface 'streams)
       (layout-view interface)))
   
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (close-main-menu (current-world))
     (hide-mainbar self))
   
 
@@ -1112,6 +1094,8 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (show-mainbar self)
+      (free-motion world feedback?: #f)
+      (set-unbind-camera? #f)
       (install-circling self)
       (show root)
       (send-to-back root)
@@ -1128,6 +1112,9 @@
           (world (current-world)))
       (define (show parent name)
         (set-visible? (child parent name) #t))
+      
+      (define (hide parent name)
+        (set-visible? (child parent name) #f))
       
       (define (visible parent name flag)
         (set-visible? (child parent name) flag))
@@ -1147,15 +1134,9 @@
       (show root 'circle-name)
       (title root 'circle-name (effective-circle-name (get-circle-name together) (get-circle-audio-only? together)))
       (show interface 'profile)
-      (visible interface 'people-label (not hide-people?))
-      (visible interface 'people (not hide-people?))
       (proportion interface 'chat (chat-proportion together))
       (location interface 'command-to (command-to-location together))
       (location interface 'command (command-location together))
-      (visible interface 'chat-label (not hide-chat?))
-      (visible interface 'chat (not hide-chat?))
-      (visible interface 'command-to (not hide-chat?))
-      (visible interface 'command (not hide-chat?))
       (update-message-recipient together (list 'group (get-circle-name together)))
       (layout-view interface)
       (layout-view root)
@@ -1167,8 +1148,10 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (close-main-menu (current-world))
     (restore-fov)
     (circle-uninstall-camera)
+    (hide root)
     (when auto-hide?
       (uninstall-hider self)))
   
@@ -1208,6 +1191,13 @@
           (<!>                 name: toggle-interface           active?: #t)
           (<!>                 name: toggle-windowed-mode       active?: #t)
           (<!>                 name: toggle-user                active?: #t))
+        (<world-people!>
+          (<!>                 name: toggle-people              active?: #t)
+          (<!>                 name: who-panel                  active?: #t))
+        (<world-chat!>
+          (<!>                 name: toggle-chat                active?: #t)
+          (<!>                 name: command-message            active?: #t)
+          (<!>                 name: command-slash              active?: #t))
         (<world-history!>
           (<!>                 name: toggle-paused              active?: #t)
           (<!>                 name: backward-history           active?: #t)
@@ -1842,24 +1832,26 @@
     (let ((interface (current-interface)))
       ;; common
       (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
-      (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-      (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border)
-      (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
-      (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border)
-      (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center)
+      (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
+      (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border visible?: #f)
+      (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
+      (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border visible?: #f)
+      (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
       (let ((chat (child interface 'chat)))
         (set-border-type (child chat 'border) 'solid)
         (set-border-color (child chat 'border) {Color Dark-Gray})
         (set-location chat '(-10 100))
-        (set-proportion chat '(220 (bounds -354))))
-      (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40})))
+        (set-proportion chat '(220 (bounds -354)))
+        (set-visible? chat #f))
+      (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
         (set-location command '(-10 -200))
-        (set-size command (new Dimension 220 19)))
+        (set-size command (new Dimension 220 19))
+        (set-visible? command #f))
       (new Kind-Label name: 'experiment-label parent: interface title: "Experiment" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
       (new Experiment-Panel name: 'experiment parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
       (when (developer?)
@@ -2012,7 +2004,8 @@
   
   (method package (enter-zone self)
     (uninstall-camera)
-    (goto-space self 'avatar))
+    (when sphere?
+      (goto-space self 'avatar)))
   
   
   (method (check-has-camera? self)
@@ -2077,7 +2070,7 @@
                             (stream-add tier no sender name stream-no origin source-kind video-level channels)))
                         streams)
               (install-circle-hooks self)
-              (goto-space self (if (gathering? zone) 'circle 'avatar))
+              (goto-space self (if (or (not sphere?) (gathering? zone)) 'circle 'avatar))
               (effective-base-profile-update)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
@@ -2462,19 +2455,20 @@
                                               (add-player row info group))
                                             players)))))
                           (sort di<? groups key: car))))
-            (let ((zones (cache-available-zones)))
-              (when (not-null? zones)
-                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
-                (for-each (lambda (info)
-                            (bind (zone . title) info
-                              (add-row tree
-                                       state: 'expanded
-                                       children: (list (new Tree-Node
-                                                         title: title
-                                                         font: {Font Label-User}
-                                                         color: {Color World-Purple}))
-                                       user-data: zone)))
-                          zones))))))))
+            (when sphere?
+              (let ((zones (cache-available-zones)))
+                (when (not-null? zones)
+                  (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                  (for-each (lambda (info)
+                              (bind (zone . title) info
+                                (add-row tree
+                                         state: 'expanded
+                                         children: (list (new Tree-Node
+                                                           title: title
+                                                           font: {Font Label-User}
+                                                           color: {Color World-Purple}))
+                                         user-data: zone)))
+                            zones)))))))))
   
   
   (method package (people-selection-change self)
@@ -2808,8 +2802,6 @@
     (let ((world (current-world))
           (video (current-video)))
       (goto-space self layout)
-      (free-motion world feedback?: #f)
-      (set-unbind-camera? #f)
       (goto-layout video layout)
       (when (eq? video-layout 'focus)
         (goto-focused self)
@@ -3010,7 +3002,8 @@
   
   
   (method (on-avatar-space self evt)
-    (avatar-space self))
+    (when sphere?
+      (avatar-space self)))
   
   
   (method (avatar-space self)
