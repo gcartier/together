@@ -206,6 +206,10 @@
 (class Gathering-Zone extends Zone
   
   
+  (form
+    (<install> draw-grid?: #f))
+  
+  
   (method override (gathering? self)
     #t))
 
