@@ -18,6 +18,7 @@
         (jazz.presence)
         (jazz.presence.transmission)
         (jazz.version)
+        (jiri.platform)
         (world)
         (world.build))
 
