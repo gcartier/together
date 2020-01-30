@@ -626,7 +626,7 @@
       (when (and (eq? (active-focus) (current-interface))
                  (get-selected-group together)
                  (not (get-selected-player together)))
-        (join-circle together (get-selected-group together)))))
+        (join-circle together (get-selected-group together) (get-selected-audio-only? together)))))
   
   
   (method override (name-return self)
@@ -682,7 +682,7 @@
   
   (method (on-join self evt)
     (let ((together (current-together)))
-      (join-circle together (get-selected-group together))))
+      (join-circle together (get-selected-group together) (get-selected-audio-only? together))))
   
   
   (method (on-create&join self evt)
@@ -1723,22 +1723,23 @@
 (class Together extends Object
   
   
-  (slot spaces             initialize #f getter generate)
-  (slot space              initialize #f getter generate)
-  (slot configuration      initialize #f getter generate)
-  (slot selected-zone      initialize #f getter generate)
-  (slot loaded-zones       initialize #f getter generate)
-  (slot selected-group     initialize #f getter generate)
-  (slot selected-player    initialize #f getter generate)
-  (slot circle-name        initialize #f getter generate)
-  (slot circle-no          initialize #f getter generate)
-  (slot circle-audio-only? initialize #f getter generate)
-  (slot circle-start       initialize #f getter generate)
-  (slot message-recipient  initialize #f getter generate)
-  (slot draw-hook          initialize #f getter generate)
-  (slot first-hierarchy?   initialize #t getter generate)
-  (slot disconnected?      initialize #f getter generate)
-  (slot chat-wide?         initialize #f getter generate)
+  (slot spaces               initialize #f getter generate)
+  (slot space                initialize #f getter generate)
+  (slot configuration        initialize #f getter generate)
+  (slot selected-zone        initialize #f getter generate)
+  (slot loaded-zones         initialize #f getter generate)
+  (slot selected-group       initialize #f getter generate)
+  (slot selected-audio-only? initialize #f getter generate)
+  (slot selected-player      initialize #f getter generate)
+  (slot circle-name          initialize #f getter generate)
+  (slot circle-no            initialize #f getter generate)
+  (slot circle-audio-only?   initialize #f getter generate)
+  (slot circle-start         initialize #f getter generate)
+  (slot message-recipient    initialize #f getter generate)
+  (slot draw-hook            initialize #f getter generate)
+  (slot first-hierarchy?     initialize #t getter generate)
+  (slot disconnected?        initialize #f getter generate)
+  (slot chat-wide?           initialize #f getter generate)
   
   (cond-expand
     (windows
@@ -2031,7 +2032,7 @@
                     (clear-message world)
                     (set-string-content text "")
                     (content-changed view)
-                    (join-circle self name))))))))))
+                    (join-circle self name audio-only?))))))))))
   
   
   (method package (join-circle self name)
@@ -2040,7 +2041,7 @@
           (world (current-world))
           (zone (current-zone))
           (video (current-video)))
-      (when (check-has-camera? self)
+      (when (or audio-only? (check-has-camera? self))
         (reset-chronology)
         (reset-evolution)
         (bind-camera)
@@ -2049,7 +2050,7 @@
               (display-error world no/streams/exception)
             (bind (no audio-only? . streams) no/streams/exception
               (when auto-live?
-                (require-live-stream tier))
+                (require-live-stream tier audio-only?))
               (start udp)
               (when auto-live?
                 (when auto-audio?
@@ -2450,7 +2451,7 @@
                                 (let ((row (add-row tree
                                                     state: 'expanded
                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
-                                                    user-data: (list 'group group))))
+                                                    user-data: (list 'group group audio-only?))))
                                   (for-each (lambda (info)
                                               (add-player row info group))
                                             players)))))
@@ -2473,7 +2474,7 @@
   
   (method package (people-selection-change self)
     (let ((tree (people-tree self)))
-      (let ((selected (or (get-single-selected-data tree) (list 'group #f))))
+      (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
         (bind (kind . rest) selected
           (define (select zone group player)
             (unless (equal? zone selected-zone)
@@ -2482,6 +2483,7 @@
                 (change-zone self zone)))
             (set! selected-zone zone)
             (set! selected-group group)
+            (set! selected-audio-only? audio-only?)
             (set! selected-player player)
             (when (is? space Gathering-Space)
               (update-circle/join space)))
@@ -2508,7 +2510,7 @@
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
       (when (and selected-group (not selected-player))
-        (join-circle self selected-group))))
+        (join-circle self selected-group selected-audio-only?))))
   
   
   (method package (focus-command-text self)
