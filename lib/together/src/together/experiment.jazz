@@ -21,8 +21,7 @@
         (world.client.tier)
         (world.context)
         (world.task)
-        (world.video)
-        (together.zone))
+        (world.video))
 
 
 ;;;
@@ -145,8 +144,8 @@
 
 (definition (select-camera-resolution resolution feedback)
   (let ((client (current-client))
-        (zone (current-zone)))
-    (if (neq? (get-stage zone) 'circle)
+        (space (current-space)))
+    (if (is-not? space together.gathering:Circle-Space)
         (begin
           (bell)
           (feedback "Only available in circle"))
