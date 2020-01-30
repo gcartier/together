@@ -1514,6 +1514,11 @@
           (<!>                 name: number-press               active?: #t)))))
   
   
+  (method override (space-install self)
+    (nextmethod self)
+    (circle-home))
+  
+  
   (method override (space-bindings self)
     (list circling-bindings circle-bindings)))
 
@@ -2802,8 +2807,7 @@
   
   (method (on-circle-space self evt)
     (unless (is? (current-space) Circle-Space)
-      (goto-circle-space self 'circle)
-      (circle-home)))
+      (goto-circle-space self 'circle)))
   
   
   (method (on-focus-space self evt)
