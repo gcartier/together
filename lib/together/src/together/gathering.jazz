@@ -1350,14 +1350,15 @@
     (unless (script-visible? self)
       (cond-expand
         (windows
-         (let ((point (new Point$fl$ x y)))
-           ;; quick hack around windows sending
-           ;; mouse-moved every second even with
-           ;; the mouse not moving at all
-           (when (or (not hide-last-mouse)
-                     (nu/=? hide-last-mouse point))
-             (show-interface self #t)
-             (set! hide-last-mouse point))))
+         (let ((together (current-together)))
+           (let ((point (new Point$fl$ x y)))
+             ;; quick hack around windows sending
+             ;; mouse-moved every second even with
+             ;; the mouse not moving at all
+             (when (or (not (get-hide-last-mouse together))
+                       (nu/=? (get-hide-last-mouse together) point))
+               (show-interface self #t)
+               (set-hide-last-mouse together point)))))
         (else
          (show-interface self #t)))))
   
