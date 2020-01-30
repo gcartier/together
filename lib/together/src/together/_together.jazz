@@ -18,7 +18,7 @@
         (jazz.presence)
         (jazz.presence.transmission)
         (jazz.version)
-        (jiri.platform)
+        (jiri.platform (cond windows))
         (world)
         (world.build))
 
