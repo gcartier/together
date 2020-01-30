@@ -1782,7 +1782,7 @@
                     (create-group client name #t #f))
                   (listify auto-create))))
     (cond (auto-join
-           (join-circle self auto-join))
+           (join-circle self auto-join #f))
           (auto-script
            (goto-script/last self))
           (else
@@ -2035,7 +2035,7 @@
                     (join-circle self name audio-only?))))))))))
   
   
-  (method package (join-circle self name)
+  (method package (join-circle self name audio-only?)
     (let ((tier (current-client))
           (udp (current-udp))
           (world (current-world))
@@ -2476,7 +2476,7 @@
     (let ((tree (people-tree self)))
       (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
         (bind (kind . rest) selected
-          (define (select zone group player)
+          (define (select zone group audio-only? player)
             (unless (equal? zone selected-zone)
               (if (not (zone-loaded? self zone))
                   (load-zone self zone)
@@ -2491,12 +2491,12 @@
           (case kind
             ((player)
              (bind (player group) rest
-               (select 'start group player)))
+               (select 'start group #f player)))
             ((group)
-             (bind (group) rest
-               (select 'start group #f)))
+             (bind (group audio-only?) rest
+               (select 'start group audio-only? #f)))
             ((zone)
-             (select selected #f #f)))))))
+             (select selected #f #f #f)))))))
   
   
   (method package (people-double-click self)
