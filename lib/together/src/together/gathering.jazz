@@ -190,6 +190,14 @@
     (format "{a} (audio)" group)))
 
 
+;; quicky
+(cond-expand
+  (windows
+   (hub get-hide-last-mouse)
+   (hub set-hide-last-mouse))
+  (else))
+
+
 ;;;
 ;;;; Gathering-Zone
 ;;;
@@ -1745,7 +1753,7 @@
   
   (cond-expand
     (windows
-     (slot hide-last-mouse initialize #f getter generate))
+     (slot hide-last-mouse initialize #f accessors generate))
     (else))
   
   
