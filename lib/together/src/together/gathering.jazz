@@ -1149,6 +1149,7 @@
   (method override (space-uninstall self)
     (nextmethod self)
     (close-main-menu (current-world))
+    (hide-mainbar self)
     (restore-fov)
     (circle-uninstall-camera)
     (hide root)
