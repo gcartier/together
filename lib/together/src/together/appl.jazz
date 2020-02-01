@@ -653,11 +653,6 @@
           (,World-Build-Menu      build-menu    radial     center #f)
           (,World-Script-Menu     script-menu   radial     center #f)
           (,World-Debug-Menu      debug-menu    radial     center #f)))
-      (when (not sphere?)
-        (let ((menu (child interface '(central-menu main-menu))))
-          (close (child menu 'video-options))
-          (close (child menu 'audio-options))
-          (close (child menu 'interface-options))))
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -670,12 +665,9 @@
   (method override (role-bindings self)
     (let ((platform (cond-expand
                       (windows `(,windows-bindings))
-                      (else '())))
-          (backward (if (not sphere?)
-                        `(,backward-bindings)
-                      '())))
+                      (else '()))))
       (case current-role
-        ((user) `(,user-bindings ,@platform ,@backward))
+        ((user) `(,user-bindings ,@platform))
         ((builder) `(,builder-bindings ,@platform))
         ((developer) `(,developer-bindings ,@platform))
         (else (nextmethod self)))))
@@ -1590,36 +1582,6 @@
 
 (definition developer-role
   `((:bindings ,developer-bindings)))
-
-
-;;;
-;;;; Backward
-;;;
-
-
-(define-trait backward-bindings Bindings
-  (<Role-Trait>        name: backward
-    (<install>
-      (<world-main!>
-        (<!>                 name: video-options              visible?: #f)
-        (<!>                 name: audio-options              visible?: #f)
-        (<!>                 name: interface-options          visible?: #f)
-        (<!>                 name: view-roadmap               visible?: #f)
-        (<!>                 name: view-help                  visible?: #f)
-        (<!>                 name: open-welcome               title: "Leave circle" description: "Leave circle."))
-      (<world-interface!>
-        (<!>                 name: toggle-interface           visible?: #f)
-        (<!>                 name: toggle-user                visible?: #f))
-      (<world-camera!>
-        (<!>                 name: toggle-cursor-mode         visible?: #f))
-      (<world-showcase!>
-        (<!>                 name: no-showcase                visible?: #f)
-        (<!>                 name: blocks-showcase            visible?: #f)
-        (<!>                 name: models-showcase            visible?: #f))
-      (<together-circle!>
-        (<!>                 name: avatar-space               visible?: #f))
-      (<together-share!>
-        (<!>                 name: capture-screen             visible?: #f)))))
 
 
 ;;;

@@ -2024,8 +2024,7 @@
   
   (method package (enter-zone self)
     (uninstall-camera)
-    (when sphere?
-      (goto-space self 'avatar)))
+    (goto-space self 'avatar))
   
   
   (method (check-has-camera? self)
@@ -2090,7 +2089,7 @@
                             (stream-add tier no sender name stream-no origin source-kind video-level channels)))
                         streams)
               (install-circle-hooks self)
-              (goto-space self (if (or (not sphere?) (gathering? zone)) 'circle 'avatar))
+              (goto-space self (if (gathering? zone) 'circle 'avatar))
               (effective-base-profile-update)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
@@ -2475,20 +2474,19 @@
                                               (add-player row info group))
                                             players)))))
                           (sort di<? groups key: car))))
-            (when sphere?
-              (let ((zones (cache-available-zones)))
-                (when (not-null? zones)
-                  (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
-                  (for-each (lambda (info)
-                              (bind (zone . title) info
-                                (add-row tree
-                                         state: 'expanded
-                                         children: (list (new Tree-Node
-                                                           title: title
-                                                           font: {Font Label-User}
-                                                           color: {Color World-Purple}))
-                                         user-data: zone)))
-                            zones)))))))))
+            (let ((zones (cache-available-zones)))
+              (when (not-null? zones)
+                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                (for-each (lambda (info)
+                            (bind (zone . title) info
+                              (add-row tree
+                                       state: 'expanded
+                                       children: (list (new Tree-Node
+                                                         title: title
+                                                         font: {Font Label-User}
+                                                         color: {Color World-Purple}))
+                                       user-data: zone)))
+                          zones))))))))
   
   
   (method package (people-selection-change self)
@@ -3022,8 +3020,7 @@
   
   
   (method (on-avatar-space self evt)
-    (when sphere?
-      (avatar-space self)))
+    (avatar-space self))
   
   
   (method (avatar-space self)
