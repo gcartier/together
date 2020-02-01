@@ -629,6 +629,10 @@
     #f)
   
   
+  (method override (only-skybox? self)
+    #t)
+  
+  
   (method override (draw-message-offset self)
     100)
   
