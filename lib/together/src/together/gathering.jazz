@@ -1476,7 +1476,8 @@
                                           (lambda ()
                                             (when (and (is? (current-space) Circling-Space)
                                                        auto-hide?
-                                                       buttons-shown?)
+                                                       buttons-shown?
+                                                       (not (current-tooltip-context)))
                                               (let ((window (current-window))
                                                     (interface (current-interface))
                                                     (video (current-video)))
