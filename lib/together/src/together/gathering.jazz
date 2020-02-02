@@ -626,11 +626,13 @@
   
   
   (method override (show-me? self)
-    #f)
+    (let ((zone (current-zone)))
+      (not (gathering? zone))))
   
   
   (method override (only-skybox? self)
-    #t)
+    (let ((zone (current-zone)))
+      (gathering? zone)))
   
   
   (method override (draw-message-offset self)
