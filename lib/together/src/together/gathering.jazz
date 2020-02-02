@@ -2533,8 +2533,12 @@
   
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
-      (when (and selected-group (not selected-player))
-        (join-circle self selected-group selected-audio-only?))))
+      (cond ((and selected-group (not selected-player))
+             (join-circle self selected-group selected-audio-only?))
+            ((and selected-zone (not selected-group) (not selected-player))
+             (if (zone-loaded? self selected-zone)
+                 (enter-zone self)
+               (bell))))))
   
   
   (method package (focus-command-text self)
