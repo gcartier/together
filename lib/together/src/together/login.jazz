@@ -201,14 +201,14 @@
              (update-configuration-name self)
              (save-configuration zone)
              (update-name-views self)
-             (open-configuration zone (together-file)))
+             (open-configuration zone (user-client-file)))
             (changing-name?
              (update-configuration-name self)
              (save-configuration zone)
              (end-change-name self)
-             (open-configuration zone (together-file)))
+             (open-configuration zone (user-client-file)))
             (else
-             (open-configuration zone (together-file))))))
+             (open-configuration zone (user-client-file))))))
   
   
   (method override (tab-press self)
@@ -417,7 +417,7 @@
   
   
   (method package (setup-configuration self)
-    (let ((file (together-file)))
+    (let ((file (user-client-file)))
       (set! configuration (if (exists? file)
                               (instantiate (read-form file))
                             (create-configuration self)))))
@@ -460,7 +460,7 @@
 
   
   (method package (save-configuration self)
-    (let ((file (together-file)))
+    (let ((file (user-client-file)))
       (let ((server-address (get-server-host configuration))
             (server-port (get-server-service configuration))
             (name (get-character-name configuration))

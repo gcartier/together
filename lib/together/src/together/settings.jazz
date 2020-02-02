@@ -30,11 +30,6 @@
         (together.exception))
 
 
-(definition protected (together-file)
-  (let ((user (string-argument "user" "Together")))
-    (new-file {Directory Settings} (list "clients" user ".client"))))
-
-
 ;;;
 ;;;; Welcome
 ;;;
@@ -61,7 +56,7 @@
 
 
 (definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
-  (let ((file (together-file)))
+  (let ((file (user-client-file)))
     (if (or force-welcome?
             (not (exists? file))
             (not (get-character-avatar (instantiate (read-form file))))

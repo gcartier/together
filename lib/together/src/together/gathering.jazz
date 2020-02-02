@@ -1849,7 +1849,7 @@
   
   
   (method (setup-configuration self)
-    (let ((file (together-file)))
+    (let ((file (user-client-file)))
       (set! configuration (instantiate (read-form file)))))
   
   
