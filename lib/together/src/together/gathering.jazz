@@ -16,6 +16,7 @@
 
 (import (jazz.action)
         (jazz.application)
+        (jazz.catalog)
         (jazz.component)
         (jazz.console)
         (jazz.editor)
@@ -3186,7 +3187,7 @@
                 (set-visible? panel #f)
                 (set-caption toplevel #f)
                 (focus-world))
-            (call-setup-catalogs)
+            (require-cataloguer)
             (let ((text (locate manager '(script text))))
               (if edited-entity
                   (begin
@@ -3213,7 +3214,7 @@
               (when edited-script
                 (let ((script (find-script world edited-script)))
                   (when script
-                    (call-setup-catalogs)
+                    (require-cataloguer)
                     (let ((entity (register-asset-script script)))
                       (set-edited-entity entity)
                       (set-edited manager entity)

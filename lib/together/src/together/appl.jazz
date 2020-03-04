@@ -172,7 +172,7 @@
       (let ((thread
               (new-thread
                 (lambda ()
-                  (setup-catalogs self))
+                  (require-cataloguer))
                 'catalogs)))
         (thread-base-priority-set! thread background-priority)
         (thread-start! thread)))
@@ -235,7 +235,7 @@
                   (let ((panel (child interface 'script)))
                     (let ((manager (locate panel 'manager)))
                       (let ((text (locate manager '(script text))))
-                        (call-setup-catalogs)
+                        (require-cataloguer)
                         (let ((entity (register-asset-script script)))
                           (set-edited-entity entity)
                           (set-edited manager entity)
@@ -529,27 +529,26 @@
         (new Filing-Catalog 'user output directories extensions #f #f #t)))
     
     (mutex-lock! catalogs-mutex)
-    (unless (get-cataloguer)
-      (let ((cataloguer (new Cataloguer)))
-        (define (add-project-catalogs file)
-          (let ((project (instantiate-file file)))
-            (for-each-project project
-              (lambda (project)
-                (let ((catalog (require-catalog project)))
-                  (add-catalog cataloguer catalog))))))
-        
-        (set-cataloguer cataloguer)
-        (add-catalog cataloguer (world-catalog))
-        (add-catalog cataloguer (user-catalog))
-        (when kernel-source-access?
-          ;; quicky to test
-          (register-alias 'Profile '(Settings "work"))
-          (add-project-catalogs {File Together "lib" ".project"})
-          (add-project-catalogs {File World "lib" ".project"})
-          (add-project-catalogs {File Jazz "lib" ".project"}))
-        (for-each-active-catalog cataloguer #f
-          (lambda (catalog)
-            (load-content catalog report?: #f)))))
+    (let ((cataloguer (new Cataloguer)))
+      (define (add-project-catalogs file)
+        (let ((project (instantiate-file file)))
+          (for-each-project project
+            (lambda (project)
+              (let ((catalog (require-catalog project)))
+                (add-catalog cataloguer catalog))))))
+      
+      (set-cataloguer cataloguer)
+      (add-catalog cataloguer (world-catalog))
+      (add-catalog cataloguer (user-catalog))
+      (when kernel-source-access?
+        ;; quicky to test
+        (register-alias 'Profile '(Settings "work"))
+        (add-project-catalogs {File Together "lib" ".project"})
+        (add-project-catalogs {File World "lib" ".project"})
+        (add-project-catalogs {File Jazz "lib" ".project"}))
+      (for-each-active-catalog cataloguer #f
+        (lambda (catalog)
+          (load-content catalog report?: #f))))
     (mutex-unlock! catalogs-mutex))
   
   
@@ -558,7 +557,7 @@
           (world (current-world)))
       (display-message world "Updating catalogs...")
       (render-scene window)
-      (setup-catalogs self)
+      (require-cataloguer)
       (for-each-active-catalog (get-cataloguer) #f
         (lambda (catalog)
           (post-catalog
