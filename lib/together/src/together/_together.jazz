@@ -177,15 +177,18 @@
 ;;;
 
 
-(when (command-argument "devel")
-  (set-window? #t)
-  (set-tier-title "Together")
-  (set-tier-kind 'client)
-  (set-process-kind 'application)
-  (set-settings-alias 'Resources)
-  (set-settings-root (determine-settings-root))
-  (set-documents-root (determine-documents-root))
-  (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user developer))
-  (set-server-filename (determine-server-filename))
-  (set-worker-filename (determine-worker-filename))))
+(cond-expand
+  (devel
+   (when (not tier-kind)
+     (set-window? #f)
+     (set-tier-title "Together")
+     (set-tier-kind 'client)
+     (set-process-kind 'application)
+     (set-settings-alias 'Resources)
+     (set-settings-root (determine-settings-root))
+     (set-documents-root (determine-documents-root))
+     (set-aliases-setup setup-aliases)
+     (set-valid-roles '(user developer))
+     (set-server-filename (determine-server-filename))
+     (set-worker-filename (determine-worker-filename))))
+  (else)))
