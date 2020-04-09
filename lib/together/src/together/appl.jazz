@@ -51,6 +51,7 @@
         (jazz.ui)
         (jazz.view)
         (jazz.window)
+        (jazz.zlib)
         (world)
         (world.appl)
         (world.asset)
@@ -263,6 +264,36 @@
     (let ((together (current-together)))
       (when together
         (wake-process together))))
+
+
+  ;;;
+  ;;;; Files
+  ;;;
+  
+  
+  (method override (receive-files self pos pathnames)
+    (let ((client (current-client)))
+      (for-each (lambda (pathname)
+                  (cond ((directory? pathname)
+                         (if (exists? (new-file pathname "_Idle.ms3d"))
+                             (let ((path (string-append "any/" (get-name pathname) "/"))
+                                   (content (let ((queue (new-queue)))
+                                              (iterate-directory pathname
+                                                (lambda (file)
+                                                  (enqueue queue (cons (get-name file) (zlib-deflate (load-binary file)))))
+                                                files?: #t
+                                                directories?: #f
+                                                recursive?: #f)
+                                              (queue-list queue))))
+                               (store-asset client path content)
+                               (terminal 'stored path))
+                           (bell)))
+                        ((file? pathname)
+                         (let ((path (string-append "any/" (get-name pathname)))
+                               (content (zlib-deflate (load-binary pathname))))
+                           (store-asset client path content)
+                           (terminal 'stored path)))))
+                pathnames)))
   
 
   ;;;
