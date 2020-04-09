@@ -207,7 +207,7 @@
         (let ((manager (locate panel 'manager)))
           (save-script manager))))
     (when (developer?)
-      (let ((cataloguer (get-cataloguer)))
+      (let ((cataloguer (find-cataloguer)))
         (when cataloguer
           (save-catalogs cataloguer))))
     (nextmethod self))
