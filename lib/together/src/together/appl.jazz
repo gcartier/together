@@ -827,9 +827,9 @@
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-people toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-chat toggle-chat} parameter: chat)
       (<World-Separator>)
-      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
+      (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Landmarks/Japanese-Gate"} action-handler: {Action world-main open-welcome})
       (<World-Separator>)
-      (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Symbol/Sunny-Sun"} action-handler: {Action world-main open-welcome}))))
+      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu}))))
 
 
 ;;;
