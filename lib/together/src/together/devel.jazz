@@ -90,6 +90,7 @@
         (world.element)
         (world.entity)
         (world.evolution)
+        (world.external.blender)
         (world.external.milkshape)
         @needs-fixing
         (world.external.obj)
