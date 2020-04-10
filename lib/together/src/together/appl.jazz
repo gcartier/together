@@ -107,7 +107,7 @@
   
   
   (method override (process-email self)
-    "barbarasamson@gmail.com")
+    "gucartier@gmail.com")
   
   
   (method override (process-release self)
