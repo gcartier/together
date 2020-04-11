@@ -125,8 +125,8 @@
           (begin
             (set-setting options-settings 'together.first-use? #f)
             (save-content options-settings)
-            "nebula")
-        (random-element '("calm_sea" "dark_sea" "nebula")))))
+            "world/nebula")
+        (random-element '("world/calm_sea" "world/dark_sea" "world/nebula")))))
 
 
 ;;;

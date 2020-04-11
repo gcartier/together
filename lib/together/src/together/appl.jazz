@@ -308,7 +308,7 @@
   
   
   (method protected (icon-dir self)
-    {Directory Application-World "assets" "world" "icon"})
+    {Directory Application-World "assets" "icon" "world"})
 
 
   ;;;

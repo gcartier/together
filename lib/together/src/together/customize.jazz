@@ -139,11 +139,11 @@
   (method override (showcase-avatar-scaling self avatar)
     (if orb-avatars?
         (nextmethod self avatar)
-      (cond ((equal? avatar "character/draeneifemale")
+      (cond ((equal? avatar "warcraft/character/draeneifemale")
              .75)
-            ((equal? avatar "character/nightelffemale")
+            ((equal? avatar "warcraft/character/nightelffemale")
              .75)
-            ((equal? avatar "creature/cat")
+            ((equal? avatar "warcraft/creature/cat")
              .85)
             (else
              .8))))
