@@ -582,6 +582,9 @@
           (<!>                 name: view-script                active?: #t)
           (<!>                 name: view-workspace             active?: #t)
           (<!>                 name: target-script              active?: #t)
+          (<!>                 name: zoom-horizontally          active?: #t)
+          (<!>                 name: zoom-vertically            active?: #t)
+          (<!>                 name: zoom-fullscreen            active?: #t)
           (<!>                 name: clear-console              active?: #t)
           (<!>                 name: clear-terminal             active?: #t))
         (<world-debug!>
