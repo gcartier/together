@@ -200,18 +200,18 @@
 
 
 ;;;
-;;;; Gathering-Zone
+;;;; Void-Zone
 ;;;
 
 
-(class Gathering-Zone extends Zone
+(class Void-Zone extends Zone
   
   
   (form
     (<install> draw-grid?: #f))
   
   
-  (method override (gathering? self)
+  (method override (void? self)
     #t))
 
 
@@ -628,12 +628,12 @@
   
   (method override (show-me? self)
     (let ((zone (current-zone)))
-      (not (gathering? zone))))
+      (not (void? zone))))
   
   
   (method override (only-skybox? self)
     (let ((zone (current-zone)))
-      (gathering? zone)))
+      (void? zone)))
   
   
   (method override (draw-message-offset self)
@@ -1336,7 +1336,7 @@
   
   (method override (draw-world? self)
     (let ((zone (current-zone)))
-      (not (gathering? zone))))
+      (not (void? zone))))
   
   
   (method override (draw-message-offset self)
@@ -2107,7 +2107,7 @@
                             (stream-add tier no sender name stream-no origin source-kind video-level channels)))
                         streams)
               (install-circle-hooks self)
-              (goto-space self (if (gathering? zone) 'circle 'avatar))
+              (goto-space self (if (void? zone) 'circle 'avatar))
               (effective-base-profile-update)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
