@@ -2613,30 +2613,30 @@
   
   
   (method package (people-selection-change self)
-    (let ((tree (people-tree self)))
-      (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
-        (bind (kind . rest) selected
-          (define (select zone group audio-only? player)
-            (unless (equal? zone selected-zone)
-              (if (not (zone-loaded? self zone))
-                  (load-zone self zone)
-                (change-zone self zone)))
-            (set! selected-zone zone)
-            (set! selected-group group)
-            (set! selected-audio-only? audio-only?)
-            (set! selected-player player)
-            (when (is? space Gathering-Space)
-              (update-circle/join space)))
-          
-          (case kind
-            ((player)
-             (bind (player group) rest
-               (select 'start group #f player)))
-            ((group)
-             (bind (group audio-only?) rest
-               (select 'start group audio-only? #f)))
-            ((zone)
-             (select selected #f #f #f)))))))
+    (when (is? space Gathering-Space)
+      (let ((tree (people-tree self)))
+        (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
+          (bind (kind . rest) selected
+            (define (select zone group audio-only? player)
+              (unless (equal? zone selected-zone)
+                (if (not (zone-loaded? self zone))
+                    (load-zone self zone)
+                  (change-zone self zone)))
+              (set! selected-zone zone)
+              (set! selected-group group)
+              (set! selected-audio-only? audio-only?)
+              (set! selected-player player)
+              (update-circle/join space))
+            
+            (case kind
+              ((player)
+               (bind (player group) rest
+                 (select 'start group #f player)))
+              ((group)
+               (bind (group audio-only?) rest
+                 (select 'start group audio-only? #f)))
+              ((zone)
+               (select selected #f #f #f))))))))
   
   
   (method package (people-double-click self)
