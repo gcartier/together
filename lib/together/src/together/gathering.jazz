@@ -2166,6 +2166,8 @@
       (set-server-exited-hook tier (~ server-exited self))
       (set-server-disconnected-hook tier (~ server-disconnected self))
       (set-server-reconnected-hook tier (~ server-reconnected self))
+      (set-processor-entered-hook tier (~ processor-entered self))
+      (set-processor-exited-hook tier (~ processor-exited self))
       (set-zone-loaded-hook tier (~ zone-loaded self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-stream-addable-hook tier (~ stream-addable self))
@@ -2193,6 +2195,8 @@
       (set-server-exited-hook tier #f)
       (set-server-disconnected-hook tier #f)
       (set-server-reconnected-hook tier #f)
+      (set-processor-entered-hook tier #f)
+      (set-processor-exited-hook tier #f)
       (set-zone-loaded-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-stream-addable-hook tier #f)
@@ -2241,6 +2245,14 @@
   (method (server-reconnected self character-name)
     (let ((world (current-world)))
       (display-message world (format "{a} reconnected" character-name))))
+  
+  
+  (method (processor-entered self character-name)
+    )
+  
+  
+  (method (processor-exited self character-name)
+    )
   
   
   (method (zone-loaded self zone)
