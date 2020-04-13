@@ -41,14 +41,14 @@
   (open-login (find-tier (copy-zone-template "welcome" 'login) 'login)))
 
 
-(definition protected (open-circle-zone remote-file (zone: zone #f) (from-login?: from-login? #f))
-  (let ((obj (open-client remote-file zone: zone)))
+(definition protected (open-circle-zone remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
+  (let ((obj (open-client remote-file zone: auto-enter)))
     (if (is? obj Zone)
         (if (current-together)
-            (together-enter (current-together))
+            (together-enter (current-together) auto-enter)
           (let ((together (new together.gathering:Together)))
             (set-current-together together)
-            (together-enter together)))
+            (together-enter together auto-enter)))
       (let ((title (if (string? obj) obj "Unable to connect to server"))
             (zone (if from-login? (current-zone) (open-login-zone))))
         (world.interface.exception:report-exception title obj)
@@ -62,8 +62,11 @@
             (not (get-character-avatar (instantiate (read-form file))))
             (shift-down?))
         (open-login-zone)
-      (let ((zone (world-setting 'world.auto-zone #f)))
-        (open-circle-zone file zone: zone)))))
+      (let ((auto-join (world-setting 'together.auto-join #f))
+            (auto-enter (world-setting 'together.auto-enter #f)))
+        (if (and auto-join auto-enter)
+            (error "Auto join & enter are mutually exclusive")
+          (open-circle-zone file auto-enter: auto-enter))))))
 
 
 (welcome-zone-open-set! open-login/circle-zone)

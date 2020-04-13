@@ -1800,7 +1800,7 @@
           space)))
   
   
-  (method (together-enter self)
+  (method (together-enter self auto-enter)
     (when (current-space+)
       (space-deactivate (current-space))
       (space-uninstall (current-space)))
@@ -1812,6 +1812,8 @@
                   (listify auto-create))))
     (cond (auto-join
            (join-circle self auto-join #f))
+          (auto-enter
+           (enter-zone self))
           (auto-script
            (goto-script/last self))
           (else
