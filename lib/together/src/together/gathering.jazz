@@ -685,7 +685,7 @@
                (layout-view root))
               (else
                (let ((loaded? (zone-loaded? together selected-zone)))
-                 (set-title (child root 'zone) (cadr selected-zone))
+                 (set-title (child root 'zone) (last selected-zone))
                  (set-title (child root 'zone-enter) (if loaded? "Enter" "Loading..."))
                  (set-enabled? (child root 'zone-enter) loaded?)
                  (enter-visible #t)
@@ -1806,7 +1806,7 @@
     (when auto-create
       (let ((client (current-client)))
         (for-each (lambda (name)
-                    (create-group client name #t #f))
+                    (create-group client name #t #f #t))
                   (listify auto-create))))
     (cond (auto-join
            (join-circle self auto-join #f))
@@ -1937,7 +1937,8 @@
   (method package (update-message-recipient self recipient)
     (let ((interface (current-interface)))
       (let ((to (child interface '(command-to to))))
-        (if (not recipient)
+        (if (or (not recipient)
+                (eq? (car recipient) 'zone))
             (begin
               (set-title to "The gathering")
               (set-color to {Color red: 32 green: 205 blue: 33})
@@ -2031,8 +2032,17 @@
   
   
   (method package (enter-zone self)
-    (uninstall-camera)
-    (goto-space self 'avatar))
+    (let ((client (current-client)))
+      (uninstall-camera)
+      (goto-space self 'avatar)
+      (mode-to-server client 'participant)))
+  
+  
+  (method package (exit-zone self)
+    (let ((client (current-client)))
+      (install-camera)
+      (goto-space self 'gathering)
+      (mode-to-server client 'observer)))
   
   
   (method (check-has-camera? self)
@@ -2052,7 +2062,7 @@
           (let ((view (child (get-root space) 'circle-view)))
             (let ((text (locate view 'text)))
               (let ((name (trim-whitespace (get-string-content text))))
-                (let ((no/exception (create-group tier name #f audio-only?)))
+                (let ((no/exception (create-group tier name #f audio-only? #f)))
                   (if (string? no/exception)
                       (display-error world no/exception)
                     (clear-message world)
@@ -2071,7 +2081,7 @@
         (reset-chronology)
         (reset-evolution)
         (bind-camera)
-        (let ((no/streams/exception (join-group tier name)))
+        (let ((no/streams/exception (join-group tier name 'participant)))
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
             (bind (no audio-only? . streams) no/streams/exception
@@ -2113,7 +2123,7 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (leave-group tier circle-name)
+      (leave-group tier circle-name 'observer)
       (circle-uninstall-camera)
       (restore-fov)
       (install-camera)
@@ -2242,7 +2252,8 @@
     (let ((tree (people-tree self)))
       (define (same-entity? x y)
         (define (entity info)
-          (if (not info)
+          (if (or (not info)
+                  (eq? (car info) 'zone))
               info
             (bind (kind name) info
               (cons kind name))))
@@ -2437,64 +2448,159 @@
       (view-hierarchy self (list-hierarchy tier))))
   
   
+  (definition gathering-color {Color red: 32 green: 205 blue: 33})
+  (definition player-color    {Color World-Blue})
+  (definition group-color     {Color red: .938 green: .428 blue: .066})
+  (definition zone-color      {Color red: .547 green: .287 blue: .995})
+  (definition directory-color {Color red: .804 green: .128 blue: .139})
+  
+  
+  ;; could be done only once on server
+  (method package (unify-hierarchy self hierarchy available-zones)
+    (bind (groupless . groups) hierarchy
+      (let ((observers '())
+            (voiders '())
+            (zones (make-table test: equal?)))
+        (define (add zone member)
+          (let ((path (cdr zone)))
+            (table-add zones path member)))
+        
+        (for-each (lambda (info)
+                    (bind (zone . title) info
+                      (unless (eq? zone 'start)
+                        (table-set! zones (cdr zone) '()))))
+                  available-zones)
+        (bind (group audio-only? zone . players) groupless
+          (for-each (lambda (player)
+                      (bind (name id no asleep? zone mode) player
+                        (if (or (eq? mode 'observer)
+                                ;; should not really happen but lets be robust
+                                (eq? zone 'start))
+                            (set! observers (cons player observers))
+                          (add zone (cons 'player player)))))
+                    players))
+        (for-each (lambda (group)
+                    (bind (name audio-only? zone) group
+                      (if (eq? zone 'start)
+                          (set! voiders (cons group voiders))
+                        (add zone (cons 'group group)))))
+                  groups)
+        (values observers voiders (table->list zones)))))
+  
+  
   (method (view-hierarchy self hierarchy)
     (let ((tier (current-tier))
           (me (current-me)))
-      (let ((tree (people-tree self)))
-        (remove-every-row tree)
-        (with-update-locked tree
-          (lambda ()
-            (define (add-player father info group)
-              (bind (player id no asleep?) info
-                (let ((title (if asleep? (format "{a} (offline)" player) player))
-                      (font {Font Label-User})
-                      (color (if asleep? {Color Medium-Gray} {Color World-Blue})))
+      (let ((tree (people-tree self))
+            (separator? #f))
+        (receive (observers voiders zones) (unify-hierarchy self hierarchy (cache-available-zones))
+          (remove-every-row tree)
+          (with-update-locked tree
+            (lambda ()
+              (define (add-player father info group)
+                (bind (player id no asleep? zone mode) info
+                  (let ((title (if asleep? (format "{a} (offline)" player) player))
+                        (font {Font Label-User})
+                        (color (if asleep? {Color Medium-Gray} player-color)))
+                    (add-row tree
+                             father: father
+                             children: (list (new Tree-Node title: title font: font color: color))
+                             user-data: (list 'player player group))
+                    (added father))))
+              
+              (define (add-group father info)
+                (bind (group audio-only? zone . players) info
+                  (let ((title (effective-circle-name group audio-only?)))
+                    (let ((row (add-row tree
+                                        father: father
+                                        state: 'expanded
+                                        children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
+                                        user-data: (list 'group group audio-only?))))
+                      (added father)
+                      (for-each (lambda (info)
+                                  (add-player row info group))
+                                players)))))
+              
+              (define (add-zones father spine zones)
+                (for-each (lambda (partition)
+                            (bind (title . children) partition
+                              (if (empty-string? title)
+                                  (add-children father spine children)
+                                (when (not father)
+                                  (add-separator))
+                                (let ((row (add-directory father title))
+                                      (spine (append spine (list title))))
+                                  (add-zones row spine (map (lambda (info)
+                                                              (cons (cdar info) (cdr info)))
+                                                            children))))))
+                          (sort di<? (partition zones key: (lambda (info)
+                                                             (let ((path (car info)))
+                                                               (if (> (length path) 1)
+                                                                   (car path)
+                                                                 "")))
+                                       test: filename=?)
+                            key: car)))
+              
+              (define (add-children father spine children)
+                (for-each (lambda (info)
+                            (bind (zone . members) info
+                              (let ((title (last zone)))
+                                (let ((row (add-row tree
+                                                    father: father
+                                                    state: 'expanded
+                                                    children: (list (new Tree-Node
+                                                                      title: title
+                                                                      font: {Font Label-User}
+                                                                      color: zone-color))
+                                                    user-data: (cons 'zone (append spine zone)))))
+                                  (added father)
+                                  (for-each (lambda (info)
+                                              (bind (kind . info) info
+                                                (case kind
+                                                  ((player) (add-player row info #f))
+                                                  ((group) (add-group row info)))))
+                                            members)))))
+                          children))
+              
+              (define (add-directory father title)
+                (prog1 (add-row tree
+                                father: father
+                                state: 'expanded
+                                children: (list (new Tree-Node title: title font: {Font Label-User} color: directory-color)))
+                  (added father)))
+              
+              (define (add-separator)
+                (unless separator?
                   (add-row tree
-                           father: father
-                           children: (list (new Tree-Node title: title font: font color: color))
-                           user-data: (list 'player player group)))))
-            
-            (bind (gathering . groups) hierarchy
-              (let ((players (cddr gathering)))
-                (let ((row (add-row tree
-                                    state: 'expanded
-                                    children: (list (new Tree-Node
-                                                      title: "The gathering"
-                                                      font: {Font Label-User}
-                                                      color: {Color red: 32 green: 205 blue: 33})))))
-                  (for-each (lambda (info)
-                              (add-player row info #f))
-                            (let ((me (get-name me)))
-                              (sort di<? players key: (lambda (player)
+                           children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                  (set! separator? #t)))
+              
+              (define (added father)
+                (when (not father)
+                  (set! separator? #f)))
+              
+              (let ((row (add-row tree
+                                  state: 'expanded
+                                  children: (list (new Tree-Node
+                                                    title: "The gathering"
+                                                    font: {Font Label-User}
+                                                    color: gathering-color)))))
+                (added #f)
+                (for-each (lambda (info)
+                            (add-player row info #f))
+                          (let ((me (get-name me)))
+                            (sort di<? observers key: (lambda (player)
                                                         (if (equal? player me)
                                                             (cons 0 player)
-                                                          (cons 1 player))))))))
-              (when (not-null? hierarchy)
-                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                                                          (cons 1 player)))))))
+              (when (not-null? voiders)
+                (add-separator)
                 (for-each (lambda (info)
-                            (bind (group audio-only? . players) info
-                              (let ((title (effective-circle-name group audio-only?)))
-                                (let ((row (add-row tree
-                                                    state: 'expanded
-                                                    children: (list (new Tree-Node title: title font: {Font Label-User} color: {Color World-Red}))
-                                                    user-data: (list 'group group audio-only?))))
-                                  (for-each (lambda (info)
-                                              (add-player row info group))
-                                            players)))))
-                          (sort di<? groups key: car))))
-            (let ((zones (cache-available-zones)))
+                            (add-group #f info))
+                          (sort di<? voiders key: car)))
               (when (not-null? zones)
-                (add-row tree children: (list (new Tree-Node title: "" font: {Font Label-User})))
-                (for-each (lambda (info)
-                            (bind (zone . title) info
-                              (add-row tree
-                                       state: 'expanded
-                                       children: (list (new Tree-Node
-                                                         title: title
-                                                         font: {Font Label-User}
-                                                         color: {Color World-Purple}))
-                                       user-data: zone)))
-                          zones))))))))
+                (add-separator)
+                (add-zones #f '() zones))))))))
   
   
   (method package (people-selection-change self)
@@ -3158,12 +3264,15 @@
   
   
   (method (on-goto-gathering self evt)
-    (typecase space
-      ((Gathering-Space))
-      ((Sphere-Space)
-       (leave-circle self))
-      (else
-       (goto-space self 'gathering))))
+    (let ((client (current-client)))
+      (typecase space
+        ((Gathering-Space))
+        ((Sphere-Space)
+         (if circle-name
+             (leave-circle self)
+           (exit-zone self)))
+        (else
+         (goto-space self 'gathering)))))
   
   
   (method (on-goto-script self evt)
