@@ -1063,7 +1063,7 @@
       (<Together-Menu-Actions>       name: together-menu)
       ;; World
       (<World-Main-Actions>          name: world-main
-        (<!>                         name: open-welcome         title: "Gathering Screen" shortcut: {Shortcut :alt :shift #\G} action-handler: {Event-Handler :together on-goto-gathering} description: "Open the gathering screen.")
+        (<!>                         name: open-welcome         title: "Go back to the gathering" shortcut: {Shortcut :alt :shift #\G} action-handler: {Event-Handler :together on-goto-gathering} description: "Open the gathering screen.")
         (<!>                         name: quit-world           title: "Quit Together"))
       (<World-Graphics-Actions>      name: world-graphics)
       (<World-Sound-Actions>         name: world-sound)
