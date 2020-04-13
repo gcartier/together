@@ -2280,8 +2280,7 @@
         (lambda ()
           (view-hierarchy self hierarchy))
         use: 'data
-        test: same-entity?
-        generate-event?: #t)
+        test: same-entity?)
       (when (and auto-create
                  first-hierarchy?
                  (not (get-single-selection tree))
