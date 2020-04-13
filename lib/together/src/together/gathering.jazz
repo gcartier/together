@@ -1767,7 +1767,6 @@
   (slot circle-start         initialize #f getter generate)
   (slot message-recipient    initialize #f getter generate)
   (slot draw-hook            initialize #f getter generate)
-  (slot first-hierarchy?     initialize #t getter generate)
   (slot disconnected?        initialize #f getter generate)
   (slot chat-wide?           initialize #f getter generate)
   
@@ -2280,13 +2279,7 @@
         (lambda ()
           (view-hierarchy self hierarchy))
         use: 'data
-        test: same-entity?)
-      (when (and auto-create
-                 first-hierarchy?
-                 (not (get-single-selection tree))
-                 (> (get-visible-count tree) 3))
-        (set-single-selection tree 3)
-        (set! first-hierarchy? #f))))
+        test: same-entity?)))
   
   
   ;; this rare case can happen if the server had just sent
