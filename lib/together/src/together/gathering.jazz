@@ -2569,7 +2569,8 @@
                                                   ((player) (add-player row info #f))
                                                   ((group) (add-group row info)))))
                                             members)))))
-                          children))
+                          (sort di<? children key: (lambda (info)
+                                                     (last (car info))))))
               
               (define (add-directory father title)
                 (prog1 (add-row tree
