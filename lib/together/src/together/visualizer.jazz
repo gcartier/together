@@ -557,8 +557,8 @@
       (let ((playing? (not (get-playing? timeline))))
         (unless (get-in-circle? (find-ascendant self Replay-Panel))
           (if playing?
-              (uninstall-camera)
-            (install-camera)))
+              (uninstall-vista)
+            (install-vista)))
         (set-playing? timeline playing?))))
   
   

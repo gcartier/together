@@ -543,7 +543,7 @@
       (update-circle/join self)
       (layout-view interface)
       (layout-view root)
-      (install-camera)
+      (install-vista)
       (no-showcase world)))
   
   
@@ -555,7 +555,7 @@
         (for-each hide (get-children interface)))
       (no-showcase world)
       (restore-fov)
-      (uninstall-camera)))
+      (uninstall-vista)))
   
   
   (define-trait gathering-bindings Bindings
@@ -2037,14 +2037,14 @@
   
   (method package (enter-zone self)
     (let ((client (current-client)))
-      (uninstall-camera)
+      (uninstall-vista)
       (goto-space self 'avatar)
       (mode-to-server client 'participant)))
   
   
   (method package (exit-zone self)
     (let ((client (current-client)))
-      (install-camera)
+      (install-vista)
       (goto-space self 'gathering)
       (mode-to-server client 'observer)))
   
@@ -2098,7 +2098,7 @@
                 (when (and auto-video? (not audio-only?))
                   (play-camera tier)))
               (clear-message world)
-              (uninstall-camera)
+              (uninstall-vista)
               (cond-expand
                 (windows (set! hide-last-mouse #f))
                 (else))
@@ -2130,7 +2130,7 @@
       (leave-group tier circle-name 'observer)
       (circle-uninstall-camera)
       (restore-fov)
-      (install-camera)
+      (install-vista)
       @SPACE-think-about
       (install-skybox zone (find-skybox together-skybox))
       (set! circle-name #f)
@@ -2982,9 +2982,9 @@
   
   (method (change-zone self zone)
     (let ((client (current-client)))
-      (uninstall-camera)
+      (uninstall-vista)
       (change-zone client zone)
-      (install-camera)))
+      (install-vista)))
   
   
   ;;;

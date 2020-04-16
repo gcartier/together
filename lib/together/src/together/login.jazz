@@ -400,7 +400,7 @@
       (no-showcase world)
       (set-enter-hook world #f)
       (set-escape-hook world #f)
-      (uninstall-camera))
+      (uninstall-vista))
     (nextmethod self))
   
   
@@ -413,7 +413,7 @@
   (method override (camera-update self)
     (nextmethod self)
     (when (window?)
-      (install-camera)))
+      (install-vista)))
   
   
   (method package (setup-configuration self)

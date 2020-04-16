@@ -184,47 +184,57 @@
 
 
 ;;;
-;;;; Camera
+;;;; Vista
 ;;;
 
 
-(definition camera-tick
+(definition vista-tick
   #f)
 
-(definition camera-angle
+(definition vista-angle
   2.0)
 
 
-(definition package (install-camera)
+(definition package (install-vista)
   (let ((window (current-window))
         (zone (current-zone)))
-    (unless camera-tick
+    (unless vista-tick
       (let ((target (or (get-vista-target zone) (vertex 0. 5. 0.)))
             (radius (or (get-vista-radius zone) 75.))
             (elevation (or (get-vista-elevation zone) 20.)))
-        (let ((tick (path-camera target radius elevation)))
-          (set! camera-tick tick)
-          (register-tick zone camera-tick)
+        (let ((tick (path-vista target radius elevation)))
+          (set! vista-tick tick)
+          (register-tick zone vista-tick)
           ;; removes tearing in the pathing
           (maybe-enable-vsync window)
           (tick 0.))))))
 
 
-(definition package (uninstall-camera)
+(definition package (uninstall-vista)
   (let ((window (current-window))
         (zone (current-zone)))
-    (when camera-tick
-      (unregister-tick zone camera-tick)
+    (when vista-tick
+      (unregister-tick zone vista-tick)
       (maybe-disable-vsync window)
-      (set! camera-tick #f))))
+      (set! vista-tick #f))))
 
 
-(definition package (path-camera target radius elevation)
+(definition package (vista-active?)
+  vista-tick)
+
+
+(definition package (toggle-vista)
+  (if vista-tick
+      (uninstall-vista)
+    (install-vista)))
+
+
+(definition package (path-vista target radius elevation)
   (lambda (elapse)
     (let ((world (current-world)))
       (unless sleeping?
-        (increase! camera-angle (/ elapse 10.))
-        (let ((angle camera-angle))
+        (increase! vista-angle (/ elapse 10.))
+        (let ((angle vista-angle))
           (let ((x (cos angle))
                 (z (sin angle)))
             (let ((flat (vertex+ target (vertex-scalar*& (vertex x 0. z) radius))))
