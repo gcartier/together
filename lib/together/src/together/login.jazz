@@ -451,8 +451,6 @@
   
   (method package (create-configuration self)
     (new Client
-      server-host: (string->host "localhost") @w together-host
-      server-service: (string->port "50000") @w together-port
       character-name: #f
       character-avatar: #f
       character-script: #f
@@ -461,8 +459,8 @@
   
   (method package (save-configuration self)
     (let ((file (user-client-file)))
-      (let ((server-address (get-server-host configuration))
-            (server-port (get-server-service configuration))
+      (let ((server-address #f)
+            (server-port #f)
             (name (get-character-name configuration))
             (avatar (get-character-avatar configuration))
             (script (get-character-script configuration))
