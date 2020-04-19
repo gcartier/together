@@ -60,13 +60,6 @@
         (together.zone))
 
 
-(definition together-host
-  (world-setting 'together.default-host "togethersphere.com"))
-
-(definition together-port
-  (world-setting 'together.default-port default-server-service))
-
-
 (class Login-Space extends Together-Space
   
   
