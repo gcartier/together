@@ -127,6 +127,10 @@
   (set! circle? flag))
 
 
+(set-default-server-host
+  "togethersphere.com")
+
+
 ;;;
 ;;;; Server
 ;;;
