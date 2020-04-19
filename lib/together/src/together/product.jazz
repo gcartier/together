@@ -59,7 +59,6 @@
       (install-filename '("devel" "together" "Roadmap.ftx")))
     
     (define (copy-assets)
-      (install-dirname '("world" "lib" "world.client" "assets"))
       (install-dirname '("lib" "together" "assets")))
     
     (define (copy-templates)
