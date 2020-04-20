@@ -15,6 +15,7 @@
 
 
 (import (jazz.action)
+        (jazz.application)
         (jazz.component)
         (jazz.event)
         (jazz.graphic)
@@ -34,6 +35,7 @@
         (jazz.view)
         (jazz.window)
         (world)
+        (world.appl)
         (world.autoload)
         (world.build)
         (world.camera)
@@ -465,7 +467,8 @@
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone file from-login?: #t)))))
+        (open-circle-zone file from-login?: #t)
+        (activate-assets (current-application))))))
 
 
 ;;;
