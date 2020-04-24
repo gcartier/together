@@ -2330,6 +2330,8 @@
   ;; a stream-add moments before receiving our leave circle
   (method (stream-addable self group-no)
     (or (not group-no)
+        ;; quick hack for test
+        (not circle-no)
         (eqv? group-no circle-no)))
   
   
