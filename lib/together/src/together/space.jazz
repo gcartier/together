@@ -46,4 +46,8 @@
   
   
   (method protected virtual (draw-message-offset self)
+    #f)
+  
+  
+  (method protected virtual (draw-working-offset self)
     #f)))

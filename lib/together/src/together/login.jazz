@@ -35,11 +35,11 @@
         (jazz.view)
         (jazz.window)
         (world)
-        (world.appl)
         (world.autoload)
         (world.build)
         (world.camera)
         (world.client)
+        (world.client.tier)
         (world.context)
         (world.geometry)
         (world.interface)
@@ -77,6 +77,10 @@
   
   (method override (show-me? self)
     #f)
+  
+  
+  (method override (draw-message-offset self)
+    120)
   
   
   (method override (showcase-avatar? self)
@@ -468,7 +472,9 @@
       (lambda ()
         (clear-exception)
         (open-circle-zone file from-login?: #t)
-        (activate-assets (current-application))))))
+        (let ((tier (current-tier)))
+          (when (is? tier Client-Tier)
+            (activate-assets tier)))))))
 
 
 ;;;

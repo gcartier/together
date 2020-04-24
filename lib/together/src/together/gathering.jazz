@@ -473,16 +473,21 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
+    (let ((interface (current-interface)))
       (install-gathering self)
       (show root)
       (send-to-back root)
-      (layout-message world)
       (if (developer?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
         (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
   
   
   (method (install-gathering self)
@@ -640,7 +645,7 @@
   
   
   (method override (draw-message-offset self)
-    100)
+    120)
   
   
   (method override (enter-press self)
@@ -796,6 +801,13 @@
       (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
       (show-mainbar self)
       (install-avatar self)))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
   
   
   (method (install-avatar self)
@@ -1086,7 +1098,15 @@
                   (find-actions 'together-experiment)
                   (find-actions 'together-script)
                   (find-actions 'together-debug))
-            (nextmethod self))))
+            (nextmethod self)))
+  
+  
+  (method override (draw-message-offset self)
+    80)
+  
+  
+  (method override (draw-working-offset self)
+    80))
 
 
 ;;;
@@ -1121,11 +1141,17 @@
       (install-circling self)
       (show root)
       (send-to-back root)
-      (layout-message world)
       (if (developer?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
         (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
   
   
   (method (install-circling self)
@@ -1343,7 +1369,11 @@
   
   
   (method override (draw-message-offset self)
-    65)
+    80)
+  
+  
+  (method override (draw-working-offset self)
+    80)
   
   
   ;;;
@@ -1584,16 +1614,21 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
+    (let ((interface (current-interface)))
       (install-script self)
       (show root)
       (send-to-back root)
-      (layout-message world)
       (if (developer?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
         (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
 
   
   (method (install-script self)
@@ -1647,16 +1682,21 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
+    (let ((interface (current-interface)))
       (install-replay self)
       (show root)
       (send-to-back root)
-      (layout-message world)
       (if (developer?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
         (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
 
   
   (method (install-replay self)
@@ -1709,16 +1749,21 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
+    (let ((interface (current-interface)))
       (install-simulate self)
       (show root)
       (send-to-back root)
-      (layout-message world)
       (if (developer?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
         (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
 
   
   (method (install-simulate self)
