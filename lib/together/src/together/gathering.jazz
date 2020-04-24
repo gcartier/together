@@ -2151,10 +2151,7 @@
               (set! circle-no no)
               (set! circle-audio-only? audio-only?)
               (set! circle-start (current-seconds))
-              (for-each (lambda (info)
-                          (bind (sender name stream-no origin source-kind video-level channels) info
-                            (stream-add tier no sender name stream-no origin source-kind video-level channels)))
-                        streams)
+              (streams-add tier no streams)
               (install-circle-hooks self)
               (goto-space self (if (void? zone) 'circle 'avatar))
               (effective-base-profile-update)
