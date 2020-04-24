@@ -2040,7 +2040,7 @@
   (method (on-toggle-mic self evt)
     (let ((client (current-client))
           (world (current-world)))
-      (require-live-stream client)
+      (require-live-stream client circle-audio-only?)
       (toggle-mic client)
       (update-parameter world 'mic)))
   
@@ -2049,7 +2049,7 @@
     (let ((client (current-client))
           (video (current-video))
           (world (current-world)))
-      (require-live-stream client)
+      (require-live-stream client circle-audio-only?)
       (toggle-camera client)
       (update-layouts video)
       (update-parameter world 'camera)
