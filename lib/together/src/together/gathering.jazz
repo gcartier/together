@@ -571,6 +571,9 @@
           (<!>                 name: quit-world                 active?: #t))
         (<world-interface!>
           (<!>                 name: toggle-windowed-mode       active?: #t))
+        (<world-chat!>
+          (<!>                 name: command-message            active?: #t)
+          (<!>                 name: command-slash              active?: #t))
         (<world-script!>
           (<!>                 name: test1                      active?: #t)
           (<!>                 name: test2                      active?: #t)
@@ -622,6 +625,7 @@
     (append (list (find-actions 'together-menu)
                   (find-actions 'world-main)
                   (find-actions 'world-interface)
+                  (find-actions 'world-chat)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
                   (find-actions 'together-debug)
@@ -2842,6 +2846,15 @@
     (let ((interface (current-interface)))
       (show-chat self)
       (acquire-focus (locate (child interface 'command) 'text))))
+  
+  
+  (method package (chat-slash self)
+    (let ((interface (current-interface)))
+      (show-chat self)
+      (let ((text (locate (child interface 'command) 'text)))
+        (acquire-focus text)
+        (set-string-content text "")
+        (insert-char text #\/))))
   
   
   (method (show-chat self)
