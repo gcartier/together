@@ -2897,13 +2897,13 @@
                    (let ((error (client-invite tier recipient)))
                      (if error
                          (show-panel-message (get-character-name tier) 'show error)
-                       (show-panel-message (get-character-name tier) 'show content)))
+                       (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient))))
                    (values #f #f #f)))
                 ((equal? content "/leave")
                  (let ((error (client-leave tier)))
                    (if error
                        (show-panel-message (get-character-name tier) 'show error)
-                     (show-panel-message (get-character-name tier) 'show "/leave")))
+                     (show-panel-message (get-character-name tier) 'show "Left group")))
                  (values #f #f #f))
                 ((equal? content "/clear")
                  (let ((panel (child interface 'chat)))
