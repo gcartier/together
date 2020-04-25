@@ -140,7 +140,7 @@
   (world-setting 'together.connect-attention #f))
 
 (definition message-sound
-  (world-setting 'together.message-sound #f))
+  (world-setting 'together.message-sound #t))
 
 (definition message-attention
   (world-setting 'together.message-attention #t))
