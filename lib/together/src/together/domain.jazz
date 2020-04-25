@@ -19,4 +19,5 @@
 
 (definition package (register-domain-names)
   (register-domain-name 'character "Name")
-  (register-domain-name 'group "Circle")))
+  (register-domain-name 'group "Group")
+  (register-domain-name 'circle "Circle")))

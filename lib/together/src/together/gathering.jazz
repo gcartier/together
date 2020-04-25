@@ -2518,12 +2518,7 @@
           (let ((path (cdr zone)))
             (table-add zones path member)))
         
-        (for-each (lambda (info)
-                    (bind (zone . title) info
-                      (unless (eq? zone 'start)
-                        (table-set! zones (cdr zone) '()))))
-                  available-zones)
-        (bind (group audio-only? zone . players) groupless
+        (define (add-players zone players)
           (for-each (lambda (player)
                       (bind (name id no asleep? zone mode) player
                         (if (or (eq? mode 'observer)
@@ -2532,11 +2527,21 @@
                             (set! observers (cons player observers))
                           (add zone (cons 'player player)))))
                     players))
+        
+        (for-each (lambda (info)
+                    (bind (zone . title) info
+                      (unless (eq? zone 'start)
+                        (table-set! zones (cdr zone) '()))))
+                  available-zones)
+        (bind (group audio-only? zone . players) groupless
+          (add-players zone players))
         (for-each (lambda (group)
-                    (bind (name audio-only? zone) group
-                      (if (eq? zone 'start)
-                          (set! voiders (cons group voiders))
-                        (add zone (cons 'group group)))))
+                    (bind (name audio-only? zone . players) group
+                      (if (integer? name)
+                          (add-players zone players)
+                        (if (eq? zone 'start)
+                            (set! voiders (cons group voiders))
+                          (add zone (cons 'group group))))))
                   groups)
         (values observers voiders (table->list zones)))))
   
@@ -2848,70 +2853,91 @@
   
   
   (method (command-return self command)
-    (define (parse-content content)
-      (if (not (developer?))
-          (selected-recipient content)
-        (cond ((starts-with? content "/s ")
-               (values 'server #f (substring content 3 (string-length content))))
-              ((starts-with? content "/g ")
-               (values 'group (group-recipient) (substring content 3 (string-length content))))
-              ((starts-with? content "/w ")
-               (let ((str (substring content 3 (string-length content))))
-                 (let ((pos (find str #\space)))
-                   (if (not pos)
-                       (values 'whisper (get-name (current-me)) str)
-                     (let ((recipient (substring str 0 pos))
-                           (message (substring str (+ pos 1) (string-length str))))
-                       (show-panel-whisper recipient message)
-                       (values 'whisper recipient message))))))
-              ((starts-with? content "/r ")
-               (let ((last-whisperer (get-last-whisperer (current-world)))
-                     (message (substring content 3 (string-length content))))
-                 (if (not last-whisperer)
-                     (values 'group (group-recipient) message)
-                   (show-panel-whisper last-whisperer message)
-                   (values 'whisper last-whisperer message))))
+    (let ((tier (current-client))
+          (interface (current-interface))
+          (world (current-world)))
+      (define (parse-content content)
+        (if (not (developer?))
+            (selected-recipient content)
+          (cond ((starts-with? content "/s ")
+                 (values 'server #f (substring content 3 (string-length content))))
+                ((starts-with? content "/g ")
+                 (values 'group (group-recipient) (substring content 3 (string-length content))))
+                ((starts-with? content "/w ")
+                 (let ((str (substring content 3 (string-length content))))
+                   (let ((pos (find str #\space)))
+                     (if (not pos)
+                         (values 'whisper (get-name (current-me)) str)
+                       (let ((recipient (substring str 0 pos))
+                             (message (substring str (+ pos 1) (string-length str))))
+                         (show-panel-whisper recipient message)
+                         (values 'whisper recipient message))))))
+                ((starts-with? content "/r ")
+                 (let ((last-whisperer (get-last-whisperer world))
+                       (message (substring content 3 (string-length content))))
+                   (if (not last-whisperer)
+                       (values 'group (group-recipient) message)
+                     (show-panel-whisper last-whisperer message)
+                     (values 'whisper last-whisperer message))))
+                ((starts-with? content "/invite ")
+                 (let ((recipient (substring content 8 (string-length content))))
+                   (let ((error (client-invite tier recipient)))
+                     (if error
+                         (show-panel-message (get-character-name tier) 'show error)
+                       (show-panel-message (get-character-name tier) 'show content)))
+                   (values #f #f #f)))
+                ((equal? content "/leave")
+                 (let ((error (client-leave tier)))
+                   (if error
+                       (show-panel-message (get-character-name tier) 'show error)
+                     (show-panel-message (get-character-name tier) 'show "/leave")))
+                 (values #f #f #f))
+                ((equal? content "/clear")
+                 (let ((panel (child interface 'chat)))
+                   (clear panel)
+                   (values #f #f #f)))
+                (else
+                 (selected-recipient content)))))
+      
+      (define (group-recipient)
+        (if (is? space Circle-Space)
+            circle-name
+          #f))
+      
+      (define (selected-recipient message)
+        (if (not message-recipient)
+            (begin
+              (when circle-name
+                (show-panel-say "The gathering" message))
+              (values 'group #f message))
+          (bind (what name) message-recipient
+            (case what
+              ((player)
+               (show-panel-whisper name message)
+               (values 'whisper name message))
               (else
-               (selected-recipient content)))))
-    
-    (define (group-recipient)
-      (if (is? space Circle-Space)
-          circle-name
-        #f))
-    
-    (define (selected-recipient message)
-      (if (not message-recipient)
-          (begin
-            (when circle-name
-              (show-panel-say "The gathering" message))
-            (values 'group #f message))
-        (bind (what name) message-recipient
-          (case what
-            ((player)
-             (show-panel-whisper name message)
-             (values 'whisper name message))
-            (else
-             (values 'group name message))))))
-    
-    (define (show-panel-say recipient message)
-      (let ((interface (current-interface)))
+               (values 'group name message))))))
+      
+      (define (show-panel-say recipient message)
         (let ((panel (child interface 'chat))
               (sender #f))
-          (show-say panel recipient message sender))))
-    
-    (define (show-panel-whisper recipient message)
-      (let ((interface (current-interface)))
+          (show-say panel recipient message sender)))
+      
+      (define (show-panel-whisper recipient message)
         (let ((panel (child interface 'chat))
               (sender recipient))
-          (show-whisper panel recipient message sender))))
-    
-    (let ((world (current-world))
-          (tier (current-client)))
+          (show-whisper panel recipient message sender)))
+      
+      (define (show-panel-message sender kind message)
+        (let ((panel (child interface 'chat)))
+          (show-message panel sender kind message)))
+      
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
           (unless (whitespace? content)
             (receive (kind recipient message) (parse-content content)
-              (client-message tier kind recipient message)
+              (when kind
+                (client-message tier kind recipient message))
               (set-string-content text "")))))))
   
   
