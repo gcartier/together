@@ -74,6 +74,7 @@
         (world.interface.text)
         (world.interface.timeline)
         (world.io)
+        (world.live)
         (world.manager)
         (world.pane)
         (world.profile)
@@ -2085,15 +2086,19 @@
   
   
   (method package (enter-zone self)
-    (let ((client (current-client)))
+    (let ((client (current-client))
+          (world (current-world)))
       (uninstall-vista)
       (goto-space self 'avatar)
+      (show-compass world)
       (mode-to-server client 'participant)))
   
   
   (method package (exit-zone self)
-    (let ((client (current-client)))
+    (let ((client (current-client))
+          (world (current-world)))
       (install-vista)
+      (hide-compass world)
       (goto-space self 'gathering)
       (mode-to-server client 'observer)))
   
