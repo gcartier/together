@@ -2155,7 +2155,7 @@
               (set! circle-no no)
               (set! circle-audio-only? audio-only?)
               (set! circle-start (current-seconds))
-              (streams-add tier no streams)
+              (streams-add tier no audio-only? streams)
               (install-circle-hooks self)
               (goto-space self (if (void? zone) 'circle 'avatar))
               (effective-base-profile-update)
