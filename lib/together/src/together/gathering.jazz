@@ -271,13 +271,17 @@
   
   
   (method (on-toggle-chat self evt)
-    (let ((interface (current-interface))
+    (let ((together (current-together))
+          (interface (current-interface))
           (world (current-world)))
-      (toggle-visible? (child interface 'chat-label))
-      (toggle-visible? (child interface 'chat))
-      (toggle-visible? (child interface 'command-to))
-      (toggle-visible? (child interface 'command))
-      (update-parameter world 'chat)))
+      (let ((circle? (get-circle-name together)))
+        (when circle?
+          (toggle-visible? (child interface 'chat-label)))
+        (toggle-visible? (child interface 'chat))
+        (when circle?
+          (toggle-visible? (child interface 'command-to)))
+        (toggle-visible? (child interface 'command))
+        (update-parameter world 'chat))))
   
   
   ;;;
@@ -2087,18 +2091,48 @@
   
   (method package (enter-zone self)
     (let ((client (current-client))
+          (interface (current-interface))
           (world (current-world)))
       (uninstall-vista)
       (goto-space self 'avatar)
       (show-compass world)
+      (let ((chat-label (child interface 'chat-label))
+            (chat (child interface 'chat))
+            (command (child interface 'command))
+            (belt (child interface 'belt)))
+        (set-visible? chat-label #f)
+        (set-location chat '(10 -10))
+        (set-proportion chat '(400 150))
+        (set-location command '(10 -164))
+        (set-size command (new Dimension 400 19))
+        (set-visible? chat #t)
+        (set-visible? belt #t)
+        (layout-interface))
+      ;; quick test
+      ;(set-visible? (child interface 'mainbar) #f)
+      (set-visible? (child interface 'profile) #f)
       (mode-to-server client 'participant)))
   
   
   (method package (exit-zone self)
     (let ((client (current-client))
+          (interface (current-interface))
           (world (current-world)))
       (install-vista)
       (hide-compass world)
+      (let ((chat-label (child interface 'chat-label))
+            (chat (child interface 'chat))
+            (command (child interface 'command))
+            (belt (child interface 'belt)))
+        (set-visible? chat-label #t)
+        (set-location chat '(-10 100))
+        (set-proportion chat '(220 (bounds -354)))
+        (set-location command '(-10 -200))
+        (set-size command (new Dimension 220 19))
+        (set-visible? belt #f))
+      ;; quick test
+      ;(set-visible? (child interface 'mainbar) #t)
+      (set-visible? (child interface 'profile) #t)
       (goto-space self 'gathering)
       (mode-to-server client 'observer)))
   
@@ -2863,11 +2897,15 @@
   
   
   (method (show-chat self)
-    (let ((interface (current-interface)))
-      (set-visible? (child interface 'chat-label) #t)
-      (set-visible? (child interface 'chat) #t)
-      (set-visible? (child interface 'command-to) #t)
-      (set-visible? (child interface 'command) #t)))
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((circle? (get-circle-name together)))
+        (when circle?
+          (set-visible? (child interface 'chat-label) #t))
+        (set-visible? (child interface 'chat) #t)
+        (when circle?
+          (set-visible? (child interface 'command-to) #t))
+        (set-visible? (child interface 'command) #t))))
   
   
   (method (command-return self command)
