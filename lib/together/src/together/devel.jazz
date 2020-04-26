@@ -202,6 +202,7 @@
         (world.work)
         (world.working)
         (world.zone)
+        (together)
         (together.gathering)
         (together.replay)
         (together.visualizer)))
