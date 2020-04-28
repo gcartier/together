@@ -118,6 +118,7 @@
                        world.render-rate-inactive 30.
                        world.post-processing?     #t
                        world.multisampling        1
+                       world.start-time           9000
                        ;; keys
                        world.arrow-movement?      #f
                        ;; test
