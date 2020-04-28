@@ -235,12 +235,18 @@
   
   
   (method (show-mainbar self)
-    (set-visible? mainbar #t)
-    (fade-mainbar (point->point$fl$ (mouse-position (current-window)))))
+    (let ((window (current-window)))
+      (set-visible? mainbar-sheet #t)
+      (register-sheet window mainbar-sheet)
+      (fade-mainbar (point->point$fl$ (mouse-position window)) #t)))
   
   
   (method (hide-mainbar self)
-    (set-visible? mainbar #f))
+    (let ((window (current-window)))
+      (set-fade mainbar-pane 0.)
+      (invalidate-view mainbar)
+      (set-visible? mainbar-sheet #f)
+      (unregister-sheet window mainbar-sheet)))
   
   
   ;;;

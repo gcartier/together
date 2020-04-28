@@ -642,7 +642,7 @@
   
   (method override (setup-application-interface self)
     (let ((interface (current-interface)))
-      (setup-mainbar (new Together-Main-Bar visible?: #f))
+      (setup-mainbar (new Together-Main-Bar visible?: #t))
       (install-bars
         `((,World-Models-Bar      models        horizontal none #f)
           (,World-Blocks-Bar      blocks        horizontal none #f)
