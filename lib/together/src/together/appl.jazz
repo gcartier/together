@@ -905,7 +905,7 @@
   
   (form
     (<install>                                        title: "Share"
-      (<World-Action-Item> name: toggle-streams       title: "Streams" shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
+      (<World-Action-Item> name: toggle-streams       title: "Streams" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
       (<World-Action-Item> name: add-image            title: "Add image" shortcut: {Shortcut :alt :shift #\7} action-handler: {Event-Handler :together on-add-image} description: "Add image.")
       (<World-Action-Item> name: add-video            title: "Add video" shortcut: {Shortcut :alt :shift #\8} action-handler: {Event-Handler :together on-add-video} description: "Add video.")
       (<World-Action-Item> name: add-music            title: "Add music" shortcut: {Shortcut :alt :shift #\9} action-handler: {Event-Handler :together on-add-music} description: "Add music.")
