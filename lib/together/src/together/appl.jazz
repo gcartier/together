@@ -70,6 +70,7 @@
         (world.interface.actions)
         (world.interface.bars)
         (world.interface.history)
+        (world.interface.mainbar)
         (world.interface.menu)
         (world.interface.timeline)
         (world.io)
@@ -641,11 +642,10 @@
   
   (method override (setup-application-interface self)
     (let ((interface (current-interface)))
-      (new History-Slider name: 'slider parent: interface visible?: #f)
+      (setup-mainbar (new Together-Main-Bar visible?: #f))
       (install-bars
         `((,World-Models-Bar      models        horizontal none #f)
           (,World-Blocks-Bar      blocks        horizontal none #f)
-          (,Together-Main-Bar     mainbar       horizontal (10 10) #f)
           (,Together-Central-Menu central-menu  central    center #f)
           (,Together-Main-Menu    main-menu     radial     center #f)
           (,World-Graphics-Menu   graphics-menu radial     center #f)
@@ -653,6 +653,7 @@
           (,World-Build-Menu      build-menu    radial     center #f)
           (,World-Script-Menu     script-menu   radial     center #f)
           (,World-Debug-Menu      debug-menu    radial     center #f)))
+      (new History-Slider name: 'slider parent: interface visible?: #f)
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
@@ -785,7 +786,7 @@
   
   
   (form
-    (<install>
+    (<install>                                            layout-fit: around
       (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-media toggle-mic} parameter: mic)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-media toggle-camera} parameter: camera)
       (<World-Separator>)

@@ -124,6 +124,7 @@
         (world.interface.documents)
         (world.interface.evolution)
         (world.interface.inventory)
+        (world.interface.mainbar)
         (world.interface.map)
         (world.interface.panel)
         (world.interface.script)

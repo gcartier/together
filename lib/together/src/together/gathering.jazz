@@ -68,6 +68,7 @@
         (world.interface.evolution)
         (world.interface.exception)
         (world.interface.frame)
+        (world.interface.mainbar)
         (world.interface.panel)
         (world.interface.script)
         (world.interface.sheet)
@@ -234,13 +235,12 @@
   
   
   (method (show-mainbar self)
-    (let ((interface (current-interface)))
-      (set-visible? (child interface 'mainbar) #t)))
+    (set-visible? mainbar #t)
+    (fade-mainbar (point->point$fl$ (mouse-position (current-window)))))
   
   
   (method (hide-mainbar self)
-    (let ((interface (current-interface)))
-      (set-visible? (child interface 'mainbar) #f)))
+    (set-visible? mainbar #f))
   
   
   ;;;
@@ -1115,7 +1115,12 @@
   
   
   (method override (draw-working-offset self)
-    80))
+    80)
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (fade-mainbar (new Point$fl$ x y))))
 
 
 ;;;
