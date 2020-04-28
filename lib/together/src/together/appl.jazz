@@ -228,7 +228,7 @@
           (zone (current-zone)))
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
-          (let ((script (find-script world edited-path)))
+          (let ((script (find-asset world edited-path)))
             (when script
               (let ((content (load-text script)))
                 (when (not (equal? (digest-string content 'SHA-1)
