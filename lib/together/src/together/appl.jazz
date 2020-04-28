@@ -736,21 +736,27 @@
   (new World-Parameter
     (lambda ()
       (let ((interface (current-interface)))
-        (get-visible? (child interface 'people))))))
+        (let ((view (find-component interface 'people)))
+          (and view
+               (get-visible? view)))))))
 
 
 (define-parameter streams
   (new World-Parameter
     (lambda ()
       (let ((interface (current-interface)))
-        (get-visible? (child interface 'streams))))))
+        (let ((view (find-component interface 'streams)))
+          (and view
+               (get-visible? view)))))))
 
 
 (define-parameter chat
   (new World-Parameter
     (lambda ()
       (let ((interface (current-interface)))
-        (get-visible? (child interface 'chat))))))
+        (let ((view (find-component interface 'chat)))
+          (and view
+               (get-visible? view)))))))
 
 
 (define-parameter avatar-space
