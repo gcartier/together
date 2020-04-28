@@ -234,11 +234,14 @@
     )
   
   
-  (method (show-mainbar self)
+  (method (show-mainbar self (fade? #f))
     (let ((window (current-window)))
       (set-visible? mainbar-sheet #t)
       (register-sheet window mainbar-sheet)
-      (fade-mainbar (point->point$fl$ (mouse-position window)) #t)))
+      (if fade?
+          (fade-mainbar (point->point$fl$ (mouse-position window)) #t)
+        (set-fade mainbar-pane #f)
+        (invalidate-view mainbar))))
   
   
   (method (hide-mainbar self)
@@ -814,7 +817,7 @@
           (video (current-video)))
       (set-unbind-camera? #t)
       (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
-      (show-mainbar self)
+      (show-mainbar self #t)
       (install-avatar self)))
   
   
