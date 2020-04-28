@@ -234,11 +234,11 @@
     )
   
   
-  (method (show-mainbar self (fade? #f))
+  (method (show-mainbar self)
     (let ((window (current-window)))
       (set-visible? mainbar-sheet #t)
       (register-sheet window mainbar-sheet)
-      (if fade?
+      (if (fade-mainbar? self)
           (fade-mainbar (point->point$fl$ (mouse-position window)) #t)
         (set-fade mainbar-pane #f)
         (invalidate-view mainbar))))
@@ -817,7 +817,7 @@
           (video (current-video)))
       (set-unbind-camera? #t)
       (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
-      (show-mainbar self #t)
+      (show-mainbar self)
       (install-avatar self)))
   
   
@@ -1119,6 +1119,10 @@
             (nextmethod self)))
   
   
+  (method override (fade-mainbar? self)
+    #t)
+  
+  
   (method override (draw-message-offset self)
     80)
   
@@ -1129,7 +1133,9 @@
   
   (method override (mouse-moved self x y)
     (nextmethod self x y)
-    (fade-mainbar (new Point$fl$ x y))))
+    (let ((world (current-world)))
+      (unless (get-central-menu world)
+        (fade-mainbar (new Point$fl$ x y))))))
 
 
 ;;;
