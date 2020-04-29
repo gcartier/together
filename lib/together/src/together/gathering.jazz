@@ -1981,21 +1981,22 @@
         (close (child interface 'admin)))))
   
   
-  (method protected (sleep-process self)
-    (with-task-mutex
-      (lambda ()
-        (let ((client (current-client)))
-          (when (is? space Sphere-Space)
-            (leave-circle self)
-            (set! disconnected? #t))
-          (sleep-to-server client)))))
-  
-  
   (method (prepare-skybox self)
     (let ((zone (current-zone)))
       (set-skybox zone (let ((skybox (find-skybox together-skybox)))
                          (prepare skybox)
                          skybox))))
+  
+  
+  (method protected (sleep-process self)
+    (with-task-mutex
+      (lambda ()
+        (when (client?)
+          (let ((client (current-client)))
+            (when (is? space Sphere-Space)
+              (leave-circle self)
+              (set! disconnected? #t))
+            (sleep-to-server client))))))
   
   
   (method protected (wake-process self)
