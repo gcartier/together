@@ -30,6 +30,7 @@
   (set-settings-alias 'Resources)
   (set-settings-root (determine-settings-root))
   (set-documents-root (determine-documents-root))
+  (set-universe-root (determine-universe-root))
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user builder developer admin))
   (register-domain-names)

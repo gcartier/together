@@ -76,6 +76,22 @@
 
 
 ;;;
+;;;; Universe
+;;;
+
+
+(definition protected (determine-universe-root)
+  (cond-expand
+    (mac
+     '(Home "Documents" "Together"))
+    (windows
+     (let ((dir (get-special-folder CSIDL_PERSONAL)))
+       (list dir "Together")))
+    (else
+     '(Home ".together"))))
+
+
+;;;
 ;;;; Version
 ;;;
 
@@ -191,6 +207,7 @@
      (set-settings-alias 'Resources)
      (set-settings-root (determine-settings-root))
      (set-documents-root (determine-documents-root))
+     (set-universe-root (determine-universe-root))
      (set-aliases-setup setup-aliases)
      (set-valid-roles '(user developer))
      (set-server-filename (determine-server-filename))

@@ -51,6 +51,7 @@
   (set-settings-alias 'Resources)
   (set-settings-root (determine-settings-root))
   (set-documents-root (determine-documents-root))
+  (set-universe-root (determine-universe-root))
   (set-options-setup setup-options)
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
