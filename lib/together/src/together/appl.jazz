@@ -274,12 +274,19 @@
   
   (method override (get-resource self type name)
     (case type
-      ((icon) (new-file (icon-dir self) (format "{a}.png" name)))
+      ((icon) ;; we rely on the caller image doing the caching
+              (let ((target-path (format "icon/world/{a}.png" name)))
+                (continuation-capture
+                  (lambda (return)
+                    (iterate-assets (current-world)
+                      (lambda (assets)
+                        (iterate-entries assets
+                          (lambda (path)
+                            (when (filename=? path target-path)
+                              (let ((asset (new Asset assets path)))
+                                (continuation-return return (retrieve-file asset))))))))
+                    (error "Unable to find resource: {a}" name)))))
       (else (nextmethod self type name))))
-  
-  
-  (method protected (icon-dir self)
-    {Directory Application-World "assets" "icon" "world"})
 
 
   ;;;
