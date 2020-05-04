@@ -458,8 +458,8 @@
   
   (method package (save-configuration self)
     (let ((file (user-client-file)))
-      (let ((server-address #f)
-            (server-port #f)
+      (let ((server-address (get-server-host configuration))
+            (server-port (get-server-service configuration))
             (name (get-character-name configuration))
             (avatar (get-character-avatar configuration))
             (script (get-character-script configuration))
