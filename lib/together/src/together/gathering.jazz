@@ -1983,9 +1983,10 @@
   
   (method (prepare-skybox self)
     (let ((zone (current-zone)))
-      (set-skybox zone (let ((skybox (find-skybox together-skybox)))
-                         (prepare skybox)
-                         skybox))))
+      (unless (get-skybox zone)
+        (set-skybox zone (let ((skybox (find-skybox together-skybox)))
+                           (prepare skybox)
+                           skybox)))))
   
   
   (method protected (sleep-process self)
