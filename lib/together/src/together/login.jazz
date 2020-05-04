@@ -404,7 +404,7 @@
   
   
   (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox together-skybox)))
+    (set! skybox (let ((skybox (find-skybox "world/nebula")))
                    (prepare skybox)
                    skybox)))
   
