@@ -115,8 +115,9 @@
                      '(;; role
                        world.role                 builder ;; user
                        ;; configure
-                       world.render-rate          30.
+                       world.render-rate          60.
                        world.render-rate-inactive 30.
+                       world.view-distance        7
                        world.post-processing?     #t
                        world.multisampling        1
                        world.start-time           9000
