@@ -1041,14 +1041,19 @@
           (<!>                 name: central-menu               active?: #t))
         (<together-media!>
           (<!>                 name: toggle-mic                 active?: #t)
+          @wait
           (<!>                 name: toggle-camera              active?: #t)
+          @wait
           (<!>                 name: change-quality             active?: #t)
+          @wait
           (<!>                 name: toggle-denoise             active?: #t))
+        @wait
         (<together-circle!>
           (<!>                 name: avatar-space               active?: #t)
           (<!>                 name: circle-space               active?: #t)
           (<!>                 name: focus-space                active?: #t)
           (<!>                 name: gallery-space              active?: #t))
+        @wait
         (<together-share!>
           (<!>                 name: toggle-streams             active?: #t)
           (<!>                 name: add-image                  active?: #t)
