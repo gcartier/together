@@ -1328,6 +1328,7 @@
           (<!>                 name: change-quality             active?: #t)
           (<!>                 name: toggle-denoise             active?: #t))
         (<together-circle!>
+          @wait
           (<!>                 name: avatar-space               active?: #t)
           (<!>                 name: circle-space               active?: #t)
           (<!>                 name: focus-space                active?: #t)
