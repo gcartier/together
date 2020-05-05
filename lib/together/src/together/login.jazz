@@ -482,7 +482,8 @@
         (open-circle-zone file from-login?: #t)
         (let ((tier (current-tier)))
           (when (is? tier Client-Tier)
-            (activate-assets tier)))))))
+            (activate-assets tier 'world)
+            (activate-assets tier 'zone)))))))
 
 
 ;;;
