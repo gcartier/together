@@ -60,6 +60,7 @@
     (if (or force-welcome?
             (not (exists? file))
             (not (get-character-avatar (instantiate (read-form file))))
+            (world-setting 'together.login? #f)
             (shift-down?))
         (open-login-zone)
       (let ((auto-join (world-setting 'together.auto-join #f))
