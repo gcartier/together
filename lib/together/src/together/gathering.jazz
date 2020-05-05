@@ -2243,7 +2243,7 @@
               (set! circle-start (current-seconds))
               (streams-add tier no audio-only? streams)
               (install-circle-hooks self)
-              (goto-space self (if (void? zone) 'circle 'avatar))
+              (goto-circle-space self 'circle feedback?: #f)
               (effective-base-profile-update)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
@@ -3111,14 +3111,16 @@
   
   
   (method (on-focus-space self evt)
-    (goto-circle-space self 'focus))
+    (unless (is? (current-space) Focus-Space)
+      (goto-circle-space self 'focus)))
   
   
   (method (on-gallery-space self evt)
-    (goto-circle-space self 'gallery))
+    (unless (is? (current-space) Gallery-Space)
+      (goto-circle-space self 'gallery)))
   
   
-  (method (goto-circle-space self layout)
+  (method (goto-circle-space self layout (feedback?: feedback? #t))
     (let ((world (current-world))
           (video (current-video)))
       (goto-space self layout)
@@ -3134,7 +3136,8 @@
       (update-parameter world 'circle-space)
       (update-parameter world 'focus-space)
       (update-parameter world 'gallery-space)
-      (display-message world (capitalize (symbol->string video-layout)))))
+      (when feedback?
+        (display-message world (capitalize (symbol->string video-layout))))))
   
   
   (method (goto-focused self)
