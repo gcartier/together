@@ -1120,7 +1120,7 @@
   
   
   (method override (fade-mainbar? self)
-    #t)
+    (not (get-fade-thread (current-together))))
   
   
   (method override (draw-message-offset self)
@@ -1134,8 +1134,9 @@
   (method override (mouse-moved self x y)
     (nextmethod self x y)
     (let ((world (current-world)))
-      (unless (get-central-menu world)
-        (fade-mainbar (new Point$fl$ x y))))))
+      (unless (get-fade-thread (current-together))
+        (unless (get-central-menu world)
+          (fade-mainbar (new Point$fl$ x y)))))))
 
 
 ;;;
@@ -1843,6 +1844,8 @@
   (slot draw-hook            initialize #f getter generate)
   (slot disconnected?        initialize #f getter generate)
   (slot chat-wide?           initialize #f getter generate)
+  (slot fade-thread          initialize #f getter generate)
+  (slot fade-no              initialize 0  getter generate)
   
   (cond-expand
     (windows
@@ -2113,9 +2116,35 @@
   
   (method package (enter-zone self)
     (let ((client (current-client))
+          (window (current-window))
           (interface (current-interface))
           (world (current-world)))
       (uninstall-vista)
+      (increase! fade-no)
+      (let ((no fade-no))
+        (define (fade?)
+          (and (= no fade-no)
+               (is? (current-space) Avatar-Space)
+               (not (get-central-menu world))))
+        
+        (let ((thread
+                (new-thread
+                  (lambda ()
+                    (sleep 1)
+                    (when (fade?)
+                      (loop (for n from 1 to 100)
+                            (with-task-mutex
+                              (lambda ()
+                                (when (fade?)
+                                  (set-fade mainbar-pane (- 1. (* (cast <fl> n) .01)))
+                                  (invalidate-view mainbar))))
+                            (sleep .01)))
+                    (set! fade-thread #f)
+                    (when (fade?)
+                      (fade-mainbar (point->point$fl$ (mouse-position window)) #t)))
+                  'fade)))
+          (set! fade-thread thread)
+          (thread-start! thread)))
       (goto-space self 'avatar)
       (show-compass world)
       (let ((chat-label (child interface 'chat-label))
@@ -2130,8 +2159,6 @@
         (set-visible? chat #t)
         (set-visible? belt #t)
         (layout-interface))
-      ;; quick test
-      ;(set-visible? (child interface 'mainbar) #f)
       (set-visible? (child interface 'profile) #f)
       (mode-to-server client 'participant)))
   
@@ -2152,8 +2179,6 @@
         (set-location command '(-10 -200))
         (set-size command (new Dimension 220 19))
         (set-visible? belt #f))
-      ;; quick test
-      ;(set-visible? (child interface 'mainbar) #t)
       (set-visible? (child interface 'profile) #t)
       (goto-space self 'gathering)
       (mode-to-server client 'observer)))
