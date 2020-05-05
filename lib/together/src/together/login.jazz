@@ -403,6 +403,14 @@
     (nextmethod self))
   
   
+  ;; kind of poor man solution for the moment as this will
+  ;; not change the atlas after going through the login zone
+  (method override (prepare-pack self)
+    (prepare-pack/tile self
+                       #f
+                       #f))
+  
+  
   (method override (prepare-skybox self)
     (set! skybox (let ((skybox (find-skybox "world/nebula")))
                    (prepare skybox)
