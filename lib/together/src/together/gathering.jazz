@@ -2995,8 +2995,7 @@
                        (values 'group (group-recipient) message)
                      (show-panel-whisper last-whisperer message)
                      (values 'whisper last-whisperer message))))
-                ((or (starts-with? content "/invite ")
-                     (starts-with? content "/inv "))
+                ((starts-with? content "/invite ")
                  (let ((recipient (substring content 8 (string-length content))))
                    (let ((error (client-invite tier recipient)))
                      (if error
