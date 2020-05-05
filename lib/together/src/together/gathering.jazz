@@ -2159,6 +2159,7 @@
         (set-visible? chat #t)
         (set-visible? belt #t)
         (layout-interface))
+      (setup-visibility mainbar)
       (set-visible? (child interface 'profile) #f)
       (mode-to-server client 'participant)))
   
@@ -2245,6 +2246,7 @@
               (install-circle-hooks self)
               (goto-circle-space self 'circle feedback?: #f)
               (effective-base-profile-update)
+              (setup-visibility mainbar)
               (when audio-only?
                 (setup-render-rate 5. 5.))))))))
   

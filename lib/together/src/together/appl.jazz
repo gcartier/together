@@ -805,7 +805,25 @@
       (<World-Separator>)
       (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Landmarks/Japanese-Gate"} action-handler: {Action world-main open-welcome})
       (<World-Separator>)
-      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu}))))
+      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})))
+  
+  
+  (method protected (setup-visibility self)
+    (for-each (lambda (child)
+                (when (is? child World-Action-Button)
+                  (let ((action-item (require-action-item (get-action-handler child))))
+                    (set-visible? child (effective-visible? action-item)))))
+              children)
+    (let ((previous? #f))
+      (for-each (lambda (child)
+                  (if (is? child World-Separator)
+                      (begin
+                        (set-visible? child previous?)
+                        (set! previous? #f))
+                    (when (get-visible? child)
+                      (set! previous? #t))))
+                children))
+    (layout-view self)))
 
 
 ;;;
