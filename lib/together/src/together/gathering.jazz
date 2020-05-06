@@ -2154,8 +2154,9 @@
               (goto-circle-space self 'circle feedback?: #f)
               (effective-base-profile-update)
               (setup-visibility mainbar)
-              (when audio-only?
-                (setup-render-rate 5. 5.))))))))
+              (if audio-only?
+                  (setup-render-rate 5. 5.)
+                (setup-render-rate 30. 30.))))))))
   
   
   (method (leave-circle self)
