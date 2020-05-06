@@ -60,6 +60,16 @@
         (together.zone))
 
 
+(define-trait customize-bindings Bindings
+  (<Trait>                   name: customize
+    (<install>
+      (<world-main!>
+        (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: quit-world                 active?: #t))
+      (<world-interface!>
+        (<!>                 name: toggle-windowed-mode       active?: #t)))))
+
+
 (class Customize-Space extends Together-Space
   
   
@@ -91,19 +101,8 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (let ((interface (current-interface)))
-      (close root)
-      (for-each hide (get-children interface))))
-  
-  
-  (define-trait customize-bindings Bindings
-    (<Trait>                   name: customize
-      (<install>
-        (<world-main!>
-          (<!>                 name: bindings-viewer            active?: #t)
-          (<!>                 name: quit-world                 active?: #t))
-        (<world-interface!>
-          (<!>                 name: toggle-windowed-mode       active?: #t)))))
+    (close root)
+    (hide-interface))
   
   
   (method override (space-bindings self)

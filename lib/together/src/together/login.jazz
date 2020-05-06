@@ -62,6 +62,16 @@
         (together.zone))
 
 
+(define-trait login-bindings Bindings
+  (<Trait>                   name: login
+    (<install>
+      (<world-main!>
+        (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: quit-world                 active?: #t))
+      (<world-interface!>
+        (<!>                 name: toggle-windowed-mode       active?: #t)))))
+
+
 (class Login-Space extends Together-Space
   
   
@@ -151,19 +161,8 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (let ((interface (current-interface)))
-      (close root)
-      (for-each hide (get-children interface))))
-  
-  
-  (define-trait login-bindings Bindings
-    (<Trait>                   name: login
-      (<install>
-        (<world-main!>
-          (<!>                 name: bindings-viewer            active?: #t)
-          (<!>                 name: quit-world                 active?: #t))
-        (<world-interface!>
-          (<!>                 name: toggle-windowed-mode       active?: #t)))))
+    (close root)
+    (hide-interface))
   
   
   (method override (space-bindings self)
