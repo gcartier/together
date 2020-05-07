@@ -1967,8 +1967,8 @@
                  (set! message-recipient recipient)))))))))
   
   
-  (method package (zone-loaded? self zone)
-    (table-ref loaded-zones zone #f))
+  (method package (zone-loaded? self path)
+    (table-ref loaded-zones path #f))
   
   
   ;;;
@@ -2301,10 +2301,10 @@
     )
   
   
-  (method (zone-loaded self zone)
-    (table-set! loaded-zones zone #t)
-    (when (equal? zone selected-zone)
-      (change-zone self zone))
+  (method (zone-loaded self path)
+    (table-set! loaded-zones path #t)
+    (when (equal? path selected-zone)
+      (change-zone self path))
     (when (is? space Gathering-Space)
       (update-circle/join space)))
   
@@ -3064,16 +3064,18 @@
   ;;;
   
   
-  (method (load-zone self zone)
+  (method (load-zone self path)
     (let ((client (current-client)))
-      (load-zone client zone)))
+      (load-zone client path)))
   
   
-  (method (change-zone self zone)
-    (let ((client (current-client)))
-      (uninstall-vista)
-      (change-zone client zone)
-      (install-vista)))
+  (method (change-zone self path)
+    (let ((client (current-client))
+          (zone (current-zone)))
+      (unless (equal? path (get-path zone))
+        (uninstall-vista)
+        (change-zone client path)
+        (install-vista))))
   
   
   ;;;
