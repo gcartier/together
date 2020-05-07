@@ -2080,7 +2080,9 @@
           (thread-start! thread)))
       (goto-space self 'avatar)
       (setup-visibility mainbar)
-      (mode-to-server client 'participant)))
+      (mode-to-server client 'participant)
+      (set-zone-mode 'participant)
+      (prepare-motion world)))
   
   
   (method package (exit-zone self)
@@ -2089,7 +2091,8 @@
           (world (current-world)))
       (install-vista)
       (goto-space self 'gathering)
-      (mode-to-server client 'observer)))
+      (mode-to-server client 'observer)
+      (set-zone-mode 'observer)))
   
   
   (method (check-has-camera? self)
