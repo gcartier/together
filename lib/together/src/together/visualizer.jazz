@@ -370,8 +370,7 @@
   
   (method protected (render-video self)
     (let ((zone (current-zone)))
-      (when (and (is-not? zone together.login:Login-Zone)
-                 (eq? (get-stage (together:current-together)) 'replay)
+      (when (and (is? (current-space) together.gathering:Replay-Space)
                  receiver-emulator)
         (let ((output (get-video-output receiver-emulator)))
           (when output
