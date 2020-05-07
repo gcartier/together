@@ -1760,6 +1760,7 @@
   (slot selected-group       initialize #f getter generate)
   (slot selected-audio-only? initialize #f getter generate)
   (slot selected-player      initialize #f getter generate)
+  (slot selected-data        initialize #f getter generate)
   (slot circle-name          initialize #f getter generate)
   (slot circle-no            initialize #f getter generate)
   (slot circle-audio-only?   initialize #f getter generate)
@@ -2092,7 +2093,8 @@
       (install-vista)
       (goto-space self 'gathering)
       (mode-to-server client 'observer)
-      (set-zone-mode 'observer)))
+      (set-zone-mode 'observer)
+      (restore-selected-data self)))
   
   
   (method (check-has-camera? self)
@@ -2180,7 +2182,8 @@
       (install-skybox zone (find-skybox together-skybox))
       (set! circle-name #f)
       (set! circle-no #f)
-      (goto-space self 'gathering)))
+      (goto-space self 'gathering)
+      (restore-selected-data self)))
   
   
   (method (goto-space self what)
@@ -2195,6 +2198,14 @@
   
   (method (on-back self evt)
     (goto-space self 'gathering))
+  
+  
+  (method (restore-selected-data self)
+    (let ((tree (people-tree self)))
+      (let ((row (user-data-row tree selected-data test: equal?)))
+        (if (not row)
+            (set-selection tree '() generate-event?: #f)
+          (set-single-selection tree (row->line tree row) generate-event?: #f)))))
   
   
   ;;;
@@ -2668,8 +2679,8 @@
   (method package (people-selection-change self)
     (when (is? space Gathering-Space)
       (let ((tree (people-tree self)))
-        (let ((selected (or (get-single-selected-data tree) (list 'group #f #f))))
-          (bind (kind . rest) selected
+        (let ((data (or (get-single-selected-data tree) (list 'group #f #f))))
+          (bind (kind . rest) data
             (define (select zone group audio-only? player)
               (unless (equal? zone selected-zone)
                 (if (not (zone-loaded? self zone))
@@ -2679,6 +2690,7 @@
               (set! selected-group group)
               (set! selected-audio-only? audio-only?)
               (set! selected-player player)
+              (set! selected-data data)
               (update-circle/join space))
             
             (case kind
@@ -2689,7 +2701,7 @@
                (bind (group audio-only?) rest
                  (select 'start group audio-only? #f)))
               ((zone)
-               (select selected #f #f #f))))))))
+               (select data #f #f #f))))))))
   
   
   (method package (people-double-click self)
