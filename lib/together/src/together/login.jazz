@@ -75,9 +75,9 @@
 (class Login-Space extends Together-Space
   
   
-  (slot zone                         getter generate)
-  (slot view-focused   initialize #f getter generate)
-  (slot changing-name? initialize #f getter generate)
+  (slot zone                        getter generate)
+  (slot view-focused  initialize #f getter generate)
+  (slot changing-key? initialize #f getter generate)
   
   
   (method override (initialize self zone)
@@ -124,7 +124,7 @@
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
-              (name (get-personal-key configuration)))
+              (key (get-personal-key configuration)))
           (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
             (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
@@ -132,19 +132,19 @@
             (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
             (new Kind-Label name: 'new-label parent: root title: "Please enter your personal key" location: '(center (center -188)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
-            (new Name-View name: 'new-name parent: root location: '(center (center -158)) size: {Dimension 350 24} action-view: 'new-enter invalid-view: 'new-invalid name-label: "Name")
-            (new Name-Invalid name: 'new-invalid parent: root location: '(center (center -136)) size: {Dimension 410 16} font: {Font Label-User point-size: 12.5 antialias: default})
+            (new Key-View name: 'new-key parent: root location: '(center (center -158)) size: {Dimension 350 24} action-view: 'new-enter invalid-view: 'new-invalid)
+            (new Key-Invalid name: 'new-invalid parent: root location: '(center (center -136)) size: {Dimension 410 16} font: {Font Label-User point-size: 12.5 antialias: default})
             (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
-            (new Name-Label name: 'name parent: root title: name location: '(center (center -140)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
+            (new Key-Label name: 'key parent: root title: key location: '(center (center -140)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
             (new Push-Button name: 'enter parent: root title: "Enter" location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
             (new Push-Button name: 'customize parent: root title: "Change Avatar" location: '(center -30) size: {Dimension 180 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self))
             (set! self.root root)
-            (update-name-views self)
+            (update-key-views self)
             (add-exception-view))
-          (when (not name)
+          (when (not key)
             (delay-event
               (lambda ()
-                (acquire-focus (locate (child root 'new-name) 'text)))))
+                (acquire-focus (locate (child root 'new-key) 'text)))))
           (layout-view interface)
           (layout-view root)
           (show root)
@@ -196,14 +196,14 @@
   (method override (enter-press self)
     (let ((configuration (get-configuration zone)))
       (cond ((not (get-personal-key configuration))
-             (update-configuration-name self)
+             (update-configuration-key self)
              (save-configuration zone)
-             (update-name-views self)
+             (update-key-views self)
              (open-configuration zone (user-client-file)))
-            (changing-name?
-             (update-configuration-name self)
+            (changing-key?
+             (update-configuration-key self)
              (save-configuration zone)
-             (end-change-name self)
+             (end-change-key self)
              (open-configuration zone (user-client-file)))
             (else
              (open-configuration zone (user-client-file))))))
@@ -220,38 +220,38 @@
     #t)
 
   
-  (method (update-name-views self)
+  (method (update-key-views self)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-key?)))
           (set-visible? (child root 'new-label) new?)
-          (set-visible? (child root 'new-name) new?)
+          (set-visible? (child root 'new-key) new?)
           (set-visible? (child root 'new-invalid) new?)
           (set-visible? (child root 'new-enter) new?)
-          (set-visible? (child root 'name) (not new?))
+          (set-visible? (child root 'key) (not new?))
           (set-visible? (child root 'enter) (not new?))
           (when configuration
-            (let ((name (and configuration (get-personal-key configuration))))
-              (set-title (child root 'name) (and name (substring name 0 (min 8 (string-length name)))))
+            (let ((key (and configuration (get-personal-key configuration))))
+              (set-title (child root 'key) (and key (substring key 0 (min 8 (string-length key)))))
               (layout-view root)))))))
   
   
-  (method package (change-name self)
+  (method package (change-key self)
     (let ((configuration (get-configuration zone)))
-      (let ((actual-name (get-personal-key configuration)))
-        (set! changing-name? #t)
-        (set-string-content (locate (child root 'new-name) 'text) actual-name)
-        (set-enabled? (child root 'new-enter) (not (whitespace? actual-name)))
-        (update-name-views self)
+      (let ((actual-key (get-personal-key configuration)))
+        (set! changing-key? #t)
+        (set-string-content (locate (child root 'new-key) 'text) actual-key)
+        (set-enabled? (child root 'new-enter) (not (whitespace? actual-key)))
+        (update-key-views self)
         (layout-view root)
-        (acquire-focus (locate (child root 'new-name) 'text)))))
+        (acquire-focus (locate (child root 'new-key) 'text)))))
   
   
-  (method package (end-change-name self)
-    (when changing-name?
-      (set! changing-name? #f)
+  (method package (end-change-key self)
+    (when changing-key?
+      (set! changing-key? #f)
       (set-title (child root 'new-invalid) "")
-      (update-name-views self)
+      (update-key-views self)
       (layout-view root)
       (focus-world)))
   
@@ -259,12 +259,12 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-key?)))
           (define (closer frame)
             (let ((customize (find-component root 'customize)))
               (cond (new?
                      (set-visible? (child root 'new-label) #t)
-                     (set-visible? (child root 'new-name) #t)
+                     (set-visible? (child root 'new-key) #t)
                      (set-visible? (child root 'new-invalid) #t)
                      (set-visible? (child root 'new-enter) #t)
                      (when customize
@@ -274,7 +274,7 @@
                          (lambda ()
                            (acquire-focus view-focused)))))
                     (else
-                     (set-visible? (child root 'name) #t)
+                     (set-visible? (child root 'key) #t)
                      (set-visible? (child root 'enter) #t)
                      (when customize
                        (set-visible? customize #t))))))
@@ -291,51 +291,51 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-key?)))
           (let ((customize (find-component root 'customize)))
             (cond (new?
                    (set! view-focused (active-focus))
                    (set-visible? (child root 'new-label) #f)
-                   (set-visible? (child root 'new-name) #f)
+                   (set-visible? (child root 'new-key) #f)
                    (set-visible? (child root 'new-invalid) #f)
                    (set-visible? (child root 'new-enter) #f)
                    (when customize
                      (set-visible? customize #f)))
                   (else
-                   (set-visible? (child root 'name) #f)
+                   (set-visible? (child root 'key) #f)
                    (set-visible? (child root 'enter) #f)
                    (when customize
                      (set-visible? customize #f)))))
           (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))))
   
   
-  (method (extract-new-name self)
+  (method (extract-new-key self)
     (let ((interface (current-interface)))
-      (let ((view (child root 'new-name)))
+      (let ((view (child root 'new-key)))
         (let ((text (locate view 'text)))
           (trim-whitespace (get-string-content text))))))
     
   
-  (method (update-configuration-name self)
+  (method (update-configuration-key self)
     (let ((configuration (get-configuration zone))
-          (name (extract-new-name self)))
-      (set-personal-key configuration name)))
+          (key (extract-new-key self)))
+      (set-personal-key configuration key)))
   
   
-  (method override (name-return self)
+  (method package (key-return self)
     (let ((configuration (get-configuration zone)))
       (if (not (get-personal-key configuration))
           (begin
-            (update-configuration-name self)
+            (update-configuration-key self)
             (save-configuration zone)
-            (update-name-views self))
-        (update-configuration-name self)
+            (update-key-views self))
+        (update-configuration-key self)
         (save-configuration zone)
-        (end-change-name self))))
+        (end-change-key self))))
   
   
-  (method override (name-escape self)
-    (end-change-name self)))
+  (method package (key-escape self)
+    (end-change-key self)))
 
 
 (class Login-Zone extends Zone
@@ -486,11 +486,11 @@
 
 
 ;;;
-;;;; Name-Label
+;;;; Key-Label
 ;;;
 
 
-(class Name-Label extends Label-View
+(class Key-Label extends Label-View
   
   
   (method override (text-color self)
@@ -499,4 +499,74 @@
   
   (method override (mouse-up self evt)
     (let ((space (current-space)))
-      (change-name space)))))
+      (change-key space))))
+
+
+;;;
+;;;; Key-View
+;;;
+
+
+(class Key-View extends Border-View
+  
+  
+  (property action-view  initialize #f accessors generate)
+  (property invalid-view initialize #f accessors generate)
+  
+  
+  (form
+    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
+      (<Scroller-View>            hscroll?: #f vscroll?: #f
+        (<content~>               layout-type: fill
+          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return} escape-press-handler: {Event-Handler :form on-escape})))))
+  
+  
+  (method (on-content-change self evt)
+    (content-changed self))
+  
+  
+  (method (content-changed self)
+    (define (key-invalid key)
+      (cond ((empty-string? key)
+             "")
+            ((not (every? (lambda (c)
+                            (or (eqv? c #\-)
+                                (alphanumeric? c)))
+                          key))
+             "Key can only contain letters, numbers and dashes")
+            (else
+             #f)))
+    
+    (let ((space (current-space)))
+      (let ((text (locate self 'text)))
+        (let ((key (trim-whitespace (get-string-content text))))
+          (let ((invalid (key-invalid key)))
+            (set-enabled? (child (get-root space) action-view) (not invalid))
+            (set-title (brother self invalid-view) (or invalid "")))))))
+  
+  
+  (method (on-return self evt)
+    (let ((space (current-space)))
+      (when (get-enabled? (child (get-root space) action-view))
+        (key-return space))))
+  
+  
+  (method (on-escape self evt)
+    (let ((space (current-space)))
+      (key-escape space))))
+
+
+;;;
+;;;; Key-Invalid
+;;;
+
+
+(class Key-Invalid extends Label-View
+  
+  
+  (form
+    (<install> justification: center))
+  
+  
+  (method override (text-color self)
+    {Color World-Red})))
