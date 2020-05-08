@@ -558,6 +558,7 @@
   (method override (space-install self)
     (nextmethod self)
     (let ((together (current-together))
+          (client (current-client))
           (interface (current-interface))
           (world (current-world)))
       (gathering/circling-chat)
@@ -567,7 +568,7 @@
       (set-visible? (child root 'date) #t)
       (set-visible? (child root 'quit) #t)
       (set-visible? (child root 'name) #t)
-      (set-title (child root 'name) (get-character-name (get-configuration together)))
+      (set-title (child root 'name) (get-character-name client))
       (when (developer?)
         (let ((admin-visible? (get-visible? (child interface 'admin))))
           (set-visible? (child root 'circle) (not admin-visible?))
@@ -3485,6 +3486,7 @@
   
   (method (view-replay-directory self dir (from #f) (to #f) (now #f))
     (let ((interface (current-interface))
+          (client (current-client))
           (world (current-world)))
       (receive (names metadatas chronologies evolutions channels audios videos) (collect-replays dir)
         (define (determine-tier character-name)
@@ -3494,7 +3496,7 @@
         (define (determine-base-time)
           (metadata-base-time (table-ref metadatas server-no)))
         
-        (let ((character-name (get-character-name (current-client))))
+        (let ((character-name (get-character-name client)))
           (let ((tier (determine-tier character-name)))
             (let ((base-time (determine-base-time))
                   (title (get-name dir)))

@@ -127,7 +127,7 @@
                                 (alphanumeric? c)))
                           name))
              (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
-            ((> (string-length name) max-length)
+            ((and max-length (> (string-length name) max-length))
              (format "{a} cannot be longer than {a} characters" name-label max-length))
             (else
              #f)))

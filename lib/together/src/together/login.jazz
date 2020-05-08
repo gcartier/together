@@ -124,16 +124,16 @@
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
-              (name (get-character-name configuration)))
+              (name (get-personal-key configuration)))
           (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
             (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
             (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
             (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
-            (new Kind-Label name: 'new-label parent: root title: "Please enter your name" location: '(center (center -188)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
-            (new Name-View name: 'new-name parent: root location: '(center (center -158)) action-view: 'new-enter invalid-view: 'new-invalid name-label: "Name" max-length: 30)
-            (new Name-Invalid name: 'new-invalid parent: root location: '(center (center -136)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+            (new Kind-Label name: 'new-label parent: root title: "Please enter your personal key" location: '(center (center -188)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'tail)
+            (new Name-View name: 'new-name parent: root location: '(center (center -158)) size: {Dimension 350 24} action-view: 'new-enter invalid-view: 'new-invalid name-label: "Name")
+            (new Name-Invalid name: 'new-invalid parent: root location: '(center (center -136)) size: {Dimension 410 16} font: {Font Label-User point-size: 12.5 antialias: default})
             (new Push-Button name: 'new-enter parent: root title: "Enter" enabled?: #f location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
             (new Name-Label name: 'name parent: root title: name location: '(center (center -140)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
             (new Push-Button name: 'enter parent: root title: "Enter" location: '(center (center -100)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
@@ -195,7 +195,7 @@
   
   (method override (enter-press self)
     (let ((configuration (get-configuration zone)))
-      (cond ((not (get-character-name configuration))
+      (cond ((not (get-personal-key configuration))
              (update-configuration-name self)
              (save-configuration zone)
              (update-name-views self)
@@ -223,7 +223,7 @@
   (method (update-name-views self)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
           (set-visible? (child root 'new-label) new?)
           (set-visible? (child root 'new-name) new?)
           (set-visible? (child root 'new-invalid) new?)
@@ -231,16 +231,15 @@
           (set-visible? (child root 'name) (not new?))
           (set-visible? (child root 'enter) (not new?))
           (when configuration
-            (let ((name (and configuration (get-character-name configuration))))
-              (set-title (child root 'name) name)
+            (let ((name (and configuration (get-personal-key configuration))))
+              (set-title (child root 'name) (and name (substring name 0 (min 8 (string-length name)))))
               (layout-view root)))))))
   
   
   (method package (change-name self)
     (let ((configuration (get-configuration zone)))
-      (let ((actual-name (get-character-name configuration)))
+      (let ((actual-name (get-personal-key configuration)))
         (set! changing-name? #t)
-        (set-title (child root 'new-label) "Please enter your new name")
         (set-string-content (locate (child root 'new-name) 'text) actual-name)
         (set-enabled? (child root 'new-enter) (not (whitespace? actual-name)))
         (update-name-views self)
@@ -251,7 +250,6 @@
   (method package (end-change-name self)
     (when changing-name?
       (set! changing-name? #f)
-      (set-title (child root 'new-label) "Please enter your name")
       (set-title (child root 'new-invalid) "")
       (update-name-views self)
       (layout-view root)
@@ -261,7 +259,7 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
           (define (closer frame)
             (let ((customize (find-component root 'customize)))
               (cond (new?
@@ -293,7 +291,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-character-name configuration)) changing-name?)))
+        (let ((new? (or (not (get-personal-key configuration)) changing-name?)))
           (let ((customize (find-component root 'customize)))
             (cond (new?
                    (set! view-focused (active-focus))
@@ -321,12 +319,12 @@
   (method (update-configuration-name self)
     (let ((configuration (get-configuration zone))
           (name (extract-new-name self)))
-      (set-character-name configuration name)))
+      (set-personal-key configuration name)))
   
   
   (method override (name-return self)
     (let ((configuration (get-configuration zone)))
-      (if (not (get-character-name configuration))
+      (if (not (get-personal-key configuration))
           (begin
             (update-configuration-name self)
             (save-configuration zone)
@@ -457,6 +455,7 @@
   
   (method package (create-configuration self)
     (new Client
+      personal-key: #f
       character-name: #f
       character-avatar: #f
       character-script: #f
@@ -467,11 +466,12 @@
     (let ((file (user-client-file)))
       (let ((server-address (get-server-host configuration))
             (server-port (get-server-service configuration))
+            (key (get-personal-key configuration))
             (name (get-character-name configuration))
             (avatar (get-character-avatar configuration))
             (script (get-character-script configuration))
             (zone (get-character-zone configuration)))
-        (save-client-file file server-address server-port name avatar script zone))))
+        (save-client-file file server-address server-port key name avatar script zone))))
 
   
   (method package (open-configuration self file)
