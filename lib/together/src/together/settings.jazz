@@ -21,6 +21,7 @@
         (jazz.settings)
         (world)
         (world.autoload)
+        (world.client)
         (world.context)
         (world.io)
         (world.profile)
@@ -57,17 +58,19 @@
 
 (definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
   (let ((file (user-client-file)))
-    (if (or force-welcome?
-            (not (exists? file))
-            (not (get-character-avatar (instantiate (read-form file))))
-            (world-setting 'together.login? #f)
-            (shift-down?))
-        (open-login-zone)
-      (let ((auto-join (world-setting 'together.auto-join #f))
-            (auto-enter (world-setting 'together.auto-enter #f)))
-        (if (and auto-join auto-enter)
-            (error "Auto join & enter are mutually exclusive")
-          (open-circle-zone file auto-enter: (and auto-enter (split auto-enter "/"))))))))
+    (let ((config (instantiate (read-form file))))
+      (if (or force-welcome?
+              (not (exists? file))
+              (not (get-personal-key config))
+              (not (get-character-avatar config))
+              (world-setting 'together.login? #f)
+              (shift-down?))
+          (open-login-zone)
+        (let ((auto-join (world-setting 'together.auto-join #f))
+              (auto-enter (world-setting 'together.auto-enter #f)))
+          (if (and auto-join auto-enter)
+              (error "Auto join & enter are mutually exclusive")
+            (open-circle-zone file auto-enter: (and auto-enter (split auto-enter "/")))))))))
 
 
 (welcome-zone-open-set! open-login/circle-zone)
