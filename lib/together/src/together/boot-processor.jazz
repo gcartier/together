@@ -21,4 +21,4 @@
 
 (set-boot-process
   (lambda ()
-    (boot-processor Together-Process))))
+    (boot-processor Together-Process 'together.devel-processor))))

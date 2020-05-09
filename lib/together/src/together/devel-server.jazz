@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Together Boot Server
+;;;; Together Devel Server
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,14 +11,10 @@
 ;;;  Contributor(s):
 
 
-(module together.boot-server jazz
+(module together.devel-server jazz
 
 
 (import (world)
-        (world.server.boot)
-        (together.process))
-
-
-(set-boot-process
-  (lambda ()
-    (boot-server Together-Process 'together.devel-server))))
+        (world.context)
+        (world.processor)
+        (world.server.tier)))

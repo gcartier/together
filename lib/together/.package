@@ -18,6 +18,8 @@
                               together.customize
                               together.debugger
                               together.devel
+                              together.devel-processor
+                              together.devel-server
                               together.domain
                               together.emulation
                               together.exception
