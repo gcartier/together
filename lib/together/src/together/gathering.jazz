@@ -1757,7 +1757,6 @@
   (slot space                initialize #f getter generate)
   (slot configuration        initialize #f getter generate)
   (slot selected-zone        initialize #f getter generate)
-  (slot loaded-zones         initialize #f getter generate)
   (slot selected-group       initialize #f getter generate)
   (slot selected-audio-only? initialize #f getter generate)
   (slot selected-player      initialize #f getter generate)
@@ -1782,9 +1781,7 @@
   (method override (initialize self)
     (nextmethod self)
     (set! spaces (make-table test: eq?))
-    (set! selected-zone 'start)
-    (set! loaded-zones (make-table test: equal?))
-    (table-set! loaded-zones (get-character-zone (get-configuration (current-tier))) #t))
+    (set! selected-zone 'start))
   
   
   (method (need-space self what)
@@ -1970,7 +1967,7 @@
   
   
   (method package (zone-loaded? self path)
-    (table-ref loaded-zones path #f))
+    #t)
   
   
   ;;;
@@ -2314,7 +2311,6 @@
   
   
   (method (zone-loaded self path)
-    (table-set! loaded-zones path #t)
     (when (equal? path selected-zone)
       (change-zone self path))
     (when (is? space Gathering-Space)
@@ -2684,9 +2680,7 @@
           (bind (kind . rest) data
             (define (select zone group audio-only? player)
               (unless (equal? zone selected-zone)
-                (if (not (zone-loaded? self zone))
-                    (load-zone self zone)
-                  (change-zone self zone)))
+                (load-zone self zone))
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-audio-only? audio-only?)
@@ -3084,11 +3078,14 @@
   
   (method (change-zone self path)
     (let ((client (current-client))
+          (world (current-world))
           (zone (current-zone)))
       (unless (equal? path (get-path zone))
-        (uninstall-vista)
-        (change-zone client path)
-        (install-vista))))
+        (let ((info (change-zone client path)))
+          (if (string? info)
+              (display-error world (format "{a}" info))
+            (uninstall-vista)
+            (install-vista))))))
   
   
   ;;;
