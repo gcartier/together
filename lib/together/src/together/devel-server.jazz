@@ -14,7 +14,9 @@
 (module together.devel-server jazz
 
 
-(import (world)
+(import (jazz.presence)
+        (world)
         (world.context)
         (world.processor)
-        (world.server.tier)))
+        (world.server.tier)
+        (world.task)))
