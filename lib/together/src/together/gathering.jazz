@@ -2512,11 +2512,12 @@
       (view-hierarchy self (list-hierarchy tier))))
   
   
-  (definition gathering-color {Color red: 32 green: 205 blue: 33})
-  (definition player-color    {Color World-Blue})
-  (definition group-color     {Color red: .938 green: .428 blue: .066})
-  (definition zone-color      {Color red: .547 green: .287 blue: .995})
-  (definition directory-color {Color red: .804 green: .128 blue: .139})
+  (definition gathering-color   {Color red: 32 green: 205 blue: 33})
+  (definition observer-color    {Color red: .942 green: .942 blue: .942})
+  (definition participant-color {Color World-Blue})
+  (definition group-color       {Color red: .938 green: .428 blue: .066})
+  (definition zone-color        {Color red: .547 green: .287 blue: .995})
+  (definition directory-color   {Color red: .804 green: .128 blue: .139})
   
   
   ;; could be done only once on server
@@ -2532,9 +2533,7 @@
         (define (add-players zone players)
           (for-each (lambda (player)
                       (bind (name id no asleep? zone mode) player
-                        (if (or (eq? mode 'observer)
-                                ;; should not really happen but lets be robust
-                                (eq? zone 'start))
+                        (if (eq? zone 'start)
                             (set! observers (cons player observers))
                           (add zone (cons 'player player)))))
                     players))
@@ -2570,11 +2569,11 @@
                 (bind (player id no asleep? zone mode) info
                   (let ((title (if asleep? (format "{a} (offline)" player) player))
                         (font {Font Label-User})
-                        (color (if asleep? {Color Medium-Gray} player-color)))
+                        (color (if asleep? {Color Medium-Gray} (if (eq? mode 'observer) observer-color participant-color))))
                     (add-row tree
                              father: father
                              children: (list (new Tree-Node title: title font: font color: color))
-                             user-data: (list 'player player group))
+                             user-data: (list 'player player group zone))
                     (added father))))
               
               (define (add-group father info)
@@ -2584,7 +2583,7 @@
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group audio-only?))))
+                                        user-data: (list 'group group audio-only? zone))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -2676,7 +2675,7 @@
   (method package (people-selection-change self)
     (when (is? space Gathering-Space)
       (let ((tree (people-tree self)))
-        (let ((data (or (get-single-selected-data tree) (list 'group #f #f))))
+        (let ((data (or (get-single-selected-data tree) (list 'group #f #f 'start))))
           (bind (kind . rest) data
             (define (select zone group audio-only? player)
               (unless (equal? zone selected-zone)
@@ -2690,11 +2689,11 @@
             
             (case kind
               ((player)
-               (bind (player group) rest
-                 (select 'start group #f player)))
+               (bind (player group zone) rest
+                 (select zone group #f player)))
               ((group)
-               (bind (group audio-only?) rest
-                 (select 'start group audio-only? #f)))
+               (bind (group audio-only? zone) rest
+                 (select zone group audio-only? #f)))
               ((zone)
                (select data #f #f #f))))))))
   
