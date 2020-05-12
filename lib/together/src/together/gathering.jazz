@@ -506,8 +506,8 @@
       (<world-debug!>
         (<!>                 name: toggle-profiler            active?: #t))
       (<together-profile!>
-        (<!>                   name: profile-pulse              active?: #t)
-        (<!>                   name: profile-network            active?: #t))
+        (<!>                 name: profile-pulse              active?: #t)
+        (<!>                 name: profile-network            active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t))
       (<together-script!>
@@ -543,6 +543,7 @@
           (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
+          (new Kind-Label name: 'selected-label parent: root title: "" location: '(center (center -120)) size: {Dimension 500 40} auto-size?: #t font: {Font font-name: tahoma point-size: 24.5 antialias: default} justification: 'center)
           (new Kind-Label name: 'zone parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'zone-enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter self))
           (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
@@ -593,7 +594,7 @@
       (set-title (child interface '(command-to to)) "The gathering")
       (set-color (child interface '(command-to to)) {Color red: 32 green: 205 blue: 33})
       (update-message-recipient together #f)
-      (update-circle/join self)
+      (update-create/join/enter self)
       (layout-view interface)
       (layout-view root)
       (install-vista)
@@ -662,9 +663,14 @@
   (method override (enter-press self)
     (let ((together (current-together)))
       (when (and (eq? (active-focus) (current-interface))
-                 (get-selected-group together)
-                 (not (get-selected-player together)))
-        (join-circle together (get-selected-group together) (get-selected-audio-only? together)))))
+                 (selected-loaded? together))
+        (let ((zone (get-active-zone together))
+              (group (get-active-group together))
+              (audio-only? (get-active-audio-only? together)))
+          (cond (group
+                 (join-circle together group audio-only?))
+                (zone
+                 (enter-zone together)))))))
   
   
   (method override (name-return self)
@@ -672,41 +678,47 @@
       (create&join-circle together)))
   
   
-  (method package (update-circle/join self)
+  (method package (update-create/join/enter self)
     (let ((together (current-together))
           (interface (current-interface)))
-      (let ((selected-zone (get-selected-zone together))
-            (selected-group (get-selected-group together)))
-        (define (enter-visible flag)
-          (set-visible? (child root 'zone) flag)
-          (set-visible? (child root 'zone-enter) flag))
-        
-        (define (join-visible flag)
-          (set-visible? (child root 'circle) flag)
-          (set-visible? (child root 'circle-join) flag))
-        
-        (define (create-visible flag)
-          (set-visible? (child root 'circle-label) flag)
-          (set-visible? (child root 'circle-view) flag)
-          (set-visible? (child root 'circle-invalid) flag)
-          (set-visible? (child root 'circle-create) flag))
-        
-        (cond (selected-group
-               (set-title (child root 'circle) selected-group)
-               (enter-visible #f)
-               (join-visible #t)
-               (create-visible #f)
-               (layout-view root))
-              ((eq? selected-zone 'start)
-               (enter-visible #f)
-               (join-visible #f)
-               (create-visible #t)
-               (layout-view root))
-              (else
-               (let ((loaded? (zone-loaded? together selected-zone)))
-                 (set-title (child root 'zone) (last selected-zone))
-                 (set-title (child root 'zone-enter) (if loaded? "Enter" "Loading..."))
-                 (set-enabled? (child root 'zone-enter) loaded?)
+      (let ((active-zone (get-active-zone together))
+            (active-group (get-active-group together)))
+        (let ((loaded? (selected-loaded? together)))
+          (define (enter-visible flag)
+            (set-visible? (child root 'zone) flag)
+            (set-visible? (child root 'zone-enter) flag)
+            (set-enabled? (child root 'zone-enter) loaded?))
+          
+          (define (join-visible flag)
+            (set-visible? (child root 'circle) flag)
+            (set-visible? (child root 'circle-join) flag)
+            (set-enabled? (child root 'circle-join) loaded?))
+          
+          (define (create-visible flag)
+            (set-visible? (child root 'circle-label) flag)
+            (set-visible? (child root 'circle-view) flag)
+            (set-enabled? (locate (child root 'circle-view) 'text) loaded?)
+            (set-visible? (child root 'circle-invalid) flag)
+            (set-visible? (child root 'circle-create) flag)
+            (set-enabled? (child root 'circle-create) loaded?))
+          
+          (if loaded?
+              (set-title (child root 'selected-label) "")
+            (set-color (child root 'selected-label) (get-selected-color together))
+            (set-title (child root 'selected-label) (get-selected-message together)))
+          (cond (active-group
+                 (set-title (child root 'circle) active-group)
+                 (enter-visible #f)
+                 (join-visible #t)
+                 (create-visible #f)
+                 (layout-view root))
+                ((eq? active-zone 'start)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (create-visible #t)
+                 (layout-view root))
+                (else
+                 (set-title (child root 'zone) (last active-zone))
                  (enter-visible #t)
                  (join-visible #f)
                  (create-visible #f)
@@ -720,7 +732,7 @@
   
   (method (on-join self evt)
     (let ((together (current-together)))
-      (join-circle together (get-selected-group together) (get-selected-audio-only? together))))
+      (join-circle together (get-active-group together) (get-active-audio-only? together))))
   
   
   (method (on-create&join self evt)
@@ -736,6 +748,7 @@
     (let ((interface (current-interface)))
       (define (closer frame)
         (set-visible? (child root 'name) #t)
+        (set-visible? (child root 'selected-label) #t)
         (set-visible? (child root 'circle) #t)
         (set-visible? (child root 'circle-join) #t)
         (set-visible? (child interface 'profile) #t)
@@ -745,7 +758,7 @@
         (set-visible? (child interface 'chat) #t)
         (set-visible? (child interface 'command-to) #t)
         (set-visible? (child interface 'command) #t)
-        (update-circle/join self)
+        (update-create/join/enter self)
         (when view-focused
           (inhibit-focus-selects-all view-focused
             (lambda ()
@@ -764,6 +777,7 @@
           (world (current-world)))
       (set! view-focused (active-focus))
       (set-visible? (child root 'name) #f)
+      (set-visible? (child root 'selected-label) #f)
       (set-visible? (child root 'circle) #f)
       (set-visible? (child root 'circle-join) #f)
       (set-visible? (child interface 'profile) #f)
@@ -1756,11 +1770,19 @@
   (slot spaces               initialize #f getter generate)
   (slot space                initialize #f getter generate)
   (slot configuration        initialize #f getter generate)
+  (slot active-zone          initialize #f getter generate)
+  (slot active-group         initialize #f getter generate)
+  (slot active-audio-only?   initialize #f getter generate)
+  (slot active-player        initialize #f getter generate)
+  (slot active-data          initialize #f getter generate)
   (slot selected-zone        initialize #f getter generate)
   (slot selected-group       initialize #f getter generate)
   (slot selected-audio-only? initialize #f getter generate)
   (slot selected-player      initialize #f getter generate)
   (slot selected-data        initialize #f getter generate)
+  (slot selected-message     initialize #f getter generate)
+  (slot selected-color       initialize #f getter generate)
+  (slot zone-loading         initialize #f getter generate)
   (slot circle-name          initialize #f getter generate)
   (slot circle-no            initialize #f getter generate)
   (slot circle-audio-only?   initialize #f getter generate)
@@ -1781,7 +1803,10 @@
   (method override (initialize self)
     (nextmethod self)
     (set! spaces (make-table test: eq?))
-    (set! selected-zone 'start))
+    (set! active-zone 'start)
+    (set! selected-zone 'start)
+    (set! selected-color {Color World-Orange})
+    (set! selected-message ""))
   
   
   (method (need-space self what)
@@ -1801,6 +1826,12 @@
   
   
   (method (together-enter self auto-enter)
+    (define (enter-gathering)
+      (set! space (need-space self 'gathering))
+      (space-install space)
+      (set-current-space space)
+      (space-activate space))
+    
     (when (current-space+)
       (space-deactivate (current-space))
       (space-uninstall (current-space)))
@@ -1813,14 +1844,12 @@
     (cond (auto-join
            (join-circle self auto-join #f))
           (auto-enter
-           (enter-zone self))
+           (when (enter-zone self)
+             (enter-gathering)))
           (auto-script
            (goto-script/last self))
           (else
-           (set! space (need-space self 'gathering))
-           (space-install space)
-           (set-current-space space)
-           (space-activate space))))
+           (enter-gathering))))
   
   
   (method (together-exit self)
@@ -1966,8 +1995,8 @@
                  (set! message-recipient recipient)))))))))
   
   
-  (method package (zone-loaded? self path)
-    #t)
+  (method package (selected-loaded? self)
+    (equal? selected-zone active-zone))
   
   
   ;;;
@@ -2051,48 +2080,53 @@
           (window (current-window))
           (interface (current-interface))
           (world (current-world)))
-      (uninstall-vista)
-      (increase! fade-no)
-      (let ((no fade-no))
-        (define (fade?)
-          (and (= no fade-no)
-               (is? (current-space) Avatar-Space)
-               (not (get-central-menu world))))
-        
-        (let ((thread
-                (new-thread
-                  (lambda ()
-                    (sleep 1)
-                    (when (fade?)
-                      (loop (for n from 1 to 100)
-                            (with-task-mutex
-                              (lambda ()
-                                (when (fade?)
-                                  (set-fade mainbar-pane (- 1. (* (cast <fl> n) .01)))
-                                  (invalidate-view mainbar))))
-                            (sleep .01)))
-                    (set! fade-thread #f)
-                    (when (fade?)
-                      (fade-mainbar (point->point$fl$ (mouse-position window)) #t)))
-                  'fade)))
-          (set! fade-thread thread)
-          (thread-start! thread)))
-      (goto-space self 'avatar)
-      (setup-visibility mainbar)
-      (mode-to-server client 'participant)
-      (set-zone-mode 'participant)
-      (prepare-motion world)))
+      (let ((info (mode-to-server client 'participant)))
+        (if (string? info)
+            (begin
+              (display-error world (format "{a}" info))
+              info)
+          (uninstall-vista)
+          (increase! fade-no)
+          (let ((no fade-no))
+            (define (fade?)
+              (and (= no fade-no)
+                   (is? (current-space) Avatar-Space)
+                   (not (get-central-menu world))))
+            
+            (let ((thread
+                    (new-thread
+                      (lambda ()
+                        (sleep 1)
+                        (when (fade?)
+                          (loop (for n from 1 to 100)
+                                (with-task-mutex
+                                  (lambda ()
+                                    (when (fade?)
+                                      (set-fade mainbar-pane (- 1. (* (cast <fl> n) .01)))
+                                      (invalidate-view mainbar))))
+                                (sleep .01)))
+                        (set! fade-thread #f)
+                        (when (fade?)
+                          (fade-mainbar (point->point$fl$ (mouse-position window)) #t)))
+                      'fade)))
+              (set! fade-thread thread)
+              (thread-start! thread)))
+          (goto-space self 'avatar)
+          (setup-visibility mainbar)
+          (set-zone-mode 'participant)
+          (prepare-motion world)
+          #f))))
   
   
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
           (world (current-world)))
+      (mode-to-server client 'observer)
       (install-vista)
       (goto-space self 'gathering)
-      (mode-to-server client 'observer)
       (set-zone-mode 'observer)
-      (restore-selected-data self)))
+      (restore-active-zone self)))
   
   
   (method (check-has-camera? self)
@@ -2181,7 +2215,7 @@
       (set! circle-name #f)
       (set! circle-no #f)
       (goto-space self 'gathering)
-      (restore-selected-data self)))
+      (restore-active-zone self)))
   
   
   (method (goto-space self what)
@@ -2198,9 +2232,9 @@
     (goto-space self 'gathering))
   
   
-  (method (restore-selected-data self)
+  (method (restore-active-zone self)
     (let ((tree (people-tree self)))
-      (let ((row (user-data-row tree selected-data test: equal?)))
+      (let ((row (user-data-row tree active-data test: equal?)))
         (if (not row)
             (set-selection tree '() generate-event?: #f)
           (set-single-selection tree (row->line tree row) generate-event?: #f)))))
@@ -2310,11 +2344,25 @@
     )
   
   
-  (method (zone-loaded self path)
+  (method (zone-loaded self path info)
+    (define (selected-error message)
+      (set! selected-color {Color World-Red})
+      (set! selected-message message))
+    
+    (set! zone-loading #f)
     (when (equal? path selected-zone)
-      (change-zone self path))
-    (when (is? space Gathering-Space)
-      (update-circle/join space)))
+      (if (string? info)
+          (selected-error info)
+        (let ((info (change-zone self path)))
+          (if (string? info)
+              (selected-error info)
+            (set! active-zone selected-zone)
+            (set! active-group selected-group)
+            (set! active-audio-only? selected-audio-only?)
+            (set! active-player selected-player)
+            (set! active-data selected-data))))
+      (when (is? space Gathering-Space)
+        (update-create/join/enter space))))
   
   
   (method (hierarchy-update self hierarchy)
@@ -2678,14 +2726,24 @@
         (let ((data (or (get-single-selected-data tree) (list 'group #f #f 'start))))
           (bind (kind . rest) data
             (define (select zone group audio-only? player)
+              (set! selected-message "")
               (unless (equal? zone selected-zone)
-                (load-zone self zone))
+                (load-zone self zone)
+                (unless (eq? zone 'start)
+                  (set! selected-color {Color World-Orange})
+                  (set! selected-message (format "{a} is loading..." (last zone)))))
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-audio-only? audio-only?)
               (set! selected-player player)
               (set! selected-data data)
-              (update-circle/join space))
+              (when (selected-loaded? self)
+                (set! active-zone zone)
+                (set! active-group group)
+                (set! active-audio-only? audio-only?)
+                (set! active-player player)
+                (set! active-data data))
+              (update-create/join/enter space))
             
             (case kind
               ((player)
@@ -2708,12 +2766,11 @@
   
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
-      (cond ((and selected-group (not selected-player))
-             (join-circle self selected-group selected-audio-only?))
-            ((and selected-zone (not selected-group) (not selected-player))
-             (if (zone-loaded? self selected-zone)
-                 (enter-zone self)
-               (bell))))))
+      (when (selected-loaded? self)
+        (cond (active-group
+               (join-circle self active-group active-audio-only?))
+              (active-zone
+               (enter-zone self))))))
   
   
   (method package (focus-command-text self)
@@ -3072,6 +3129,7 @@
   
   (method (load-zone self path)
     (let ((client (current-client)))
+      (set! zone-loading path)
       (load-zone client path)))
   
   
@@ -3315,6 +3373,7 @@
         (set-visible? (child interface 'admin) #t))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
+          (set-visible? (child root 'selected-label) #f)
           (set-visible? (child root 'zone) #f)
           (set-visible? (child root 'zone-enter) #f)
           (set-visible? (child root 'circle) #f)
@@ -3333,7 +3392,7 @@
         (set-visible? (child interface 'admin) #f))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (update-circle/join space)))))
+          (update-create/join/enter space)))))
   
   
   (method (on-toggle-timeline self evt)
