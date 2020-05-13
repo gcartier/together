@@ -2643,7 +2643,7 @@
                               (if (empty-string? title)
                                   (add-children father spine children)
                                 (when (not father)
-                                  (add-separator))
+                                  (add-separator title))
                                 (let ((row (add-directory father title))
                                       (spine (append spine (list title))))
                                   (add-zones row spine (map (lambda (info)
@@ -2686,10 +2686,11 @@
                                 children: (list (new Tree-Node title: title font: {Font Label-User} color: directory-color)))
                   (added father)))
               
-              (define (add-separator)
+              (define (add-separator identifier)
                 (unless separator?
                   (add-row tree
-                           children: (list (new Tree-Node title: "" font: {Font Label-User})))
+                           children: (list (new Tree-Node title: "" font: {Font Label-User}))
+                           user-data: (list 'separator identifier))
                   (set! separator? #t)))
               
               (define (added father)
@@ -2711,12 +2712,12 @@
                                                             (cons 0 player)
                                                           (cons 1 player)))))))
               (when (not-null? voiders)
-                (add-separator)
+                (add-separator 'voiders)
                 (for-each (lambda (info)
                             (add-group #f info))
                           (sort di<? voiders key: car)))
               (when (not-null? zones)
-                (add-separator)
+                (add-separator 'zones)
                 (add-zones #f '() zones))))))))
   
   
