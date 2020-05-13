@@ -2080,7 +2080,7 @@
           (window (current-window))
           (interface (current-interface))
           (world (current-world)))
-      (let ((info (mode-to-server client 'participant)))
+      (let ((info (mode-to-server client 'player)))
         (if (string? info)
             (begin
               (display-error world (format "{a}" info))
@@ -2113,7 +2113,7 @@
               (thread-start! thread)))
           (goto-space self 'avatar)
           (setup-visibility mainbar)
-          (set-zone-mode 'participant)
+          (set-zone-mode 'player)
           (prepare-motion world)
           #f))))
   
@@ -2165,7 +2165,7 @@
         (reset-chronology)
         (reset-evolution)
         (bind-camera)
-        (let ((no/streams/exception (join-group tier name 'participant)))
+        (let ((no/streams/exception (join-group tier name 'player)))
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
             (bind (no audio-only? . streams) no/streams/exception
@@ -2564,7 +2564,7 @@
   
   (definition gathering-color   {Color red: 32 green: 205 blue: 33})
   (definition observer-color    {Color red: .942 green: .942 blue: .942})
-  (definition participant-color {Color World-Blue})
+  (definition player-color      {Color World-Blue})
   (definition group-color       {Color red: .938 green: .428 blue: .066})
   (definition zone-color        {Color red: .547 green: .287 blue: .995})
   (definition directory-color   {Color red: .804 green: .128 blue: .139})
@@ -2619,7 +2619,7 @@
                 (bind (player id no asleep? zone mode) info
                   (let ((title (if asleep? (format "{a} (offline)" player) player))
                         (font {Font Label-User})
-                        (color (if asleep? {Color Medium-Gray} (if (eq? mode 'observer) observer-color participant-color))))
+                        (color (if asleep? {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
                     (add-row tree
                              father: father
                              children: (list (new Tree-Node title: title font: font color: color))
