@@ -2384,7 +2384,8 @@
         (lambda ()
           (view-hierarchy self hierarchy))
         use: 'data
-        test: same-entity?)))
+        test: same-entity?
+        selection-position?: #f)))
   
   
   ;; this rare case can happen if the server had just sent
