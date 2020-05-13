@@ -2683,7 +2683,8 @@
                 (prog1 (add-row tree
                                 father: father
                                 state: 'expanded
-                                children: (list (new Tree-Node title: title font: {Font Label-User} color: directory-color)))
+                                children: (list (new Tree-Node title: title font: {Font Label-User} color: directory-color))
+                                user-data: (list 'directory title))
                   (added father)))
               
               (define (add-separator identifier)
