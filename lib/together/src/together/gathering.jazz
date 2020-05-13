@@ -2080,7 +2080,7 @@
           (window (current-window))
           (interface (current-interface))
           (world (current-world)))
-      (let ((info (mode-to-server client 'player)))
+      (let ((info (play-to-server client)))
         (if (string? info)
             (begin
               (display-error world (format "{a}" info))
@@ -2122,7 +2122,7 @@
     (let ((client (current-client))
           (interface (current-interface))
           (world (current-world)))
-      (mode-to-server client 'observer)
+      (observe-to-server client)
       (install-vista)
       (goto-space self 'gathering)
       (set-zone-mode 'observer)
