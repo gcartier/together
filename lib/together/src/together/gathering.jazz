@@ -913,7 +913,6 @@
         (<!>                 name: add-element                active?: #t)
         (<!>                 name: remove-element             active?: #t)
         (<!>                 name: change-element             active?: #t)
-        (<!>                 name: import-model               active?: #t)
         (<!>                 name: select-target              active?: #t)
         (<!>                 name: delete-target              active?: #t)
         (<!>                 name: toggle-grid                active?: #t)
