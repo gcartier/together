@@ -1382,7 +1382,7 @@
   ;;;
   
   
-  (method (on-toggle-hide self evt)
+  (method package (toggle-hide self)
     (let ((world (current-world)))
       (set! auto-hide? (not auto-hide?))
       (if auto-hide?
@@ -3744,6 +3744,12 @@
       (display-message world (case video-mode
                                ((fit) "Fit")
                                ((fill) "Fill")))))
+  
+  
+  (method (on-toggle-hide self evt)
+    (let ((space (current-space)))
+      (when (is? space Circle-Space)
+        (toggle-hide space))))
   
   
   (method (on-toggle-experiment self evt)

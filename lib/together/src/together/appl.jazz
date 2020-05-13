@@ -988,7 +988,7 @@
   (form
     (<install>                                             title: "Debug"
       (<World-Action-Item> name: toggle-mode               title: "Fill mode" shortcut: {Shortcut :alt :shift #\M} action-handler: {Event-Handler :together on-toggle-mode} description: "Toggle mode.")
-      (<World-Action-Item> name: toggle-hide               title: "Autohide interface" shortcut: {Shortcut :alt :shift #\H} action-handler: {Event-Handler :space on-toggle-hide} description: "Toggle autohide interface.")
+      (<World-Action-Item> name: toggle-hide               title: "Autohide interface" shortcut: {Shortcut :alt :shift #\H} action-handler: {Event-Handler :together on-toggle-hide} description: "Toggle autohide interface.")
       (<World-Action-Item> name: toggle-debug              title: "Debug" shortcut: {Shortcut :control :shift #\D} action-handler: {Event-Handler :together on-toggle-debug} description: "Toggle debug.")
       (<World-Action-Item> name: toggle-debug-media        title: "Debug media" shortcut: {Shortcut :control :shift #\M} action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
       (<World-Action-Item> name: toggle-debug-flow         title: "Debug flow" shortcut: {Shortcut :control :shift #\F} action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
