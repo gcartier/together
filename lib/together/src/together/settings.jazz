@@ -58,11 +58,11 @@
 
 (definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
   (let ((file (user-client-file)))
-    (let ((config (instantiate (read-form file))))
+    (let ((config (and (exists? file) (instantiate (read-form file)))))
       (if (or force-welcome?
               (not (exists? file))
-              (not (get-personal-key config))
-              (not (get-character-avatar config))
+              (and config (not (get-personal-key config)))
+              (and config (not (get-character-avatar config)))
               (world-setting 'together.login? #f)
               (shift-down?))
           (open-login-zone)
