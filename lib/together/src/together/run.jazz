@@ -135,7 +135,9 @@
                        world.test7-script         #f
                        world.test8-script         #f
                        world.test9-script         #f
-                       world.test0-script         #f)))
+                       world.test0-script         #f
+                       ;; worker
+                       world.worker?              #f)))
 
 
 (definition (override-settings settings)
