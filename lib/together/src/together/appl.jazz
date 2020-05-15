@@ -1510,6 +1510,7 @@
         (<!>                 name: rotate-target-mode         visible?: #t)
         (<!>                 name: scale-target-mode          visible?: #t)
         (<!>                 name: skeleton-target-mode       visible?: #t))
+      @wait-history
       (<world-history!>
         (<!>                 name: toggle-paused              visible?: #t)
         (<!>                 name: backward-history           visible?: #t)
