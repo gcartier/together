@@ -982,6 +982,9 @@
         (<!>                 name: circle-space               active?: #t)
         (<!>                 name: focus-space                active?: #t)
         (<!>                 name: gallery-space              active?: #t))
+      (<together-avatar!>
+        (<!>                 name: command-message            active?: #t)
+        (<!>                 name: command-slash              active?: #t))
       @wait
       (<together-share!>
         (<!>                 name: toggle-streams             active?: #t)
@@ -1087,7 +1090,7 @@
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
                   (find-actions 'together-media)
-                  (find-actions 'together-circle)
+                  (find-actions 'together-avatar)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-experiment)
@@ -1113,7 +1116,15 @@
     (let ((world (current-world)))
       (unless (get-fade-thread (current-together))
         (unless (get-central-menu world)
-          (fade-mainbar (new Point$fl$ x y)))))))
+          (fade-mainbar (new Point$fl$ x y))))))
+  
+  
+  (method (on-command-message self evt)
+    (chat-message (together:current-together)))
+  
+  
+  (method (on-command-slash self evt)
+    (chat-slash (together:current-together))))
 
 
 ;;;
@@ -2905,12 +2916,14 @@
   (method package (chat-message self)
     (let ((interface (current-interface)))
       (show-chat self)
+      (show-command self)
       (acquire-focus (locate (child interface 'command) 'text))))
   
   
   (method package (chat-slash self)
     (let ((interface (current-interface)))
       (show-chat self)
+      (show-command self)
       (let ((text (locate (child interface 'command) 'text)))
         (acquire-focus text)
         (set-string-content text "")
@@ -2923,7 +2936,13 @@
       (let ((circle? (get-circle-name together)))
         (when circle?
           (set-visible? (child interface 'chat-label) #t))
-        (set-visible? (child interface 'chat) #t)
+        (set-visible? (child interface 'chat) #t))))
+  
+  
+  (method (show-command self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((circle? (get-circle-name together)))
         (when circle?
           (set-visible? (child interface 'command-to) #t))
         (set-visible? (child interface 'command) #t))))
@@ -2932,7 +2951,8 @@
   (method (command-return self command)
     (let ((tier (current-client))
           (interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (space (current-space)))
       (define (parse-content content)
         (cond ((starts-with? content "/s ")
                (if (developer?)
@@ -3011,15 +3031,22 @@
       
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
-          (unless (whitespace? content)
-            (receive (kind recipient message) (parse-content content)
-              (when kind
-                (client-message tier kind recipient message))
-              (set-string-content text "")))))))
+          (if (and (is? space Avatar-Space) (empty-string? content))
+              (hide-command world)
+            (unless (whitespace? content)
+              (receive (kind recipient message) (parse-content content)
+                (when kind
+                  (client-message tier kind recipient message))
+                (set-string-content text "")
+                (when (is? space Avatar-Space)
+                  (hide-command world)))))))))
   
   
   (method (command-escape self command)
-    )
+    (let ((world (current-world))
+          (space (current-space)))
+      (when (is? space Avatar-Space)
+        (hide-command world))))
   
   
   (method package (chat-label-action self)

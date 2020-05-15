@@ -907,7 +907,7 @@
       (<World-Action-Item> name: focus-space          title: "Focus" action-handler: {Event-Handler :together on-focus-space} shortcut: {Shortcut :alt #\F} description: "Focus space.")
       (<World-Action-Item> name: gallery-space        title: "Gallery" action-handler: {Event-Handler :together on-gallery-space} shortcut: {Shortcut :alt #\G} description: "Gallery space.")
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" shortcut: {Shortcut "Click image"})
-      (<World-Action-Item> name: enter-press          title: "Go to home view" action-handler: {Event-Handler :application on-enter-press} shortcut: {Shortcut Return} description: "Enter.")
+      (<World-Action-Item> name: enter-press          title: "Go to home view" shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: space-press          title: "Rotate" shortcut: {Shortcut Space} description: "Space.")
       (<World-Action-Item> name: left-press           title: "Rotate left" shortcut: {Shortcut "Left Arrow"} description: "Left.")
       (<World-Action-Item> name: right-press          title: "Rotate right" shortcut: {Shortcut "Right Arrow"} description: "Right.")
@@ -915,6 +915,15 @@
       (<World-Action-Item> name: down-press           title: "Decrease speed" shortcut: {Shortcut "Down Arrow"} description: "Down.")
       (<World-Action-Item> name: tab-press            title: "Cycle focus" shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
       (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image"))))
+
+
+(class Together-Avatar-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Avatar"
+      (<World-Action-Item> name: command-message      title: "Message" shortcut: {Shortcut Return} action-handler: {Event-Handler :space on-command-message} description: "Message.")
+      (<World-Action-Item> name: command-slash        title: "Message slash" shortcut: {Shortcut #\/} action-handler: {Event-Handler :space on-command-slash} description: "Message slash."))))
 
 
 (class Together-Share-Actions extends World-Actions
@@ -1082,6 +1091,7 @@
       ;; Together
       (<Together-Media-Actions>      name: together-media)
       (<Together-Circle-Actions>     name: together-circle)
+      (<Together-Avatar-Actions>     name: together-avatar)
       (<Together-Viewer-Actions>     name: together-viewer)
       (<Together-Share-Actions>      name: together-share)
       @wait
@@ -1146,6 +1156,9 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
+      (<together-avatar!>
+        (<!>                 name: command-message            visible?: #t)
+        (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
@@ -1302,6 +1315,9 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
+      (<together-avatar!>
+        (<!>                 name: command-message            visible?: #t)
+        (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
@@ -1564,6 +1580,9 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
+      (<together-avatar!>
+        (<!>                 name: command-message            visible?: #t)
+        (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: add-image                  visible?: #t)
