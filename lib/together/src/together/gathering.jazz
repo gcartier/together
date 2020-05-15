@@ -218,22 +218,6 @@
 
 
 ;;;
-;;;; Space
-;;;
-
-
-(definition (gathering/circling-chat)
-  (let ((interface (current-interface)))
-    (let ((chat-label (child interface 'chat-label))
-          (chat (child interface 'chat))
-          (command (child interface 'command)))
-      (set-location chat '(-10 100))
-      (set-proportion chat '(220 (bounds -354)))
-      (set-location command '(-10 -200))
-      (set-size command (new Dimension 220 19)))))
-
-
-;;;
 ;;;; Sphere-Space
 ;;;
 
@@ -562,7 +546,6 @@
           (client (current-client))
           (interface (current-interface))
           (world (current-world)))
-      (gathering/circling-chat)
       (set-visible? root #t)
       (set-visible? (child root 'together) #t)
       (set-visible? (child root 'version) #t)
@@ -584,11 +567,16 @@
       (set-visible? (child interface 'streams-label) #f)
       (set-visible? (child interface 'streams) #f)
       (set-visible? (child interface 'chat-label) #t)
+      (set-layouter (child interface 'chat) #f)
+      (set-layouter (child interface 'command) #f)
       (set-visible? (child interface 'chat) #t)
+      (set-location (child interface 'chat) '(-10 100))
       (set-proportion (child interface 'chat) (chat-proportion together))
       (set-visible? (child interface 'command-to) #t)
       (set-location (child interface 'command-to) (command-to-location together))
       (set-visible? (child interface 'command) #t)
+      (set-proportion (child interface 'command) #f)
+      (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-visible? (child root 'about) #t)
       (set-title (child interface '(command-to to)) "The gathering")
@@ -1046,10 +1034,10 @@
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'chat-label) #f)
-      (set-location (child interface 'chat) '(10 -10))
+      (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter panel)))
+      (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
       (set-proportion (child interface 'chat) '(400 150))
-      (set-location (child interface 'command) '(10 -164))
-      (set-size (child interface 'command) (new Dimension 400 19))
+      (set-proportion (child interface 'command) '(400 19))
       (set-visible? (child interface 'command-to) #f)
       (set-visible? (child interface 'chat) #t)
       (set-visible? (child interface 'belt) #t)
@@ -1286,7 +1274,6 @@
           (world (current-world)))
       (show-mainbar self)
       (set-visible? (child interface 'profile) #t)
-      (gathering/circling-chat)
       (free-motion world feedback?: #f)
       (set-unbind-camera? #f)
       (set-visible? (child root 'circle-name) #t)
@@ -1294,7 +1281,12 @@
       (set-visible? (child interface 'profile) #t)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
+      (set-layouter (child interface 'chat) #f)
+      (set-layouter (child interface 'command) #f)
+      (set-location (child interface 'chat) '(-10 100))
       (set-proportion (child interface 'chat) (chat-proportion together))
+      (set-proportion (child interface 'command) #f)
+      (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-location (child interface 'command-to) (command-to-location together))
       (set-visible? (child interface 'command-to) #f)
