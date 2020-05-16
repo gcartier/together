@@ -20,6 +20,8 @@
         (jazz.platform)
         (jazz.settings)
         (world)
+        (world.asset)
+        (world.assets)
         (world.autoload)
         (world.client)
         (world.context)
@@ -27,6 +29,7 @@
         (world.profile)
         (world.settings)
         (world.space)
+        (world.tier)
         (together)
         (together.exception))
 
@@ -42,21 +45,42 @@
   (open-login (find-tier (copy-zone-template "welcome" 'login) 'login)))
 
 
-(definition protected (open-circle-zone remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
+(definition protected (open-client-enter remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
   (let ((obj (open-client remote-file auto-enter: auto-enter)))
     (if (is? obj Zone)
-        (if (current-together)
-            (together-enter (current-together) auto-enter)
-          (let ((together (new together.gathering:Together)))
-            (set-current-together together)
-            (together-enter together auto-enter)))
+        (begin
+          (retrieve-critical-assets)
+          (enter-together auto-enter))
       (let ((title (if (string? obj) obj "Unable to connect to server"))
             (zone (if from-login? (current-zone) (open-login-zone))))
         (world.interface.exception:report-exception title obj)
         zone))))
 
 
-(definition protected (open-login/circle-zone (force-welcome?: force-welcome? #f))
+(definition protected (enter-together auto-enter)
+  (if (current-together)
+      (together-enter (current-together) auto-enter)
+    (let ((together (new together.gathering:Together)))
+      (set-current-together together)
+      (together-enter together auto-enter))))
+
+
+(definition protected (retrieve-critical-assets)
+  (let ((client (current-client)))
+    (let ((assets (get-universe-assets client))
+          (avatar (get-character-avatar (get-configuration client))))
+      (parameterize ((inhibit-working? #t))
+        (for-each (lambda (path)
+                    (when (contains-file? assets path)
+                      (let ((asset (new Asset assets path)))
+                        (retrieve-file asset))))
+                  (critical-assets avatar)))))
+  (when (not (world-setting 'together.critical-assets? #f))
+    (set-setting options-settings 'together.critical-assets? #t)
+    (save-content options-settings)))
+
+
+(definition protected (open-login/client-enter (force-welcome?: force-welcome? #f))
   (let ((file (user-client-file)))
     (let ((config (and (exists? file) (instantiate (read-form file)))))
       (if (or force-welcome?
@@ -64,16 +88,17 @@
               (and config (not (get-personal-key config)))
               (and config (not (get-character-avatar config)))
               (world-setting 'together.login? #f)
+              (not (world-setting 'together.critical-assets? #f))
               (shift-down?))
           (open-login-zone)
         (let ((auto-join (world-setting 'together.auto-join #f))
               (auto-enter (world-setting 'together.auto-enter #f)))
           (if (and auto-join auto-enter)
               (error "Auto join & enter are mutually exclusive")
-            (open-circle-zone file auto-enter: (and auto-enter (split auto-enter "/")))))))))
+            (open-client-enter file auto-enter: (and auto-enter (split auto-enter "/")))))))))
 
 
-(welcome-zone-open-set! open-login/circle-zone)
+(welcome-zone-open-set! open-login/client-enter)
 
 
 ;;;

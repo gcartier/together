@@ -472,17 +472,25 @@
             (script (get-character-script configuration))
             (zone (get-character-zone configuration)))
         (save-client-file file server-address server-port key name avatar script zone))))
-
+  
   
   (method package (open-configuration self file)
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (open-circle-zone file from-login?: #t)
-        (let ((tier (current-tier)))
-          (when (is? tier Client-Tier)
-            (activate-assets tier 'world)
-            (activate-assets tier 'zone)))))))
+        (let ((obj (open-client file)))
+          (if (is? obj Zone)
+              (begin
+                (working (current-world)
+                  (lambda ()
+                    (retrieve-critical-assets)))
+                (enter-together #f)
+                (let ((tier (current-tier)))
+                  (when (is? tier Client-Tier)
+                    (activate-assets tier 'world)
+                    (activate-assets tier 'zone))))
+            (let ((title (if (string? obj) obj "Unable to connect to server")))
+              (report-exception title obj))))))))
 
 
 ;;;
