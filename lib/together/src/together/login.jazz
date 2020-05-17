@@ -78,6 +78,7 @@
   (slot zone                        getter generate)
   (slot view-focused  initialize #f getter generate)
   (slot changing-key? initialize #f getter generate)
+  (slot changing-key  initialize #f getter generate)
   
   
   (method override (initialize self zone)
@@ -161,6 +162,7 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (set! changing-key (and changing-key? (get-string-content (locate (child root 'new-key) 'text))))
     (close root)
     (hide-interface))
   
@@ -230,6 +232,12 @@
           (set-visible? (child root 'new-enter) new?)
           (set-visible? (child root 'key) (not new?))
           (set-visible? (child root 'enter) (not new?))
+          (when (and changing-key? changing-key)
+            (set-string-content (locate (child root 'new-key) 'text) changing-key)
+            (set-enabled? (child root 'new-enter) (not (whitespace? changing-key)))
+            (delay-event
+              (lambda ()
+                (acquire-focus (locate (child root 'new-key) 'text)))))
           (when configuration
             (let ((key (and configuration (get-personal-key configuration))))
               (set-title (child root 'key) (and key (substring key 0 (min 8 (string-length key)))))
