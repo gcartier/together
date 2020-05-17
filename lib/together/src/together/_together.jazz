@@ -33,6 +33,7 @@
 (hub goto-space)
 (hub together-enter)
 (hub together-exit)
+(hub check-invalid-key-exception)
 
 
 ;;;

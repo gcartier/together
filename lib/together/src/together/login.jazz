@@ -247,6 +247,12 @@
         (acquire-focus (locate (child root 'new-key) 'text)))))
   
   
+  ;; hack around focus-selects-all? not done during window activation
+  (method package (change/focus-key self)
+    (change-key self)
+    (select-all (locate (child root 'new-key) 'text)))
+  
+  
   (method package (end-change-key self)
     (when changing-key?
       (set! changing-key? #f)
@@ -331,7 +337,8 @@
             (update-key-views self))
         (update-configuration-key self)
         (save-configuration zone)
-        (end-change-key self))))
+        (end-change-key self)
+        (open-configuration zone (user-client-file)))))
   
   
   (method package (key-escape self)
@@ -490,7 +497,14 @@
                     (activate-assets tier 'world)
                     (activate-assets tier 'zone))))
             (let ((title (if (string? obj) obj "Unable to connect to server")))
-              (report-exception title obj))))))))
+              (report-exception title obj)
+              (check-invalid-key-exception self title)))))))
+  
+  
+  (method package (check-invalid-key-exception self title)
+    ;; quick solution to use exception title
+    (when (equal? title "Invalid personal key")
+      (change/focus-key (current-space)))))
 
 
 ;;;

@@ -54,6 +54,7 @@
       (let ((title (if (string? obj) obj "Unable to connect to server"))
             (zone (if from-login? (current-zone) (open-login-zone))))
         (world.interface.exception:report-exception title obj)
+        (check-invalid-key-exception zone title)
         zone))))
 
 
