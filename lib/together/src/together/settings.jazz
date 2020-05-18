@@ -82,21 +82,26 @@
 
 
 (definition protected (open-login/client-enter (force-welcome?: force-welcome? #f))
-  (let ((file (user-client-file)))
-    (let ((config (and (exists? file) (instantiate (read-form file)))))
-      (if (or force-welcome?
-              (not (exists? file))
-              (and config (not (get-personal-key config)))
-              (and config (not (get-character-avatar config)))
-              (world-setting 'together.login? #f)
-              (not (world-setting 'together.critical-assets? #f))
-              (shift-down?))
-          (open-login-zone)
-        (let ((auto-join (world-setting 'together.auto-join #f))
-              (auto-enter (world-setting 'together.auto-enter #f)))
-          (if (and auto-join auto-enter)
-              (error "Auto join & enter are mutually exclusive")
-            (open-client-enter file auto-enter: (and auto-enter (split auto-enter "/")))))))))
+  (if (cond-expand (devel (world-setting 'world.test? #f))
+                   (else #f))
+      (begin
+        (load-unit 'world.test)
+        (exit))
+    (let ((file (user-client-file)))
+      (let ((config (and (exists? file) (instantiate (read-form file)))))
+        (if (or force-welcome?
+                (not (exists? file))
+                (and config (not (get-personal-key config)))
+                (and config (not (get-character-avatar config)))
+                (world-setting 'together.login? #f)
+                (not (world-setting 'together.critical-assets? #f))
+                (shift-down?))
+            (open-login-zone)
+          (let ((auto-join (world-setting 'together.auto-join #f))
+                (auto-enter (world-setting 'together.auto-enter #f)))
+            (if (and auto-join auto-enter)
+                (error "Auto join & enter are mutually exclusive")
+              (open-client-enter file auto-enter: (and auto-enter (split auto-enter "/"))))))))))
 
 
 (welcome-zone-open-set! open-login/client-enter)
