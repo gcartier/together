@@ -2119,7 +2119,6 @@
           (goto-space self 'avatar)
           (setup-visibility mainbar)
           (set-mode me 'player)
-          (set-zone-mode 'player)
           (prepare-motion world)
           #f))))
   
@@ -2133,7 +2132,6 @@
       (install-vista)
       (goto-space self 'gathering)
       (set-mode me 'observer)
-      (set-zone-mode 'observer)
       (restore-active-zone self)))
   
   
