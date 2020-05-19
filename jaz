@@ -45,8 +45,16 @@ bootstrap_dispatch () {
     esac
 }
 
+feedback() {
+    if [[ "$OSTYPE" == "msys" ]]; then
+        echo -e "$1"
+    else
+        echo "$1"
+    fi
+}
+
 display_info () {
-    echo "${CYAN}$1${NOCOLOR}"
+    feedback "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git log -1
@@ -64,7 +72,7 @@ display_all_info () {
 }
 
 display_status () {
-    echo "${CYAN}$1${NOCOLOR}"
+    feedback "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git status
@@ -82,7 +90,7 @@ display_all_status () {
 }
 
 pull () {
-    echo "${CYAN}$1${NOCOLOR}"
+    feedback "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git pull
