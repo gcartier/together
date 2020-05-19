@@ -9,11 +9,7 @@ JAZ="$JAZZ/jaz"
 
 UPDATE_SUBMODULES="true"
 
-if [[ "$OSTYPE" == "msys" ]]; then
-    REPOCOLOR='\033[0;36m'
-else
-    REPOCOLOR='\033[1;34m'
-fi
+REPOCOLOR='\033[1;34m'
 NOCOLOR='\033[0m'
 
 if [[ "$OSTYPE" == "msys" ]]; then
