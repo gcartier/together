@@ -9,6 +9,9 @@ JAZ="$JAZZ/jaz"
 
 UPDATE_SUBMODULES="true"
 
+CYAN='\033[0;36m'
+NOCOLOR='\033[0m'
+
 bootstrap_init () {
     cd "$REL"
     git submodule init
@@ -43,7 +46,7 @@ bootstrap_dispatch () {
 }
 
 display_info () {
-    echo "$1"
+    echo "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git log -1
@@ -61,7 +64,7 @@ display_all_info () {
 }
 
 display_status () {
-    echo "$1"
+    echo "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git status
@@ -79,7 +82,7 @@ display_all_status () {
 }
 
 pull () {
-    echo "$1"
+    echo "${CYAN}$1${NOCOLOR}"
     if [ -d "$2" ]; then
 	     cd "$2" &&
 	     git pull
