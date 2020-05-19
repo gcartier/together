@@ -42,22 +42,58 @@ bootstrap_dispatch () {
     esac
 }
 
-display_module_info () {
+display_info () {
     echo "$1"
     if [ -d "$2" ]; then
-	 cd "$2" &&
-	 git log -1
+	     cd "$2" &&
+	     git log -1
     fi
 }
 
-display_info () {
-    (display_module_info "Together" "$REL")
+display_all_info () {
+    (display_info "Together" "$REL")
     echo
-    (display_module_info "World" "$WRL")
+    (display_info "World" "$WRL")
     echo
-    (display_module_info "Jiri" "$JIRI")
+    (display_info "Jiri" "$JIRI")
     echo
-    (display_module_info "Jazz" "$JAZZ")
+    (display_info "Jazz" "$JAZZ")
+}
+
+display_status () {
+    echo "$1"
+    if [ -d "$2" ]; then
+	     cd "$2" &&
+	     git status
+    fi
+}
+
+display_all_status () {
+    (display_status "Together" "$REL")
+    echo
+    (display_status "World" "$WRL")
+    echo
+    (display_status "Jiri" "$JIRI")
+    echo
+    (display_status "Jazz" "$JAZZ")
+}
+
+pull () {
+    echo "$1"
+    if [ -d "$2" ]; then
+	     cd "$2" &&
+	     git pull
+    fi
+}
+
+pull_all () {
+    (pull "Together" "$REL")
+    echo
+    (pull "World" "$WRL")
+    echo
+    (pull "Jiri" "$JIRI")
+    echo
+    (pull "Jazz" "$JAZZ")
 }
 
 update_submodules () {
@@ -85,7 +121,17 @@ case "$1" in
 		;;
 
 	"info" )
-		display_info
+		display_all_info
+		exit
+		;;
+
+	"status" )
+		display_all_status
+		exit
+		;;
+
+	"pull" )
+		pull_all
 		exit
 		;;
 esac
