@@ -12,9 +12,11 @@ UPDATE_SUBMODULES="true"
 REPOCOLOR='\033[1;34m'
 NOCOLOR='\033[0m'
 
-if [[ "$OSTYPE" == "msys" ]]; then
-    alias git='"/c/Program Files/Git/bin/git"'
-fi
+case $OSTYPE in
+    "msys" )
+        alias git='"/c/Program Files/Git/bin/git"'
+	     ;;
+esac
 
 bootstrap_init () {
     cd "$REL"
@@ -50,11 +52,15 @@ bootstrap_dispatch () {
 }
 
 feedback() {
-    if [[ "$OSTYPE" == "msys" ]]; then
-        echo -e "$1"
-    else
-        echo "$1"
-    fi
+    case $OSTYPE in
+        "msys" )
+            echo -e "$1"
+	         ;;
+
+        * )
+            echo "$1"
+            ;;
+    esac
 }
 
 display_info () {
