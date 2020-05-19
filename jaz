@@ -12,6 +12,10 @@ UPDATE_SUBMODULES="true"
 CYAN='\033[0;36m'
 NOCOLOR='\033[0m'
 
+if [[ "$OSTYPE" == "msys" ]]; then
+    alias git='"/c/Program Files/Git/bin/git"'
+fi
+
 bootstrap_init () {
     cd "$REL"
     git submodule init
