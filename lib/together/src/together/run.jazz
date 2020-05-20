@@ -121,8 +121,6 @@
                        world.role                 builder ;; user
                        ;; configure
                        world.start-time           9000
-                       ;; keys
-                       world.arrow-movement?      #f
                        ;; support
                        world.block-pumps?         #t
                        ;; test
