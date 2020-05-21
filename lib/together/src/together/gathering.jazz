@@ -926,7 +926,6 @@
         (<!>                 name: step-backward              active?: #t)
         (<!>                 name: step-forward               active?: #t)
         (<!>                 name: step-over                  active?: #t)
-        (<!>                 name: reset-history              active?: #t)
         (<!>                 name: toggle-evaluate-future     active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
@@ -1181,7 +1180,6 @@
         (<!>                 name: step-backward              active?: #t)
         (<!>                 name: step-forward               active?: #t)
         (<!>                 name: step-over                  active?: #t)
-        (<!>                 name: reset-history              active?: #t)
         (<!>                 name: toggle-evaluate-future     active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
