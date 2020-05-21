@@ -928,8 +928,7 @@
         (<!>                 name: step-over                  active?: #t)
         (<!>                 name: reset-history              active?: #t)
         (<!>                 name: toggle-evaluate-future     active?: #t)
-        (<!>                 name: toggle-synchronize-cameras active?: #t)
-        (<!>                 name: toggle-simulate-protocol   active?: #t))
+        (<!>                 name: toggle-synchronize-cameras active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
@@ -1185,8 +1184,7 @@
         (<!>                 name: step-over                  active?: #t)
         (<!>                 name: reset-history              active?: #t)
         (<!>                 name: toggle-evaluate-future     active?: #t)
-        (<!>                 name: toggle-synchronize-cameras active?: #t)
-        (<!>                 name: toggle-simulate-protocol   active?: #t))
+        (<!>                 name: toggle-synchronize-cameras active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
