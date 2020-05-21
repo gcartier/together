@@ -652,7 +652,6 @@
           (,World-Build-Menu      build-menu    radial     center #f)
           (,World-Script-Menu     script-menu   radial     center #f)
           (,World-Debug-Menu      debug-menu    radial     center #f)))
-      (new History-Slider name: 'slider parent: interface visible?: #f)
       (set-layouter (child interface 'models) models-bar-layouter)
       (set-layouter (child interface 'blocks) blocks-bar-layouter)))
 
