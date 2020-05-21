@@ -1520,8 +1520,7 @@
         (<!>                 name: step-forward               visible?: #t)
         (<!>                 name: step-over                  visible?: #t)
         (<!>                 name: reset-history              visible?: #t)
-        (<!>                 name: toggle-evaluate-future     visible?: #t)
-        (<!>                 name: toggle-synchronize-cameras visible?: #t))
+        (<!>                 name: toggle-evaluate-future     visible?: #t))
       (<world-script!>
         (<!>                 name: test1                      visible?: #t)
         (<!>                 name: test2                      visible?: #t)
