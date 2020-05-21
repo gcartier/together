@@ -58,6 +58,7 @@
         (world.context)
         (world.evolution)
         (world.geometry)
+        (world.history)
         (world.interface)
         (world.interface.actions)
         (world.interface.bindings)
@@ -2101,6 +2102,7 @@
             (begin
               (display-error world (format "{a}" info))
               info)
+          (reset-chronology)
           (uninstall-vista)
           (increase! fade-no)
           (let ((no fade-no))
@@ -2137,13 +2139,13 @@
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
-          (world (current-world))
           (me (current-me)))
       (observe-to-server client)
       (install-vista)
       (goto-space self 'gathering)
       (set-mode me 'observer)
-      (restore-active-zone self)))
+      (restore-active-zone self)
+      (reset-history)))
   
   
   (method (check-has-camera? self)
@@ -2180,7 +2182,6 @@
           (video (current-video)))
       (when (or audio-only? (check-has-camera? self))
         (reset-chronology)
-        (reset-evolution)
         (bind-camera)
         (let ((no/streams/exception (join-group tier name 'player)))
           (if (string? no/streams/exception)
@@ -2232,7 +2233,8 @@
       (set! circle-name #f)
       (set! circle-no #f)
       (goto-space self 'gathering)
-      (restore-active-zone self)))
+      (restore-active-zone self)
+      (reset-evolution)))
   
   
   (method (goto-space self what)

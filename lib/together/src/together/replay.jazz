@@ -319,6 +319,18 @@
 (class Evolution-Timeline-Panel extends Timeline-Panel
   
   
+  (method override (live-information self)
+    (set! history #f)
+    (set! chronology (current-chronology))
+    (set! evolution (current-evolution)))
+  
+  
+  (method override (copy-information self)
+    (set! history #f)
+    (set! chronology (copy-chronology (current-chronology)))
+    (set! evolution (copy-evolution (current-evolution))))
+  
+  
   (method override (plot-events self surface from to)
     (let ((foot 220)
           (all? (eq? events-mode 'all)))
