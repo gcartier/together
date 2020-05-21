@@ -60,7 +60,7 @@
     (set! self.send-thread send-thread)))
 
 
-(class Network-Timeline extends Timeline-Panel
+(class Network-Timeline-Panel extends Timeline-Panel
   
   
   (method override (timeline-start self) <fl>
@@ -86,7 +86,7 @@
           (redraw-period (/ 1. 2.))
           (base (current-monotonic))
           (recuperate 1.)
-          (panel (new Network-Timeline parent: interface location: '(center 155) proportion: '((bounds -500) 120))))
+          (panel (new Network-Timeline-Panel parent: interface location: '(center 155) proportion: '((bounds -500) 120))))
       (define (wait target)
         (sleep (- (+ base target) (current-monotonic))))
       

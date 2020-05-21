@@ -46,8 +46,8 @@
     Together-Script-Panel)
   
   
-  (method override (timeline-panel-class self)
-    Together-Live-Timeline-Panel)
+  (method override (evolution-panel-class self)
+    Evolution-Timeline-Panel)
   
   
   (method override (draw-message-offset self)

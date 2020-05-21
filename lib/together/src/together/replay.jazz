@@ -312,11 +312,11 @@
 
 
 ;;;
-;;;; Live Timeline
+;;;; Evolution Timeline
 ;;;
 
 
-(class Together-Live-Timeline-Panel extends Timeline-Panel
+(class Evolution-Timeline-Panel extends Timeline-Panel
   
   
   (method override (plot-events self surface from to)
@@ -421,7 +421,7 @@
 ;;;
 
 
-(class Together-Timeline-Panel extends Together-Live-Timeline-Panel
+(class Together-Timeline-Panel extends Evolution-Timeline-Panel
   
   
   (slot evolutions          initialize #f  accessors generate)
