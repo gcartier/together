@@ -120,8 +120,8 @@
 (definition auto-video?
   (world-setting 'together.auto-video? #t))
 
-(definition auto-live?
-  (if (developer?)
+(definition (auto-live?)
+  (if (admin?)
       (world-setting 'together.auto-live? #t)
     #t))
 
@@ -2189,10 +2189,10 @@
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
             (bind (no audio-only? . streams) no/streams/exception
-              (when auto-live?
+              (when (auto-live?)
                 (require-live-stream tier audio-only?))
               (start udp)
-              (when auto-live?
+              (when (auto-live?)
                 (when auto-audio?
                   (play-mic tier))
                 (when (and auto-video? (not audio-only?))
