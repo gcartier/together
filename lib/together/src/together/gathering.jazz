@@ -2072,21 +2072,7 @@
   (method (escape-press self)
     (let ((world (current-world)))
       (when (is? (current-space) Sphere-Space)
-        (toggle-radial-menu world)))
-    @YOWNU
-    (if (or (is? (active-focus) Filter-View)
-            (is? (active-focus) Filter-Text))
-        #f
-      (let ((frame (top-frame)))
-        (if frame
-            (close frame)
-          (when (and (developer?) (is? space Gathering-Space))
-            (delay-event
-              (lambda ()
-                (with-task-mutex
-                  (lambda ()
-                    (open-login-zone))))))))
-      #t))
+        (toggle-radial-menu world))))
   
   
   (method (on-leave-circle self evt)
