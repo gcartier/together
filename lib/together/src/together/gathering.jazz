@@ -1018,7 +1018,6 @@
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
-        (<!>                 name: configure-settings         active?: #t)
         (<!>                 name: show-info                  active?: #t)))))
 
 
@@ -1255,7 +1254,6 @@
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
-        (<!>                 name: configure-settings         active?: #t)
         (<!>                 name: show-info                  active?: #t)))))
 
 
@@ -3833,10 +3831,6 @@
   
   (method (on-remove-stream self evt)
     (remove-random-stream))
-  
-  
-  (method (on-configure-settings self evt)
-    )
   
   
   (method (on-edit-script1 self evt)
