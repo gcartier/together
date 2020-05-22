@@ -669,22 +669,21 @@
   
   
   (method override (role-bindings self)
-    (let ((platform (cond-expand
+    (let ((admin (if (admin?)
+                     `(,admin-bindings)
+                   '()))
+          (platform (cond-expand
                       (windows `(,windows-bindings))
                       (else '()))))
       (case current-role
-        ((user) `(,user-bindings ,@platform))
-        ((builder) `(,builder-bindings ,@platform))
-        ((developer) `(,developer-bindings ,@platform))
+        ((user) `(,user-bindings ,@admin ,@platform))
+        ((builder) `(,builder-bindings ,@admin ,@platform))
+        ((developer) `(,developer-bindings ,@admin ,@platform))
         (else (nextmethod self)))))
   
   
   (method override (role-traits self)
-    (case current-role
-      ((user) `(,@user-role))
-      ((builder) `(,@builder-role))
-      ((developer) `(,@developer-role))
-      (else (nextmethod self)))))
+    `((:bindings ,@(role-bindings self)))))
 
 
 ;;;
@@ -1165,9 +1164,6 @@
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
 
-(definition user-role
-  `((:bindings ,user-bindings)))
-
 
 ;;;
 ;;;; Builder
@@ -1324,9 +1320,6 @@
       (<together-share!>
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
-
-(definition builder-role
-  `((:bindings ,builder-bindings)))
 
 
 ;;;
@@ -1614,7 +1607,6 @@
         (<!>                 name: toggle-debug               visible?: #t)
         (<!>                 name: toggle-debug-media         visible?: #t)
         (<!>                 name: toggle-debug-flow          visible?: #t)
-        (<!>                 name: toggle-admin               visible?: #t)
         (<!>                 name: toggle-evolution           visible?: #t)
         (<!>                 name: toggle-visualizer          visible?: #t)
         (<!>                 name: request-replays            visible?: #t)
@@ -1622,8 +1614,17 @@
         (<!>                 name: configure-settings         visible?: #t)
         (<!>                 name: show-info                  visible?: #t)))))
 
-(definition developer-role
-  `((:bindings ,developer-bindings)))
+
+;;;
+;;;; Admin
+;;;
+
+
+(define-trait admin-bindings Bindings
+  (<Role-Trait>              name: admin
+    (<install>
+      (<together-debug!>
+        (<!>                 name: toggle-admin               visible?: #t)))))
 
 
 ;;;
