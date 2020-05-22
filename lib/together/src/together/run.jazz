@@ -117,9 +117,7 @@
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; role
-                       world.role                 builder ;; user
-                       ;; configure
+                     '(;; configure
                        world.start-time           9000
                        ;; support
                        world.block-pumps?         #t
