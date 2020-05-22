@@ -1017,8 +1017,7 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
-        (<!>                 name: add-bookmark               active?: #t)
-        (<!>                 name: show-info                  active?: #t)))))
+        (<!>                 name: add-bookmark               active?: #t)))))
 
 
 (class Avatar-Space extends Sphere-Space
@@ -1253,8 +1252,7 @@
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
-        (<!>                 name: add-bookmark               active?: #t)
-        (<!>                 name: show-info                  active?: #t)))))
+        (<!>                 name: add-bookmark               active?: #t)))))
 
 
 (class Circling-Space extends Sphere-Space
