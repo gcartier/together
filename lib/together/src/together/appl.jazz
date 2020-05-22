@@ -1137,10 +1137,6 @@
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t))
-      (<world-showcase!>
-        (<!>                 name: no-showcase                visible?: #t)
-        (<!>                 name: blocks-showcase            visible?: #t)
-        (<!>                 name: models-showcase            visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
