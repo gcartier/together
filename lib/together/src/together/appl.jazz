@@ -142,9 +142,16 @@
     (new Together-Bindings))
   
   
+  ;; wait-scripting-server-given-role-regression
+  (method (effective-developer? self)
+    #f
+    @wait-scripting-server-given-role-regression
+    (developer?))
+  
+  
   ;; copy-pasted from IDE
   (method override (get-local-debugger self)
-    (if (developer?)
+    (if (effective-developer? self)
         local-debugger
       (nextmethod self)))
   
@@ -153,10 +160,10 @@
   (method override (install-process self)
     (nextmethod self)
     ;; quick hack for starting two togethers locally
-    (unless (and (developer?)
+    (unless (and (effective-developer? self)
                  (world-setting 'world.inhibit-empty-fifos? #f))
-      (empty-fifo-directory feedback?: (developer?)))
-    (when (developer?)
+      (empty-fifo-directory feedback?: (effective-developer? self)))
+    (when (effective-developer? self)
       (start-debuggers self)))
   
   
@@ -170,7 +177,7 @@
     ;; this takes a lot of memory and thus has a large
     ;; impact on garbage collect times so i think that
     ;; cataloging should be offloaded to the worker...
-    (when (developer?)
+    (when (effective-developer? self)
       (let ((thread
               (new-thread
                 (lambda ()
@@ -179,14 +186,14 @@
         (thread-base-priority-set! thread background-priority)
         (thread-start! thread)))
     ;; a try
-    (when (developer?)
+    (when (effective-developer? self)
       (set-debugger-manager (new Together-Debugger-Manager))))
   
   
   ;; copy-pasted from IDE
   (method override (conclude-environment self)
     (nextmethod self)
-    (when (developer?)
+    (when (effective-developer? self)
       ;; do this at the last moment possible because any error beyond this point
       ;; will be handled by the IDE itself which must thus be fully functional
       (if (get-controller-debugger)
@@ -207,7 +214,7 @@
       (let ((panel (child interface 'script)))
         (let ((manager (locate panel 'manager)))
           (save-script manager))))
-    (when (developer?)
+    (when (effective-developer? self)
       (let ((cataloguer (find-cataloguer)))
         (when cataloguer
           (save-catalogs cataloguer))))
@@ -481,7 +488,7 @@
   ;; copy-pasted from IDE
   (method override (register-base-objects self)
     (nextmethod self)
-    (when (developer?)
+    (when (effective-developer? self)
       (register-object (get-local-register 'debugging) 'debugger (new Jazz-Debugger-Local-Proxy (require-presence 'debugging) local-debugger))))
   
   
@@ -492,7 +499,7 @@
   
   (method override (start-console self)
     (if (or (remote-proxy? (get-controller-debugger))
-            (not (developer?)))
+            (not (effective-developer? self)))
         (nextmethod self)
       ;; no REPL until Together internal consoles
       (select-console self)))
@@ -500,7 +507,7 @@
   
   ;; copy-pasted from IDE
   (method (start-debuggers self)
-    (when (developer?)
+    (when (effective-developer? self)
       (when (not local-debugger)
         ;; quicky until the local debugger is fully operational
         (when (not (get-controller-debugger))
