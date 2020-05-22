@@ -2956,7 +2956,7 @@
           (space (current-space)))
       (define (parse-content content)
         (cond ((starts-with? content "/s ")
-               (if (developer?)
+               (if (admin?)
                    (values 'server #f (substring content 3 (string-length content)))
                  (selected-recipient content)))
               ((starts-with? content "/g ")
