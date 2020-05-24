@@ -312,7 +312,7 @@
 
 
 ;;;
-;;;; Evolution Timeline
+;;;; Timeline
 ;;;
 
 
@@ -450,11 +450,6 @@
     (set! live? #f)
     (set! events-mode 'all)
     (set! border-color {Color Dark-Gray}))
-  
-  
-  ;; quicky
-  (method override (together-timeline? self)
-    #t)
   
   
   ;; quicky until the timeline panel uses the timeline class

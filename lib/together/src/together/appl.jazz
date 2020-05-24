@@ -581,6 +581,10 @@
       (register-site-look 'udp-process 5 chronology-purple)
       (register-site-look 'video-output 4 chronology-magenta)
       ;; internal
+      (register-site-look 'player 5 chronology-green)
+      (register-site-look 'physical 4 chronology-blue)
+      (register-site-look 'visual 4 chronology-purple)
+      (register-site-look 'generate 4 chronology-magenta)
       (register-site-look 'alive 3 {Color Yellow})
       (register-site-look 'network 3 {Color Yellow})
       (register-site-look 'tick 3 {Color Green})
