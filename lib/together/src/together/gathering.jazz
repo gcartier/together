@@ -2773,10 +2773,16 @@
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
       (when (selected-loaded? self)
-        (cond (active-group
-               (join-circle self active-group active-audio-only?))
-              (active-zone
-               (enter-zone self))))))
+        (unless active-player
+          (let ((data (get-single-selected-data (people-tree self))))
+            (when data
+              (let ((kind (car data)))
+                (cond (active-group
+                       (when (eq? kind 'group)
+                         (join-circle self active-group active-audio-only?)))
+                      ((and active-zone (neq? active-zone 'start))
+                       (when (eq? kind 'zone)
+                         (enter-zone self)))))))))))
   
   
   (method package (focus-command-text self)
