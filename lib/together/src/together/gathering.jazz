@@ -914,7 +914,7 @@
         (<!>                 name: move-grid                  active?: #t)
         (<!>                 name: decrease-grid              active?: #t)
         (<!>                 name: increase-grid              active?: #t)
-        (<!>                 name: reload-textures            active?: #t)
+        (<!>                 name: reset-textures             active?: #t)
         (<!>                 name: change-editor-mode         active?: #t))
       (<world-target!>
         (<!>                 name: select-target-mode         active?: #t)

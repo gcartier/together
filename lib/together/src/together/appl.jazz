@@ -1269,7 +1269,7 @@
         (<!>                 name: move-grid                  visible?: #t)
         (<!>                 name: decrease-grid              visible?: #t)
         (<!>                 name: increase-grid              visible?: #t)
-        @wait (<!>                 name: reload-textures            visible?: #t)
+        @wait (<!>                 name: reset-textures            visible?: #t)
         (<!>                 name: change-editor-mode         visible?: #t))
       (<world-target!>
         (<!>                 name: select-target-mode         visible?: #t)
@@ -1488,7 +1488,7 @@
         (<!>                 name: move-grid                  visible?: #t)
         (<!>                 name: decrease-grid              visible?: #t)
         (<!>                 name: increase-grid              visible?: #t)
-        (<!>                 name: reload-textures            visible?: #t)
+        (<!>                 name: reset-textures             visible?: #t)
         (<!>                 name: change-editor-mode         visible?: #t))
       (<world-target!>
         (<!>                 name: select-target-mode         visible?: #t)
