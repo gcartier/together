@@ -55,8 +55,10 @@
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; worker
-                       world.worker? #f)))
+                     '(;; configure
+                       world.start-time 9000
+                       ;; worker
+                       world.worker?    #f)))
 
 
 (definition (override-settings settings)
