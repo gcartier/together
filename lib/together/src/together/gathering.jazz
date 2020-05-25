@@ -4038,8 +4038,8 @@
   
   
   (method override (mouse-up self evt)
-    (let ((together (current-together)))
-      (streams-label-action together))))
+    (let ((space (current-space)))
+      (streams-label-action space))))
 
 
 ;;;
