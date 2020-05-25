@@ -1803,7 +1803,7 @@
   (slot circle-start         initialize #f getter generate)
   (slot message-recipient    initialize #f getter generate)
   (slot draw-hook            initialize #f getter generate)
-  (slot disconnected?        initialize #f getter generate)
+  (slot sleep-disconnected?  initialize #f getter generate)
   (slot chat-wide?           initialize #f getter generate)
   (slot fade-thread          initialize #f getter generate)
   (slot fade-no              initialize 0  getter generate)
@@ -1968,7 +1968,7 @@
           (let ((client (current-client)))
             (when (is? space Sphere-Space)
               (leave-circle self)
-              (set! disconnected? #t))
+              (set! sleep-disconnected? #t))
             (sleep-to-server client))))))
   
   
@@ -1981,9 +1981,9 @@
           (let ((client (current-client))
                 (world (current-world)))
             (wake-to-server client)
-            (when disconnected?
+            (when sleep-disconnected?
               (display-message world "Disconnected from circle" duration: 5.)
-              (set! disconnected? #f)))))))
+              (set! sleep-disconnected? #f)))))))
   
   
   (method package (update-message-recipient self recipient)
