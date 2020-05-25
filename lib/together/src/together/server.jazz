@@ -60,8 +60,7 @@
       (when (exists? monitor-directory)
         (iterate-directory monitor-directory
           (lambda (file)
-            (when (and (starts-with? (get-name file) "Server_")
-                       (extension=? (get-extension file) "snapshot"))
+            (when (extension=? (get-extension file) "snapshot")
               (enqueue queue (list file monitor-remote))))
           files?: #t
           directories?: #f
