@@ -1,0 +1,78 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Mobile Tests
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.mobile jazz
+
+
+(import (jazz.json))
+
+
+(definition server-host
+  "localhost")
+
+(definition server-service
+  50950)
+
+
+(definition pixel-key
+  "A06250E4-B0D2-4119-90AB-E4B84D2FFCF3")
+
+
+(definition public p
+  #f)
+
+
+(definition public (w obj)
+  (print-json obj p)
+  (force-output p))
+
+
+(definition public (r)
+  (read-json p))
+
+
+(definition public (c)
+  (set! p (open-tcp-client (list server-address: server-host port-number: server-service)))
+  (input-port-readtable-set! p json-readtable)
+  (w pixel-key)
+  (r)
+  (start p)
+  (r))
+
+
+(definition process-thread
+  #f)
+
+
+(definition (start p)
+  (let ((thread
+          (new-thread
+            (lambda ()
+              (declare (proper-tail-calls))
+              (let (loop)
+                (terminal (r))
+                (loop)))
+            'process)))
+    (set! process-thread thread)
+    (thread-start! thread)))
+
+
+(definition (stop)
+  (exit-thread process-thread)
+  (set! process-thread #f))
+
+
+(definition public (d)
+  (stop)
+  (w (list "deconnect"))
+  (r)))

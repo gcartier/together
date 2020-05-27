@@ -63,6 +63,7 @@
         (<Jazz-File>       name: space             source: {File :context "src" "together" "space.jazz"})
         (<Jazz-File>       name: customize         source: {File :context "src" "together" "customize.jazz"})
         (<Jazz-File>       name: devel-server      source: {File :context "src" "together" "devel-server.jazz"})
-        (<Jazz-File>       name: devel-processor   source: {File :context "src" "together" "devel-processor.jazz"}))
+        (<Jazz-File>       name: devel-processor   source: {File :context "src" "together" "devel-processor.jazz"})
+        (<Jazz-File>       name: mobile            source: {File :context "src" "together" "mobile.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))
