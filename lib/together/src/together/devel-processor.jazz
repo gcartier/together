@@ -18,4 +18,5 @@
         (world)
         (world.context)
         (world.processor.tier)
+        (world.settings)
         (world.task)))
