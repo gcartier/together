@@ -14,7 +14,11 @@
 (module trun jazz
 
 
-(import (together.run))
+(import (jazz.io)
+        (together.run))
+
+
+(initialize-aliases)
 
 
 (prepare-together))
