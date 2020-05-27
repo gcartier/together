@@ -20,6 +20,7 @@
         (world.build)
         (world.profiling)
         (world.server.presence)
+        (world.server.problem)
         (together)
         (together.domain)
         (together.server))
@@ -57,7 +58,8 @@
 
 (definition protected (prepare-settings)
   (load-unit 'world.settings)
-  (setup-server-presence)
+  (set-problem-prefix "server")
+  (setup-serving-presence)
   (when start-tier-listener
     (start-tier-listener))
   (when connect-slave-to-master
