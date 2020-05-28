@@ -18,10 +18,12 @@
 
 
 (definition server-host
-  "localhost")
+  ;"localhost"
+  "togethersphere.com")
 
 (definition server-service
-  50950)
+  ;50950
+  50050)
 
 
 (definition validation-code
