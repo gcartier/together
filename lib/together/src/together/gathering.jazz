@@ -142,6 +142,9 @@
 (definition connect-attention
   (world-setting 'together.connect-attention #f))
 
+(definition connect-message
+  (world-setting 'together.connect-message #f))
+
 (definition message-sound
   (world-setting 'together.message-sound #t))
 
@@ -2307,8 +2310,6 @@
   
   (method (server-entered self character-name)
     (let ((world (current-world)))
-      (unless (is? space Sphere-Space)
-        (display-message world (format "{a} entered" character-name)))
       (when (cond ((eqv? connect-sound #t) #t)
                   ((eqv? connect-sound 'gathering) (is? space Gathering-Space))
                   (else #f))
@@ -2316,12 +2317,18 @@
       (when (cond ((eqv? connect-attention #t) #t)
                   ((eqv? connect-attention 'gathering) (is? space Gathering-Space))
                   (else #f))
-        (user-attention))))
+        (user-attention))
+      (when (cond ((eqv? connect-message #t) #t)
+                  ((eqv? connect-message 'gathering) (is? space Gathering-Space))
+                  (else #f))
+        (display-message world (format "{a} entered" character-name)))))
   
   
   (method (server-exited self character-name)
     (let ((world (current-world)))
-      (unless (is? space Sphere-Space)
+      (when (cond ((eqv? connect-message #t) #t)
+                  ((eqv? connect-message 'gathering) (is? space Gathering-Space))
+                  (else #f))
         (display-message world (format "{a} exited" character-name)))))
   
   
