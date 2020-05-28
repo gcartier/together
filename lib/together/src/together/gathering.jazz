@@ -2582,7 +2582,7 @@
         
         (define (add-players zone players)
           (for-each (lambda (player)
-                      (bind (name id no asleep? zone mode) player
+                      (bind (name id no disconnected? asleep? zone mode) player
                         (if (eq? zone 'start)
                             (set! observers (cons player observers))
                           (add zone (cons 'player player)))))
@@ -2616,10 +2616,10 @@
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
-                (bind (player id no asleep? zone mode) info
-                  (let ((title (if asleep? (format "{a} (offline)" player) player))
+                (bind (player id no disconnected? asleep? zone mode) info
+                  (let ((title (if disconnected? (format "{a} (disconnected)" player) (if asleep? (format "{a} (offline)" player) player)))
                         (font {Font Label-User})
-                        (color (if asleep? {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
+                        (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
                     (add-row tree
                              father: father
                              children: (list (new Tree-Node title: title font: font color: color))
