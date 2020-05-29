@@ -132,9 +132,6 @@
 (definition auto-join
   (world-setting 'together.auto-join #f))
 
-(definition auto-script
-  (world-setting 'together.auto-script #f))
-
 
 (definition connect-sound
   (world-setting 'together.connect-sound #f))
@@ -1863,8 +1860,6 @@
           (auto-enter
            (when (enter-zone self)
              (enter-gathering)))
-          (auto-script
-           (goto-script/last self))
           (else
            (enter-gathering))))
   
