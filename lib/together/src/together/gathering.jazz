@@ -1843,28 +1843,41 @@
   
   
   (method (together-enter self auto-enter)
-    (define (enter-gathering)
-      (set! space (need-space self 'gathering))
-      (space-install space)
-      (set-current-space space)
-      (space-activate space))
-    
-    (when (current-space+)
-      (space-deactivate (current-space))
-      (space-uninstall (current-space)))
-    (together-ready self)
-    (when auto-create
-      (let ((client (current-client)))
+    (let ((client (current-client)))
+      (define (enter-gathering)
+        (set! space (need-space self 'gathering))
+        (space-install space)
+        (set-current-space space)
+        (space-activate space))
+      
+      (define (check-error err)
+        (when err
+          (enter-gathering)
+          (display-error (current-world) err)))
+      
+      (when (current-space+)
+        (space-deactivate (current-space))
+        (space-uninstall (current-space)))
+      (together-ready self)
+      (when auto-create
         (for-each (lambda (name)
                     (create-group client name #t #f #t #t))
-                  (listify auto-create))))
-    (cond (auto-join
-           (join-circle self auto-join #f))
-          (auto-enter
-           (when (enter-zone self)
-             (enter-gathering)))
-          (else
-           (enter-gathering))))
+                  (listify auto-create)))
+      (let ((reconnect-info (get-reconnect-info client)))
+        (cond (reconnect-info
+               (bind (mode zone group audio-only?) reconnect-info
+                 (cond ((integer? group)
+                        (check-error (rejoin-group self group)))
+                       ((string? group)
+                        (check-error (rejoin-circle self group audio-only?)))
+                       ((neq? zone 'start)
+                        (check-error (reenter-zone self zone))))))
+              (auto-join
+               (check-error (autojoin-circle self auto-join #f)))
+              (auto-enter
+               (check-error (enter-zone self)))
+              (else
+               (enter-gathering))))))
   
   
   (method (together-exit self)
@@ -2121,6 +2134,18 @@
           #f))))
   
   
+  (method package (reenter-zone self zone)
+    (let ((world (current-world))
+          (me (current-me)))
+      (reset-chronology)
+      (uninstall-vista)
+      (goto-space self 'avatar)
+      (setup-visibility mainbar)
+      (set-mode me 'player)
+      (prepare-motion world)
+      #f))
+  
+  
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
@@ -2161,42 +2186,64 @@
   
   (method package (join-circle self name audio-only?)
     (let ((tier (current-client))
-          (udp (current-udp))
-          (world (current-world))
-          (zone (current-zone))
-          (video (current-video)))
+          (world (current-world)))
       (when (or audio-only? (check-has-camera? self))
-        (reset-chronology)
-        (bind-camera)
         (let ((no/streams/exception (join-group tier name 'player)))
           (if (string? no/streams/exception)
               (display-error world no/streams/exception)
-            (bind (no audio-only? . streams) no/streams/exception
-              (when (auto-live?)
-                (require-live-stream tier audio-only?))
-              (start udp)
-              (when (auto-live?)
-                (when auto-audio?
-                  (play-mic tier))
-                (when (and auto-video? (not audio-only?))
-                  (play-camera tier)))
-              (clear-message world)
-              (uninstall-vista)
-              (cond-expand
-                (windows (set! hide-last-mouse #f))
-                (else))
-              (set! circle-name name)
-              (set! circle-no no)
-              (set! circle-audio-only? audio-only?)
-              (set! circle-start (current-seconds))
-              (streams-add tier no audio-only? streams)
-              (install-circle-hooks self)
-              (goto-circle-space self 'circle feedback?: #f)
-              (effective-base-profile-update)
-              (setup-visibility mainbar)
-              (if audio-only?
-                  (setup-render-rate 5. 5.)
-                (setup-render-rate 30. 30.))))))))
+            (setup-circle self name no/streams/exception))))))
+  
+  
+  (method (autojoin-circle self name audio-only?)
+    (let ((tier (current-client)))
+      (let ((no/streams/exception (rejoin-group tier name)))
+        (if (string? no/streams/exception)
+            no/streams/exception
+          (setup-circle self name no/streams/exception)
+          #f))))
+  
+  
+  (method (rejoin-circle self name audio-only?)
+    (let ((tier (current-client)))
+      (let ((no/streams/exception (rejoin-group tier name)))
+        (if (string? no/streams/exception)
+            no/streams/exception
+          (setup-circle self name no/streams/exception)
+          #f))))
+  
+  
+  (method (setup-circle self name no/streams/exception)
+    (let ((tier (current-client))
+          (udp (current-udp))
+          (world (current-world)))
+      (bind (no audio-only? . streams) no/streams/exception
+        (reset-chronology)
+        (bind-camera)
+        (when (auto-live?)
+          (require-live-stream tier audio-only?))
+        (start udp)
+        (when (auto-live?)
+          (when auto-audio?
+            (play-mic tier))
+          (when (and auto-video? (not audio-only?))
+            (play-camera tier)))
+        (clear-message world)
+        (uninstall-vista)
+        (cond-expand
+          (windows (set! hide-last-mouse #f))
+          (else))
+        (set! circle-name name)
+        (set! circle-no no)
+        (set! circle-audio-only? audio-only?)
+        (set! circle-start (current-seconds))
+        (streams-add tier no audio-only? streams)
+        (install-circle-hooks self)
+        (goto-circle-space self 'circle feedback?: #f)
+        (effective-base-profile-update)
+        (setup-visibility mainbar)
+        (if audio-only?
+            (setup-render-rate 5. 5.)
+          (setup-render-rate 30. 30.)))))
   
   
   (method (leave-circle self)
@@ -2222,6 +2269,19 @@
       (reset-evolution)))
   
   
+  (method (rejoin-group self group-no)
+    (let ((tier (current-client)))
+      (let ((no/streams/exception (rejoin-group tier group-no)))
+        (if (string? no/streams/exception)
+            no/streams/exception
+          (bind (no audio-only? . streams) no/streams/exception
+            (let ((udp-client (get-udp-client tier)))
+              (start udp-client)
+              (require-live-stream self audio-only?)
+              (streams-add self no audio-only? streams)
+              (play-mic self)))))))
+  
+  
   (method (goto-space self what)
     (space-deactivate (current-space))
     (space-uninstall (current-space))
@@ -2233,6 +2293,14 @@
   
   
   (method (restore-active-zone self)
+    (let ((tree (people-tree self)))
+      (let ((row (user-data-row tree active-data test: equal?)))
+        (if (not row)
+            (set-selection tree '() generate-event?: #f)
+          (set-single-selection tree (row->line tree row) generate-event?: #f)))))
+  
+  
+  (method (restore-zone self zone)
     (let ((tree (people-tree self)))
       (let ((row (user-data-row tree active-data test: equal?)))
         (if (not row)
