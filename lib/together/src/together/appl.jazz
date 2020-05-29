@@ -363,6 +363,10 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
+  (method (on-test self evt)
+    )
+  
+  
   ;;;
   ;;;; Edition
   ;;;
@@ -1001,7 +1005,8 @@
       (<World-Action-Item> name: toggle-evolution          title: "Timeline" shortcut: {Shortcut :alt #\T} action-handler: {Event-Handler :together on-toggle-evolution} description: "Toggle timeline.")
       (<World-Action-Item> name: toggle-visualizer         title: "Visualizer" shortcut: {Shortcut :alt :shift #\V} action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
       (<World-Action-Item> name: request-replays           title: "Request replays" shortcut: {Shortcut :alt :shift #\E} action-handler: {Event-Handler :together on-request-replays} description: "Request replays.")
-      (<World-Action-Item> name: add-bookmark              title: "Add bookmark" action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark."))))
+      (<World-Action-Item> name: add-bookmark              title: "Add bookmark" action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
+      (<World-Action-Item> name: test                      title: "Test" action-handler: {Event-Handler :application on-test} shortcut: {Shortcut :control #\T} description: "Test."))))
 
 
 ;;;
@@ -1597,7 +1602,8 @@
         (<!>                 name: toggle-debug-media         visible?: #t)
         (<!>                 name: toggle-debug-flow          visible?: #t)
         (<!>                 name: toggle-evolution           visible?: #t)
-        (<!>                 name: add-bookmark               visible?: #t)))))
+        (<!>                 name: add-bookmark               visible?: #t)
+        (<!>                 name: test                       visible?: #t)))))
 
 
 ;;;

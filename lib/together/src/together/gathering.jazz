@@ -496,7 +496,8 @@
         (<!>                 name: profile-pulse              active?: #t)
         (<!>                 name: profile-network            active?: #t))
       (<together-debug!>
-        (<!>                 name: toggle-admin               active?: #t))
+        (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: test                       active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -1017,7 +1018,8 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
-        (<!>                 name: add-bookmark               active?: #t)))))
+        (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: test                       active?: #t)))))
 
 
 (class Avatar-Space extends Sphere-Space
@@ -1252,7 +1254,8 @@
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
-        (<!>                 name: add-bookmark               active?: #t)))))
+        (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: test                       active?: #t)))))
 
 
 (class Circling-Space extends Sphere-Space
