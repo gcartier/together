@@ -1853,7 +1853,7 @@
     (when auto-create
       (let ((client (current-client)))
         (for-each (lambda (name)
-                    (create-group client name #t #f #t))
+                    (create-group client name #t #f #t #t))
                   (listify auto-create))))
     (cond (auto-join
            (join-circle self auto-join #f))
@@ -2147,7 +2147,7 @@
           (let ((view (child (get-root space) 'circle-view)))
             (let ((text (locate view 'text)))
               (let ((name (trim-whitespace (get-string-content text))))
-                (let ((no/exception (create-group tier name #f audio-only? #f)))
+                (let ((no/exception (create-group tier name #f audio-only? #f #f)))
                   (if (string? no/exception)
                       (display-error world no/exception)
                     (clear-message world)
