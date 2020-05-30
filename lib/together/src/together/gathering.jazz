@@ -2119,6 +2119,7 @@
             (begin
               (display-error world (format "{a}" info))
               info)
+          (retrieve-camera client)
           (reset-chronology)
           (uninstall-vista)
           (increase! fade-no)
@@ -2169,6 +2170,7 @@
     (let ((client (current-client))
           (interface (current-interface))
           (me (current-me)))
+      (save-to-processor client)
       (observe-to-server client)
       (install-vista)
       (goto-space self 'gathering)
