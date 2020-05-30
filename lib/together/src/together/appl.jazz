@@ -364,7 +364,8 @@
   
   
   (method (on-test self evt)
-    )
+    (when (developer?)
+      (exit-no-jobs)))
   
   
   ;;;
