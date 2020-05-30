@@ -2657,38 +2657,44 @@
   
   ;; could be done only once on server
   (method package (unify-hierarchy self hierarchy available-zones)
-    (bind (groupless . groups) hierarchy
-      (let ((observers '())
-            (voiders '())
-            (zones (make-table test: equal?)))
-        (define (add zone member)
-          (let ((path (cdr zone)))
-            (table-add zones path member)))
-        
-        (define (add-players zone players)
-          (for-each (lambda (player)
-                      (bind (name id no disconnected? asleep? zone mode) player
-                        (if (eq? zone 'start)
-                            (set! observers (cons player observers))
-                          (add zone (cons 'player player)))))
-                    players))
-        
-        (for-each (lambda (info)
-                    (bind (zone . title) info
-                      (unless (eq? zone 'start)
-                        (table-set! zones (cdr zone) '()))))
-                  available-zones)
-        (bind (group audio-only? zone . players) groupless
-          (add-players zone players))
-        (for-each (lambda (group)
-                    (bind (name audio-only? zone . players) group
-                      (if (integer? name)
-                          (add-players zone players)
-                        (if (eq? zone 'start)
-                            (set! voiders (cons group voiders))
-                          (add zone (cons 'group group))))))
-                  groups)
-        (values observers voiders (table->list zones)))))
+    (let ((client (current-client)))
+      (bind (groupless . groups) hierarchy
+        (let ((observers '())
+              (voiders '())
+              (zones (make-table test: equal?))
+              (party #f)
+              (character-name (get-character-name client)))
+          (define (add zone member)
+            (let ((path (cdr zone)))
+              (table-add zones path member)))
+          
+          (define (add-players zone players)
+            (for-each (lambda (player)
+                        (bind (name id no disconnected? asleep? zone mode) player
+                          (if (eq? zone 'start)
+                              (set! observers (cons player observers))
+                            (add zone (cons 'player player)))))
+                      players))
+          
+          (for-each (lambda (info)
+                      (bind (zone . title) info
+                        (unless (eq? zone 'start)
+                          (table-set! zones (cdr zone) '()))))
+                    available-zones)
+          (bind (group audio-only? zone . players) groupless
+            (add-players zone players))
+          (for-each (lambda (group)
+                      (bind (name audio-only? zone . players) group
+                        (if (integer? name)
+                            (begin
+                              (when (member? character-name players key: car)
+                                (set! party players))
+                              (add-players zone players))
+                          (if (eq? zone 'start)
+                              (set! voiders (cons group voiders))
+                            (add zone (cons 'group group))))))
+                    groups)
+          (values observers voiders (table->list zones) party)))))
   
   
   (method (view-hierarchy self hierarchy)
@@ -2696,20 +2702,24 @@
           (me (current-me)))
       (let ((tree (people-tree self))
             (separator? #f))
-        (receive (observers voiders zones) (unify-hierarchy self hierarchy (cache-available-zones))
+        (receive (observers voiders zones party) (unify-hierarchy self hierarchy (cache-available-zones))
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
                 (bind (player id no disconnected? asleep? zone mode) info
-                  (let ((title (if disconnected? (format "{a} (disconnected)" player) (if asleep? (format "{a} (offline)" player) player)))
-                        (font {Font Label-User})
-                        (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
-                    (add-row tree
-                             father: father
-                             children: (list (new Tree-Node title: title font: font color: color))
-                             user-data: (list 'player player group zone))
-                    (added father))))
+                  (let ((group? (and party (memq? info party))))
+                    (let ((title (cond (disconnected? (format "{a} (disconnected)" player))
+                                       (asleep? (format "{a} (offline)" player))
+                                       (group? (format "<{a}>" player))
+                                       (else player)))
+                          (font {Font Label-User})
+                          (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
+                      (add-row tree
+                               father: father
+                               children: (list (new Tree-Node title: title font: font color: color))
+                               user-data: (list 'player player group zone))
+                      (added father)))))
               
               (define (add-group father info)
                 (bind (group audio-only? zone . players) info
