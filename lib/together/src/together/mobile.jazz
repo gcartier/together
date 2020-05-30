@@ -62,7 +62,7 @@
   (input-port-readtable-set! p json-readtable)
   (w pixel-key)
   (terminal (r))
-  (start p)
+  (process p)
   (unspecified))
 
 
@@ -70,13 +70,13 @@
   #f)
 
 
-(definition (start p)
+(definition (process p)
   (let ((thread
           (new-thread
             (lambda ()
               (declare (proper-tail-calls))
               (let (loop)
-                (terminal (r))
+                (terminal 'PROCESS (r))
                 (loop)))
             'process)))
     (set! process-thread thread)
@@ -91,4 +91,9 @@
 (definition public (d)
   (stop)
   (w (list "deconnect"))
-  (terminal (r))))
+  (unspecified))
+
+
+(definition public (m (msg #f))
+  (w `("message" "whisper" "Pixel" ,(or msg "Hey you!")))
+  (unspecified)))
