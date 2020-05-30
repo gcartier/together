@@ -1850,9 +1850,10 @@
         (set-current-space space)
         (space-activate space))  
       
-      (define (reconnect mode zone group audio-only?)
+      (define (reconnection mode zone group audio-only?)
         (unless (eq? zone 'start)
           (restore-zone zone))
+        (reconnect client)
         (if (string? group)
             (check-error (rejoin-circle self group audio-only?))
           (if (eq? mode 'observer)
@@ -1889,7 +1890,7 @@
       (let ((reconnect-info (get-reconnect-info client)))
         (cond (reconnect-info
                (bind (mode zone group audio-only?) reconnect-info
-                 (reconnect mode zone group audio-only?)))
+                 (reconnection mode zone group audio-only?)))
               (auto-join
                (check-error (autojoin-circle self auto-join #f)))
               (auto-enter
