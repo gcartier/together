@@ -18,12 +18,14 @@
 
 
 (definition server-host
-  ;"localhost"
-  "togethersphere.com")
+  "localhost"
+  ;"togethersphere.com"
+  )
 
 (definition server-service
-  ;50950
-  50050)
+  50950
+  ;50050
+  )
 
 
 (definition validation-code
@@ -45,16 +47,23 @@
 
 
 (definition public (r)
-  (read-json p))
+  (let ((output (open-output-string)))
+    (let (loop)
+      (let ((c (read-char p)))
+        (if (eqv? c #\|)
+            (call-with-input-string (list init: (get-output-string output) readtable: json-readtable)
+              read-json)
+          (write-char c output)
+          (loop))))))
 
 
 (definition public (c)
   (set! p (open-tcp-client (list server-address: server-host port-number: server-service)))
   (input-port-readtable-set! p json-readtable)
   (w pixel-key)
-  (r)
+  (terminal (r))
   (start p)
-  (r))
+  (unspecified))
 
 
 (definition process-thread
@@ -82,4 +91,4 @@
 (definition public (d)
   (stop)
   (w (list "deconnect"))
-  (r)))
+  (terminal (r))))
