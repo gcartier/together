@@ -190,7 +190,8 @@
   *current-together*)
 
 (definition public (set-current-together together)
-  (set! *current-together* together))
+  (set! *current-together* together)
+  (set-?g together))
 
 
 ;;;
