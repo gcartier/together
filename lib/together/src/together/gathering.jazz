@@ -2196,7 +2196,7 @@
   
   (method (autojoin-circle self name audio-only?)
     (let ((tier (current-client)))
-      (let ((no/streams/exception (rejoin-group tier name)))
+      (let ((no/streams/exception (join-group tier name 'player)))
         (if (string? no/streams/exception)
             no/streams/exception
           (setup-circle self name no/streams/exception)
