@@ -2260,8 +2260,6 @@
       (circle-uninstall-camera)
       (restore-fov)
       (install-vista)
-      @SPACE-think-about
-      (install-skybox zone (find-skybox together-skybox))
       (set! circle-name #f)
       (set! circle-no #f)
       (goto-space self 'gathering)
