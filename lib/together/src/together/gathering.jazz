@@ -1853,14 +1853,13 @@
       (define (reconnect mode zone group audio-only?)
         (unless (eq? zone 'start)
           (restore-zone zone))
-        (cond ((integer? group)
-               (check-error (rejoin-group self group)))
-              ((string? group)
-               (check-error (rejoin-circle self group audio-only?)))
-              (else
-               (if (eq? mode 'observer)
-                   (enter-gathering)
-                 (check-error (reenter-zone self zone))))))
+        (if (string? group)
+            (check-error (rejoin-circle self group audio-only?))
+          (if (eq? mode 'observer)
+              (enter-gathering)
+            (check-error (reenter-zone self zone)))
+          (when (integer? group)
+            (check-error (rejoin-group self group)))))
       
       (define (restore-zone zone)
         (let ((tree (people-tree self)))
@@ -2294,9 +2293,10 @@
           (bind (no audio-only? . streams) no/streams/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
-              (require-live-stream self audio-only?)
-              (streams-add self no audio-only? streams)
-              (play-mic self)))))))
+              (require-live-stream tier audio-only?)
+              (streams-add tier no audio-only? streams)
+              (play-mic tier)
+              #f))))))
   
   
   (method (goto-space self what)
