@@ -492,6 +492,8 @@
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
         (<!>                 name: toggle-profiler            active?: #t))
+      (<together-share!>
+        (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
         (<!>                 name: profile-network            active?: #t))
@@ -628,6 +630,7 @@
                   (find-actions 'world-chat)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
+                  (find-actions 'together-share)
                   (find-actions 'together-debug)
                   (find-actions 'together-script))
             (nextmethod self)))
@@ -987,13 +990,18 @@
       (<together-avatar!>
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t))
-      @wait
       (<together-share!>
+        @wait
         (<!>                 name: toggle-streams             active?: #t)
+        @wait
         (<!>                 name: add-image                  active?: #t)
+        @wait
         (<!>                 name: add-video                  active?: #t)
+        @wait
         (<!>                 name: add-music                  active?: #t)
+        @wait
         (<!>                 name: remove-stream              active?: #t)
+        @wait
         (<!>                 name: toggle-screen-share        active?: #t)
         (<!>                 name: capture-screen             active?: #t))
       (<together-script!>
