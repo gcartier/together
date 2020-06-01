@@ -468,7 +468,8 @@
         (<!>                 name: toggle-windowed-mode       active?: #t))
       (<world-chat!>
         (<!>                 name: command-message            active?: #t)
-        (<!>                 name: command-slash              active?: #t))
+        (<!>                 name: command-slash              active?: #t)
+        (<!>                 name: insert-previous            active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
@@ -891,7 +892,8 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
-        (<!>                 name: command-slash              active?: #t))
+        (<!>                 name: command-slash              active?: #t)
+        (<!>                 name: insert-previous            active?: #t))
       (<world-showcase!>
         (<!>                 name: showcase-menu              active?: #t)
         (<!>                 name: no-showcase                active?: #t)
@@ -1183,7 +1185,8 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
-        (<!>                 name: command-slash              active?: #t))
+        (<!>                 name: command-slash              active?: #t)
+        (<!>                 name: insert-previous            active?: #t))
       (<world-history!>
         (<!>                 name: toggle-paused              active?: #t)
         (<!>                 name: backward-history           active?: #t)
@@ -1816,6 +1819,7 @@
   (slot draw-hook            initialize #f getter generate)
   (slot sleep-disconnected?  initialize #f getter generate)
   (slot chat-wide?           initialize #f getter generate)
+  (slot previous-command     initialize #f getter generate)
   (slot fade-thread          initialize #f getter generate)
   (slot fade-no              initialize 0  getter generate)
   
@@ -3036,6 +3040,17 @@
         (insert-char text #\/))))
   
   
+  (method package (chat-previous self)
+    (let ((interface (current-interface)))
+      (let ((focus (active-focus)))
+        (when (is? focus Command-Bar-Text-View)
+          (if (not previous-command)
+              (bell)
+            (let ((command (child interface 'command)))
+              (let ((text (locate command 'text)))
+                (insert-string text previous-command))))))))
+  
+  
   (method (show-chat self)
     (let ((together (current-together))
           (interface (current-interface)))
@@ -3140,6 +3155,7 @@
           (if (and (is? space Avatar-Space) (empty-string? content))
               (hide-command world)
             (unless (whitespace? content)
+              (set! previous-command content)
               (receive (kind recipient message) (parse-content content)
                 (when kind
                   (client-message tier kind recipient message))

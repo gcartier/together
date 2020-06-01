@@ -1130,7 +1130,8 @@
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
-        (<!>                 name: toggle-chat                visible?: #t))
+        (<!>                 name: toggle-chat                visible?: #t)
+        (<!>                 name: insert-previous            visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
@@ -1249,7 +1250,8 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
-        @wait (<!>                 name: command-slash              visible?: #t))
+        @wait (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: insert-previous            visible?: #t))
       (<world-showcase!>
         @wait (<!>                 name: showcase-menu              visible?: #t)
         (<!>                 name: no-showcase                visible?: #t)
@@ -1468,7 +1470,8 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
-        (<!>                 name: command-slash              visible?: #t))
+        (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: insert-previous            visible?: #t))
       (<world-showcase!>
         (<!>                 name: showcase-menu              visible?: #t)
         (<!>                 name: no-showcase                visible?: #t)
