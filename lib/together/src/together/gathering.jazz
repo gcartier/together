@@ -79,6 +79,7 @@
         (world.live)
         (world.manager)
         (world.pane)
+        (world.player)
         (world.profile)
         (world.profiling)
         (world.ring)
@@ -2464,24 +2465,26 @@
   
   
   (method (hierarchy-update self hierarchy)
-    (let ((tree (people-tree self)))
-      (define (same-entity? x y)
-        (define (entity info)
-          (if (or (not info)
-                  (eq? (car info) 'zone))
-              info
-            (bind (kind name) info
-              (cons kind name))))
+    (let ((world (current-world)))
+      (let ((tree (people-tree self)))
+        (define (same-entity? x y)
+          (define (entity info)
+            (if (or (not info)
+                    (eq? (car info) 'zone))
+                info
+              (bind (kind name) info
+                (cons kind name))))
+          
+          (equal? (entity x)
+                  (entity y)))
         
-        (equal? (entity x)
-                (entity y)))
-      
-      (with-preserved-selection tree
-        (lambda ()
-          (view-hierarchy self hierarchy))
-        use: 'data
-        test: same-entity?
-        selection-position?: #f)))
+        (with-preserved-selection tree
+          (lambda ()
+            (view-hierarchy self hierarchy))
+          use: 'data
+          test: same-entity?
+          selection-position?: #f)
+        (refresh-compass world))))
   
   
   ;; this rare case can happen if the server had just sent
@@ -2731,7 +2734,13 @@
                                father: father
                                children: (list (new Tree-Node title: title font: font color: color))
                                user-data: (list 'player player group zone))
-                      (added father)))))
+                      (added father)))
+                  ;; quick solution
+                  (let ((zone (current-zone)))
+                    (let ((player (find-player zone player)))
+                      ;; sejour quicky
+                      (when player
+                        (set-disconnected? player disconnected?))))))
               
               (define (add-group father info)
                 (bind (group audio-only? zone . players) info
