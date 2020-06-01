@@ -2724,17 +2724,17 @@
               (define (add-player father info group)
                 (bind (player id no disconnected? asleep? zone mode) info
                   (let ((group? (and party (memq? info party))))
-                    (let ((title (cond (disconnected? (format "{a} (disconnected)" player))
-                                       (asleep? (format "{a} (offline)" player))
-                                       (group? (format "<{a}>" player))
-                                       (else player)))
-                          (font {Font Label-User})
-                          (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
-                      (add-row tree
-                               father: father
-                               children: (list (new Tree-Node title: title font: font color: color))
-                               user-data: (list 'player player group zone))
-                      (added father)))
+                    (let ((player-title (if group? (format "<{a}>" player) player)))
+                      (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
+                                         (asleep? (format "{a} (offline)" player-title))
+                                         (else player-title)))
+                            (font {Font Label-User})
+                            (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
+                        (add-row tree
+                                 father: father
+                                 children: (list (new Tree-Node title: title font: font color: color))
+                                 user-data: (list 'player player group zone))
+                        (added father))))
                   ;; quick solution
                   (let ((zone (current-zone)))
                     (let ((player (find-player zone player)))
