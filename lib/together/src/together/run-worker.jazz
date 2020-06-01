@@ -32,7 +32,7 @@
   (set-documents-root (determine-documents-root))
   (set-universe-root (determine-universe-root))
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user builder developer admin))
+  (set-valid-roles '(user builder developer))
   (register-domain-names)
   (initialize-aliases)
   (setup-build ".together-worker")
