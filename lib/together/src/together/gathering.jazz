@@ -3871,9 +3871,10 @@
   
   (method (capture-screen self)
     (let ((world (current-world)))
-      (let ((file {File Home "Screenshot.png"}))
+      (let ((file (timestamped-file {Directory Documents "screenshots"} "together" "png")))
+        (create-directories file)
         (capture-screen-to-file file)
-        (display-message world (format "Screen capture to: {a}" (parse file))))))
+        (display-message world "Screenshot captured"))))
   
   
   (method (on-toggle-mode self evt)
