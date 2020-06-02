@@ -587,10 +587,8 @@
       (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-visible? (child root 'about) #t)
-      (set-title (child interface '(command-to to)) "The gathering")
-      (set-color (child interface '(command-to to)) {Color red: 32 green: 205 blue: 33})
       (update-message-recipient together #f)
-      (update-create/join/enter self)
+      (update-center-interface self)
       (layout-view interface)
       (layout-view root)
       (install-vista)
@@ -675,7 +673,7 @@
       (create&join-circle together)))
   
   
-  (method package (update-create/join/enter self)
+  (method package (update-center-interface self)
     (let ((together (current-together))
           (interface (current-interface)))
       (let ((active-zone (get-active-zone together))
@@ -755,7 +753,7 @@
         (set-visible? (child interface 'chat) #t)
         (set-visible? (child interface 'command-to) #t)
         (set-visible? (child interface 'command) #t)
-        (update-create/join/enter self)
+        (update-center-interface self)
         (when view-focused
           (inhibit-focus-selects-all view-focused
             (lambda ()
@@ -1965,9 +1963,11 @@
         (set-location chat '(-10 100))
         (set-proportion chat '(220 (bounds -354)))
         (set-visible? chat #f))
-      (let ((to (new View name: 'command-to parent: interface size: {Dimension 220 40} visible?: #f)))
+      (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 22 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head))
+        (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+        (new Push-Tool name: 'invite parent: to position: {Point 202 9} size: {Dimension 22 22} resource: {Image-Resource "Workbench"} portfolio: :images tooltip?: #t tooltip-text: "Invite to group" action-handler: (~ on-invite self))
+        (new Push-Tool name: 'leave parent: to position: {Point 202 9} size: {Dimension 22 22} resource: {Image-Resource "Link"} portfolio: :images tooltip?: #t tooltip-text: "Leave group" visible?: #f action-handler: (~ on-leave self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -2033,26 +2033,63 @@
   
   
   (method package (update-message-recipient self recipient)
-    (let ((interface (current-interface)))
-      (let ((to (child interface '(command-to to))))
-        (if (or (not recipient)
-                (eq? (car recipient) 'zone))
+    (define (effective-recipient)
+      (if (not recipient)
+          #f
+        (bind (kind name) recipient
+          (case kind
+            ((player)
+             recipient)
+            ((group)
+             (if (and (is? space Sphere-Space)
+                      (equal? name circle-name))
+                 recipient
+               #f))
+            (else
+             #f)))))
+    
+    (set! message-recipient (effective-recipient))
+    (update-recipient-interface self))
+  
+  
+  (method package (update-recipient-interface self)
+    (let ((interface (current-interface))
+          (me (current-me)))
+      (let ((to (child interface '(command-to to)))
+            (invite (child interface '(command-to invite)))
+            (leave (child interface '(command-to leave))))
+        (if (not message-recipient)
             (begin
               (set-title to "The gathering")
               (set-color to {Color red: 32 green: 205 blue: 33})
-              (set! message-recipient recipient))
-          (bind (kind name) recipient
+              (set-visible? invite #f)
+              (set-visible? leave #f))
+          (bind (kind name) message-recipient
             (case kind
               ((player)
-               (set-title to name)
-               (set-color to {Color World-Blue})
-               (set! message-recipient recipient))
+               (let ((player-info (registered-player-info name)))
+                 (cond (player-info
+                        (let ((me? (equal? (get-name player-info) (get-name me)))
+                              (mode (get-mode player-info))
+                              (party (get-party player-info)))
+                          (set-title to (if party (format "<{a}>" name) name))
+                          (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
+                          (cond ((not circle-name)
+                                 (set-visible? invite (and (not me?) (not party)))
+                                 (set-visible? leave (and me? party)))
+                                (else
+                                 (set-visible? invite #f)
+                                 (set-visible? leave #f)))))
+                       (else
+                        (set-title to name)
+                        (set-color to {Color White})
+                        (set-visible? invite #f)
+                        (set-visible? leave #f)))))
               ((group)
-               (when (and (is? space Sphere-Space)
-                          (equal? name circle-name))
-                 (set-title to name)
-                 (set-color to {Color World-Red})
-                 (set! message-recipient recipient)))))))))
+               (set-title to name)
+               (set-color to group-color)
+               (set-visible? invite #f)
+               (set-visible? leave #f))))))))
   
   
   (method package (selected-loaded? self)
@@ -2067,6 +2104,23 @@
   (method (on-central-menu self evt)
     (let ((world (current-world)))
       (toggle-radial-menu world)))
+  
+  
+  (method (on-invite self evt)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((recipient (cadr message-recipient)))
+        (let ((error (client-invite tier recipient)))
+          (when error
+            (display-error world error))))))
+  
+  
+  (method (on-leave self evt)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((error (client-leave tier)))
+        (when error
+          (display-error world error)))))
   
   
   (method (on-message self evt)
@@ -2461,7 +2515,7 @@
               (set! active-player selected-player)
               (set! active-data selected-data))))
         (when (is? space Gathering-Space)
-          (update-create/join/enter space)))))
+          (update-center-interface space)))))
   
   
   (method (hierarchy-update self hierarchy)
@@ -2484,6 +2538,7 @@
           use: 'data
           test: same-entity?
           selection-position?: #f)
+        (update-recipient-interface self)
         (refresh-compass world))))
   
   
@@ -2718,11 +2773,13 @@
       (let ((tree (people-tree self))
             (separator? #f))
         (receive (observers voiders zones party) (unify-hierarchy self hierarchy (cache-available-zones))
+          (empty-player-infos)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
                 (bind (player id no disconnected? asleep? zone mode) info
+                  (register-player-info player mode (and party (map car party)) disconnected?)
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
@@ -2734,13 +2791,7 @@
                                  father: father
                                  children: (list (new Tree-Node title: title font: font color: color))
                                  user-data: (list 'player player group zone))
-                        (added father))))
-                  ;; quick solution
-                  (let ((zone (current-zone)))
-                    (let ((player (find-player zone player)))
-                      ;; sejour quicky
-                      (when player
-                        (set-disconnected? player disconnected?))))))
+                        (added father))))))
               
               (define (add-group father info)
                 (bind (group audio-only? zone . players) info
@@ -2865,7 +2916,7 @@
                 (set! active-audio-only? audio-only?)
                 (set! active-player player)
                 (set! active-data data))
-              (update-create/join/enter space))
+              (update-center-interface space))
             
             (case kind
               ((player)
@@ -3019,17 +3070,10 @@
   
   
   (method (chat-sender self sender)
-    (let ((interface (current-interface)))
-      (let ((to (child interface '(command-to to))))
-        (cond ((not sender)
-               (set-title to "The gathering")
-               (set-color to {Color red: 32 green: 205 blue: 33})
-               (set! message-recipient #f))
-              (else
-               (set-title to sender)
-               (set-color to {Color World-Blue})
-               (set! message-recipient (list 'player sender))))
-        (focus-command-text self))))
+    (update-message-recipient self (if (not sender)
+                                       #f
+                                     (list 'player sender)))
+    (focus-command-text self))
   
   
   (method package (chat-message self)
@@ -3215,8 +3259,8 @@
   
   (method protected (command-to-location self)
     (if (is? space Gathering-Space)
-        '(-10 -158)
-      '(-10 -212)))
+        '(-4 -158)
+      '(-4 -212)))
   
   
   (method protected (command-size self)
@@ -3547,7 +3591,7 @@
         (set-visible? (child interface 'admin) #f))
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (update-create/join/enter space)))))
+          (update-center-interface space)))))
   
   
   (method (on-toggle-evolution self evt)
@@ -4004,6 +4048,47 @@
   
   (method (on-edit-script0 self evt)
     (edit-asset-script (world-setting 'world.test0-script "test/test0"))))
+
+
+;;;
+;;;; Player-Info
+;;;
+
+
+(definition player-infos
+  (make-table test: equal?))
+
+(definition package (register-player-info name mode party disconnected?)
+  (table-set! player-infos name (new Player-Info name mode party disconnected?)))
+
+(definition package (registered-player-info name)
+  (table-ref player-infos name #f))
+
+(definition package (empty-player-infos)
+  (empty-table player-infos))
+
+
+(class Player-Info extends Object
+  
+  
+  (slot name          getter generate)
+  (slot mode          getter generate)
+  (slot party         getter generate)
+  (slot disconnected? getter generate)
+  
+  
+  (method override (initialize self name mode party disconnected?)
+    (nextmethod self)
+    (set! self.name name)
+    (set! self.mode mode)
+    (set! self.party party)
+    (set! self.disconnected? disconnected?))
+  
+  
+  (method override (print self output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{a}" name)))))
 
 
 ;;;
