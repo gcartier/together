@@ -2111,16 +2111,18 @@
           (world (current-world)))
       (let ((recipient (cadr message-recipient)))
         (let ((error (client-invite tier recipient)))
-          (when error
-            (display-error world error))))))
+          (if error
+              (display-error world error)
+            (show-chat-message self (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
   
   
   (method (on-leave self evt)
     (let ((tier (current-client))
           (world (current-world)))
       (let ((error (client-leave tier)))
-        (when error
-          (display-error world error)))))
+        (if error
+            (display-error world error)
+          (show-chat-message self (get-character-name tier) 'show "Left group")))))
   
   
   (method (on-message self evt)
@@ -3102,6 +3104,12 @@
             (let ((command (child interface 'command)))
               (let ((text (locate command 'text)))
                 (insert-string text previous-command))))))))
+  
+  
+  (method (show-chat-message self sender kind message)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'chat)))
+        (show-message panel sender kind message))))
   
   
   (method (show-chat self)
