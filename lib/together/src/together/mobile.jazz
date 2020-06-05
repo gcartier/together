@@ -40,13 +40,13 @@
   #f)
 
 
-(definition public (w obj)
+(definition public (ws obj)
   (write-string validation-code p)
   (print-json obj p)
   (force-output p))
 
 
-(definition public (r)
+(definition public (rs)
   (let ((output (open-output-string)))
     (let (loop)
       (let ((c (read-char p)))
@@ -60,8 +60,8 @@
 (definition public (c)
   (set! p (open-tcp-client (list server-address: server-host port-number: server-service)))
   (input-port-readtable-set! p json-readtable)
-  (w pixel-key)
-  (terminal (r))
+  (ws pixel-key)
+  (terminal (rs))
   (process p)
   (unspecified))
 
@@ -76,7 +76,15 @@
             (lambda ()
               (declare (proper-tail-calls))
               (let (loop)
-                (terminal 'PROCESS (r))
+                (let ((form (rs)))
+                  (terminal 'PROCESS form)
+                  (when (pair? form)
+                    (bind (command . arguments) form
+                      (cond ((equal? command "invite")
+                             (bind (sender) arguments
+                               (if (equal? sender "Bip")
+                                   (accept sender)
+                                 (decline sender))))))))
                 (loop)))
             'process)))
     (set! process-thread thread)
@@ -90,10 +98,40 @@
 
 (definition public (d)
   (stop)
-  (w (list "deconnect"))
+  (ws (list "deconnect"))
   (unspecified))
 
 
-(definition public (m (msg #f))
-  (w `("message" "whisper" "Pixel" ,(or msg "Hey you!")))
+(definition public (i (recipient #f))
+  (ws `("invite" ,(or recipient "Bip")))
+  (unspecified))
+
+
+(definition public (accept sender)
+  (ws `("accept" ,sender))
+  (unspecified))
+
+
+(definition public (decline sender)
+  (ws `("decline" ,sender))
+  (unspecified))
+
+
+(definition public (l)
+  (ws `("leave"))
+  (unspecified))
+
+
+(definition public (w (msg #f))
+  (ws `("message" "whisper" "Bip" ,(or msg "Hey you!")))
+  (unspecified))
+
+
+(definition public (g (msg #f))
+  (ws `("message" "group" #f ,(or msg "Hey group!")))
+  (unspecified))
+
+
+(definition public (a (msg #f))
+  (ws `("message" "gathering" #f ,(or msg "Hey all!")))
   (unspecified)))
