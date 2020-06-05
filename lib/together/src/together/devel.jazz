@@ -36,7 +36,6 @@
         (jazz.opengl.window)
         (jazz.platform)
         (jazz.presence)
-        (jazz.presence.protocol)
         (jazz.presence.transmission)
         (jazz.runtime)
         (jazz.settings)
