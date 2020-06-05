@@ -162,9 +162,10 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (set! changing-key (and changing-key? (get-string-content (locate (child root 'new-key) 'text))))
-    (close root)
-    (hide-interface))
+    (let ((configuration (get-configuration zone)))
+      (set! changing-key (and (or (not (get-personal-key configuration)) changing-key?) (get-string-content (locate (child root 'new-key) 'text))))
+      (close root)
+      (hide-interface)))
   
   
   (method override (space-bindings self)
