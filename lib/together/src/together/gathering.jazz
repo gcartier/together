@@ -494,7 +494,8 @@
         (<!>                 name: clear-console              active?: #t)
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
-        (<!>                 name: toggle-profiler            active?: #t))
+        (<!>                 name: toggle-profiler            active?: #t)
+        (<!>                 name: explore-interface          active?: #t))
       (<together-share!>
         (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
