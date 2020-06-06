@@ -75,6 +75,7 @@
         (world.interface.sheet)
         (world.interface.text)
         (world.interface.timeline)
+        (world.interface.tooltip)
         (world.io)
         (world.live)
         (world.manager)
@@ -1966,8 +1967,8 @@
       (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Push-Tool name: 'invite parent: to position: {Point 202 9} size: {Dimension 22 22} resource: {Image-Resource "Workbench"} portfolio: :images tooltip?: #t tooltip-text: "Invite to group" action-handler: (~ on-invite self))
-        (new Push-Tool name: 'leave parent: to position: {Point 202 9} size: {Dimension 22 22} resource: {Image-Resource "Link"} portfolio: :images tooltip?: #t tooltip-text: "Leave group" visible?: #f action-handler: (~ on-leave self)))
+        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
+        (new Leave-Tool name: 'leave parent: to position: {Point 202 9} resource: {Image-Resource "Link"} visible?: #f action-handler: (~ on-leave self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -4339,6 +4340,54 @@
   (method override (mouse-up self evt)
     (let ((together (current-together)))
       (chat-label-action together))))
+
+
+;;;
+;;;; To-Tool
+;;;
+
+
+(class To-Tool extends Push-Tool
+  
+  
+  (form
+    (<install> size: {Dimension 22 22} portfolio: :images tooltip?: #t))
+  
+  
+  (method override (get-tooltip-context self pos)
+    (let ((text (get-tooltip-text self))
+          (bounds (get-tooltip-bounds self pos)))
+      (tooltip-context self text bounds))))
+
+
+;;;
+;;;; Invite-Tool
+;;;
+
+
+(class Invite-Tool extends To-Tool
+  
+  
+  (method override (get-tooltip-text self)
+    `(<span>
+       (<paragraph> "Invite to group")
+       ""
+       (<paragraph> (<text> color: World-Green "Invite person to join an audio group")))))
+
+
+;;;
+;;;; Leave-Tool
+;;;
+
+
+(class Leave-Tool extends To-Tool
+  
+  
+  (method override (get-tooltip-text self)
+    `(<span>
+       (<paragraph> "Leave group")
+       ""
+       (<paragraph> (<text> color: World-Green "Leave your current group")))))
 
 
 ;;;
