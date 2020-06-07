@@ -3183,7 +3183,7 @@
             (begin
               (when circle-name
                 (show-panel-say "The gathering" message))
-              (values 'group #f message #f))
+              (values 'gathering #f message #f))
           (bind (what name) message-recipient
             (case what
               ((player)
