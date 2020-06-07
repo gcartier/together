@@ -2115,7 +2115,7 @@
         (let ((error (client-invite tier recipient)))
           (if error
               (display-error world error)
-            (show-chat-message self (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
+            (show-chat-message world (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
   
   
   (method (on-leave self evt)
@@ -2124,7 +2124,7 @@
       (let ((error (client-leave tier)))
         (if error
             (display-error world error)
-          (show-chat-message self (get-character-name tier) 'show "Left group")))))
+          (show-chat-message world (get-character-name tier) 'show "Left group")))))
   
   
   (method (on-message self evt)
@@ -3106,12 +3106,6 @@
             (let ((command (child interface 'command)))
               (let ((text (locate command 'text)))
                 (insert-string text previous-command))))))))
-  
-  
-  (method (show-chat-message self sender kind message)
-    (let ((interface (current-interface)))
-      (let ((panel (child interface 'chat)))
-        (show-message panel sender kind message))))
   
   
   (method (show-chat self)
