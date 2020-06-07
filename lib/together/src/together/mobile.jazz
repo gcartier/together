@@ -79,12 +79,13 @@
                 (let ((form (rs)))
                   (terminal 'PROCESS form)
                   (when (pair? form)
-                    (bind (command . arguments) form
-                      (cond ((equal? command "invite")
-                             (bind (sender) arguments
-                               (if (equal? sender "Bip")
-                                   (accept sender)
-                                 (decline sender))))))))
+                    (bind (kind command arguments) form
+                      (when (equal? kind "call")
+                        (cond ((equal? command "invite")
+                               (bind (sender) arguments
+                                 (if (equal? sender "Bip")
+                                     (accept sender)
+                                   (decline sender)))))))))
                 (loop)))
             'process)))
     (set! process-thread thread)
