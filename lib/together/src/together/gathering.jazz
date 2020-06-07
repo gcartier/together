@@ -2115,7 +2115,7 @@
         (let ((error (client-invite tier recipient)))
           (if error
               (display-error world error)
-            (show-chat-message world (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
+            (chat-show world (format "Invite {a}" recipient)))))))
   
   
   (method (on-leave self evt)
@@ -2124,7 +2124,7 @@
       (let ((error (client-leave tier)))
         (if error
             (display-error world error)
-          (show-chat-message world (get-character-name tier) 'show "Left group")))))
+          (chat-show world "Left group")))))
   
   
   (method (on-message self evt)
