@@ -233,7 +233,7 @@
           (set-visible? (child root 'new-enter) new?)
           (set-visible? (child root 'key) (not new?))
           (set-visible? (child root 'enter) (not new?))
-          (when (and changing-key? changing-key)
+          (when (and new? changing-key)
             (set-string-content (locate (child root 'new-key) 'text) changing-key)
             (set-enabled? (child root 'new-enter) (not (whitespace? changing-key)))
             (delay-event
