@@ -3137,7 +3137,10 @@
       (let ((circle? (get-circle-name together)))
         (when circle?
           (set-visible? (child interface 'chat-label) #t))
-        (set-visible? (child interface 'chat) #t))))
+        (set-visible? (child interface 'chat) #t)
+        (when circle?
+          (set-visible? (child interface 'command-to) #t)
+          (set-visible? (child interface 'command) #t)))))
   
   
   (method (show-command self)
