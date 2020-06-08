@@ -241,7 +241,7 @@
     (let ((window (current-window)))
       (set-visible? mainbar #t)
       (set-visible? mainbar-sheet #t)
-      (register-sheet window mainbar-sheet)
+      (register-front-sheet window mainbar-sheet)
       (if (fade-mainbar? self)
           (fade-mainbar (point->point$fl$ (mouse-position window)) #t)
         (set-fade mainbar-pane #f)
