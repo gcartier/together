@@ -165,7 +165,8 @@
     (let ((configuration (get-configuration zone)))
       (set! changing-key (and (or (not (get-personal-key configuration)) changing-key?) (get-string-content (locate (child root 'new-key) 'text))))
       (close root)
-      (hide-interface)))
+      (hide-interface)
+      (reset-panel-stack)))
   
   
   (method override (space-bindings self)

@@ -616,6 +616,7 @@
           (world (current-world)))
       (set-visible? root #f)
       (hide-interface)
+      (reset-panel-stack)
       (no-showcase world)
       (restore-fov)
       (uninstall-vista)))
@@ -1075,7 +1076,8 @@
       (hide-mainbar self)
       (hide-history world)
       (hide-compass world)
-      (hide-interface)))
+      (hide-interface)
+      (reset-panel-stack)))
 
   
   (method override (space-bindings self)
@@ -1341,6 +1343,7 @@
       (hide-mainbar self)
       (hide-evolution world)
       (hide-interface)
+      (reset-panel-stack)
       (restore-fov)
       (circle-uninstall-camera)
       (hide root)
@@ -1720,7 +1723,8 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (hide-interface))
+    (hide-interface)
+    (reset-panel-stack))
   
   
   (method override (draw-message-offset self)
@@ -1782,7 +1786,8 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
-    (hide-interface))
+    (hide-interface)
+    (reset-panel-stack))
   
   
   (method (on-back self evt)
