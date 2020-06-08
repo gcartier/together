@@ -2187,8 +2187,13 @@
   
   (method (escape-press self)
     (let ((world (current-world)))
-      (when (is? (current-space) Sphere-Space)
-        (toggle-radial-menu world))))
+      (typecase (current-space)
+        ((Gathering-Space)
+         (let ((frame (top-frame)))
+           (when frame
+             (close frame))))
+        ((Sphere-Space)
+         (toggle-radial-menu world)))))
   
   
   (method (on-leave-circle self evt)
