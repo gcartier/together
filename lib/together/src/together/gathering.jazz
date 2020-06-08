@@ -2818,7 +2818,10 @@
                                  father: father
                                  children: (list (new Tree-Node title: title font: font color: color))
                                  user-data: (list 'player player group zone))
-                        (added father))))))
+                        (added father))))
+                  (let ((player (find-player (current-zone) player)))
+                    (when player
+                      (set-disconnected? player disconnected?)))))
               
               (define (add-group father info)
                 (bind (group audio-only? zone . players) info
