@@ -118,26 +118,27 @@
   
   
   (method (content-changed self)
-    (define (name-invalid name)
-      (cond ((empty-string? name)
-             "")
-            ((not (every? (lambda (c)
-                            (or (eqv? c #\-)
-                                (eqv? c #\space)
-                                (alphanumeric? c)))
-                          name))
-             (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
-            ((> (string-length name) max-length)
-             (format "{a} cannot be longer than {a} characters" name-label max-length))
-            (else
-             #f)))
-    
     (let ((space (current-space)))
-      (let ((text (locate self 'text)))
-        (let ((name (trim-whitespace (get-string-content text))))
-          (let ((invalid (name-invalid name)))
-            (set-enabled? (child (get-root space) action-view) (not invalid))
-            (set-title (brother self invalid-view) (or invalid "")))))))
+      (let ((invalid (name-invalid self)))
+        (set-enabled? (child (get-root space) action-view) (not invalid))
+        (set-title (brother self invalid-view) (or invalid "")))))
+  
+  
+  (method package (name-invalid self)
+    (let ((text (locate self 'text)))
+      (let ((name (trim-whitespace (get-string-content text))))
+        (cond ((empty-string? name)
+               "")
+              ((not (every? (lambda (c)
+                              (or (eqv? c #\-)
+                                  (eqv? c #\space)
+                                  (alphanumeric? c)))
+                            name))
+               (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
+              ((> (string-length name) max-length)
+               (format "{a} cannot be longer than {a} characters" name-label max-length))
+              (else
+               #f)))))
   
   
   (method (on-return self evt)

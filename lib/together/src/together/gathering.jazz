@@ -692,12 +692,13 @@
             (set-enabled? (child root 'circle-join) loaded?))
           
           (define (create-visible flag)
-            (set-visible? (child root 'circle-label) flag)
-            (set-visible? (child root 'circle-view) flag)
-            (set-enabled? (locate (child root 'circle-view) 'text) loaded?)
-            (set-visible? (child root 'circle-invalid) flag)
-            (set-visible? (child root 'circle-create) flag)
-            (set-enabled? (child root 'circle-create) loaded?))
+            (let ((circle-view (child root 'circle-view)))
+              (set-visible? (child root 'circle-label) flag)
+              (set-visible? circle-view flag)
+              (set-enabled? (locate circle-view 'text) loaded?)
+              (set-visible? (child root 'circle-invalid) flag)
+              (set-visible? (child root 'circle-create) flag)
+              (set-enabled? (child root 'circle-create) (and loaded? (not (name-invalid circle-view))))))
           
           (if loaded?
               (set-title (child root 'selected-label) "")
