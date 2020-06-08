@@ -3127,8 +3127,11 @@
           (if (not previous-command)
               (bell)
             (let ((command (child interface 'command)))
-              (let ((text (locate command 'text)))
-                (insert-string text previous-command))))))))
+              (let ((text (locate command 'text))
+                    (previous previous-command))
+                (set! previous-command (get-string-content text))
+                (set-string-content text previous)
+                (set-caret text (text-ending text)))))))))
   
   
   (method (show-chat self)
