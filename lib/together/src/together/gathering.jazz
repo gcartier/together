@@ -1957,6 +1957,10 @@
       (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
       (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
       (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border visible?: #f)
+      @mouse-hover-icons-xp
+      (new Invite-Tool name: 'invite parent: (child interface 'people) position: {Point 190 20} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite2 self) visible?: #f)
+      @mouse-hover-icons-xp
+      (new Leave-Tool name: 'leave parent: (child interface 'people) position: {Point 190 35} resource: {Image-Resource "Link"} visible?: #f action-handler: (~ on-leave self) visible?: #f)
       (new Streams-Label name: 'streams-label parent: interface title: "Streams" location: '(10 64) size: {Dimension 300 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
       (new Streams-Panel name: 'streams parent: interface location: '(10 100) proportion: '(300 (bounds -300)) layout-type: 'border visible?: #f)
       (new Chat-Label name: 'chat-label parent: interface title: "Chat" location: '(-10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
@@ -2113,6 +2117,17 @@
     (let ((tier (current-client))
           (world (current-world)))
       (let ((recipient (cadr message-recipient)))
+        (let ((error (client-invite tier recipient)))
+          (if error
+              (display-error world error)
+            (chat-show world (format "Invite {a}" recipient)))))))
+  
+  
+  @mouse-hover-icons-xp
+  (method (on-invite2 self evt)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((recipient "Barbara"))
         (let ((error (client-invite tier recipient)))
           (if error
               (display-error world error)
@@ -4246,7 +4261,31 @@
   
   (method override (mouse-down self evt)
     (set! previous-focus (active-focus))
-    (nextmethod self evt)))
+    (nextmethod self evt))
+  
+  
+  @mouse-hover-icons-xp
+  (method override (mouse-hover self pos)
+    (let ((interface (current-interface))
+          (me (current-me)))
+      (let ((invite (child interface '(people invite)))
+            (leave (child interface '(people leave))))
+        (let ((cell (view->tree self pos)))
+          (when cell
+            (let ((row (get-row self (get-line cell))))
+              (let ((data (get-user-data row)))
+                (when data
+                  (bind (kind name) data
+                    (when (eq? kind 'player)
+                      (let ((player-info (registered-player-info name)))
+                        (when player-info
+                          (let ((me? (equal? (get-name player-info) (get-name me)))
+                                (mode (get-mode player-info))
+                                (party (get-party player-info)))
+                            (set-position invite (new Point 190 (* (get-line cell) 17)))
+                            (set-position leave (new Point 190 (* (get-line cell) 17)))
+                            (set-visible? invite (and (not me?) (not party)))
+                            (set-visible? leave (and me? party))))))))))))))))
 
 
 ;;;
