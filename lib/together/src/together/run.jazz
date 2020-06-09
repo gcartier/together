@@ -25,7 +25,6 @@
         (world)
         (world.build)
         (world.foreign)
-        (world.profiling)
         (together)
         (together.domain))
 
@@ -65,9 +64,7 @@
   (register-binaries-properties)
   (register-kernel-properties)
   (setup-build ".together")
-  (setup-presence)
-  (setup-profiling)
-  (advise-sites))
+  (setup-presence))
 
 
 (definition (register-binaries-properties)
@@ -217,6 +214,7 @@
       (prepare-logger)
       (prepare-together)
       (prepare-settings)
+      (load-unit 'world.profiling)
       (create-documents)
       (load-unit 'world.work)
       (load-unit 'together.boot)

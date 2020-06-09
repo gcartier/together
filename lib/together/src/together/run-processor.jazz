@@ -17,7 +17,6 @@
 (import (jazz.io)
         (world)
         (world.build)
-        (world.profiling)
         (world.server.presence)
         (world.server.problem)
         (together)
@@ -41,9 +40,7 @@
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-build ".together-processor")
-  (setup-presence)
-  (setup-profiling)
-  (advise-sites))
+  (setup-presence))
 
 
 (definition protected (prepare-settings)
@@ -73,6 +70,7 @@
   (initialize-aliases)
   (prepare-processor)
   (prepare-settings)
+  (load-unit 'world.profiling)
   (load-unit 'world.work)
   (load-unit 'together.boot-processor)
   (boot-process))

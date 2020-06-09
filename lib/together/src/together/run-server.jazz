@@ -18,7 +18,6 @@
         (jazz.logger)
         (world)
         (world.build)
-        (world.profiling)
         (world.server.presence)
         (world.server.problem)
         (together)
@@ -51,9 +50,7 @@
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
   (setup-build ".together-server")
-  (setup-presence)
-  (setup-profiling)
-  (advise-sites))
+  (setup-presence))
 
 
 (definition protected (prepare-settings)
@@ -82,6 +79,7 @@
   (logger "Start server")
   (prepare-server)
   (prepare-settings)
+  (load-unit 'world.profiling)
   (send-crash-reports)
   (load-unit 'world.work)
   (load-unit 'together.boot-server)
