@@ -125,6 +125,7 @@
         (world.interface.mainbar)
         (world.interface.map)
         (world.interface.panel)
+        (world.interface.profiler)
         (world.interface.script)
         (world.interface.skin)
         (world.interface.showcase)
