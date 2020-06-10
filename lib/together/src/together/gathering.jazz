@@ -2247,6 +2247,7 @@
           (goto-space self 'avatar)
           (setup-visibility mainbar)
           (set-mode me 'player)
+          (preload-animations me)
           (prepare-motion world)
           #f))))
   
