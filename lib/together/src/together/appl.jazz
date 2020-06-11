@@ -1546,6 +1546,7 @@
         (<!>                 name: toggle-history             visible?: #t)
         (<!>                 name: toggle-target              visible?: #t)
         (<!>                 name: reset-profiling            visible?: #t)
+        (<!>                 name: toggle-chronology-all      visible?: #t)
         (<!>                 name: toggle-gc-sound            visible?: #t)
         (<!>                 name: explore-interface          visible?: #t)
         (<!>                 name: toggle-axes                visible?: #t)
