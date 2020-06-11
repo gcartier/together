@@ -1287,6 +1287,7 @@
         (<!>                 name: skeleton-target-mode       visible?: #t))
       (<world-debug!>
         (<!>                 name: toggle-info                visible?: #t)
+        (<!>                 name: toggle-profiler            visible?: #t)
         (<!>                 name: toggle-axes                visible?: #t)
         (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
