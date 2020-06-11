@@ -594,12 +594,8 @@
       (register-site-look 'network 3 {Color Yellow})
       (register-site-look 'tick 3 {Color Green})
       (register-site-look 'render 3 {Color Blue})
-      (register-site-look 'render-world #f #f)
-      (register-site-look 'render-interface #f #f)
-      (register-site-look 'render-sync #f #f)
       ;; message
       (register-site-look 'message 2 {Color Orange})
-      (register-site-look 'event #f #f)
       ;; memory
       (register-site-look 'memory 1 {Color Red})
       ;; other
