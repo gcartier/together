@@ -587,15 +587,23 @@
       (register-site-look 'video-output 4 chronology-magenta)
       ;; internal
       (register-site-look 'player 5 chronology-green)
+      (register-site-look 'simulation 5 chronology-purple)
       (register-site-look 'physical 4 chronology-blue)
       (register-site-look 'visual 4 chronology-purple)
+      (register-site-look 'instantiate 4 chronology-orange)
       (register-site-look 'generate 4 chronology-magenta)
       (register-site-look 'alive 3 {Color Yellow})
       (register-site-look 'network 3 {Color Yellow})
-      (register-site-look 'tick 3 {Color Green})
+      (register-site-look 'distance 3 {Color Yellow})
+      (register-site-look 'sun 3 {Color Yellow})
+      (register-site-look 'eat 3 {Color Yellow})
+      (register-site-look 'tick 3 {Color Yellow})
       (register-site-look 'render 3 {Color Blue})
+      (register-site-look 'audio-stream 4 {Color Yellow})
+      (register-site-look 'video-stream 4 {Color Yellow})
       ;; message
       (register-site-look 'message 2 {Color Orange})
+      (register-site-look 'delayed 2 {Color Yellow})
       ;; memory
       (register-site-look 'memory 1 {Color Red})
       ;; other
