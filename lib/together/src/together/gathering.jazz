@@ -287,15 +287,24 @@
   (method (on-toggle-chat self evt)
     (let ((together (current-together))
           (interface (current-interface))
+          (space (current-space))
           (world (current-world)))
-      (let ((circle? (get-circle-name together)))
-        (when circle?
-          (toggle-visible? (child interface 'chat-label)))
-        (toggle-visible? (child interface 'chat))
-        (when circle?
-          (toggle-visible? (child interface 'command-to)))
-        (toggle-visible? (child interface 'command))
-        (update-parameter world 'chat))))
+      (typecase space
+        ((Circling-Space)
+         (toggle-visible? (child interface 'chat-label))
+         (toggle-visible? (child interface 'chat))
+         (toggle-visible? (child interface 'command-to))
+         (toggle-visible? (child interface 'command)))
+        ((Avatar-Space)
+         (cond ((get-visible? (child interface 'chat))
+                (set-visible? (child interface 'chat) #f)
+                (set-visible? (child interface 'command-to) #f)
+                (set-visible? (child interface 'command) #f))
+               (else
+                (set-visible? (child interface 'chat) #t)
+                (set-visible? (child interface 'command-to) #f)
+                (set-visible? (child interface 'command) #f)))))
+      (update-parameter world 'chat)))
   
   
   ;;;
