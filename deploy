@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -f ".jaz" ]; then
-    source ".jaz"
+    . "$(pwd)/.jaz"
 fi
 
 if [ -z "$1" ]; then
