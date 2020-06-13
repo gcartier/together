@@ -100,11 +100,6 @@
                    "together-stage.app")
                   (prod
                    "together-prod.app")))
-    (unix
-     (cond-expand (devel
-                   "Togetherd")
-                  (else
-                   "Together")))
     (else
      (cond-expand (devel
                    "together-devel")
