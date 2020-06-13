@@ -165,7 +165,13 @@
   
   
   (method override (handle-escape? self)
-    #t))
+    #t)
+  
+  
+  (method override (paste-clipboard-string self string)
+    (let ((lines (split-lines string)))
+      (let ((line (join (remove "" lines test: equal?) " ")))
+        (replace-selection self (list line))))))
 
 
 ;;;
