@@ -335,6 +335,14 @@
       (tab-press space)))
   
   
+  (method (on-toggle-interface self evt)
+    (let ((world (current-world))
+          (space (current-space)))
+      (unless (and (is? space Gathering-Space)
+                   (not (admin?)))
+        (toggle-interface world))))
+  
+  
   (method (on-add-bookmark self evt)
     (let ((world (current-world)))
       (record-event udp-id-bookmark

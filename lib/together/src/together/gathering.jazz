@@ -476,6 +476,7 @@
         (<!>                 name: bindings-viewer            active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
+        (<!>                 name: toggle-interface           active?: #t)
         (<!>                 name: toggle-windowed-mode       active?: #t))
       (<world-chat!>
         (<!>                 name: command-message            active?: #t)
