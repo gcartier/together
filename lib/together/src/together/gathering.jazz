@@ -2167,7 +2167,7 @@
   (method (on-toggle-denoise self evt)
     (let ((client (current-client))
           (world (current-world)))
-      (when (is? space Circle-Space)
+      (when (is? space Circling-Space)
         (set-audio-denoise? (not audio-denoise?))
         (let ((mic-channel (get-mic-channel client)))
           (when mic-channel
@@ -3234,7 +3234,7 @@
                (selected-recipient content))))
       
       (define (group-recipient)
-        (if (is? space Circle-Space)
+        (if (is? space Circling-Space)
             circle-name
           #f))
       
@@ -3431,14 +3431,14 @@
   (method (stream-add self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (is? space Circle-Space)
+        (unless (is? space Circling-Space)
           (display-message world (format "{a} joined" (get-sender stream)))))))
   
   
   (method (stream-remove self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (is? space Circle-Space)
+        (unless (is? space Circling-Space)
           (display-message world (format "{a} left" (get-sender stream)))))))
   
   
@@ -3446,7 +3446,7 @@
     (let ((count (length ordered-outputs)))
       (when bound-camera?
         (circle-update-camera count))
-      (when (and (is? space Circle-Space)
+      (when (and (is? space Circling-Space)
                  (eq? video-layout 'focus))
         (goto-focused self)
         (show-interface (current-space) #t))
@@ -3485,70 +3485,93 @@
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
               (circle-switch-focus next))))))
     
-    (define (world/circle-focused?)
+    (define (world/view-focused?)
       (or (world-focused?)
           (is? (active-focus) Circle-View)))
     
-    (if (is-not? space Circle-Space)
-        #f
-      (nucase shortcut
-        (({Shortcut Left})
-         (and (world-focused?)
-              (begin
-                (circle-left)
-                #t)))
-        (({Shortcut Right})
-         (and (world-focused?)
-              (begin
-                (circle-right)
-                #t)))
-        (({Shortcut Up})
-         (and (world/circle-focused?)
-              (begin
-                (circle-up)
-                #t)))
-        (({Shortcut Down})
-         (and (world/circle-focused?)
-              (begin
-                (circle-down)
-                #t)))
-        (({Shortcut Space})
-         (and (world-focused?)
-              (begin
-                (circle-space)
-                #t)))
-        (({Shortcut Return})
-         (and (world/circle-focused?)
-              (begin
-                (circle-return)
-                #t)))
-        (({Shortcut #\1})
-         (focus-no 1)
-         #t)
-        (({Shortcut #\2})
-         (focus-no 2)
-         #t)
-        (({Shortcut #\3})
-         (focus-no 3)
-         #t)
-        (({Shortcut #\4})
-         (focus-no 4)
-         #t)
-        (({Shortcut #\5})
-         (focus-no 5)
-         #t)
-        (({Shortcut Tab})
-         (and (world/circle-focused?)
-              (begin
-                (cycle-focus #f)
-                #t)))
-        (({Shortcut :shift Tab})
-         (and (world/circle-focused?)
-              (begin
-                (cycle-focus #t)
-                #t)))
-        (else
-         #f))))
+    (nucase shortcut
+      (({Shortcut Left})
+       (and (is? space Circle-Space)
+            (world-focused?)
+            (begin
+              (circle-left)
+              #t)))
+      (({Shortcut Right})
+       (and (is? space Circle-Space)
+            (world-focused?)
+            (begin
+              (circle-right)
+              #t)))
+      (({Shortcut Up})
+       (and (is? space Circle-Space)
+            (world/view-focused?)
+            (begin
+              (circle-up)
+              #t)))
+      (({Shortcut Down})
+       (and (is? space Circle-Space)
+            (world/view-focused?)
+            (begin
+              (circle-down)
+              #t)))
+      (({Shortcut Space})
+       (and (is? space Circle-Space)
+            (world-focused?)
+            (begin
+              (circle-space)
+              #t)))
+      (({Shortcut Return})
+       (and (is? space Circle-Space)
+            (world/view-focused?)
+            (begin
+              (circle-return)
+              #t)))
+      (({Shortcut #\1})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (begin
+              (focus-no 1)
+              #t)))
+      (({Shortcut #\2})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (begin
+              (focus-no 2)
+              #t)))
+      (({Shortcut #\3})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (begin
+              (focus-no 3)
+              #t)))
+      (({Shortcut #\4})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (begin
+              (focus-no 4)
+              #t)))
+      (({Shortcut #\5})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (begin
+              (focus-no 5)
+              #t)))
+      (({Shortcut Tab})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (world/view-focused?)
+            (begin
+              (cycle-focus #f)
+              #t)))
+      (({Shortcut :shift Tab})
+       (and (or (is? space Circle-Space)
+                (is? space Focus-Space))
+            (world/view-focused?)
+            (begin
+              (cycle-focus #t)
+              #t)))
+      (else
+       #f)))
   
   
   ;;;
@@ -3591,13 +3614,13 @@
   
   
   (method (on-toggle-debug self evt)
-    (when (is? space Circle-Space)
+    (when (is? space Circling-Space)
       (set-show-debug? (not show-debug?))
       (invalidate-interface)))
   
   
   (method (on-toggle-debug-media self evt)
-    (when (is? space Circle-Space)
+    (when (is? space Circling-Space)
       (let ((video (current-video)))
         (set-debug-stream (if (eq? debug-stream 'media)
                               #f
@@ -3608,7 +3631,7 @@
   
   
   (method (on-toggle-debug-flow self evt)
-    (when (is? space Circle-Space)
+    (when (is? space Circling-Space)
       (let ((video (current-video)))
         (set-debug-stream (if (eq? debug-stream 'flow)
                               #f
@@ -3710,7 +3733,7 @@
   (method (on-goto-script self evt)
     (typecase space
       ((Script-Space))
-      ((Circle-Space)
+      ((Circling-Space)
        (bell))
       (else
        (goto-script/last self))))
@@ -3770,7 +3793,7 @@
   (method (on-goto-replay self evt)
     (typecase space
       ((Replay-Space))
-      ((Circle-Space)
+      ((Circling-Space)
        (view-last-replay self))
       (else
        (goto-replay/last self))))
@@ -3873,7 +3896,7 @@
           (set-evolutions panel evolutions)
           (set-base-time panel base-time))
         
-        (if (is? space Circle-Space)
+        (if (is? space Circling-Space)
             (let ((world (current-world))
                   (udp (current-udp)))
               (define (stream-replay name)
@@ -3959,7 +3982,7 @@
   (method (on-goto-simulate self evt)
     (typecase space
       ((Simulate-Space))
-      ((Circle-Space)
+      ((Circling-Space)
        (bell))
       (else
        (goto-simulate self))))
@@ -4010,7 +4033,7 @@
   
   (method (on-toggle-hide self evt)
     (let ((space (current-space)))
-      (when (is? space Circle-Space)
+      (when (is? space Circling-Space)
         (toggle-hide space))))
   
   
