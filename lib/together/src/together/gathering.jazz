@@ -2760,7 +2760,7 @@
           
           (define (add-players zone players)
             (for-each (lambda (player)
-                        (bind (name id no disconnected? asleep? zone mode) player
+                        (bind (name id no asleep? disconnected? zone mode) player
                           (if (eq? zone 'start)
                               (set! observers (cons player observers))
                             (add zone (cons 'player player)))))
@@ -2798,8 +2798,8 @@
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
-                (bind (player id no disconnected? asleep? zone mode) info
-                  (register-player-info player mode (and party (map car party)) disconnected?)
+                (bind (player id no asleep? disconnected? zone mode) info
+                  (register-player-info player mode (and party (map car party)) asleep? disconnected?)
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
@@ -4113,8 +4113,8 @@
 (definition player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name mode party disconnected?)
-  (table-set! player-infos name (new Player-Info name mode party disconnected?)))
+(definition package (register-player-info name mode party asleep? disconnected?)
+  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected?)))
 
 (definition package (registered-player-info name)
   (table-ref player-infos name #f))
@@ -4129,14 +4129,16 @@
   (slot name          getter generate)
   (slot mode          getter generate)
   (slot party         getter generate)
+  (slot asleep?       getter generate)
   (slot disconnected? getter generate)
   
   
-  (method override (initialize self name mode party disconnected?)
+  (method override (initialize self name mode party asleep? disconnected?)
     (nextmethod self)
     (set! self.name name)
     (set! self.mode mode)
     (set! self.party party)
+    (set! self.asleep? asleep?)
     (set! self.disconnected? disconnected?))
   
   
