@@ -2282,6 +2282,7 @@
           (world (current-world))
           (me (current-me)))
       (reset-selection world)
+      (disable-autotrack world feedback?: #f)
       (save-to-processor client)
       (observe-to-server client)
       (install-vista)
