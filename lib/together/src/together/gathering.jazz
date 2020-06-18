@@ -4002,7 +4002,7 @@
           (udp (current-udp)))
       (let ((stream (locate-screen-stream)))
         (cond ((not stream)
-               (play (stream-screen "Screen"))
+               (play (stream-screen "You are now sharing your screen"))
                (display-on/off world "Screen sharing" #t))
               (else
                (close-send-stream udp stream)
