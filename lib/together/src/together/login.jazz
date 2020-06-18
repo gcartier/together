@@ -28,6 +28,7 @@
         (jazz.platform)
         (jazz.process)
         (jazz.resource)
+        (jazz.snapshot)
         (jazz.time)
         (jazz.text)
         (jazz.tree)
@@ -387,6 +388,7 @@
     (set! space (need-space self what))
     (space-install space)
     (set-current-space space)
+    (add-snapshot-property 'live.space (space-name space))
     (space-activate space)
     space)
   
@@ -401,6 +403,7 @@
       (set! space (need-space self 'login))
       (space-install space)
       (set-current-space space)
+      (add-snapshot-property 'live.space (space-name space))
       (space-activate space)
       (when avatar-change?
         (save-configuration self))))

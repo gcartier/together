@@ -1876,6 +1876,7 @@
         (set! space (need-space self 'gathering))
         (space-install space)
         (set-current-space space)
+        (add-snapshot-property 'live.space (space-name space))
         (space-activate space))  
       
       (define (reconnection mode zone group audio-only?)
@@ -1957,7 +1958,8 @@
         (uninstall-zone self)
         (set-unbind-camera? #t)
         (set! space (new Space))
-        (set-current-space space))))
+        (set-current-space space)
+        (clear-snapshot-property 'live.space))))
   
   
   (method (setup-configuration self)
@@ -2433,6 +2435,7 @@
     (set! space (need-space self what))
     (space-install space)
     (set-current-space space)
+    (add-snapshot-property 'live.space (space-name space))
     (space-activate space)
     space)
   
