@@ -1162,9 +1162,6 @@
   (<Trait>                   name: circling
     (<install>
       (<world-main!>
-        (<!>                 name: video-options              active?: #t)
-        (<!>                 name: audio-options              active?: #t)
-        (<!>                 name: interface-options          active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
         (<!>                 name: view-news                  active?: #t)
         (<!>                 name: view-roadmap               active?: #t)
@@ -1172,24 +1169,6 @@
         (<!>                 name: open-about                 active?: #t)
         (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
-      (<world-graphics!>
-        (<!>                 name: toggle-occlusion           active?: #t)
-        (<!>                 name: toggle-wireframe           active?: #t)
-        (<!>                 name: toggle-fog                 active?: #t)
-        (<!>                 name: toggle-gadgets             active?: #t)
-        (<!>                 name: toggle-normals             active?: #t)
-        (<!>                 name: toggle-x-rays              active?: #t)
-        (<!>                 name: toggle-redstone-x-rays     active?: #t)
-        (<!>                 name: toggle-draw-me             active?: #t)
-        (<!>                 name: toggle-blocks              active?: #t)
-        (<!>                 name: toggle-models              active?: #t)
-        (<!>                 name: toggle-post-processing     active?: #t))
-      (<world-sound!>
-        (<!>                 name: toggle-music               active?: #t)
-        (<!>                 name: change-music               active?: #t)
-        (<!>                 name: display-music              active?: #t)
-        (<!>                 name: toggle-ambience            active?: #t)
-        (<!>                 name: toggle-sound               active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
         (<!>                 name: toggle-windowed-mode       active?: #t)
@@ -1202,14 +1181,6 @@
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t)
         (<!>                 name: insert-previous            active?: #t))
-      (<world-history!>
-        (<!>                 name: toggle-paused              active?: #t)
-        (<!>                 name: backward-history           active?: #t)
-        (<!>                 name: forward-history            active?: #t)
-        (<!>                 name: step-backward              active?: #t)
-        (<!>                 name: step-forward               active?: #t)
-        (<!>                 name: step-over                  active?: #t)
-        (<!>                 name: toggle-evaluate-future     active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
@@ -1229,11 +1200,6 @@
         (<!>                 name: clear-console              active?: #t)
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
-        (<!>                 name: toggle-info                active?: #t)
-        (<!>                 name: toggle-profiler            active?: #t)
-        (<!>                 name: toggle-target              active?: #t)
-        (<!>                 name: reset-profiler             active?: #t)
-        (<!>                 name: all-chronology             active?: #t)
         (<!>                 name: toggle-gc-sound            active?: #t)
         (<!>                 name: explore-interface          active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
@@ -1245,8 +1211,6 @@
         (<!>                 name: change-quality             active?: #t)
         (<!>                 name: toggle-denoise             active?: #t))
       (<together-circle!>
-        @wait
-        (<!>                 name: avatar-space               active?: #t)
         (<!>                 name: circle-space               active?: #t)
         (<!>                 name: focus-space                active?: #t)
         (<!>                 name: gallery-space              active?: #t))
