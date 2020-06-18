@@ -47,6 +47,7 @@
                (stable {Directory Home ".together" "stable"})
                (triage {Directory Home ".together" "triage"})
                (test   {Directory Home ".together" "test"})
+               (trial  {Directory Home ".together" "trial"})
                (else   {Directory Home ".together" "devel"})))
 
 
@@ -63,6 +64,7 @@
                   (stable '(Home "Documents" "Together" "stable"))
                   (triage '(Home "Documents" "Together" "triage"))
                   (test   '(Home "Documents" "Together" "test"))
+                  (trial  '(Home "Documents" "Together" "trial"))
                   (else   '(Home "Documents" "Together" "devel"))))
     (windows
      (let ((dir (get-special-folder CSIDL_PERSONAL)))
@@ -71,6 +73,7 @@
                     (stable (list dir "Together" "stable"))
                     (triage (list dir "Together" "triage"))
                     (test   (list dir "Together" "test"))
+                    (trial  (list dir "Together" "trial"))
                     (else   (list dir "Together" "devel")))))
     (else
      '(Settings))))
@@ -107,6 +110,7 @@
 (definition protected (setup-presence)
   (let ((code (cond-expand
                 (devel together-code)
+                (trial together-code)
                 (test together-code)
                 (triage together-code)
                 (stable together-code)

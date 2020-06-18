@@ -90,6 +90,8 @@
     (mac
      (cond-expand (devel
                    "together-devel.app")
+                  (trial
+                   "together-trial.app")
                   (test
                    "together-test.app")
                   (triage
@@ -103,6 +105,8 @@
     (else
      (cond-expand (devel
                    "together-devel")
+                  (trial
+                   "together-trial")
                   (test
                    "together-test")
                   (triage

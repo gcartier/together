@@ -24,6 +24,7 @@
 (definition monitor-directory
   (cond-expand
     (devel  {Directory Home ".together" "devel" "1.0.0" "work" "crashes"})
+    (trial  {Directory Home ".together" "trial" "1.0.0" "work" "crashes"})
     (test   {Directory Home ".together" "test" "1.0.0" "work" "crashes"})
     (triage {Directory Home ".together" "triage" "1.0.0" "work" "crashes"})
     (stable {Directory Home ".together" "stable" "1.0.0" "work" "crashes"})
@@ -33,6 +34,7 @@
 (definition monitor-remote
   (cond-expand
     (devel  "http://logs.togethersphere.com/devel")
+    (trial  "http://logs.togethersphere.com/trial")
     (test   "http://logs.togethersphere.com/test")
     (triage "http://logs.togethersphere.com/triage")
     (stable "http://logs.togethersphere.com/stable")
