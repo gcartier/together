@@ -536,6 +536,10 @@
   (slot view-focused initialize #f getter generate)
   
   
+  (method override (space-name self)
+    'gathering)
+  
+  
   (method override (space-setup self)
     (nextmethod self)
     (let ((together (current-together))
@@ -1050,6 +1054,10 @@
 (class Avatar-Space extends Sphere-Space
   
   
+  (method override (space-name self)
+    'avatar)
+  
+  
   (method override (space-install self)
     (nextmethod self)
     (let ((interface (current-interface))
@@ -1550,6 +1558,10 @@
 (class Circle-Space extends Circling-Space
   
   
+  (method override (space-name self)
+    'circle)
+  
+  
   (method override (space-install self)
     (nextmethod self)
     (circle-home))
@@ -1571,6 +1583,10 @@
     #f)
   
   
+  (method override (space-name self)
+    'focus)
+  
+  
   (method override (space-bindings self)
     (list circling-bindings)))
 
@@ -1587,6 +1603,10 @@
     #f)
   
   
+  (method override (space-name self)
+    'gallery)
+  
+  
   (method override (space-bindings self)
     (list circling-bindings)))
 
@@ -1597,6 +1617,10 @@
 
 
 (class Script-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'script)
   
   
   (method override (space-setup self)
@@ -1651,6 +1675,10 @@
 
 
 (class Replay-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'replay)
   
   
   (method override (space-setup self)
@@ -1718,6 +1746,10 @@
 
 
 (class Simulate-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'simulate)
   
   
   (method override (space-setup self)

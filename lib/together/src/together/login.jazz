@@ -119,6 +119,10 @@
     #f)
   
   
+  (method override (space-name self)
+    'login)
+  
+  
   (method override (space-install self)
     (nextmethod self)
     (let ((interface (current-interface)))
