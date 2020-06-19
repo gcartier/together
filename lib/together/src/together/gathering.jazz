@@ -991,6 +991,9 @@
         (<!>                 name: explore-interface          active?: #t)
         (<!>                 name: toggle-axes                active?: #t)
         (<!>                 name: toggle-orientation         active?: #t)
+        (<!>                 name: toggle-debug-sections      active?: #t)
+        (<!>                 name: toggle-debug-sectors       active?: #t)
+        (<!>                 name: toggle-debug-areas         active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
