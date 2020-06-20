@@ -274,17 +274,6 @@
       (update-parameter world 'people)))
   
   
-  (method (on-preprocess-streams self evt)
-    (let ((world (current-world)))
-      (working world
-        (lambda ()
-          (working-progress world "Preprocessing streams" #f)
-          (let ((dir (if (admin?)
-                         {Directory Documents "streams" "convert"}
-                       {Directory Documents "streams"})))
-            (preprocess-directory dir prime?: #t))))))
-  
-  
   (method (on-toggle-streams self evt)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -520,6 +509,7 @@
         (<!>                 name: toggle-profiler            active?: #t)
         (<!>                 name: explore-interface          active?: #t))
       (<together-share!>
+        (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
@@ -4021,6 +4011,28 @@
   
   (method (goto-simulate self)
     (goto-space self 'simulate))
+  
+  
+  (method (on-preprocess-streams self evt)
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (with-task-mutex
+                  (lambda ()
+                    (let ((world (current-world)))
+                      (working world
+                        (lambda ()
+                          (define (feedback stage file suffix)
+                            (when (eq? stage 'start)
+                              (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) #f)))
+                          
+                          (let ((dir (if (admin?)
+                                         {Directory Documents "streams" "convert"}
+                                       {Directory Documents "streams"})))
+                            (preprocess-directory dir prime?: #t feedback: feedback))))))))
+              'preprocess)))
+      (thread-base-priority-set! thread background-priority)
+      (thread-start! thread)))
   
   
   (method (on-toggle-screen-share self evt)
