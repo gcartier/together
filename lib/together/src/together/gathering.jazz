@@ -82,6 +82,7 @@
         (world.manager)
         (world.pane)
         (world.player)
+        (world.preprocess)
         (world.profile)
         (world.profiling)
         (world.ring)
@@ -271,6 +272,17 @@
       (set-visible? (child interface 'streams-label) #f)
       (set-visible? (child interface 'streams) #f)
       (update-parameter world 'people)))
+  
+  
+  (method (on-preprocess-streams self evt)
+    (let ((world (current-world)))
+      (working world
+        (lambda ()
+          (working-progress world "Preprocessing streams" #f)
+          (let ((dir (if (admin?)
+                         {Directory Documents "streams" "convert"}
+                       {Directory Documents "streams"})))
+            (preprocess-directory dir prime?: #t))))))
   
   
   (method (on-toggle-streams self evt)
@@ -1016,6 +1028,8 @@
         (<!>                 name: command-slash              active?: #t))
       (<together-share!>
         @wait
+        (<!>                 name: preprocess-streams         active?: #t)
+        @wait
         (<!>                 name: toggle-streams             active?: #t)
         @wait
         (<!>                 name: add-image                  active?: #t)
@@ -1227,6 +1241,7 @@
         (<!>                 name: focus-space                active?: #t)
         (<!>                 name: gallery-space              active?: #t))
       (<together-share!>
+        (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: toggle-streams             active?: #t)
         (<!>                 name: add-image                  active?: #t)
         (<!>                 name: add-video                  active?: #t)

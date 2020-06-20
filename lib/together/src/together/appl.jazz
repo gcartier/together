@@ -944,6 +944,7 @@
   
   (form
     (<install>                                        title: "Share"
+      (<World-Action-Item> name: preprocess-streams   title: "Preprocess streams" shortcut: {Shortcut :alt :shift #\R} action-handler: {Event-Handler :space on-preprocess-streams} description: "Preprocess streams.")
       (<World-Action-Item> name: toggle-streams       title: "Streams" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
       (<World-Action-Item> name: add-image            title: "Add image" shortcut: {Shortcut :alt :shift #\7} action-handler: {Event-Handler :together on-add-image} description: "Add image.")
       (<World-Action-Item> name: add-video            title: "Add video" shortcut: {Shortcut :alt :shift #\8} action-handler: {Event-Handler :together on-add-video} description: "Add video.")
@@ -959,9 +960,9 @@
   
   (form
     (<install>                                        title: "Navigate"
-      (<World-Action-Item> name: goto-script          title: "Goto script" shortcut: {Shortcut :alt :shift #\S} action-handler: {Event-Handler :together on-goto-script} description: "Goto script.")
-      (<World-Action-Item> name: goto-replay          title: "Goto replay" shortcut: {Shortcut :alt :shift #\R} action-handler: {Event-Handler :together on-goto-replay} description: "Goto replay.")
-      (<World-Action-Item> name: goto-simulate        title: "Goto simulate" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :together on-goto-simulate} description: "Goto simulate."))))
+      (<World-Action-Item> name: goto-script          title: "Goto script" shortcut: {Shortcut :control :alt :shift #\S} action-handler: {Event-Handler :together on-goto-script} description: "Goto script.")
+      (<World-Action-Item> name: goto-replay          title: "Goto replay" shortcut: {Shortcut :control :alt :shift #\R} action-handler: {Event-Handler :together on-goto-replay} description: "Goto replay.")
+      (<World-Action-Item> name: goto-simulate        title: "Goto simulate" shortcut: {Shortcut :control :alt :shift #\T} action-handler: {Event-Handler :together on-goto-simulate} description: "Goto simulate."))))
 
 
 (class Together-Profile-Actions extends World-Actions
@@ -1593,6 +1594,7 @@
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
+        (<!>                 name: preprocess-streams         visible?: #t)
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: add-image                  visible?: #t)
         (<!>                 name: add-video                  visible?: #t)
