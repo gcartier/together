@@ -1170,6 +1170,8 @@
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
+        (<!>                 name: preprocess-streams         visible?: #t)
+        (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
 
@@ -1329,6 +1331,8 @@
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
+        (<!>                 name: preprocess-streams         visible?: #t)
+        (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: capture-screen             visible?: #t)))))
 
