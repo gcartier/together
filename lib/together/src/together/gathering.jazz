@@ -4026,10 +4026,12 @@
                             (when (eq? stage 'start)
                               (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) #f)))
                           
-                          (let ((dir (if (admin?)
-                                         {Directory Documents "streams" "convert"}
-                                       {Directory Documents "streams"})))
-                            (preprocess-directory dir prime?: #t feedback: feedback))))))))
+                          (iterate-stream-directories
+                            (lambda (stream-directory)
+                              (let ((dir (if (admin?)
+                                             (new-directory stream-directory '("convert"))
+                                           stream-directory)))
+                                (preprocess-directory dir prime?: #t feedback: feedback))))))))))
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
