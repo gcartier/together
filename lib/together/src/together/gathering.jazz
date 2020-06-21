@@ -2831,15 +2831,15 @@
                                (add-players zone players))
                               (else
                                (when (member? character-name players key: car)
-                                 (set! circlers (map car players)))
+                                 (set! circlers players))
                                (if (eq? zone 'start)
                                    (set! voiders (cons group voiders))
                                  (add zone (cons 'group group)))))))
                     groups)
           (if (not circlers)
               (clear-snapshot-property 'live.circle-members)
-            (add-snapshot-property 'live.circle-members circlers))
-          (add-snapshot-property 'live.player-party party)
+            (add-snapshot-property 'live.circle-members (map car circlers)))
+          (add-snapshot-property 'live.player-party (and party (map car party)))
           (values observers voiders (table->list zones) party)))))
   
   
