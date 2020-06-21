@@ -3262,7 +3262,7 @@
       (define (selected-recipient message)
         (if (not message-recipient)
             (begin
-              (when circle-name
+              (when (is-not? space Gathering-Space)
                 (show-panel-say "The gathering" message))
               (values 'gathering #f message #f))
           (bind (what name) message-recipient
