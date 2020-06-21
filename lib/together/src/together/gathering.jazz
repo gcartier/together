@@ -4026,12 +4026,14 @@
                             (when (eq? stage 'start)
                               (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) #f)))
                           
-                          (iterate-stream-directories
-                            (lambda (stream-directory)
-                              (let ((dir (if (admin?)
-                                             (new-directory stream-directory '("convert"))
-                                           stream-directory)))
-                                (preprocess-directory dir prime?: #t feedback: feedback))))))))))
+                          (catch (Preprocess-Unsupported-Error err
+                                   (display-error world (get-message err)))
+                            (iterate-stream-directories
+                              (lambda (stream-directory)
+                                (let ((dir (if (admin?)
+                                               (new-directory stream-directory '("convert"))
+                                             stream-directory)))
+                                  (preprocess-directory dir prime?: #t feedback: feedback)))))))))))
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
