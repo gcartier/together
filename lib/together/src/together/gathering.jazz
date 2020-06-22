@@ -2039,28 +2039,26 @@
   
   
   (method protected (sleep-process self)
-    (with-task-mutex
-      (lambda ()
-        (when (client?)
-          (let ((client (current-client)))
-            (when (is? space Sphere-Space)
-              (leave-circle self)
-              (set! sleep-disconnected? #t))
-            (sleep-to-server client))))))
+    (assert-task-mutex)
+    (when (client?)
+      (let ((client (current-client)))
+        (when (is? space Sphere-Space)
+          (leave-circle self)
+          (set! sleep-disconnected? #t))
+        (sleep-to-server client))))
   
   
   (method protected (wake-process self)
-    (with-task-mutex
-      (lambda ()
-        ;; this can occur if some other part of the
-        ;; system called bailout-client during wakeup
-        (when (client?)
-          (let ((client (current-client))
-                (world (current-world)))
-            (wake-to-server client)
-            (when sleep-disconnected?
-              (display-message world "Disconnected from circle" duration: 5.)
-              (set! sleep-disconnected? #f)))))))
+    (assert-task-mutex)
+    ;; this can occur if some other part of the
+    ;; system called bailout-client during wakeup
+    (when (client?)
+      (let ((client (current-client))
+            (world (current-world)))
+        (wake-to-server client)
+        (when sleep-disconnected?
+          (display-message world "Disconnected from circle" duration: 5.)
+          (set! sleep-disconnected? #f)))))
   
   
   (method package (update-message-recipient self recipient)
