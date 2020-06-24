@@ -2020,7 +2020,6 @@
   
   (method (uninstall-zone self)
     (let ((interface (current-interface)))
-      (close (child mainbar 'profile))
       (close (child interface 'people-label))
       (close (child interface 'people))
       (close (child interface 'streams-label))
