@@ -151,6 +151,7 @@
             (delay-event
               (lambda ()
                 (acquire-focus (locate (child root 'new-key) 'text)))))
+          (hide-mainbar self)
           (layout-view interface)
           (layout-view root)
           (show root)
