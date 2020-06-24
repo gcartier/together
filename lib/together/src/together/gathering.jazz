@@ -2329,6 +2329,7 @@
   (method (goto-gathering self)
     (let ((client (current-client))
           (me (current-me)))
+      (roam-to-server client)
       (observe-to-server client)
       (install-vista)
       (goto-space self 'gathering)
@@ -2438,6 +2439,7 @@
   (method package (enter-circle self)
     (let ((client (current-client))
           (me (current-me)))
+      (anchor-to-server client)
       (play-to-server client)
       (bind-camera)
       (uninstall-vista)
@@ -2850,7 +2852,6 @@
       (bind (groupless . groups) hierarchy
         (let ((observers '())
               (voiders '())
-              (roamers '())
               (zones (make-table test: equal?))
               (circlers #f)
               (party #f)
@@ -2863,7 +2864,7 @@
             (for-each add-player players))
           
           (define (add-player player)
-            (bind (name id no asleep? disconnected? zone mode) player
+            (bind (name id no asleep? disconnected? roaming? zone mode) player
               (if (eq? zone 'start)
                   (set! observers (cons player observers))
                 (add zone (cons 'player player)))))
@@ -2889,18 +2890,17 @@
                                  (add zone (cons 'group group)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
-                                             (bind (name id no asleep? disconnected? zone mode) player
+                                             (bind (name id no asleep? disconnected? roaming? zone mode) player
                                                (when (or (eq? mode 'observer)
                                                          (not (equal? zone group-zone)))
-                                                 (add-player player)
-                                                 (set! roamers (cons name roamers)))))
+                                                 (add-player player))))
                                            players))))))
                     groups)
           (if (not circlers)
               (clear-snapshot-property 'live.circle-members)
             (add-snapshot-property 'live.circle-members (map car circlers)))
           (add-snapshot-property 'live.player-party (and party (map car party)))
-          (values observers voiders roamers (table->list zones) party)))))
+          (values observers voiders (table->list zones) party)))))
   
   
   (method (view-hierarchy self hierarchy)
@@ -2908,22 +2908,21 @@
           (me (current-me)))
       (let ((tree (people-tree self))
             (separator? #f))
-        (receive (observers voiders roamers zones party) (unify-hierarchy self hierarchy (cache-available-zones))
+        (receive (observers voiders zones party) (unify-hierarchy self hierarchy (cache-available-zones))
           (empty-player-infos)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
-                (bind (player id no asleep? disconnected? zone mode) info
-                  (register-player-info player mode (and party (map car party)) asleep? disconnected?)
-                  (let ((group? (and party (memq? info party)))
-                        (roamer? (member? player roamers)))
+                (bind (player id no asleep? disconnected? roaming? zone mode) info
+                  (register-player-info player mode (and party (map car party)) asleep? disconnected? roaming?)
+                  (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
                                          (else player-title)))
                             (font {Font Label-User})
-                            (color (cond ((or disconnected? asleep? (and roamer? group))
+                            (color (cond ((or disconnected? asleep? (and roaming? group))
                                           {Color Medium-Gray})
                                          ((eq? mode 'player)
                                           player-color)
@@ -4261,8 +4260,8 @@
 (definition player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name mode party asleep? disconnected?)
-  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected?)))
+(definition package (register-player-info name mode party asleep? disconnected? roaming?)
+  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected? roaming?)))
 
 (definition package (registered-player-info name)
   (table-ref player-infos name #f))
@@ -4279,15 +4278,17 @@
   (slot party         getter generate)
   (slot asleep?       getter generate)
   (slot disconnected? getter generate)
+  (slot roaming?      getter generate)
   
   
-  (method override (initialize self name mode party asleep? disconnected?)
+  (method override (initialize self name mode party asleep? disconnected? roaming?)
     (nextmethod self)
     (set! self.name name)
     (set! self.mode mode)
     (set! self.party party)
     (set! self.asleep? asleep?)
-    (set! self.disconnected? disconnected?))
+    (set! self.disconnected? disconnected?)
+    (set! self.roaming? roaming?))
   
   
   (method override (print self output readably)
