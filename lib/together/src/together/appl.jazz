@@ -909,7 +909,7 @@
   (form
     (<install>                                        title: "Together"
       (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show central menu.")
-      (<World-Action-Item> name: leave-group          title: "Leave group" action-handler: {Event-Handler :together on-leave-group} description: "Leave group.")
+      (<World-Action-Item> name: leave-group          title: "Leave" action-handler: {Event-Handler :together on-leave-group} description: "Leave group / circle.")
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" shortcut: {Shortcut "Click your name"} description: "Login."))))
 
 
