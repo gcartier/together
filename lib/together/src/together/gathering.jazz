@@ -239,26 +239,6 @@
     )
   
   
-  (method (show-mainbar self)
-    (let ((window (current-window)))
-      (set-visible? mainbar #t)
-      (set-visible? mainbar-sheet #t)
-      (register-front-sheet window mainbar-sheet)
-      (if (fade-mainbar? self)
-          (fade-mainbar (point->point$fl$ (mouse-position window)) #t)
-        (set-fade mainbar-pane #f)
-        (invalidate-view mainbar))))
-  
-  
-  (method (hide-mainbar self)
-    (let ((window (current-window)))
-      (set-fade mainbar-pane 0.)
-      (invalidate-view mainbar)
-      (set-visible? mainbar #f)
-      (set-visible? mainbar-sheet #f)
-      (unregister-sheet window mainbar-sheet)))
-  
-  
   ;;;
   ;;;; Events
   ;;;
@@ -508,6 +488,11 @@
       (<world-debug!>
         (<!>                 name: toggle-profiler            active?: #t)
         (<!>                 name: explore-interface          active?: #t))
+      (<together-menu!>
+        (<!>                 name: central-menu               active?: #t)
+        (<!>                 name: leave-group                active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: capture-screen             active?: #t))
@@ -550,7 +535,6 @@
             (date (build-short-date)))
         (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
           (new Label-View name: 'together parent: root title: tier-title location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
-          (new Name-Label name: 'name parent: root location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
           (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
@@ -578,8 +562,8 @@
       (set-visible? (child root 'version) #t)
       (set-visible? (child root 'date) #t)
       (set-visible? (child root 'quit) #t)
-      (set-visible? (child root 'name) #t)
-      (set-title (child root 'name) (get-character-name client))
+      (set-visible? (child mainbar 'name) #t)
+      (set-title (child mainbar 'name) (get-character-name client))
       (when (admin?)
         (let ((admin-visible? (get-visible? (child interface 'admin))))
           (set-visible? (child root 'circle) (not admin-visible?))
@@ -588,7 +572,7 @@
       (set-visible? (child root 'circle-view) #t)
       (set-visible? (child root 'circle-invalid) #t)
       (set-visible? (child root 'circle-create) #t)
-      (set-visible? (child interface 'profile) #t)
+      (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #t)
       (set-visible? (child interface 'people) #t)
       (set-visible? (child interface 'streams-label) #f)
@@ -622,6 +606,9 @@
   
   (method override (space-activate self)
     (nextmethod self)
+    (update-group-actions (current-together))
+    (setup-visibility mainbar)
+    (show-mainbar self)
     (let ((world (current-world)))
       (layout-message world)
       (layout-working world)))
@@ -650,10 +637,19 @@
                   (find-actions 'world-chat)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
+                  (find-actions 'together-media)
                   (find-actions 'together-share)
                   (find-actions 'together-debug)
                   (find-actions 'together-script))
             (nextmethod self)))
+  
+  
+  (method override (central-menu-show self)
+    (update-center-interface self))
+  
+  
+  (method override (central-menu-hide self)
+    (update-center-interface self))
   
   
   (method override (zone-change self zone)
@@ -695,9 +691,11 @@
   
   (method package (update-center-interface self)
     (let ((together (current-together))
-          (interface (current-interface)))
+          (interface (current-interface))
+          (world (current-world)))
       (let ((active-zone (get-active-zone together))
-            (active-group (get-active-group together)))
+            (active-group (get-active-group together))
+            (circle-name (get-circle-name together)))
         (let ((loaded? (selected-loaded? together)))
           (define (enter-visible flag)
             (set-visible? (child root 'zone) flag)
@@ -722,7 +720,12 @@
               (set-title (child root 'selected-label) "")
             (set-color (child root 'selected-label) (get-selected-color together))
             (set-title (child root 'selected-label) (get-selected-message together)))
-          (cond (active-group
+          (set-title (child root 'circle-join) (if circle-name "Enter" "Join"))
+          (cond ((get-central-menu world)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (create-visible #f))
+                (active-group
                  (set-title (child root 'circle) active-group)
                  (enter-visible #f)
                  (join-visible #t)
@@ -748,7 +751,9 @@
   
   (method (on-join self evt)
     (let ((together (current-together)))
-      (join-circle together (get-active-group together) (get-active-audio-only? together))))
+      (if (get-circle-name together)
+          (enter-circle together)
+        (join-circle together (get-active-group together) (get-active-audio-only? together)))))
   
   
   (method (on-create&join self evt)
@@ -763,11 +768,11 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (define (closer frame)
-        (set-visible? (child root 'name) #t)
+        (set-visible? (child mainbar 'name) #t)
+        (set-visible? (child mainbar 'profile) #t)
         (set-visible? (child root 'selected-label) #t)
         (set-visible? (child root 'circle) #t)
         (set-visible? (child root 'circle-join) #t)
-        (set-visible? (child interface 'profile) #t)
         (set-visible? (child interface 'people-label) #t)
         (set-visible? (child interface 'people) #t)
         (set-visible? (child interface 'chat-label) #t)
@@ -792,11 +797,11 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (set! view-focused (active-focus))
-      (set-visible? (child root 'name) #f)
+      (set-visible? (child mainbar 'name) #f)
+      (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child root 'selected-label) #f)
       (set-visible? (child root 'circle) #f)
       (set-visible? (child root 'circle-join) #f)
-      (set-visible? (child interface 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'streams-label) #f)
@@ -998,6 +1003,7 @@
         (<!>                 name: toggle-debug-areas         active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
+        (<!>                 name: leave-group                active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
@@ -1084,7 +1090,7 @@
       (set-visible? (child interface 'command-to) #f)
       (set-visible? (child interface 'chat) #t)
       (set-visible? (child interface 'belt) #t)
-      (set-visible? (child interface 'profile) #f)
+      (set-visible? (child mainbar 'profile) #f)
       (layout-interface)))
   
   
@@ -1220,6 +1226,7 @@
         (<!>                 name: explore-interface          active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
+        (<!>                 name: leave-group                active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
@@ -1279,7 +1286,6 @@
     (let ((together (current-together))
           (interface (current-interface)))
       (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
-        (new Kind-Label name: 'circle-name parent: root location: '(-125 10) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'center)
         (set! self.root root))))
   
   
@@ -1289,12 +1295,11 @@
           (interface (current-interface))
           (world (current-world)))
       (show-mainbar self)
-      (set-visible? (child interface 'profile) #t)
       (free-motion world feedback?: #f)
       (set-unbind-camera? #f)
-      (set-visible? (child root 'circle-name) #t)
-      (set-title (child root 'circle-name) (effective-circle-name (get-circle-name together) (get-circle-audio-only? together)))
-      (set-visible? (child interface 'profile) #t)
+      (set-visible? (child mainbar 'circle-name) #t)
+      (set-title (child mainbar 'circle-name) (effective-circle-name (get-circle-name together) (get-circle-audio-only? together)))
+      (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-layouter (child interface 'chat) #f)
@@ -1500,8 +1505,8 @@
         @wait-later-version-as-it-needs-debugging
         (show-cursor window)
         (show-mainbar self)
-        (set-visible? (child interface 'profile) #t)
-        (set-visible? (child root 'circle-name) #t)
+        (set-visible? (child mainbar 'circle-name) #t)
+        (set-visible? (child mainbar 'profile) #t)
         (for-each (lambda (child)
                     (when (and (is? child World-Actionbar)
                                (get-auto-show/hide? child))
@@ -1531,8 +1536,8 @@
                                                 @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
-                                                (set-visible? (child interface 'profile) #f)
-                                                (set-visible? (child root 'circle-name) #f)
+                                                (set-visible? (child mainbar 'circle-name) #f)
+                                                (set-visible? (child mainbar 'profile) #f)
                                                 (for-each (lambda (child)
                                                             (when (and (is? child World-Actionbar)
                                                                        (get-auto-show/hide? child))
@@ -1642,7 +1647,7 @@
   (method override (space-install self)
     (nextmethod self)
     (let ((interface (current-interface)))
-      (set-visible? (child interface 'profile) #f)
+      (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'streams-label) #f)
@@ -1708,7 +1713,7 @@
       (set-visible? (child root 'timeline) #t)
       (set-visible? (child root 'evolution) #t)
       (set-visible? (child root 'back) #t)
-      (set-visible? (child interface 'profile) #f)
+      (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'streams-label) #f)
@@ -1775,7 +1780,7 @@
     (let ((interface (current-interface)))
       (set-visible? (child root 'simulator) #t)
       (set-visible? (child root 'back) #t)
-      (set-visible? (child interface 'profile) #f)
+      (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'streams-label) #f)
@@ -1978,7 +1983,6 @@
   (method (install-zone self)
     (let ((interface (current-interface)))
       ;; common
-      (new Profile-Label name: 'profile parent: interface location: '(-10 10) size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(tail head))
       (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
       (new People-Panel name: 'people parent: interface location: '(10 100) proportion: '(220 (bounds -300)) layout-type: 'border visible?: #f)
       @mouse-hover-icons-xp
@@ -2011,12 +2015,12 @@
         (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
         (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
         (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
-      (update-profile (child interface 'profile))))
+      (update-profile (child mainbar 'profile))))
   
   
   (method (uninstall-zone self)
     (let ((interface (current-interface)))
-      (close (child interface 'profile))
+      (close (child mainbar 'profile))
       (close (child interface 'people-label))
       (close (child interface 'people))
       (close (child interface 'streams-label))
@@ -2126,6 +2130,28 @@
   
   
   ;;;
+  ;;;; Actions
+  ;;;
+  
+  
+  (method package (update-group-actions self)
+    (let ((bindings (current-bindings)))
+      (let ((menu (child bindings 'together-menu))
+            (media (child bindings 'together-media))
+            (group? (in-group/circle? self)))
+        (set-visible? (child menu 'leave-group) group?)
+        (set-visible? (child media 'toggle-mic) group?))))
+  
+  
+  (method package (in-group/circle? self)
+    (let ((client (current-tier)))
+      (or (let ((character-name (get-character-name client)))
+            (let ((player-info (registered-player-info character-name)))
+              (and player-info (get-party player-info))))
+          circle-name)))
+  
+  
+  ;;;
   ;;;; Events
   ;;;
   
@@ -2218,7 +2244,7 @@
          (toggle-radial-menu world)))))
   
   
-  (method (on-leave-circle self evt)
+  (method (on-leave-group self evt)
     (leave-circle self))
   
   
@@ -2298,6 +2324,15 @@
       (add-snapshot-property 'live.player-mode (get-mode me))
       (restore-active-zone self)
       (reset-history)))
+  
+  
+  (method (goto-gathering self)
+    (let ((client (current-client))
+          (me (current-me)))
+      (observe-to-server client)
+      (install-vista)
+      (goto-space self 'gathering)
+      (set-mode me 'observer)))
   
   
   (method (check-has-microphone? self)
@@ -2393,10 +2428,27 @@
         (install-circle-hooks self)
         (goto-circle-space self 'circle feedback?: #f)
         (effective-base-profile-update)
+        (update-group-actions self)
         (setup-visibility mainbar)
         (if audio-only?
             (setup-render-rate 5. 5.)
           (setup-render-rate 30. 30.)))))
+  
+  
+  (method package (enter-circle self)
+    (let ((client (current-client))
+          (me (current-me)))
+      (play-to-server client)
+      (bind-camera)
+      (uninstall-vista)
+      (install-circle-hooks self)
+      (goto-circle-space self 'circle feedback?: #f)
+      (update-group-actions self)
+      (setup-visibility mainbar)
+      (set-mode me 'player)
+      (if circle-audio-only?
+          (setup-render-rate 5. 5.)
+        (setup-render-rate 30. 30.))))
   
   
   (method (leave-circle self)
@@ -2798,6 +2850,7 @@
       (bind (groupless . groups) hierarchy
         (let ((observers '())
               (voiders '())
+              (roamers '())
               (zones (make-table test: equal?))
               (circlers #f)
               (party #f)
@@ -2807,12 +2860,13 @@
               (table-add zones path member)))
           
           (define (add-players zone players)
-            (for-each (lambda (player)
-                        (bind (name id no asleep? disconnected? zone mode) player
-                          (if (eq? zone 'start)
-                              (set! observers (cons player observers))
-                            (add zone (cons 'player player)))))
-                      players))
+            (for-each add-player players))
+          
+          (define (add-player player)
+            (bind (name id no asleep? disconnected? zone mode) player
+              (if (eq? zone 'start)
+                  (set! observers (cons player observers))
+                (add zone (cons 'player player)))))
           
           (for-each (lambda (info)
                       (bind (zone . title) info
@@ -2832,13 +2886,21 @@
                                  (set! circlers players))
                                (if (eq? zone 'start)
                                    (set! voiders (cons group voiders))
-                                 (add zone (cons 'group group)))))))
+                                 (add zone (cons 'group group)))
+                               (let ((group-zone zone))
+                                 (for-each (lambda (player)
+                                             (bind (name id no asleep? disconnected? zone mode) player
+                                               (when (or (eq? mode 'observer)
+                                                         (not (equal? zone group-zone)))
+                                                 (add-player player)
+                                                 (set! roamers (cons name roamers)))))
+                                           players))))))
                     groups)
           (if (not circlers)
               (clear-snapshot-property 'live.circle-members)
             (add-snapshot-property 'live.circle-members (map car circlers)))
           (add-snapshot-property 'live.player-party (and party (map car party)))
-          (values observers voiders (table->list zones) party)))))
+          (values observers voiders roamers (table->list zones) party)))))
   
   
   (method (view-hierarchy self hierarchy)
@@ -2846,7 +2908,7 @@
           (me (current-me)))
       (let ((tree (people-tree self))
             (separator? #f))
-        (receive (observers voiders zones party) (unify-hierarchy self hierarchy (cache-available-zones))
+        (receive (observers voiders roamers zones party) (unify-hierarchy self hierarchy (cache-available-zones))
           (empty-player-infos)
           (remove-every-row tree)
           (with-update-locked tree
@@ -2854,13 +2916,19 @@
               (define (add-player father info group)
                 (bind (player id no asleep? disconnected? zone mode) info
                   (register-player-info player mode (and party (map car party)) asleep? disconnected?)
-                  (let ((group? (and party (memq? info party))))
+                  (let ((group? (and party (memq? info party)))
+                        (roamer? (member? player roamers)))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
                                          (else player-title)))
                             (font {Font Label-User})
-                            (color (if (or disconnected? asleep?) {Color Medium-Gray} (if (eq? mode 'observer) observer-color player-color))))
+                            (color (cond ((or disconnected? asleep? (and roamer? group))
+                                          {Color Medium-Gray})
+                                         ((eq? mode 'player)
+                                          player-color)
+                                         (else
+                                          observer-color))))
                         (add-row tree
                                  father: father
                                  children: (list (new Tree-Node title: title font: font color: color))
@@ -3743,7 +3811,7 @@
         ((Gathering-Space))
         ((Sphere-Space)
          (if circle-name
-             (leave-circle self)
+             (goto-gathering self)
            (exit-zone self)))
         (else
          (goto-space self 'gathering)))))

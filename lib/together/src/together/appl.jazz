@@ -804,7 +804,9 @@
   
   
   (form
-    (<install>                                            layout-fit: around
+    (<install>
+      (<World-Action-Button>    name: leave-group         resource: {Icon-Resource "Logogram/Circles-Half"} action-handler: {Action together-menu leave-group})
+      (<World-Separator>                                  size: {Dimension 36 0})
       (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-media toggle-mic} parameter: mic)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-media toggle-camera} parameter: camera)
       (<World-Separator>)
@@ -816,9 +818,14 @@
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-people toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-chat toggle-chat} parameter: chat)
       (<World-Separator>)
-      (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Landmarks/Japanese-Gate"} action-handler: {Action world-main open-welcome})
+      (<World-Action-Button>    name: goto-gathering      resource: {Icon-Resource "Landmarks/Japanese-Gate"} action-handler: {Action world-main open-welcome})
       (<World-Separator>)
-      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})))
+      (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
+      (<Name-Label>             name: name                location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
+      (<Kind-Label>             name: circle-name         location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
+      (<World-Separator>        name: name-separator      location: tail size: {Dimension 10 0})
+      (<Profile-Label>          name: profile             location: tail size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: (tail head))
+      (<World-Separator>                                  location: tail size: {Dimension 18 0})))
   
   
   (method protected (setup-visibility self)
@@ -829,13 +836,19 @@
               children)
     (let ((previous? #f))
       (for-each (lambda (child)
-                  (if (is? child World-Separator)
-                      (begin
-                        (set-visible? child previous?)
-                        (set! previous? #f))
-                    (when (get-visible? child)
-                      (set! previous? #t))))
+                  (unless (eq? (get-location child) 'tail)
+                    (if (is? child World-Separator)
+                        (begin
+                          (set-visible? child previous?)
+                          (set! previous? #f))
+                      (when (get-visible? child)
+                        (set! previous? #t)))))
                 children))
+    (let ((circle? (get-circle-name (current-together))))
+      (set-visible? (child self 'name) (not circle?))
+      (set-visible? (child self 'circle-name) circle?)
+      (set-visible? (child self 'name-separator) circle?)
+      (set-visible? (child self 'profile) circle?))
     (layout-view self)))
 
 
@@ -896,6 +909,7 @@
   (form
     (<install>                                        title: "Together"
       (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show central menu.")
+      (<World-Action-Item> name: leave-group          title: "Leave group" action-handler: {Event-Handler :together on-leave-group} description: "Leave group.")
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" shortcut: {Shortcut "Click your name"} description: "Login."))))
 
 
@@ -1574,6 +1588,7 @@
         (<!>                 name: explore-interface          visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
