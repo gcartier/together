@@ -2328,6 +2328,8 @@
   (method (goto-gathering self)
     (let ((client (current-client))
           (me (current-me)))
+      (stop-camera client)
+      (close-send-streams (get-udp-client client))
       (roam-to-server client)
       (observe-to-server client)
       (install-vista)
