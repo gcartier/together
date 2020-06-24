@@ -67,7 +67,6 @@
   (<Trait>                   name: login
     (<install>
       (<world-main!>
-        (<!>                 name: bindings-viewer            active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-windowed-mode       active?: #t)))))
