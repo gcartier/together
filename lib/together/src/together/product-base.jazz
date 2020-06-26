@@ -20,7 +20,7 @@
 
 ;; not using libgit2 to not have a compilation
 ;; dependency inside the build system and also
-;; because it has yet to be ported to unix
+;; because it has yet to be ported to linux
 (definition (repository-digest dir)
   (let ((port
           (open-process

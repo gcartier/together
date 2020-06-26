@@ -131,7 +131,7 @@
     gstreamer?: #t
     files: (cond-expand
              (windows '("README" @wait "together-server.exe" @wait "together-processor.exe" @wait "together-worker.exe"))
-             (unix '("README" @wait "Together-Server" @wait "Together-Processor" @wait "Together-Worker"))
+             (linux '("README" @wait "Together-Server" @wait "Together-Processor" @wait "Together-Worker"))
              (else '("README")))
     directories: '("devel")
     metadata: ".together"

@@ -68,9 +68,9 @@
 
 
 (definition (register-binaries-properties)
-  ;; libgit2 not yet ported to unix
+  ;; libgit2 not yet ported to linux
   (cond-expand
-    (unix)
+    (linux)
     (else
      (when (equal? (string-argument "called-from" #f)
                    "installer")
