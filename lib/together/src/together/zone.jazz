@@ -102,6 +102,7 @@
   
   (property action-view  initialize #f accessors generate)
   (property invalid-view initialize #f accessors generate)
+  (property option-view  initialize #f accessors generate)
   (property name-label   initialize #f accessors generate)
   (property max-length   initialize #f accessors generate)
   
@@ -121,7 +122,9 @@
     (let ((space (current-space)))
       (let ((invalid (name-invalid self)))
         (set-enabled? (child (get-root space) action-view) (not invalid))
-        (set-title (brother self invalid-view) (or invalid "")))))
+        (set-title (brother self invalid-view) (or invalid ""))
+        (when option-view
+          (set-visible? (child (get-root space) option-view) (not invalid))))))
   
   
   (method package (name-invalid self)
