@@ -192,12 +192,6 @@
         zones)))
 
 
-(definition (effective-circle-name group audio-only?)
-  (if (not audio-only?)
-      group
-    (format "{a} (audio)" group)))
-
-
 ;; quicky
 (cond-expand
   (windows
@@ -548,6 +542,7 @@
           (new Name-View name: 'circle-view parent: root location: '(center (center -20)) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid name-label: "Circle name" max-length: 40)
           (new Name-Invalid name: 'circle-invalid parent: root location: '(center (center 2)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
           (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center (center 45)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self))
+          (new Check-Box name: 'circle-allow-audio-only? parent: root title: "Allow audio-only" location: '(center (center 80)) size: {Dimension 106 16})
           (set! self.root root)))))
   
   
@@ -572,6 +567,7 @@
       (set-visible? (child root 'circle-view) #t)
       (set-visible? (child root 'circle-invalid) #t)
       (set-visible? (child root 'circle-create) #t)
+      (set-visible? (child root 'circle-allow-audio-only?) #t)
       (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #t)
       (set-visible? (child interface 'people) #t)
@@ -677,9 +673,9 @@
                  (selected-loaded? together))
         (let ((zone (get-active-zone together))
               (group (get-active-group together))
-              (audio-only? (get-active-audio-only? together)))
+              (allow-audio-only? (get-active-allow-audio-only? together)))
           (cond (group
-                 (join-circle together group audio-only?))
+                 (join-circle together group allow-audio-only?))
                 (zone
                  (enter-zone together)))))))
   
@@ -714,7 +710,8 @@
               (set-enabled? (locate circle-view 'text) loaded?)
               (set-visible? (child root 'circle-invalid) flag)
               (set-visible? (child root 'circle-create) flag)
-              (set-enabled? (child root 'circle-create) (and loaded? (not (name-invalid circle-view))))))
+              (set-enabled? (child root 'circle-create) (and loaded? (not (name-invalid circle-view))))
+              (set-visible? (child root 'circle-allow-audio-only?) flag)))
           
           (if loaded?
               (set-title (child root 'selected-label) "")
@@ -753,7 +750,7 @@
     (let ((together (current-together)))
       (if (get-circle-name together)
           (enter-circle together)
-        (join-circle together (get-active-group together) (get-active-audio-only? together)))))
+        (join-circle together (get-active-group together) (get-active-allow-audio-only? together)))))
   
   
   (method (on-create&join self evt)
@@ -821,6 +818,7 @@
       (set-visible? (child root 'circle-view) #f)
       (set-visible? (child root 'circle-invalid) #f)
       (set-visible? (child root 'circle-create) #f)
+      (set-visible? (child root 'circle-allow-audio-only?) #f)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
 
 
@@ -1298,7 +1296,7 @@
       (free-motion world feedback?: #f)
       (set-unbind-camera? #f)
       (set-visible? (child mainbar 'circle-name) #t)
-      (set-title (child mainbar 'circle-name) (effective-circle-name (get-circle-name together) (get-circle-audio-only? together)))
+      (set-title (child mainbar 'circle-name) (get-circle-name together))
       (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -1824,33 +1822,33 @@
 (class Together extends Object
   
   
-  (slot spaces               initialize #f getter generate)
-  (slot space                initialize #f getter generate)
-  (slot configuration        initialize #f getter generate)
-  (slot active-zone          initialize #f getter generate)
-  (slot active-group         initialize #f getter generate)
-  (slot active-audio-only?   initialize #f getter generate)
-  (slot active-player        initialize #f getter generate)
-  (slot active-data          initialize #f getter generate)
-  (slot selected-zone        initialize #f getter generate)
-  (slot selected-group       initialize #f getter generate)
-  (slot selected-audio-only? initialize #f getter generate)
-  (slot selected-player      initialize #f getter generate)
-  (slot selected-data        initialize #f getter generate)
-  (slot selected-message     initialize #f getter generate)
-  (slot selected-color       initialize #f getter generate)
-  (slot zone-loading         initialize #f getter generate)
-  (slot circle-name          initialize #f getter generate)
-  (slot circle-no            initialize #f getter generate)
-  (slot circle-audio-only?   initialize #f getter generate)
-  (slot circle-start         initialize #f getter generate)
-  (slot message-recipient    initialize #f getter generate)
-  (slot draw-hook            initialize #f getter generate)
-  (slot sleep-disconnected?  initialize #f getter generate)
-  (slot chat-wide?           initialize #f getter generate)
-  (slot previous-command     initialize #f getter generate)
-  (slot fade-thread          initialize #f getter generate)
-  (slot fade-no              initialize 0  getter generate)
+  (slot spaces                     initialize #f getter generate)
+  (slot space                      initialize #f getter generate)
+  (slot configuration              initialize #f getter generate)
+  (slot active-zone                initialize #f getter generate)
+  (slot active-group               initialize #f getter generate)
+  (slot active-allow-audio-only?   initialize #f getter generate)
+  (slot active-player              initialize #f getter generate)
+  (slot active-data                initialize #f getter generate)
+  (slot selected-zone              initialize #f getter generate)
+  (slot selected-group             initialize #f getter generate)
+  (slot selected-allow-audio-only? initialize #f getter generate)
+  (slot selected-player            initialize #f getter generate)
+  (slot selected-data              initialize #f getter generate)
+  (slot selected-message           initialize #f getter generate)
+  (slot selected-color             initialize #f getter generate)
+  (slot zone-loading               initialize #f getter generate)
+  (slot circle-name                initialize #f getter generate)
+  (slot circle-no                  initialize #f getter generate)
+  (slot circle-allow-audio-only?   initialize #f getter generate)
+  (slot circle-start               initialize #f getter generate)
+  (slot message-recipient          initialize #f getter generate)
+  (slot draw-hook                  initialize #f getter generate)
+  (slot sleep-disconnected?        initialize #f getter generate)
+  (slot chat-wide?                 initialize #f getter generate)
+  (slot previous-command           initialize #f getter generate)
+  (slot fade-thread                initialize #f getter generate)
+  (slot fade-no                    initialize 0  getter generate)
   
   (cond-expand
     (windows
@@ -1892,12 +1890,12 @@
         (add-snapshot-property 'live.space (space-name space))
         (space-activate space))  
       
-      (define (reconnection mode zone group audio-only?)
+      (define (reconnection mode zone group allow-audio-only?)
         (unless (eq? zone 'start)
           (restore-zone zone))
         (reconnect client)
         (if (string? group)
-            (check-error (rejoin-circle self group audio-only?))
+            (check-error (rejoin-circle self group allow-audio-only?))
           (if (eq? mode 'observer)
               (enter-gathering)
             (check-error (reenter-zone self zone)))
@@ -1931,8 +1929,8 @@
                   (listify auto-create)))
       (let ((reconnect-info (get-reconnect-info client)))
         (cond (reconnect-info
-               (bind (mode zone group audio-only?) reconnect-info
-                 (reconnection mode zone group audio-only?)))
+               (bind (mode zone group allow-audio-only?) reconnect-info
+                 (reconnection mode zone group allow-audio-only?)))
               (auto-join
                (check-error (autojoin-circle self auto-join #f)))
               (auto-enter
@@ -2213,7 +2211,7 @@
       (if (and (not circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
-        (require-live-stream client circle-audio-only?)
+        (require-live-stream client)
         (toggle-mic client)
         (update-parameter world 'mic))))
   
@@ -2225,11 +2223,13 @@
       (if (and (not circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
-        (require-live-stream client circle-audio-only?)
-        (toggle-camera client)
-        (update-layouts video)
-        (update-parameter world 'camera)
-        (effective-base-profile-update))))
+        (if (not (has-camera?))
+            (display-error world "No camera found")
+          (require-live-stream client)
+          (toggle-camera client)
+          (update-layouts video)
+          (update-parameter world 'camera)
+          (effective-base-profile-update)))))
   
   
   (method (escape-press self)
@@ -2337,53 +2337,45 @@
       (set-mode me 'observer)))
   
   
-  (method (check-has-microphone? self)
-    (let ((world (current-world)))
-      (if (not-null? (microphone-devices))
-          #t
-        (display-error world "No microphone found")
-        #f)))
-  
-  
-  (method (check-has-camera? self)
-    (let ((world (current-world)))
-      (if (not-null? (cache-decreasing-camera-resolutions))
-          #t
-        (display-error world "No camera found")
-        #f)))
-  
-  
   (method package (create&join-circle self)
     (let ((interface (current-interface))
           (tier (current-client))
           (world (current-world)))
-      (when (check-has-microphone? self)
-        (let ((audio-only? (shift-down?)))
-          (when (or audio-only? (check-has-camera? self))
-            (let ((view (child (get-root space) 'circle-view)))
-              (let ((text (locate view 'text)))
-                (let ((name (trim-whitespace (get-string-content text))))
-                  (let ((no/exception (create-group tier name #f audio-only? #f #f)))
-                    (if (string? no/exception)
-                        (display-error world no/exception)
-                      (clear-message world)
-                      (set-string-content text "")
-                      (content-changed view)
-                      (join-circle self name audio-only?)))))))))))
+      (let ((microphone? (has-microphone?)))
+        (if (not microphone?)
+            (display-error world "No microphone found")
+          (let ((allow-audio-only? (get-checked? (child (get-root space) 'circle-allow-audio-only?)))
+                (camera? (has-camera?)))
+            (if (and (not camera?) (not allow-audio-only?))
+                (display-error world "No camera found")
+              (let ((view (child (get-root space) 'circle-view)))
+                (let ((text (locate view 'text)))
+                  (let ((name (trim-whitespace (get-string-content text))))
+                    (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                      (if (string? no/exception)
+                          (display-error world no/exception)
+                        (clear-message world)
+                        (set-string-content text "")
+                        (content-changed view)
+                        (join-circle self name allow-audio-only?))))))))))))
   
   
-  (method package (join-circle self name audio-only?)
+  (method package (join-circle self name allow-audio-only?)
     (let ((tier (current-client))
           (world (current-world)))
-      (when (check-has-microphone? self)
-        (when (or audio-only? (check-has-camera? self))
-          (let ((no/streams/exception (join-group tier name 'player)))
-            (if (string? no/streams/exception)
-                (display-error world no/streams/exception)
-              (setup-circle self name no/streams/exception)))))))
+      (let ((microphone? (has-microphone?)))
+        (if (not microphone?)
+            (display-error world "No microphone found")
+          (let ((camera? (has-camera?)))
+            (if (and (not camera?) (not allow-audio-only?))
+                (display-error world "No camera found")
+              (let ((no/streams/exception (join-group tier name 'player)))
+                (if (string? no/streams/exception)
+                    (display-error world no/streams/exception)
+                  (setup-circle self name no/streams/exception)))))))))
   
   
-  (method (autojoin-circle self name audio-only?)
+  (method (autojoin-circle self name allow-audio-only?)
     (let ((tier (current-client)))
       (let ((no/streams/exception (join-group tier name 'player)))
         (if (string? no/streams/exception)
@@ -2392,7 +2384,7 @@
           #f))))
   
   
-  (method (rejoin-circle self name audio-only?)
+  (method (rejoin-circle self name allow-audio-only?)
     (let ((tier (current-client)))
       (let ((no/streams/exception (rejoin-group tier name)))
         (if (string? no/streams/exception)
@@ -2405,16 +2397,16 @@
     (let ((tier (current-client))
           (udp (current-udp))
           (world (current-world)))
-      (bind (no audio-only? . streams) no/streams/exception
+      (bind (no allow-audio-only? . streams) no/streams/exception
         (reset-chronology)
         (bind-camera)
         (when (auto-live?)
-          (require-live-stream tier audio-only?))
+          (require-live-stream tier))
         (start udp)
         (when (auto-live?)
           (when auto-audio?
             (play-mic tier))
-          (when (and auto-video? (not audio-only?))
+          (when (and auto-video? (not allow-audio-only?))
             (play-camera tier)))
         (clear-message world)
         (uninstall-vista)
@@ -2423,18 +2415,15 @@
           (else))
         (set! circle-name name)
         (set! circle-no no)
-        (set! circle-audio-only? audio-only?)
+        (set! circle-allow-audio-only? allow-audio-only?)
         (set! circle-start (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
-        (streams-add tier no audio-only? streams)
+        (streams-add tier no allow-audio-only? streams)
         (install-circle-hooks self)
         (goto-circle-space self 'circle feedback?: #f)
         (effective-base-profile-update)
         (update-group-actions self)
-        (setup-visibility mainbar)
-        (if audio-only?
-            (setup-render-rate 5. 5.)
-          (setup-render-rate 30. 30.)))))
+        (setup-visibility mainbar))))
   
   
   (method package (enter-circle self)
@@ -2448,10 +2437,7 @@
       (goto-circle-space self 'circle feedback?: #f)
       (update-group-actions self)
       (setup-visibility mainbar)
-      (set-mode me 'player)
-      (if circle-audio-only?
-          (setup-render-rate 5. 5.)
-        (setup-render-rate 30. 30.))))
+      (set-mode me 'player)))
   
   
   (method (leave-circle self)
@@ -2481,11 +2467,11 @@
       (let ((no/streams/exception (rejoin-group tier group-no)))
         (if (string? no/streams/exception)
             no/streams/exception
-          (bind (no audio-only? . streams) no/streams/exception
+          (bind (no allow-audio-only? . streams) no/streams/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
-              (require-live-stream tier audio-only?)
-              (streams-add tier no audio-only? streams)
+              (require-live-stream tier)
+              (streams-add tier no allow-audio-only? streams)
               (play-mic tier)
               #f))))))
   
@@ -2633,7 +2619,7 @@
                 (selected-error info)
               (set! active-zone selected-zone)
               (set! active-group selected-group)
-              (set! active-audio-only? selected-audio-only?)
+              (set! active-allow-audio-only? selected-allow-audio-only?)
               (set! active-player selected-player)
               (set! active-data selected-data))))
         (when (is? space Gathering-Space)
@@ -2875,10 +2861,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group audio-only? zone . players) groupless
+          (bind (group allow-audio-only? zone . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name audio-only? zone . players) group
+                      (bind (name allow-audio-only? zone . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -2939,13 +2925,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info)
-                (bind (group audio-only? zone . players) info
-                  (let ((title (effective-circle-name group audio-only?)))
+                (bind (group allow-audio-only? zone . players) info
+                  (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group audio-only? zone))))
+                                        user-data: (list 'group group allow-audio-only? zone))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3041,7 +3027,7 @@
       (let ((tree (people-tree self)))
         (let ((data (or (get-single-selected-data tree) (list 'group #f #f 'start))))
           (bind (kind . rest) data
-            (define (select zone group audio-only? player)
+            (define (select zone group allow-audio-only? player)
               (set! selected-message "")
               (unless (equal? zone selected-zone)
                 (unless zone-loading
@@ -3052,13 +3038,13 @@
                   (set! selected-message (format "{a} is loading..." (last zone)))))
               (set! selected-zone zone)
               (set! selected-group group)
-              (set! selected-audio-only? audio-only?)
+              (set! selected-allow-audio-only? allow-audio-only?)
               (set! selected-player player)
               (set! selected-data data)
               (when (selected-loaded? self)
                 (set! active-zone zone)
                 (set! active-group group)
-                (set! active-audio-only? audio-only?)
+                (set! active-allow-audio-only? allow-audio-only?)
                 (set! active-player player)
                 (set! active-data data))
               (update-center-interface space))
@@ -3068,8 +3054,8 @@
                (bind (player group zone) rest
                  (select zone group #f player)))
               ((group)
-               (bind (group audio-only? zone) rest
-                 (select zone group audio-only? #f)))
+               (bind (group allow-audio-only? zone) rest
+                 (select zone group allow-audio-only? #f)))
               ((zone)
                (select data #f #f #f))))))))
   
@@ -3091,7 +3077,7 @@
               (let ((kind (car data)))
                 (cond (active-group
                        (when (eq? kind 'group)
-                         (join-circle self active-group active-audio-only?)))
+                         (join-circle self active-group active-allow-audio-only?)))
                       ((and active-zone (neq? active-zone 'start))
                        (when (eq? kind 'zone)
                          (enter-zone self)))))))))))
@@ -3757,7 +3743,8 @@
           (set-visible? (child root 'circle-label) #f)
           (set-visible? (child root 'circle-view) #f)
           (set-visible? (child root 'circle-invalid) #f)
-          (set-visible? (child root 'circle-create) #f)))
+          (set-visible? (child root 'circle-create) #f)
+          (set-visible? (child root 'circle-allow-audio-only?) #f)))
       (layout-view interface)))
   
   
