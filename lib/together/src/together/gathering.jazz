@@ -1828,12 +1828,10 @@
   (slot active-zone                initialize #f getter generate)
   (slot active-group               initialize #f getter generate)
   (slot active-allow-audio-only?   initialize #f getter generate)
-  (slot active-player              initialize #f getter generate)
   (slot active-data                initialize #f getter generate)
   (slot selected-zone              initialize #f getter generate)
   (slot selected-group             initialize #f getter generate)
   (slot selected-allow-audio-only? initialize #f getter generate)
-  (slot selected-player            initialize #f getter generate)
   (slot selected-data              initialize #f getter generate)
   (slot selected-message           initialize #f getter generate)
   (slot selected-color             initialize #f getter generate)
@@ -2605,7 +2603,6 @@
               (set! active-zone selected-zone)
               (set! active-group selected-group)
               (set! active-allow-audio-only? selected-allow-audio-only?)
-              (set! active-player selected-player)
               (set! active-data selected-data))))
         (when (is? space Gathering-Space)
           (update-center-interface space)))))
@@ -3024,20 +3021,15 @@
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-allow-audio-only? allow-audio-only?)
-              (set! selected-player player)
               (set! selected-data data)
               (when (selected-loaded? self)
                 (set! active-zone zone)
                 (set! active-group group)
                 (set! active-allow-audio-only? allow-audio-only?)
-                (set! active-player player)
                 (set! active-data data))
               (update-center-interface space))
             
             (case kind
-              ((player)
-               (bind (player group zone) rest
-                 (select zone group #f player)))
               ((group)
                (bind (group allow-audio-only? zone) rest
                  (select zone group allow-audio-only? #f)))
@@ -3056,16 +3048,15 @@
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
       (when (selected-loaded? self)
-        (unless active-player
-          (let ((data (get-single-selected-data (people-tree self))))
-            (when data
-              (let ((kind (car data)))
-                (cond (active-group
-                       (when (eq? kind 'group)
-                         (join-circle self active-group active-allow-audio-only?)))
-                      ((and active-zone (neq? active-zone 'start))
-                       (when (eq? kind 'zone)
-                         (enter-zone self)))))))))))
+        (let ((data (get-single-selected-data (people-tree self))))
+          (when data
+            (let ((kind (car data)))
+              (cond (active-group
+                     (when (eq? kind 'group)
+                       (join-circle self active-group active-allow-audio-only?)))
+                    ((and active-zone (neq? active-zone 'start))
+                     (when (eq? kind 'zone)
+                       (enter-zone self))))))))))
   
   
   (method package (focus-command-text self)
