@@ -2331,8 +2331,7 @@
   
   
   (method package (create&join-circle self)
-    (let ((interface (current-interface))
-          (tier (current-client))
+    (let ((tier (current-client))
           (world (current-world)))
       (let ((microphone? (has-microphone?)))
         (if (not microphone?)
@@ -2350,6 +2349,7 @@
                         (clear-message world)
                         (set-string-content text "")
                         (content-changed view)
+                        (set-checked? (child (get-root space) 'circle-allow-audio-only?) #f)
                         (join-circle self name allow-audio-only?))))))))))))
   
   
