@@ -484,7 +484,8 @@
         (<!>                 name: explore-interface          active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t)
-        (<!>                 name: leave-group                active?: #t))
+        (<!>                 name: leave-group                active?: #t)
+        (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t))
       (<together-share!>
@@ -1002,6 +1003,7 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t)
+        (<!>                 name: leave-circle               active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
@@ -1225,6 +1227,7 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t)
+        (<!>                 name: leave-circle               active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
@@ -1836,6 +1839,7 @@
   (slot selected-message           initialize #f getter generate)
   (slot selected-color             initialize #f getter generate)
   (slot zone-loading               initialize #f getter generate)
+  (slot in-group?                  initialize #f getter generate)
   (slot circle-name                initialize #f getter generate)
   (slot circle-no                  initialize #f getter generate)
   (slot circle-allow-audio-only?   initialize #f getter generate)
@@ -1993,8 +1997,7 @@
       (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
-        (new Leave-Tool name: 'leave parent: to position: {Point 202 9} resource: {Image-Resource "Link"} visible?: #f action-handler: (~ on-leave self)))
+        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -2080,14 +2083,12 @@
     (let ((interface (current-interface))
           (me (current-me)))
       (let ((to (child interface '(command-to to)))
-            (invite (child interface '(command-to invite)))
-            (leave (child interface '(command-to leave))))
+            (invite (child interface '(command-to invite))))
         (if (not message-recipient)
             (begin
               (set-title to "The gathering")
               (set-color to {Color red: 32 green: 205 blue: 33})
-              (set-visible? invite #f)
-              (set-visible? leave #f))
+              (set-visible? invite #f))
           (bind (kind name) message-recipient
             (case kind
               ((player)
@@ -2099,21 +2100,17 @@
                           (set-title to (if party (format "<{a}>" name) name))
                           (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
                           (cond ((not circle-name)
-                                 (set-visible? invite (and (not me?) (not party)))
-                                 (set-visible? leave (and me? party)))
+                                 (set-visible? invite (and (not me?) (not party))))
                                 (else
-                                 (set-visible? invite #f)
-                                 (set-visible? leave #f)))))
+                                 (set-visible? invite #f)))))
                        (else
                         (set-title to name)
                         (set-color to {Color White})
-                        (set-visible? invite #f)
-                        (set-visible? leave #f)))))
+                        (set-visible? invite #f)))))
               ((group)
                (set-title to name)
                (set-color to group-color)
-               (set-visible? invite #f)
-               (set-visible? leave #f))))))))
+               (set-visible? invite #f))))))))
   
   
   (method package (selected-loaded? self)
@@ -2128,18 +2125,19 @@
   (method package (update-group-actions self)
     (let ((bindings (current-bindings)))
       (let ((menu (child bindings 'together-menu))
-            (media (child bindings 'together-media))
-            (group? (in-group/circle? self)))
-        (set-visible? (child menu 'leave-group) group?)
-        (set-visible? (child media 'toggle-mic) group?))))
-  
-  
-  (method package (in-group/circle? self)
-    (let ((client (current-tier)))
-      (or (let ((character-name (get-character-name client)))
-            (let ((player-info (registered-player-info character-name)))
-              (and player-info (get-party player-info))))
-          circle-name)))
+            (media (child bindings 'together-media)))
+        (cond (circle-name
+               (set-visible? (child menu 'leave-group) #f)
+               (set-visible? (child menu 'leave-circle) #t)
+               (set-visible? (child media 'toggle-mic) #t))
+              (in-group?
+               (set-visible? (child menu 'leave-group) #t)
+               (set-visible? (child menu 'leave-circle) #f)
+               (set-visible? (child media 'toggle-mic) #t))
+              (else
+               (set-visible? (child menu 'leave-group) #f)
+               (set-visible? (child menu 'leave-circle) #f)
+               (set-visible? (child media 'toggle-mic) #f))))))
   
   
   ;;;
@@ -2227,6 +2225,11 @@
   
   
   (method (on-leave-group self evt)
+    (let ((tier (current-client)))
+      (client-leave tier)))
+  
+  
+  (method (on-leave-circle self evt)
     (leave-circle self))
   
   
@@ -2497,6 +2500,8 @@
       (set-processor-exited-hook tier (~ processor-exited self))
       (set-zone-loaded-hook tier (~ zone-loaded self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
+      (set-group-join-hook tier (~ group-join self))
+      (set-group-leave-hook tier (~ group-leave self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
       (set-render-hook video (~ render-video self))
@@ -3458,6 +3463,23 @@
               (display-error world (format "{a}" info))
             (uninstall-vista)
             (install-vista))))))
+  
+  
+  ;;;
+  ;;;; Group
+  ;;;
+  
+  
+  (method (group-join self)
+    (set! in-group? #t)
+    (update-group-actions self)
+    (setup-visibility mainbar))
+  
+  
+  (method (group-leave self)
+    (set! in-group? #f)
+    (update-group-actions self)
+    (setup-visibility mainbar))
   
   
   ;;;
