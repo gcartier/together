@@ -97,6 +97,21 @@
 ;;;
 
 
+(definition protected (circle-name-invalid name name-label max-length)
+  (cond ((empty-string? name)
+         (format "{a} cannot be empty" name-label))
+        ((not (every? (lambda (c)
+                        (or (eqv? c #\-)
+                            (eqv? c #\space)
+                            (alphanumeric? c)))
+                      name))
+         (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
+        ((> (string-length name) max-length)
+         (format "{a} cannot be longer than {a} characters" name-label max-length))
+        (else
+         #f)))
+
+
 (class Name-View extends Border-View
   
   
@@ -130,18 +145,9 @@
   (method package (name-invalid self)
     (let ((text (locate self 'text)))
       (let ((name (trim-whitespace (get-string-content text))))
-        (cond ((empty-string? name)
-               "")
-              ((not (every? (lambda (c)
-                              (or (eqv? c #\-)
-                                  (eqv? c #\space)
-                                  (alphanumeric? c)))
-                            name))
-               (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
-              ((> (string-length name) max-length)
-               (format "{a} cannot be longer than {a} characters" name-label max-length))
-              (else
-               #f)))))
+        (if (empty-string? name)
+            ""
+          (circle-name-invalid name name-label max-length)))))
   
   
   (method (on-return self evt)

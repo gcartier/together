@@ -1009,6 +1009,7 @@
         (<!>                 name: toggle-debug-areas         active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
+        (<!>                 name: create-circle              active?: #t)
         (<!>                 name: leave-group                active?: #t)
         (<!>                 name: leave-circle               active?: #t)
         (<!>                 name: central-menu               active?: #t))
@@ -2134,14 +2135,17 @@
       (let ((menu (child bindings 'together-menu))
             (media (child bindings 'together-media)))
         (cond (circle-name
+               (set-visible? (child menu 'create-circle) #f)
                (set-visible? (child menu 'leave-group) #f)
                (set-visible? (child menu 'leave-circle) #t)
                (set-visible? (child media 'toggle-mic) #t))
               (in-group?
+               (set-visible? (child menu 'create-circle) #f)
                (set-visible? (child menu 'leave-group) #t)
                (set-visible? (child menu 'leave-circle) #f)
                (set-visible? (child media 'toggle-mic) #t))
               (else
+               (set-visible? (child menu 'create-circle) #t)
                (set-visible? (child menu 'leave-group) #f)
                (set-visible? (child menu 'leave-circle) #f)
                (set-visible? (child media 'toggle-mic) #f))))))
@@ -2229,6 +2233,29 @@
              (close frame))))
         ((Sphere-Space)
          (toggle-radial-menu world)))))
+  
+  
+  (method (on-create-circle self evt)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((microphone? (has-microphone?)))
+        (if (not microphone?)
+            (display-error world "No microphone found")
+          (let ((allow-audio-only? #f)
+                (camera? (has-camera?)))
+            (if (and (not camera?) (not allow-audio-only?))
+                (display-error world "No camera found")
+              (ask-string
+                title: "Create new circle"
+                prefix: "Name:"
+                action: (lambda (name)
+                          (let ((invalid (circle-name-invalid name "Circle name" 40)))
+                            (if invalid
+                                (display-error world invalid)
+                              (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                                (if (string? no/exception)
+                                    (display-error world no/exception)
+                                  (join-circle self name allow-audio-only?)))))))))))))
   
   
   (method (on-leave-group self evt)
@@ -2391,8 +2418,9 @@
           (udp (current-udp))
           (world (current-world)))
       (bind (no allow-audio-only? . streams) no/streams/exception
-        (reset-chronology)
-        (bind-camera)
+        (when (eq? active-zone 'start)
+          (reset-chronology)
+          (bind-camera))
         (when (auto-live?)
           (require-live-stream tier))
         (start udp)
@@ -2413,7 +2441,8 @@
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no allow-audio-only? streams)
         (install-circle-hooks self)
-        (goto-circle-space self 'circle feedback?: #f)
+        (when (eq? active-zone 'start)
+          (goto-circle-space self 'circle feedback?: #f))
         (effective-base-profile-update)
         (update-group-actions self)
         (setup-visibility mainbar))))
@@ -2436,7 +2465,6 @@
   (method (leave-circle self)
     (let ((tier (current-client))
           (zone (current-zone)))
-      (reset-render-rate)
       (uninstall-circle-hooks self)
       (let ((udp-client (get-udp-client tier)))
         (stop udp-client)
@@ -2444,15 +2472,19 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (leave-group tier circle-name 'observer)
-      (circle-uninstall-camera)
-      (restore-fov)
-      (install-vista)
+      (when (eq? active-zone 'start)
+        (circle-uninstall-camera)
+        (restore-fov)
+        (install-vista))
       (set! circle-name #f)
       (set! circle-no #f)
       (clear-snapshot-property 'live.circle-name)
-      (goto-space self 'gathering)
-      (restore-active-zone self)
-      (reset-evolution)))
+      (when (eq? active-zone 'start)
+        (goto-space self 'gathering)
+        (restore-active-zone self)
+        (reset-evolution))
+      (update-group-actions self)
+      (setup-visibility mainbar)))
   
   
   (method (rejoin-group self group-no)
