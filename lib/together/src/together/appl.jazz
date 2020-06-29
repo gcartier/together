@@ -771,28 +771,28 @@
                (get-visible? view)))))))
 
 
-(define-parameter avatar-space
+(define-parameter avatar-mode
   (new World-Parameter
     (lambda ()
-      (is? (current-space) Avatar-Space))))
+      (avatar-mode? (current-together)))))
 
 
-(define-parameter circle-space
+(define-parameter circle-mode
   (new World-Parameter
     (lambda ()
-      (is? (current-space) Circle-Space))))
+      (circle-mode? (current-together)))))
 
 
-(define-parameter focus-space
+(define-parameter focus-mode
   (new World-Parameter
     (lambda ()
-      (is? (current-space) Focus-Space))))
+      (focus-mode? (current-together)))))
 
 
-(define-parameter gallery-space
+(define-parameter gallery-mode
   (new World-Parameter
     (lambda ()
-      (is? (current-space) Gallery-Space))))
+      (gallery-mode? (current-together)))))
 
 
 ;;;
@@ -813,10 +813,10 @@
       (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-media toggle-mic} parameter: mic)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-media toggle-camera} parameter: camera)
       (<World-Separator>)
-      (<World-Parameter-Button> name: avatar-space        resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-space} parameter: avatar-space)
-      (<World-Parameter-Button> name: circle-space        resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-space} parameter: circle-space)
-      (<World-Parameter-Button> name: focus-space         resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-circle focus-space} parameter: focus-space)
-      (<World-Parameter-Button> name: gallery-space       resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-circle gallery-space} parameter: gallery-space)
+      (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
+      (<World-Parameter-Button> name: circle-mode         resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-mode} parameter: circle-mode)
+      (<World-Parameter-Button> name: focus-mode          resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-circle focus-mode} parameter: focus-mode)
+      (<World-Parameter-Button> name: gallery-mode        resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-circle gallery-mode} parameter: gallery-mode)
       (<World-Separator>)
       (<World-Parameter-Button> name: toggle-people       resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-people toggle-people} parameter: people)
       (<World-Parameter-Button> name: toggle-chat         resource: {Icon-Resource "Symbol/Symbol-Two"} action-handler: {Action world-chat toggle-chat} parameter: chat)
@@ -934,10 +934,10 @@
   
   (form
     (<install>                                        title: "Circle"
-      (<World-Action-Item> name: avatar-space         title: "Avatar" action-handler: {Event-Handler :together on-avatar-space} shortcut: {Shortcut :alt #\A} description: "Avatar space.")
-      (<World-Action-Item> name: circle-space         title: "Circle" action-handler: {Event-Handler :together on-circle-space} shortcut: {Shortcut :alt #\D} description: "Circle space.")
-      (<World-Action-Item> name: focus-space          title: "Focus" action-handler: {Event-Handler :together on-focus-space} shortcut: {Shortcut :alt #\F} description: "Focus space.")
-      (<World-Action-Item> name: gallery-space        title: "Gallery" action-handler: {Event-Handler :together on-gallery-space} shortcut: {Shortcut :alt #\G} description: "Gallery space.")
+      (<World-Action-Item> name: avatar-mode          title: "Avatar" action-handler: {Event-Handler :together on-avatar-mode} shortcut: {Shortcut :alt #\A} description: "Avatar mode.")
+      (<World-Action-Item> name: circle-mode          title: "Circle" action-handler: {Event-Handler :together on-circle-mode} shortcut: {Shortcut :alt #\D} description: "Circle mode.")
+      (<World-Action-Item> name: focus-mode           title: "Focus" action-handler: {Event-Handler :together on-focus-mode} shortcut: {Shortcut :alt #\F} description: "Focus mode.")
+      (<World-Action-Item> name: gallery-mode         title: "Gallery" action-handler: {Event-Handler :together on-gallery-mode} shortcut: {Shortcut :alt #\G} description: "Gallery mode.")
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" shortcut: {Shortcut "Click image"})
       (<World-Action-Item> name: enter-press          title: "Go to home view" shortcut: {Shortcut Return} description: "Enter.")
       (<World-Action-Item> name: space-press          title: "Rotate" shortcut: {Shortcut Space} description: "Space.")
@@ -1175,10 +1175,10 @@
         (<!>                 name: toggle-camera              visible?: #t)
         (<!>                 name: change-quality             visible?: #t))
       (<together-circle!>
-        (<!>                 name: avatar-space               visible?: #t)
-        (<!>                 name: circle-space               visible?: #t)
-        (<!>                 name: focus-space                visible?: #t)
-        (<!>                 name: gallery-space              visible?: #t)
+        (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
         (<!>                 name: enter-press                visible?: #t)
         (<!>                 name: space-press                visible?: #t)
@@ -1339,10 +1339,10 @@
         (<!>                 name: change-quality             visible?: #t)
         (<!>                 name: toggle-denoise             visible?: #t))
       (<together-circle!>
-        (<!>                 name: avatar-space               visible?: #t)
-        (<!>                 name: circle-space               visible?: #t)
-        (<!>                 name: focus-space                visible?: #t)
-        (<!>                 name: gallery-space              visible?: #t)
+        (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
         (<!>                 name: enter-press                visible?: #t)
         (<!>                 name: space-press                visible?: #t)
@@ -1609,10 +1609,10 @@
         (<!>                 name: change-quality             visible?: #t)
         (<!>                 name: toggle-denoise             visible?: #t))
       (<together-circle!>
-        (<!>                 name: avatar-space               visible?: #t)
-        (<!>                 name: circle-space               visible?: #t)
-        (<!>                 name: focus-space                visible?: #t)
-        (<!>                 name: gallery-space              visible?: #t)
+        (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
         (<!>                 name: enter-press                visible?: #t)
         (<!>                 name: space-press                visible?: #t)

@@ -145,7 +145,7 @@
 (definition (select-camera-resolution resolution feedback)
   (let ((client (current-client))
         (space (current-space)))
-    (if (is-not? space together.gathering:Circling-Space)
+    (if (is-not? space together.gathering:Void-Space)
         (begin
           (bell)
           (feedback "Only available in circle"))
