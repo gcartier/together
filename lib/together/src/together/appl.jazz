@@ -949,7 +949,7 @@
       (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image"))))
 
 
-(class Together-Avatar-Actions extends World-Actions
+(class Together-Zone-Actions extends World-Actions
   
   
   (form
@@ -1123,7 +1123,7 @@
       ;; Together
       (<Together-Media-Actions>      name: together-media)
       (<Together-Circle-Actions>     name: together-circle)
-      (<Together-Avatar-Actions>     name: together-avatar)
+      (<Together-Zone-Actions>       name: together-zone)
       (<Together-Viewer-Actions>     name: together-viewer)
       (<Together-Share-Actions>      name: together-share)
       @wait
@@ -1188,7 +1188,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
-      (<together-avatar!>
+      (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
@@ -1352,7 +1352,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
-      (<together-avatar!>
+      (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>
@@ -1622,7 +1622,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t))
-      (<together-avatar!>
+      (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
       (<together-share!>

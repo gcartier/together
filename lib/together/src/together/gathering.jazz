@@ -271,7 +271,7 @@
          (toggle-visible? (child interface 'chat))
          (toggle-visible? (child interface 'command-to))
          (toggle-visible? (child interface 'command)))
-        ((Avatar-Space)
+        ((Zone-Space)
          (cond ((get-visible? (child interface 'chat))
                 (set-visible? (child interface 'chat) #f)
                 (set-visible? (child interface 'command-to) #f)
@@ -831,12 +831,12 @@
 
 
 ;;;
-;;;; Avatar-Space
+;;;; Zone-Space
 ;;;
 
 
-(define-trait avatar-bindings Bindings
-  (<Trait>                   name: avatar
+(define-trait zone-bindings Bindings
+  (<Trait>                   name: zone
     (<install>
       (<world-main!>
         (<!>                 name: video-options              active?: #t)
@@ -1014,37 +1014,11 @@
         (<!>                 name: leave-circle               active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t)
-        @wait
-        (<!>                 name: toggle-camera              active?: #t)
-        @wait
-        (<!>                 name: change-quality             active?: #t)
-        @wait
-        (<!>                 name: toggle-denoise             active?: #t))
-      @wait
-      (<together-circle!>
-        (<!>                 name: avatar-space               active?: #t)
-        (<!>                 name: circle-space               active?: #t)
-        (<!>                 name: focus-space                active?: #t)
-        (<!>                 name: gallery-space              active?: #t))
-      (<together-avatar!>
+        (<!>                 name: toggle-mic                 active?: #t))
+      (<together-zone!>
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t))
       (<together-share!>
-        @wait
-        (<!>                 name: preprocess-streams         active?: #t)
-        @wait
-        (<!>                 name: toggle-streams             active?: #t)
-        @wait
-        (<!>                 name: add-image                  active?: #t)
-        @wait
-        (<!>                 name: add-video                  active?: #t)
-        @wait
-        (<!>                 name: add-music                  active?: #t)
-        @wait
-        (<!>                 name: remove-stream              active?: #t)
-        @wait
-        (<!>                 name: toggle-screen-share        active?: #t)
         (<!>                 name: capture-screen             active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
@@ -1072,11 +1046,11 @@
         (<!>                 name: test                       active?: #t)))))
 
 
-(class Avatar-Space extends Sphere-Space
+(class Zone-Space extends Sphere-Space
   
   
   (method override (space-name self)
-    'avatar)
+    'zone)
   
   
   (method override (space-install self)
@@ -1122,7 +1096,7 @@
 
   
   (method override (space-bindings self)
-    (list avatar-bindings))
+    (list zone-bindings))
   
   
   (method override (space-actions self)
@@ -1146,7 +1120,7 @@
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
                   (find-actions 'together-media)
-                  (find-actions 'together-avatar)
+                  (find-actions 'together-zone)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-experiment)
@@ -1181,6 +1155,67 @@
   
   (method (on-command-slash self evt)
     (chat-slash (together:current-together))))
+
+
+;;;
+;;;; Avatar-Space
+;;;
+
+
+(define-trait avatar-bindings Bindings
+  (<Trait>                   name: avatar
+    (<install>
+      (<together-menu!>
+        (<!>                 name: create-circle              active?: #t)
+        (<!>                 name: leave-group                active?: #t)
+        (<!>                 name: leave-circle               active?: #t)
+        (<!>                 name: central-menu               active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-camera              active?: #t)
+        (<!>                 name: change-quality             active?: #t)
+        (<!>                 name: toggle-denoise             active?: #t))
+      (<together-circle!>
+        (<!>                 name: avatar-space               active?: #t)
+        (<!>                 name: circle-space               active?: #t)
+        (<!>                 name: focus-space                active?: #t)
+        (<!>                 name: gallery-space              active?: #t))
+      (<together-share!>
+        (<!>                 name: preprocess-streams         active?: #t)
+        (<!>                 name: toggle-streams             active?: #t)
+        (<!>                 name: add-image                  active?: #t)
+        (<!>                 name: add-video                  active?: #t)
+        (<!>                 name: add-music                  active?: #t)
+        (<!>                 name: remove-stream              active?: #t)
+        (<!>                 name: toggle-screen-share        active?: #t)
+        (<!>                 name: capture-screen             active?: #t))
+      (<together-debug!>
+        (<!>                 name: toggle-mode                active?: #t)
+        (<!>                 name: toggle-hide                active?: #t)
+        (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-media         active?: #t)
+        (<!>                 name: toggle-debug-flow          active?: #t)
+        (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: request-replays            active?: #t)
+        (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: test                       active?: #t)))))
+
+
+(class Avatar-Space extends Zone-Space
+  
+  
+  (method override (space-name self)
+    'avatar)
+  
+  
+  (method override (space-bindings self)
+    (list zone-bindings avatar-bindings))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'together-circle))
+            (nextmethod self))))
 
 
 ;;;
@@ -1882,6 +1917,7 @@
                        ((circle) (new Circle-Space))
                        ((focus) (new Focus-Space))
                        ((gallery) (new Gallery-Space))
+                       ((zone) (new Zone-Space))
                        ((avatar) (new Avatar-Space))
                        ((script) (new Script-Space))
                        ((replay) (new Replay-Space))
@@ -2285,7 +2321,7 @@
           (let ((no fade-no))
             (define (fade?)
               (and (= no fade-no)
-                   (is? (current-space) Avatar-Space)
+                   (is? (current-space) Zone-Space)
                    (not (get-central-menu world))))
             
             (let ((thread
@@ -2306,7 +2342,7 @@
                       'fade)))
               (set! fade-thread thread)
               (thread-start! thread)))
-          (goto-space self 'avatar)
+          (goto-space self 'zone)
           (setup-visibility mainbar)
           (set-mode me 'player)
           (add-snapshot-property 'live.player-mode (get-mode me))
@@ -2320,7 +2356,7 @@
           (me (current-me)))
       (reset-chronology)
       (uninstall-vista)
-      (goto-space self 'avatar)
+      (goto-space self 'zone)
       (setup-visibility mainbar)
       (set-mode me 'player)
       (add-snapshot-property 'live.player-mode (get-mode me))
@@ -3361,7 +3397,7 @@
       
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
-          (if (and (is? space Avatar-Space) (empty-string? content))
+          (if (and (is? space Zone-Space) (empty-string? content))
               (hide-command world)
             (unless (whitespace? content)
               (set! previous-command content)
@@ -3373,14 +3409,14 @@
                       (when cont
                         (cont)))))
                 (set-string-content text "")
-                (when (is? space Avatar-Space)
+                (when (is? space Zone-Space)
                   (hide-command world)))))))))
   
   
   (method (command-escape self command)
     (let ((world (current-world))
           (space (current-space)))
-      (when (is? space Avatar-Space)
+      (when (is? space Zone-Space)
         (hide-command world))))
   
   
