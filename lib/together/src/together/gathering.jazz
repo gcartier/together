@@ -483,11 +483,7 @@
         (<!>                 name: toggle-profiler            active?: #t)
         (<!>                 name: explore-interface          active?: #t))
       (<together-menu!>
-        (<!>                 name: central-menu               active?: #t)
-        (<!>                 name: leave-group                active?: #t)
-        (<!>                 name: leave-circle               active?: #t))
-      (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t))
+        (<!>                 name: central-menu               active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: capture-screen             active?: #t))
@@ -510,6 +506,24 @@
         (<!>                 name: edit-script8               active?: #t)
         (<!>                 name: edit-script9               active?: #t)
         (<!>                 name: edit-script0               active?: #t)))))
+
+
+(define-trait gathering-group-bindings Bindings
+  (<Trait>                   name: gathering
+    (<install>
+      (<together-menu!>
+        (<!>                 name: leave-group                active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t)))))
+
+
+(define-trait gathering-circle-bindings Bindings
+  (<Trait>                   name: gathering
+    (<install>
+      (<together-menu!>
+        (<!>                 name: leave-circle               active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t)))))
 
 
 (class Gathering-Space extends Together-Space
@@ -539,11 +553,8 @@
           (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'circle-join parent: root title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
-          (new Kind-Label name: 'circle-label parent: root title: "New circle name" location: '(center (center -60)) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: 'tail)
-          (new Name-View name: 'circle-view parent: root location: '(center (center -30)) size: {Dimension 300 24} border-type: 'solid border-color: {Color Dark-Gray} action-view: 'circle-create invalid-view: 'circle-invalid option-view: 'circle-allow-audio-only? name-label: "Circle name" max-length: 40)
-          (new Name-Invalid name: 'circle-invalid parent: root location: '(center (center -8)) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
-          (new Push-Button name: 'circle-create parent: root title: "Create & Join" enabled?: #f location: '(center (center 35)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-create&join self))
-          (new Check-Box name: 'circle-allow-audio-only? parent: root title: "Allow audio-only" location: '(center (center 70)) size: {Dimension 106 16} visible?: #f)
+          (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
+          (set-action-handler (child root '(circle-create create)) (~ on-create&join self))
           (set! self.root root)))))
   
   
@@ -564,11 +575,7 @@
         (let ((admin-visible? (get-visible? (child interface 'admin))))
           (set-visible? (child root 'circle) (not admin-visible?))
           (set-visible? (child root 'circle-join) (not admin-visible?))))
-      (set-visible? (child root 'circle-label) #t)
-      (set-visible? (child root 'circle-view) #t)
-      (set-visible? (child root 'circle-invalid) #t)
       (set-visible? (child root 'circle-create) #t)
-      (set-visible? (child root 'circle-allow-audio-only?) #f)
       (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #t)
       (set-visible? (child interface 'people) #t)
@@ -603,7 +610,6 @@
   
   (method override (space-activate self)
     (nextmethod self)
-    (update-group-actions (current-together))
     (setup-visibility mainbar)
     (show-mainbar self)
     (let ((world (current-world)))
@@ -624,7 +630,12 @@
   
   
   (method override (space-bindings self)
-    (list gathering-bindings))
+    (let ((together (current-together)))
+      (let ((grouped? (grouped? together))
+            (circling? (circling? together)))
+        `(,gathering-bindings
+          ,@(if grouped? (list gathering-group-bindings) '())
+          ,@(if circling? (list gathering-circle-bindings) '())))))
 
   
   (method override (space-actions self)
@@ -681,14 +692,9 @@
                  (enter-zone together)))))))
   
   
-  (method override (name-return self)
-    (let ((together (current-together)))
-      (create&join-circle together)))
-  
-  
   (method (circle-create-enabled? self)
     (let ((together (current-together)))
-      (let ((circle-view (child root 'circle-view)))
+      (let ((circle-view (child root '(circle-create view))))
         (and (selected-loaded? together) (not (name-invalid circle-view))))))
   
   
@@ -698,7 +704,7 @@
           (world (current-world)))
       (let ((active-zone (get-active-zone together))
             (active-group (get-active-group together))
-            (circle-name (get-circle-name together)))
+            (circling? (circling? together)))
         (let ((loaded? (selected-loaded? together)))
           (define (enter-visible flag)
             (set-visible? (child root 'zone) flag)
@@ -711,21 +717,23 @@
             (set-enabled? (child root 'circle-join) loaded?))
           
           (define (create-visible flag)
-            (let ((circle-view (child root 'circle-view)))
-              (set-visible? (child root 'circle-label) flag)
-              (set-visible? circle-view flag)
-              (set-enabled? (locate circle-view 'text) loaded?)
-              (set-visible? (child root 'circle-invalid) flag)
-              (set-visible? (child root 'circle-create) flag)
-              (let ((enabled? (circle-create-enabled? self)))
-                (set-enabled? (child root 'circle-create) enabled?)
-                (set-visible? (child root 'circle-allow-audio-only?) (and flag enabled?)))))
+            (let ((create (child root 'circle-create)))
+              (set-visible? create flag)
+              (let ((circle-view (child create 'view)))
+                (set-visible? (child create 'label) flag)
+                (set-visible? circle-view flag)
+                (set-enabled? (locate circle-view 'text) loaded?)
+                (set-visible? (child create 'invalid) flag)
+                (set-visible? (child create 'create) flag)
+                (let ((enabled? (circle-create-enabled? self)))
+                  (set-enabled? (child create 'create) enabled?)
+                  (set-visible? (child create 'allow-audio-only?) (and flag enabled?))))))
           
           (if loaded?
               (set-title (child root 'selected-label) "")
             (set-color (child root 'selected-label) (get-selected-color together))
             (set-title (child root 'selected-label) (get-selected-message together)))
-          (set-title (child root 'circle-join) (if circle-name "Enter" "Join"))
+          (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
           (cond ((get-central-menu world)
                  (enter-visible #f)
                  (join-visible #f)
@@ -756,7 +764,7 @@
   
   (method (on-join self evt)
     (let ((together (current-together)))
-      (if (get-circle-name together)
+      (if (circling? together)
           (enter-circle together)
         (join-circle together (get-active-group together) (get-active-allow-audio-only? together)))))
   
@@ -773,11 +781,10 @@
   (method (on-about self evt)
     (let ((interface (current-interface)))
       (define (closer frame)
-        (set-visible? (child mainbar 'name) #t)
-        (set-visible? (child mainbar 'profile) #t)
         (set-visible? (child root 'selected-label) #t)
         (set-visible? (child root 'circle) #t)
         (set-visible? (child root 'circle-join) #t)
+        (set-visible? (child root 'circle-create) #t)
         (set-visible? (child interface 'people-label) #t)
         (set-visible? (child interface 'people) #t)
         (set-visible? (child interface 'chat-label) #t)
@@ -802,8 +809,6 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (set! view-focused (active-focus))
-      (set-visible? (child mainbar 'name) #f)
-      (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child root 'selected-label) #f)
       (set-visible? (child root 'circle) #f)
       (set-visible? (child root 'circle-join) #f)
@@ -822,11 +827,7 @@
       (set-visible? (child root 'zone-enter) #f)
       (set-visible? (child root 'circle) #f)
       (set-visible? (child root 'circle-join) #f)
-      (set-visible? (child root 'circle-label) #f)
-      (set-visible? (child root 'circle-view) #f)
-      (set-visible? (child root 'circle-invalid) #f)
       (set-visible? (child root 'circle-create) #f)
-      (set-visible? (child root 'circle-allow-audio-only?) #f)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
 
 
@@ -945,7 +946,6 @@
         (<!>                 name: toggle-debug-areas         active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
-        (<!>                 name: create-circle              active?: #t)
         (<!>                 name: central-menu               active?: #t))
       (<together-zone!>
         (<!>                 name: command-message            active?: #t)
@@ -978,131 +978,30 @@
         (<!>                 name: test                       active?: #t)))))
 
 
-(class Zone-Space extends Sphere-Space
-  
-  
-  (method override (space-name self)
-    'zone)
-  
-  
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world))
-          (video (current-video)))
-      
-      (set-unbind-camera? #t)
-      (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
-      (show-mainbar self)
-      (show-compass world)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter panel)))
-      (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
-      (set-proportion (child interface 'chat) '(400 150))
-      (set-proportion (child interface 'command) '(400 19))
-      (set-visible? (child interface 'command-to) #f)
-      (set-visible? (child interface 'chat) #t)
-      (set-visible? (child interface 'belt) #t)
-      (set-visible? (child mainbar 'profile) #f)
-      (layout-interface)))
-  
-  
-  (method override (space-activate self)
-    (nextmethod self)
-    (let ((world (current-world)))
-      (layout-message world)
-      (layout-working world)))
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (close-main-menu world)
-      (hide-mainbar self)
-      (hide-history world)
-      (hide-compass world)
-      (hide-interface)
-      (reset-panel-stack)))
-
-  
-  (method override (space-bindings self)
-    (let ((together (current-together)))
-      (let ((circling? (get-circle-name together))
-            (avatar? (avatar-mode? together)))
-        (let ((free? (or (not circling?) avatar?)))
-          `(,zone-bindings
-            ,@(if circling? (list circling-bindings avatar-bindings) '())
-            ,@(if free? (list free-bindings) '()))))))
-  
-  
-  (method override (space-actions self)
-    (append (list (find-actions 'world-main)
-                  (find-actions 'world-graphics)
-                  (find-actions 'world-sound)
-                  (find-actions 'world-interface)
-                  (find-actions 'world-zone)
-                  (find-actions 'world-movement)
-                  (find-actions 'world-camera)
-                  (find-actions 'world-game)
-                  (find-actions 'world-spell)
-                  (find-actions 'world-people)
-                  (find-actions 'world-chat)
-                  (find-actions 'world-showcase)
-                  (find-actions 'world-build)
-                  (find-actions 'world-target)
-                  (find-actions 'world-history)
-                  (find-actions 'world-tile)
-                  (find-actions 'world-script)
-                  (find-actions 'world-debug)
-                  (find-actions 'together-menu)
-                  (find-actions 'together-media)
-                  (find-actions 'together-circle)
-                  (find-actions 'together-zone)
-                  (find-actions 'together-share)
-                  (find-actions 'together-profile)
-                  (find-actions 'together-experiment)
-                  (find-actions 'together-script)
-                  (find-actions 'together-debug))
-            (nextmethod self)))
-  
-  
-  (method override (fade-mainbar? self)
-    (not (get-fade-thread (current-together))))
-  
-  
-  (method override (draw-message-offset self)
-    80)
-  
-  
-  (method override (draw-working-offset self)
-    80)
-  
-  
-  (method override (mouse-moved self x y)
-    (nextmethod self x y)
-    (let ((world (current-world)))
-      (unless (get-fade-thread (current-together))
-        (unless (get-central-menu world)
-          (fade-mainbar (new Point$fl$ x y))))))
-  
-  
-  (method (on-command-message self evt)
-    (chat-message (together:current-together)))
-  
-  
-  (method (on-command-slash self evt)
-    (chat-slash (together:current-together))))
+(define-trait zone-group-bindings Bindings
+  (<Trait>                   name: avatar
+    (<install>
+      (<together-menu!>
+        (<!>                 name: leave-group                active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t)))))
 
 
-;;;
-;;;; Avatar
-;;;
+(define-trait zone-not-circling-bindings Bindings
+  (<Trait>                   name: zone
+    (<install>
+      (<together-menu!>
+        (<!>                 name: create-circle              active?: #t)))))
 
 
-(define-trait free-bindings Bindings
+(define-trait zone-circling-bindings Bindings
+  (<Trait>                   name: avatar
+    (<install>
+      (<together-circle!>
+        (<!>                 name: avatar-mode                active?: #t)))))
+
+
+(define-trait zone-free-bindings Bindings
   (<Trait>                   name: free
     (<install>
       (<world-graphics!>
@@ -1182,11 +1081,127 @@
         (<!>                 name: test                       active?: #t)))))
 
 
-(define-trait avatar-bindings Bindings
-  (<Trait>                   name: avatar
-    (<install>
-      (<together-circle!>
-        (<!>                 name: avatar-mode                active?: #t)))))
+(class Zone-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'zone)
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world))
+          (video (current-video)))
+      
+      (set-unbind-camera? #t)
+      (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
+      (show-mainbar self)
+      (show-compass world)
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter panel)))
+      (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
+      (set-proportion (child interface 'chat) '(400 150))
+      (set-proportion (child interface 'command) '(400 19))
+      (set-visible? (child interface 'command-to) #f)
+      (set-visible? (child interface 'chat) #t)
+      (set-visible? (child interface 'belt) #t)
+      (set-visible? (child mainbar 'profile) #f)
+      (layout-interface)))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (close-main-menu world)
+      (hide-mainbar self)
+      (hide-history world)
+      (hide-compass world)
+      (hide-interface)
+      (reset-panel-stack)))
+
+  
+  (method override (space-bindings self)
+    (let ((together (current-together)))
+      (let ((grouped? (grouped? together))
+            (circling? (circling? together))
+            (avatar? (avatar-mode? together)))
+        (let ((free? (or (not circling?) avatar?)))
+          `(,zone-bindings
+            ,@(cond (grouped? (list zone-group-bindings))
+                    (circling? (list circling-bindings zone-circling-bindings))
+                    (else (list zone-not-circling-bindings)))
+            ,@(if (and circling? (eq? (get-circle-mode together) 'circle)) (list circle-bindings) '())
+            ,@(if free? (list zone-free-bindings) '()))))))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'world-main)
+                  (find-actions 'world-graphics)
+                  (find-actions 'world-sound)
+                  (find-actions 'world-interface)
+                  (find-actions 'world-zone)
+                  (find-actions 'world-movement)
+                  (find-actions 'world-camera)
+                  (find-actions 'world-game)
+                  (find-actions 'world-spell)
+                  (find-actions 'world-people)
+                  (find-actions 'world-chat)
+                  (find-actions 'world-showcase)
+                  (find-actions 'world-build)
+                  (find-actions 'world-target)
+                  (find-actions 'world-history)
+                  (find-actions 'world-tile)
+                  (find-actions 'world-script)
+                  (find-actions 'world-debug)
+                  (find-actions 'together-menu)
+                  (find-actions 'together-media)
+                  (find-actions 'together-circle)
+                  (find-actions 'together-zone)
+                  (find-actions 'together-share)
+                  (find-actions 'together-profile)
+                  (find-actions 'together-experiment)
+                  (find-actions 'together-script)
+                  (find-actions 'together-debug))
+            (nextmethod self)))
+  
+  
+  (method override (fade-mainbar? self)
+    (not (get-fade-thread (current-together))))
+  
+  
+  (method override (draw-message-offset self)
+    80)
+  
+  
+  (method override (draw-working-offset self)
+    80)
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (let ((world (current-world)))
+      (unless (get-fade-thread (current-together))
+        (unless (get-central-menu world)
+          (fade-mainbar (new Point$fl$ x y))))))
+  
+  
+  (method (on-command-message self evt)
+    (chat-message (together:current-together)))
+  
+  
+  (method (on-command-slash self evt)
+    (chat-slash (together:current-together))))
 
 
 ;;;
@@ -1558,7 +1573,6 @@
   (<Trait>                   name: circling
     (<install>
       (<together-menu!>
-        (<!>                 name: leave-group                active?: #t)
         (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
@@ -2088,30 +2102,12 @@
     (equal? selected-zone active-zone))
   
   
-  ;;;
-  ;;;; Actions
-  ;;;
+  (method package (grouped? self)
+    in-group?)
   
   
-  (method package (update-group-actions self)
-    (let ((bindings (current-bindings)))
-      (let ((menu (child bindings 'together-menu))
-            (media (child bindings 'together-media)))
-        (cond (circle-name
-               (set-visible? (child menu 'create-circle) #f)
-               (set-visible? (child menu 'leave-group) #f)
-               (set-visible? (child menu 'leave-circle) #t)
-               (set-visible? (child media 'toggle-mic) #t))
-              (in-group?
-               (set-visible? (child menu 'create-circle) #f)
-               (set-visible? (child menu 'leave-group) #t)
-               (set-visible? (child menu 'leave-circle) #f)
-               (set-visible? (child media 'toggle-mic) #t))
-              (else
-               (set-visible? (child menu 'create-circle) #t)
-               (set-visible? (child menu 'leave-group) #f)
-               (set-visible? (child menu 'leave-circle) #f)
-               (set-visible? (child media 'toggle-mic) #f))))))
+  (method package (circling? self)
+    (boolean circle-name))
   
   
   ;;;
@@ -2204,25 +2200,38 @@
   
   (method (create-circle self)
     (let ((tier (current-client))
+          (interface (current-interface))
           (world (current-world)))
       (let ((microphone? (has-microphone?)))
         (if (not microphone?)
             (display-error world "No microphone found")
-          (let ((allow-audio-only? #f)
-                (camera? (has-camera?)))
-            (if (and (not camera?) (not allow-audio-only?))
-                (display-error world "No camera found")
-              (ask-string
-                title: "Create new circle"
-                prefix: "Name:"
-                action: (lambda (name)
-                          (let ((invalid (circle-name-invalid name "Circle name" 40)))
-                            (if invalid
-                                (display-error world invalid)
-                              (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
-                                (if (string? no/exception)
-                                    (display-error world no/exception)
-                                  (join-circle self name allow-audio-only?)))))))))))))
+          (let ((panel (or (find-type interface Create-Circle-Panel)
+                           (let ((panel (new Create-Circle-Panel parent: interface location: 'center size: {Dimension 402 167})))
+                             (define (create evt)
+                               (let ((allow-audio-only? (get-checked? (locate panel '(create allow-audio-only?))))
+                                     (camera? (has-camera?)))
+                                 (if (and (not camera?) (not allow-audio-only?))
+                                     (display-error world "No camera found")
+                                   (let ((text (locate panel '(create view text))))
+                                     (let ((name (trim-whitespace (get-string-content text))))
+                                       (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                                         (if (string? no/exception)
+                                             (display-error world no/exception)
+                                           (clear-message world)
+                                           (close panel)
+                                           (set-circle-center (get-position (current-me)))
+                                           (join-circle self name allow-audio-only?))))))))
+                             
+                             (define (escape evt)
+                               (close panel))
+                             
+                             (layout-view panel)
+                             (layout-view interface)
+                             (set-action-handler (locate panel '(create create)) create)
+                             (set-escape-press-handler (locate panel '(create view text)) escape)
+                             (set-visible? panel #t)
+                             panel))))
+            (acquire-focus (locate panel '(create view text))))))))
   
   
   (method (on-leave-group self evt)
@@ -2330,21 +2339,23 @@
       (let ((microphone? (has-microphone?)))
         (if (not microphone?)
             (display-error world "No microphone found")
-          (let ((allow-audio-only? (get-checked? (child (get-root space) 'circle-allow-audio-only?)))
-                (camera? (has-camera?)))
-            (if (and (not camera?) (not allow-audio-only?))
-                (display-error world "No camera found")
-              (let ((view (child (get-root space) 'circle-view)))
-                (let ((text (locate view 'text)))
-                  (let ((name (trim-whitespace (get-string-content text))))
-                    (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
-                      (if (string? no/exception)
-                          (display-error world no/exception)
-                        (clear-message world)
-                        (set-string-content text "")
-                        (content-changed view)
-                        (set-checked? (child (get-root space) 'circle-allow-audio-only?) #f)
-                        (join-circle self name allow-audio-only?))))))))))))
+          (let ((create (child (get-root space) 'circle-create)))
+            (let ((view (child create 'view))
+                  (allow-audio-only (child create 'allow-audio-only?)))
+              (let ((allow-audio-only? (get-checked? allow-audio-only))
+                    (camera? (has-camera?)))
+                (if (and (not camera?) (not allow-audio-only?))
+                    (display-error world "No camera found")
+                  (let ((text (locate view 'text)))
+                    (let ((name (trim-whitespace (get-string-content text))))
+                      (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                        (if (string? no/exception)
+                            (display-error world no/exception)
+                          (clear-message world)
+                          (set-string-content text "")
+                          (content-changed view)
+                          (set-checked? allow-audio-only #f)
+                          (join-circle self name allow-audio-only?)))))))))))))
   
   
   (method package (join-circle self name allow-audio-only?)
@@ -2414,10 +2425,9 @@
                (change-circle-mode self 'circle 'circle feedback?: #f)
                (circle-home))
               (else
-               (change-circle-mode self 'avatar 'circle feedback?: #f)
-               (space-refresh (current-space))))
+               (change-circle-mode self 'avatar 'circle feedback?: #f)))
+        (space-refresh space)
         (effective-base-profile-update)
-        (update-group-actions self)
         (setup-visibility mainbar))))
   
   
@@ -2432,7 +2442,6 @@
       (goto-space self 'void)
       (change-circle-mode self 'circle 'circle feedback?: #f)
       (circle-home)
-      (update-group-actions self)
       (setup-visibility mainbar)
       (set-mode me 'player)))
   
@@ -2462,7 +2471,6 @@
              (reset-evolution))
             (else
              (space-refresh (current-space))))
-      (update-group-actions self)
       (setup-visibility mainbar)))
   
   
@@ -3240,8 +3248,8 @@
   (method (show-chat self)
     (let ((together (current-together))
           (interface (current-interface)))
-      (let ((circle? (get-circle-name together)))
-        (when circle?
+      (let ((circling? (circling? together)))
+        (when circling?
           (set-visible? (child interface 'chat-label) #t))
         (set-visible? (child interface 'chat) #t)
         (when circle?
@@ -3252,8 +3260,8 @@
   (method (show-command self)
     (let ((together (current-together))
           (interface (current-interface)))
-      (let ((circle? (get-circle-name together)))
-        (when circle?
+      (let ((circling? (circling? together)))
+        (when circling?
           (set-visible? (child interface 'command-to) #t))
         (set-visible? (child interface 'command) #t))))
   
@@ -3534,15 +3542,17 @@
   
   
   (method (group-join self)
-    (set! in-group? #t)
-    (update-group-actions self)
-    (setup-visibility mainbar))
+    (let ((space (current-space)))
+      (set! in-group? #t)
+      (space-refresh space)
+      (setup-visibility mainbar)))
   
   
   (method (group-leave self)
-    (set! in-group? #f)
-    (update-group-actions self)
-    (setup-visibility mainbar))
+    (let ((space (current-space)))
+      (set! in-group? #f)
+      (space-refresh space)
+      (setup-visibility mainbar)))
   
   
   ;;;
@@ -3782,11 +3792,7 @@
           (set-visible? (child root 'zone-enter) #f)
           (set-visible? (child root 'circle) #f)
           (set-visible? (child root 'circle-join) #f)
-          (set-visible? (child root 'circle-label) #f)
-          (set-visible? (child root 'circle-view) #f)
-          (set-visible? (child root 'circle-invalid) #f)
-          (set-visible? (child root 'circle-create) #f)
-          (set-visible? (child root 'circle-allow-audio-only?) #f)))
+          (set-visible? (child root 'circle-create) #f)))
       (layout-view interface)))
   
   
@@ -4384,6 +4390,59 @@
     ((low)      (update-label "Low"      {Color Pastel-Yellow}))
     ((poor)     (update-label "Poor"     {Color Pastel-Orange}))
     ((recovery) (update-label "Recovery" {Color Pastel-Red}))))
+
+
+;;;
+;;;; Create-Circle
+;;;
+
+
+(class Create-Circle-View extends Layout-View
+  
+  
+  (form
+    (<install>                                layout-type: justify
+      (<Kind-Label>   name: label             title: "New circle name" location: (center 0) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
+      (<Name-View>    name: view              location: (center 30) size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: invalid option-view: allow-audio-only? name-label: "Circle name" max-length: 40)
+      (<Name-Invalid> name: invalid           location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Push-Button>  name: create            title: "Create & Join" enabled?: #f location: (center 89) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default})
+      (<Check-Box>    name: allow-audio-only? title: "Allow audio-only" location: (center 134) size: {Dimension 106 16} visible?: #f))))
+
+
+(class Create-Circle-Close extends View
+  
+  
+  (method override (draw self surface context)
+    (let ((width (get-width self))
+          (height (get-height self)))
+      (set-color surface {Color World-Caption})
+      (set-line-width surface 1.5)
+      (line surface 0 0 8 8)
+      (line surface 8 0 0 8)))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((panel (find-ascendant self Create-Circle-Panel)))
+      (close panel))))
+
+
+(class Create-Circle-Panel extends World-Panel
+  
+  
+  (form
+    (<install>                                           layout-type: fill
+      (<Border-View>             name: content           location: center border-color: {Color Medium-Gray} border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .450}
+        (<Create-Circle-View>    name: create
+          (<!>                   name: label             location: (center 10))
+          (<!>                   name: view              location: (center 40))
+          (<!>                   name: invalid           location: (center 66))
+          (<!>                   name: create            location: (center 99))
+          (<!>                   name: allow-audio-only? location: (center 142))
+          (<Create-Circle-Close> name: close             location: (-6 6) size: {Dimension 8 8})))))
+  
+  
+  (method override (escape-close? self)
+    #t))
 
 
 ;;;

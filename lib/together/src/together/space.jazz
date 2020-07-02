@@ -41,14 +41,6 @@
   
   (method protected virtual (escape-press self)
     #f)
-    
-  
-  (method protected virtual (name-return self)
-    )
-  
-  
-  (method protected virtual (name-escape self)
-    )
   
   
   (method protected virtual (draw-message-offset self)

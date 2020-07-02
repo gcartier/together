@@ -97,21 +97,6 @@
 ;;;
 
 
-(definition protected (circle-name-invalid name name-label max-length)
-  (cond ((empty-string? name)
-         (format "{a} cannot be empty" name-label))
-        ((not (every? (lambda (c)
-                        (or (eqv? c #\-)
-                            (eqv? c #\space)
-                            (alphanumeric? c)))
-                      name))
-         (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
-        ((> (string-length name) max-length)
-         (format "{a} cannot be longer than {a} characters" name-label max-length))
-        (else
-         #f)))
-
-
 (class Name-View extends Border-View
   
   
@@ -126,7 +111,7 @@
     (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
       (<Scroller-View>            hscroll?: #f vscroll?: #f
         (<content~>               layout-type: fill
-          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return} escape-press-handler: {Event-Handler :form on-escape})))))
+          (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return})))))
   
   
   (method (on-content-change self evt)
@@ -136,29 +121,34 @@
   (method (content-changed self)
     (let ((space (current-space)))
       (let ((invalid (name-invalid self)))
-        (set-enabled? (child (get-root space) action-view) (not invalid))
+        (set-enabled? (brother self action-view) (not invalid))
         (set-title (brother self invalid-view) (or invalid ""))
         (when option-view
-          (set-visible? (child (get-root space) option-view) (not invalid))))))
+          (set-visible? (brother self option-view) (not invalid))))))
   
   
   (method package (name-invalid self)
     (let ((text (locate self 'text)))
       (let ((name (trim-whitespace (get-string-content text))))
-        (if (empty-string? name)
-            ""
-          (circle-name-invalid name name-label max-length)))))
+        (cond ((empty-string? name)
+               "")
+              ((not (every? (lambda (c)
+                              (or (eqv? c #\-)
+                                  (eqv? c #\space)
+                                  (alphanumeric? c)))
+                            name))
+               (format "{a} can only contain letters, numbers, dashes and spaces" name-label))
+              ((> (string-length name) max-length)
+               (format "{a} cannot be longer than {a} characters" name-label max-length))
+              (else
+               #f)))))
   
   
   (method (on-return self evt)
     (let ((space (current-space)))
-      (when (get-enabled? (child (get-root space) action-view))
-        (name-return space))))
-  
-  
-  (method (on-escape self evt)
-    (let ((space (current-space)))
-      (name-escape space))))
+      (let ((action-view (brother self action-view)))
+        (when (get-enabled? action-view)
+          (process-action action-view self))))))
 
 
 ;;;

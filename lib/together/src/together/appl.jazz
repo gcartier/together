@@ -847,11 +847,11 @@
                       (when (get-visible? child)
                         (set! previous? #t)))))
                 children))
-    (let ((circle? (get-circle-name (current-together))))
-      (set-visible? (child self 'name) (not circle?))
-      (set-visible? (child self 'circle-name) circle?)
-      (set-visible? (child self 'name-separator) circle?)
-      (set-visible? (child self 'profile) circle?))
+    (let ((circling? (circling? (current-together))))
+      (set-visible? (child self 'name) (not circling?))
+      (set-visible? (child self 'circle-name) circling?)
+      (set-visible? (child self 'name-separator) circling?)
+      (set-visible? (child self 'profile) circling?))
     (layout-view self)))
 
 
@@ -912,9 +912,9 @@
   (form
     (<install>                                        title: "Together"
       (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} shortcut: {Shortcut Escape} description: "Show central menu.")
-      (<World-Action-Item> name: create-circle        title: "Create circle" action-handler: {Event-Handler :together on-create-circle} shortcut: {Shortcut :alt #\N} description: "Create and join a new circle.")
-      (<World-Action-Item> name: leave-group          title: "Leave" action-handler: {Event-Handler :together on-leave-group} description: "Leave group.")
-      (<World-Action-Item> name: leave-circle         title: "Leave" action-handler: {Event-Handler :together on-leave-circle} description: "Leave circle.")
+      (<World-Action-Item> name: create-circle        title: "New circle" action-handler: {Event-Handler :together on-create-circle} shortcut: {Shortcut :alt #\N} description: "Create and join a new circle.")
+      (<World-Action-Item> name: leave-group          title: "Leave" action-handler: {Event-Handler :together on-leave-group} shortcut: {Shortcut :alt #\L} description: "Leave group.")
+      (<World-Action-Item> name: leave-circle         title: "Leave" action-handler: {Event-Handler :together on-leave-circle} shortcut: {Shortcut :alt #\L} description: "Leave circle.")
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" shortcut: {Shortcut "Click your name"} description: "Login."))))
 
 
