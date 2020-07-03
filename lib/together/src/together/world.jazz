@@ -22,6 +22,8 @@
         (world.interface)
         (world.interface.sheet)
         (world.sound)
+        (together)
+        (together.gathering)
         (together.login)
         (together.replay)
         (together.script)
@@ -63,4 +65,10 @@
       (if (is? space Together-Space)
           (or (draw-working-offset space)
               (nextmethod self))
+        (nextmethod self))))
+  
+  
+  (method override (render-outputs self)
+    (let ((together (current-together)))
+      (when (and (client?) (circling? together) (not (get-roaming? (current-client))))
         (nextmethod self))))))
