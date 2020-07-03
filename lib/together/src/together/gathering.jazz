@@ -57,6 +57,8 @@
         (world.client.udp)
         (world.configure)
         (world.context)
+        @bazoo
+        (world.dye)
         (world.evolution)
         (world.geometry)
         (world.history)
@@ -990,10 +992,21 @@
 (define-trait zone-not-circling-bindings Bindings
   (<Trait>                   name: zone
     (<install>
+      @bazoo
       (<together-menu!>
         (<!>                 name: create-circle              active?: #t)))))
 
 
+(define-trait zone-circling-bindings Bindings
+  (<Trait>                   name: gathering
+    (<install>
+      (<together-menu!>
+        (<!>                 name: leave-circle               active?: #t))
+      (<together-media!>
+        (<!>                 name: toggle-mic                 active?: #t)))))
+
+
+@bazoo
 (define-trait zone-circling-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
@@ -1139,7 +1152,7 @@
         (let ((free? (or (not circling?) avatar?)))
           `(,zone-bindings
             ,@(cond (grouped? (list zone-group-bindings))
-                    (circling? (list circling-bindings zone-circling-bindings))
+                    (circling? (list @bazoo circling-bindings zone-circling-bindings))
                     (else (list zone-not-circling-bindings)))
             ,@(if (and circling? (eq? (get-circle-mode together) 'circle)) (list circle-bindings) '())
             ,@(if free? (list zone-free-bindings) '()))))))
@@ -2194,17 +2207,45 @@
          (toggle-radial-menu world)))))
   
   
+  @bazoo
   (method (on-create-circle self evt)
-    (create-circle self))
+    (create-circle self (get-shift? evt)))
   
   
-  (method (create-circle self)
+  @bazoo
+  (method (create-circle self auto-name?)
     (let ((tier (current-client))
           (interface (current-interface))
           (world (current-world)))
       (let ((microphone? (has-microphone?)))
         (if (not microphone?)
             (display-error world "No microphone found")
+          ;; auto name is just silly code for me to be removed
+          (if auto-name?
+              (let ((allow-audio-only? #f)
+                    (camera? (has-camera?)))
+                (if (and (not camera?) (not allow-audio-only?))
+                    (display-error world "No camera found")
+                  (let ((name "My circle"))
+                    (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                      (if (string? no/exception)
+                          (display-error world no/exception)
+                        (clear-message world)
+                        (let ((universe (current-universe))
+                              (me (current-me)))
+                          (let ((position (get-position me))
+                                (lookat (get-lookat me)))
+                            (let ((class Circle-Stone)
+                                  (position (vertex+ position (vertex-scalar* (get-sight lookat) 5.)))
+                                  (lookat lookat)
+                                  (scale (vertex .35 .35 .35))
+                                  (color (make-dye))
+                                  (model "warcraft/world/doodad/meetingstone01")
+                                  (script-text #f))
+                              ;(add-element universe #f element name position lookat scale color model script-text properties)
+                              ;(apply-add-entity universe class #f name position lookat scale color model #f)
+                              (set-circle-center position)
+                              (join-circle self name allow-audio-only?)))))))))
           (let ((panel (or (find-type interface Create-Circle-Panel)
                            (let ((panel (new Create-Circle-Panel parent: interface location: 'center size: {Dimension 402 167})))
                              (define (create evt)
@@ -2219,8 +2260,21 @@
                                              (display-error world no/exception)
                                            (clear-message world)
                                            (close panel)
-                                           (set-circle-center (get-position (current-me)))
-                                           (join-circle self name allow-audio-only?))))))))
+                                           (let ((universe (current-universe))
+                                                 (me (current-me)))
+                                             (let ((position (get-position me))
+                                                   (lookat (get-lookat me)))
+                                               (let ((class Circle-Stone)
+                                                     (position (vertex+ position (vertex-scalar* (get-sight lookat) 5.)))
+                                                     (lookat lookat)
+                                                     (scale (vertex .35 .35 .35))
+                                                     (color (make-dye))
+                                                     (model "warcraft/world/doodad/meetingstone01")
+                                                     (script-text #f))
+                                                 ;(add-element universe #f element name position lookat scale color model script-text properties)
+                                                 ;(apply-add-entity universe class #f name position lookat scale color model #f)
+                                                 (set-circle-center position)
+                                                 (join-circle self name allow-audio-only?)))))))))))
                              
                              (define (escape evt)
                                (close panel))
@@ -2231,7 +2285,7 @@
                              (set-escape-press-handler (locate panel '(create view text)) escape)
                              (set-visible? panel #t)
                              panel))))
-            (acquire-focus (locate panel '(create view text))))))))
+            (acquire-focus (locate panel '(create view text)))))))))
   
   
   (method (on-leave-group self evt)
