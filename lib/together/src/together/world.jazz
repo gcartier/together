@@ -70,5 +70,5 @@
   
   (method override (render-outputs self)
     (let ((together (current-together)))
-      (when (and (client?) (circling? together) (not (get-roaming? (current-client))))
+      (when (and (client?) together (circling? together) (not (get-roaming? (current-client))))
         (nextmethod self))))))
