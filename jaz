@@ -7,8 +7,6 @@ JIRI="$REL/jiri"
 JAZZ="$REL/jazz"
 JAZ="$JAZZ/jaz"
 
-UPDATE_SUBMODULES="true"
-
 REPOCOLOR='\033[1;34m'
 NOCOLOR='\033[0m'
 
@@ -17,39 +15,6 @@ case $OSTYPE in
         alias git='"/c/Program Files/Git/bin/git"'
 	     ;;
 esac
-
-bootstrap_init () {
-    cd "$REL"
-    git submodule init
-}
-
-bootstrap_update () {
-    cd "$REL"
-    git submodule update
-}
-
-bootstrap () {
-    (bootstrap_init) &&
-    (bootstrap_update)
-}
-
-bootstrap_dispatch () {
-    case "$1" in
-	"init" )
-	    bootstrap_init
-	    ;;
-	"update" )
-	    bootstrap_update
-	    ;;
-	"" )
-	    bootstrap
-	    ;;
-	* )
-	    echo "Unknown bootstrap option : $1"
-	    return 1
-	    ;;
-    esac
-}
 
 feedback() {
     case $OSTYPE in
@@ -135,30 +100,7 @@ pull_all () {
     (pull "Jazz" "$JAZZ")
 }
 
-update_submodules () {
-    cd "$REL"
-    git submodule update --recursive
-}
-
-while getopts "lr" OPTION; do
-    case $OPTION in
-	"l" )
-	    UPDATE_SUBMODULES="false"
-	    ;;
-	"r" )
-	    UPDATE_SUBMODULES="true"
-	    ;;
-    esac
-done
-
-shift $((OPTIND-1))
-
 case "$1" in
-	"bootstrap" )
-		bootstrap_dispatch $2
-		exit
-		;;
-
 	"info" )
 		display_all_info
 		exit
@@ -179,12 +121,6 @@ case "$1" in
 		exit
 		;;
 esac
-
-if [ ! -f "$JAZ" ]; then
-	bootstrap
-elif $UPDATE_SUBMODULES; then
-    (update_submodules)
-fi
 
 if [ ! -f "$JAZ" ]; then
 	echo "Unable to find jazz/jaz"
