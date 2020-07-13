@@ -106,7 +106,7 @@
                        world.render-rate-inactive 30.
                        world.view-distance        7
                        world.post-processing?     #t
-                       world.multisampling        1
+                       world.multisampling        2
                        ;; media
                        world.video-layout         circle)))
 
