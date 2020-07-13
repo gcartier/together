@@ -1161,7 +1161,7 @@
         (<!>                 name: toggle-windowed-mode       visible?: #t)
         (<!>                 name: toggle-user                visible?: #t))
       (<world-camera!>
-        (<!>                 name: toggle-cursor-mode         visible?: #t))
+        (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
@@ -1262,7 +1262,7 @@
         (<!>                 name: free-motion                visible?: #t)
         @wait (<!>                 name: toggle-camera-smoothing    visible?: #t)
         @wait (<!>                 name: toggle-camera-follow       visible?: #t)
-        (<!>                 name: toggle-cursor-mode         visible?: #t))
+        (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         @wait (<!>                 name: mind-control               visible?: #t)
@@ -1488,7 +1488,7 @@
         (<!>                 name: free-motion                visible?: #t)
         (<!>                 name: toggle-camera-smoothing    visible?: #t)
         (<!>                 name: toggle-camera-follow       visible?: #t)
-        (<!>                 name: toggle-cursor-mode         visible?: #t))
+        (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: mind-control               visible?: #t)

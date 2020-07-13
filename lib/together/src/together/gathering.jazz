@@ -1057,7 +1057,7 @@
         (<!>                 name: free-motion                active?: #t)
         (<!>                 name: toggle-camera-smoothing    active?: #t)
         (<!>                 name: toggle-camera-follow       active?: #t)
-        (<!>                 name: toggle-cursor-mode         active?: #t))
+        (<!>                 name: toggle-cursor-track        active?: #t))
       (<world-game!>
         (<!>                 name: jump                       active?: #t)
         (<!>                 name: mind-control               active?: #t)
