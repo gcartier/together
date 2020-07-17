@@ -59,13 +59,15 @@
 (definition protected (determine-documents-root)
   (cond-expand
     (mac
-     (cond-expand (prod   '(Home "Documents" "Together" "prod"))
-                  (stage  '(Home "Documents" "Together" "stage"))
-                  (stable '(Home "Documents" "Together" "stable"))
-                  (triage '(Home "Documents" "Together" "triage"))
-                  (test   '(Home "Documents" "Together" "test"))
-                  (trial  '(Home "Documents" "Together" "trial"))
-                  (else   '(Home "Documents" "Together" "devel"))))
+     ;; goodbye nicely placed files in documents
+     ;; you just can't win the fight with Mojave's TCC
+     (cond-expand (prod   '(Home "Library" "Application Support" "Together" "prod"))
+                  (stage  '(Home "Library" "Application Support" "Together" "stage"))
+                  (stable '(Home "Library" "Application Support" "Together" "stable"))
+                  (triage '(Home "Library" "Application Support" "Together" "triage"))
+                  (test   '(Home "Library" "Application Support" "Together" "test"))
+                  (trial  '(Home "Library" "Application Support" "Together" "trial"))
+                  (else   '(Home "Library" "Application Support" "Together" "devel"))))
     (windows
      (let ((dir (get-special-folder CSIDL_PERSONAL)))
        (cond-expand (prod   (list dir "Together" "prod"))
