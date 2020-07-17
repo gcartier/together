@@ -88,6 +88,8 @@
 
 (definition protected (determine-universe-root)
   (cond-expand
+    (mac
+     '(Home "Library" "Application Support" "Together"))
     (windows
      (let ((dir (get-special-folder CSIDL_PERSONAL)))
        (list dir "Together")))
