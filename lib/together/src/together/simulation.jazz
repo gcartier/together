@@ -84,6 +84,7 @@
 (class Simulation-Audio-Sink extends Audio-Sink
   
   
+  @w
   (method override (setup-pipeline self)
     (let ((pipeline (gst-pipeline "appsrc name=src"
                                   (and (eq? codec 'opus) "opusdec name=dec")
