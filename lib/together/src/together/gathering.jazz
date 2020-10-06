@@ -2158,6 +2158,7 @@
   
   
   (method (on-toggle-denoise self evt)
+    @w
     (let ((client (current-client))
           (world (current-world)))
       (when (is? space Void-Space)
