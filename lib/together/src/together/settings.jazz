@@ -97,6 +97,7 @@
                 (not (exists? file))
                 (and config (not (get-personal-key config)))
                 (and config (not (get-character-avatar config)))
+                (and config (not (get-character-dye config)))
                 (world-setting 'together.login? #f)
                 (not (world-setting 'together.critical-assets? #f))
                 (shift-down?))

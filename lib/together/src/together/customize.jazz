@@ -38,9 +38,11 @@
         (world.build)
         (world.client)
         (world.context)
+        (world.dye)
         (world.geometry)
         (world.interface)
         (world.interface.avatars)
+        (world.interface.color)
         (world.interface.dialogs)
         (world.interface.documents)
         (world.interface.exception)
@@ -91,6 +93,7 @@
       (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
         (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
         (new Push-Button name: 'done parent: root title: "Done" location: '(center -30) size: {Dimension 160 26} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-done self))
+        (new Customize-Color name: 'color parent: root location: '(-10 center) size: {Dimension 430 110})
         (set! self.root root))
       (layout-view interface)
       (layout-view root)))
@@ -177,11 +180,16 @@
     (let ((world (current-world)))
       (let ((showcase (get-showcase world)))
         (let ((elements (get-elements showcase))
-              (avatar (get-character-avatar (get-configuration zone))))
+              (avatar (get-character-avatar (get-configuration zone)))
+              (dye (get-character-dye (get-configuration zone))))
           (let ((element (find elements avatar key: get-model test: equal? return: 'item)))
             (when element
               (set-selection showcase element)
-              (selection-update showcase element)))))))
+              (selection-update showcase element)
+              (set-color (get-selection-entity showcase) dye)
+              (let ((chooser (locate (child root 'color) 'chooser)))
+                (set-color chooser (dye->color dye))
+                (update chooser))))))))
   
   
   (method (on-done self evt)
@@ -190,7 +198,43 @@
   
   (method (change-avatar self)
     (let ((world (current-world)))
-      (let ((avatar (get-avatar (get-selection-entity (get-showcase world)))))
-        (set-character-avatar (get-configuration zone) avatar)
-        (save-configuration zone)
-        (goto-space zone 'login))))))
+      (let ((entity (get-selection-entity (get-showcase world))))
+        (let ((avatar (get-avatar entity))
+              (dye (get-color entity)))
+          (set-character-avatar (get-configuration zone) avatar)
+          (set-character-dye (get-configuration zone) dye)
+          (save-configuration zone)
+          (goto-space zone 'login))))))
+
+
+;;;
+;;;; Customize-Color
+;;;
+
+
+(class Customize-Color extends World-Panel
+  
+  
+  (form
+    (<install>                             layout-type: fill
+      (<World-Color-Chooser> name: chooser)))
+  
+  
+  (method override (finish self rest)
+    (nextmethod self rest)
+    (let ((chooser (locate self 'chooser)))
+      (set-background chooser #f)
+      (set-visible? (locate chooser 'saturation) #f)
+      (set-visible? (locate chooser 'value) #f)
+      (set-visible? (locate chooser 'color) #f)
+      (set-value (locate chooser 'saturation) .85)
+      (update chooser)
+      (set-feedback chooser (~ change-color self))))
+  
+  
+  (method (change-color self color)
+    (let ((world (current-world))
+          (zone (current-zone)))
+      (let ((entity (get-selection-entity (get-showcase world)))
+            (dye (color->dye color)))
+        (set-color entity dye))))))

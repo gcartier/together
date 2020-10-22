@@ -453,9 +453,10 @@
   
   (method (setup-avatar self)
     (let ((me (current-me)))
-      (if (get-character-avatar configuration)
+      (if (and (get-character-avatar configuration) (get-character-dye configuration))
           (begin
             (set-avatar me (get-character-avatar configuration))
+            (set-color me (get-character-dye configuration))
             #f)
         (let ((avatar (random-element (collect-avatar-models))))
           (set-character-avatar configuration avatar)
@@ -482,6 +483,7 @@
       personal-key: #f
       character-name: #f
       character-avatar: #f
+      character-dye: #f
       character-script: #f
       character-zone: 'start))
 
@@ -493,9 +495,10 @@
             (key (get-personal-key configuration))
             (name (get-character-name configuration))
             (avatar (get-character-avatar configuration))
+            (dye (get-character-dye configuration))
             (script (get-character-script configuration))
             (zone (get-character-zone configuration)))
-        (save-client-file file server-address server-port key name avatar script zone))))
+        (save-client-file file server-address server-port key name avatar dye script zone))))
   
   
   (method package (open-configuration self file)
