@@ -227,7 +227,6 @@
       (set-visible? (locate chooser 'saturation) #f)
       (set-visible? (locate chooser 'value) #f)
       (set-visible? (locate chooser 'color) #f)
-      (set-value (locate chooser 'saturation) .85)
       (update chooser)
       (set-feedback chooser (~ change-color self))))
   
