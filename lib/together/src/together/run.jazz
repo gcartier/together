@@ -15,6 +15,7 @@
 
 
 (import (jazz.action)
+        (jazz.foreign)
         (jazz.git.foreign)
         (jazz.graphic.image)
         (jazz.io)
