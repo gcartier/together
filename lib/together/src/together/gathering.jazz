@@ -3301,6 +3301,19 @@
                 (set-caret text (text-ending text)))))))))
   
   
+  (method (show-chat/command self)
+    (let ((interface (current-interface))
+          (space (current-space)))
+      (typecase space
+        ((Void-Space)
+         (set-visible? (child interface 'chat-label) #t)
+         (set-visible? (child interface 'chat) #t)
+         (set-visible? (child interface 'command-to) #t)
+         (set-visible? (child interface 'command) #t))
+        ((Zone-Space)
+         (set-visible? (child interface 'chat) #t)))))
+  
+  
   (method (show-chat self)
     (let ((together (current-together))
           (interface (current-interface)))
