@@ -1231,6 +1231,7 @@
         (<!>                 name: view-roadmap               active?: #t)
         (<!>                 name: view-help                  active?: #t)
         (<!>                 name: open-about                 active?: #t)
+        @roaming
         (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
@@ -3917,6 +3918,8 @@
       (typecase space
         ((Gathering-Space))
         ((Sphere-Space)
+         (exit-zone self)
+         @roaming
          (if circle-name
              (goto-gathering self)
            (exit-zone self)))
