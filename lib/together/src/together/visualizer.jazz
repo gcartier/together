@@ -302,13 +302,16 @@
     (set! selection-description #f))
   
   
-  (method (close-emulators self)
+  (method protected (close-emulators self)
     (when sender-emulator
-      (close sender-emulator))
+      (close sender-emulator)
+      (set! sender-emulator #f))
     (when server-emulator
-      (close server-emulator))
+      (close server-emulator)
+      (set! server-emulator #f))
     (when receiver-emulator
-      (close receiver-emulator)))
+      (close receiver-emulator)
+      (set! receiver-emulator #f)))
   
   
   ;; quicky to setup everything again

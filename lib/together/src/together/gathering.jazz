@@ -1739,6 +1739,7 @@
   
   (method override (space-uninstall self)
     (nextmethod self)
+    (close-emulators (child root 'visualizer))
     (hide-interface)
     (reset-panel-stack))
   
