@@ -1157,6 +1157,7 @@
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-interface!>
+        @version0
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-camera!>
