@@ -1158,8 +1158,7 @@
         (<!>                 name: quit-world                 visible?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           visible?: #t)
-        (<!>                 name: toggle-windowed-mode       visible?: #t)
-        (<!>                 name: toggle-user                visible?: #t))
+        (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-camera!>
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-people!>
