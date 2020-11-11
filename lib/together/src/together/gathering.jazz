@@ -3141,7 +3141,9 @@
             (let ((kind (car data)))
               (cond (active-group
                      (when (eq? kind 'group)
-                       (join-circle self active-group active-allow-audio-only?)))
+                       (if (circling? self)
+                           (enter-circle self)
+                         (join-circle self active-group active-allow-audio-only?))))
                     ((and active-zone (neq? active-zone 'start))
                      (when (eq? kind 'zone)
                        (enter-zone self))))))))))
