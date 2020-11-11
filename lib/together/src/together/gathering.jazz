@@ -459,7 +459,7 @@
       (<world-chat!>
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t)
-        (<!>                 name: insert-previous            active?: #t))
+        (<!>                 name: repeat-previous            active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
@@ -863,7 +863,7 @@
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t)
-        (<!>                 name: insert-previous            active?: #t))
+        (<!>                 name: repeat-previous            active?: #t))
       (<world-showcase!>
         (<!>                 name: showcase-menu              active?: #t)
         (<!>                 name: no-showcase                active?: #t)
@@ -1245,7 +1245,7 @@
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t)
-        (<!>                 name: insert-previous            active?: #t))
+        (<!>                 name: repeat-previous            active?: #t))
       (<world-script!>
         (<!>                 name: test1                      active?: #t)
         (<!>                 name: test2                      active?: #t)
