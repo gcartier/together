@@ -6,7 +6,7 @@ DEST=cache/develop/Libraries/gstreamer
 
 cpplugin() {
     cp $GSTREAMER/$1 $LIB/$1
-    cache/develop/jazz -r relocate $LIB $1 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    cache/develop/jazz -run relocate $LIB $1 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
     cp $LIB/$1 $DEST/$1
 }
 
