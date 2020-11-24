@@ -1,0 +1,7 @@
+#! /bin/sh
+
+LIBNAME=libwebrtc.dylib
+WEBRTC=/Users/cartier/Devel/gstreamer/webrtc/build
+DEST=cache/develop/Libraries/gstreamer/lib
+
+cp $WEBRTC/$LIBNAME $DEST/$LIBNAME
