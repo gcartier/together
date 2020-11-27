@@ -2821,7 +2821,7 @@
         (define (cpu-percentage)
           (cond-expand
             (mac
-             (bind (main . others) (f64vector->list (platformProcessThreads))
+             (bind (main . others) (map second (collect-process-threads))
                (values main (apply + others))))
             (else)))
         
