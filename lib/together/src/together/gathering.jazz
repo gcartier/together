@@ -422,7 +422,7 @@
                                  (play stream))))))
                         ((audio)
                          (let ((name (filename-name location)))
-                           (let ((stream (stream-video location name)))
+                           (let ((stream (stream-audio location name)))
                              (update-cell stream)
                              (delay-streaming
                                (lambda ()
