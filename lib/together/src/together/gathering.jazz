@@ -4206,7 +4206,10 @@
                             (iterate-stream-directories
                               (lambda (stream-directory)
                                 (let ((dir (if (admin?)
-                                               (new-directory stream-directory '("convert"))
+                                               (let ((dir (new-directory stream-directory '("convert"))))
+                                                 (if (exists? dir)
+                                                     dir
+                                                   stream-directory))
                                              stream-directory)))
                                   (preprocess-directory dir prime?: #t feedback: feedback)))))))))))
               'preprocess)))
