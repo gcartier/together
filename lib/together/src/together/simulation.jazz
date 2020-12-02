@@ -108,7 +108,7 @@
                                     "vorbisenc"
                                     "oggmux"
                                     (format "filesink location={a}" (parse {File Documents "work" "test.ogg"}))))))
-      (gst_object_set_name pipeline "output")
+      (gst_object_set_name pipeline "audio.output")
       (with-unref ((appsrc (gst_bin_get_by_name pipeline "src")))
         (case codec
           ((opus)
