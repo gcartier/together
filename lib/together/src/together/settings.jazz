@@ -19,6 +19,7 @@
         (jazz.io)
         (jazz.platform)
         (jazz.settings)
+        (jazz.stream)
         (world)
         (world.asset)
         (world.assets)
@@ -167,6 +168,14 @@
             (save-content options-settings)
             "world/nebula")
         (random-element '("world/calm_sea" "world/dark_sea" "world/nebula")))))
+
+
+;;;
+;;;; Stream
+;;;
+
+
+(set-debug-adapter? (world-setting 'world.debug-adapter? #f))
 
 
 ;;;
