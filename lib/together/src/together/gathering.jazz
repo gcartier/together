@@ -2858,7 +2858,7 @@
                     (element-color {Color White}))
                 (for-each (lambda (bin)
                             (let ((bin-name (gst_object_get_name bin)))
-                              (unless (member? bin-name '("camera"))
+                              (unless (starts-with? bin-name "video")
                                 (draw (format "<{a}>" bin-name) pipeline-color)
                                 (for-each (lambda (elem)
                                             (define (parse-name name)
