@@ -330,7 +330,7 @@
                    (terminal 'play frame))
                  (let ((packet (visualizer-earliest-packet ring)))
                    (let ((consistent? (and packet (eqv? (get-frame packet) frame))))
-                     (when #t @patch-around-audio-always-ending-up-non-consistent (if debug-visualize? (assert consistent? #t) consistent?)
+                     (when (if debug-visualize? (assert consistent? #t) consistent?)
                        ;; we cannot rely on having the video keyframes in the evolution
                        ;; on the other hand playing implies state ok or late...
                        (if (= id udp-id-play-frame)
