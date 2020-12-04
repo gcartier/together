@@ -3989,11 +3989,11 @@
           (set-span panel 30.)
           (set-events-mode panel 'all)
           (let ((udp-client (get-udp-client client)))
-            (let ((channels (table-keys (get-receive-channels udp-client))))
+            (let ((channels (table-values (get-receive-channels udp-client))))
               ;; channelgazoum
-              (let ((audio-channels (collect-if (lambda (channel) (and (pair? channel) (= (cdr channel) udp-audio))) channels)))
+              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
                 (when (not-null? audio-channels)
-                  (bind (origin) (car audio-channels)
+                  (let ((origin (get-no (car audio-channels))))
                     (set-origin panel origin)
                     (invalidate-view panel))))))))))
   
