@@ -2818,6 +2818,25 @@
                 "N/A"
               (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
         
+        (define (udp-receive-count)
+          (let ((udp-client (get-udp-client (current-client))))
+            (let ((channels (table-values (get-receive-channels udp-client))))
+              ;; channelgazoum
+              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
+                (if (null? audio-channels)
+                    0
+                  (let ((channel (car audio-channels)))
+                    (get-count (get-process-ring channel))))))))
+        
+        (define (udp-send-count)
+          (let ((udp-client (get-udp-client (current-client))))
+            (let ((channels (table-values (get-send-channels udp-client))))
+              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
+                (if (null? audio-channels)
+                    0
+                  (let ((channel (car audio-channels)))
+                    (get-count (get-retain-ring channel))))))))
+        
         (define (cpu-percentage threads)
           (cond-expand
             (mac
@@ -2832,11 +2851,11 @@
               (draw-text surface h v text color))
             (increase! rank))
           
-          (define (draw-streams threads)
+          (define (draw-streams threads base-v)
             (let ((h 20)
                   (rank 0))
               (define (draw text color)
-                (let ((v (+ 265 (* rank 20))))
+                (let ((v (+ base-v 17 (* rank 20))))
                   (draw-text surface h v text color))
                 (increase! rank))
               
@@ -2908,6 +2927,7 @@
               (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
               @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
               (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
+              (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red})
               (cond-expand
                 (mac
                  (with-bin-mutex
@@ -2917,7 +2937,7 @@
                          (let ((total (+ main others)))
                            (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})
                            (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                           (draw-streams threads)))))))
+                           (draw-streams threads (+ 80 (* rank 28)))))))))
                 (else))
               @wait
               (let ((leaks (leaks)))
