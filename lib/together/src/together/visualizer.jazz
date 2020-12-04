@@ -557,6 +557,7 @@
   (method (toggle-playing self)
     (let ((timeline (brother panel 'timeline)))
       (let ((playing? (not (get-playing? timeline))))
+        @wait
         (unless (get-in-circle? (find-ascendant self Replay-Panel))
           (if playing?
               (uninstall-vista)
