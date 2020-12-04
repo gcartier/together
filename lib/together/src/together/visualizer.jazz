@@ -701,7 +701,7 @@
                                  (ellipse$fl$ surface rect color #f))
                                 ((not selection-frame?)
                                  (unless (table-ref drawn frame #f)
-                                   (ellipse$fl$ surface rect color (and (frame-complete? ring index) color))
+                                   (ellipse$fl$ surface rect color (and (visualizer-frame-complete? ring index) color))
                                    (table-set! drawn frame #t)))
                                 (else
                                  (ellipse$fl$ surface rect color (and (get-data packet) color))))))
