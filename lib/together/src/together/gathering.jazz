@@ -1781,13 +1781,16 @@
           
           (define (draw-streams threads)
             (let ((rank 0)
-                  (type? #f))
-              (define (draw text color)
-                (let ((h base-h)
+                  (type? #t))
+              (define (draw text color (padding 0))
+                (let ((h (+ base-h padding))
                       (v (+ base-v 17)))
                   (draw-text surface h v text color))
                 (increase! rank)
                 (increase! base-v 20))
+              
+              (define (draw-property name value)
+                (draw (format "{a}: {a}" name value) {Color World-Orange} 20))
               
               (let ((threads
                       (collect (lambda (thread)
@@ -1823,33 +1826,29 @@
                                             
                                             (let ((name (gst_object_get_name elem))
                                                   (class (g_object_class_name elem)))
-                                              (let ((info (cond ((equal? class "GstQueue")
-                                                                 (format " {r precision: 1}k" (/ (cast <fl> (g_object_get_uint elem "current-level-bytes")) 1024.)))
-                                                                ((equal? class "GstAudioRate")
-                                                                 (format " {a} {a}"
-                                                                         (g_object_get_uint elem "add")
-                                                                         (g_object_get_uint elem "drop")))
-                                                                (else
-                                                                 ""))))
-                                                (let ((type (if type? (format "{a} " class) ""))
-                                                      (color (if (empty-string? info) element-color info-color)))
-                                                  (bind (id element) (parse-name name)
-                                                    (if (not id)
-                                                        (draw (format "{a}{a}{a}" type element info) color)
-                                                      (let ((thread (find-if (lambda (thread)
-                                                                               (and (eq? (first thread) bin)
-                                                                                    (equal? (third thread) element)))
-                                                                             threads)))
-                                                        (if (not thread)
-                                                            (draw (format "{a}{a}{a}" type element info) color)
-                                                          (bind (bin bin-name element pad percentage) thread
-                                                            (draw (format "{a}{a}:{a}{a} {r precision: 1}%"
-                                                                          type
-                                                                          element
-                                                                          pad
-                                                                          info
-                                                                          (* percentage 100.))
-                                                                  thread-color))))))))))
+                                              (let ((type (if type? (format "{a} " class) ""))
+                                                    (color element-color))
+                                                (bind (id element) (parse-name name)
+                                                  (if (not id)
+                                                      (draw (format "{a}{a}" type element) color)
+                                                    (let ((thread (find-if (lambda (thread)
+                                                                             (and (eq? (first thread) bin)
+                                                                                  (equal? (third thread) element)))
+                                                                           threads)))
+                                                      (if (not thread)
+                                                          (draw (format "{a}{a}" type element) color)
+                                                        (bind (bin bin-name element pad percentage) thread
+                                                          (draw (format "{a}{a}:{a} {r precision: 1}%"
+                                                                        type
+                                                                        element
+                                                                        pad
+                                                                        (* percentage 100.))
+                                                                thread-color)))))))
+                                              (cond ((equal? class "GstQueue")
+                                                     (draw-property "current-level-bytes" (format "{r precision: 1}k" (/ (cast <fl> (g_object_get_uint elem "current-level-bytes")) 1024.))))
+                                                    ((equal? class "GstAudioRate")
+                                                     (draw-property "add" (g_object_get_uint64 elem "add"))
+                                                     (draw-property "drop" (g_object_get_uint64 elem "drop"))))))
                                           (reverse (gst_bin_elements_sorted bin)))
                                 (increase! base-v 20))))
                           bins))))
