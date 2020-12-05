@@ -69,7 +69,12 @@
         (set-highlighted-cells replay '())
         (when now
           (let ((visualizer (child root 'visualizer)))
-            (visualize-time visualizer now playing?)))
+            (visualize-time visualizer now playing?))
+          ;; quicky invalidate draw-audio section
+          (let ((width (get-width root))
+                (height (get-height root)))
+            (let ((h (- width 270)))
+              (invalidate-rect root (new Rect h 0 width (- height 40))))))
         (when update-evolution?
           (when now
             (display-evolutions root now))

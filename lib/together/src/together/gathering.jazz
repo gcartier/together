@@ -1688,6 +1688,9 @@
 (class Replay-Space extends Sphere-Space
   
   
+  (slot draw-hook initialize #f getter generate)
+  
+  
   (method override (space-name self)
     'replay)
   
@@ -1700,7 +1703,7 @@
         (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
         (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
         (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
-        (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
+        (new Push-Button name: 'back parent: root title: "Back" location: '(-10 -10) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
         (set! self.root root))))
   
   
@@ -1720,6 +1723,7 @@
       (set-visible? (child interface 'chat) #f)
       (set-visible? (child interface 'command-to) #f)
       (set-visible? (child interface 'command) #f)
+      (hide-mainbar self)
       (layout-view interface)
       (layout-view root)
       (show root)
@@ -1732,9 +1736,18 @@
   
   (method override (space-activate self)
     (nextmethod self)
-    (let ((world (current-world)))
+    (let ((interface (current-interface))
+          (world (current-world)))
       (layout-message world)
-      (layout-working world)))
+      (layout-working world)
+      (set! draw-hook (~ draw-audio self))
+      (register-draw-hook interface draw-hook)))
+  
+  
+  (method override (space-deactivate self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (unregister-draw-hook interface draw-hook)))
   
   
   (method override (space-uninstall self)
@@ -1744,8 +1757,115 @@
     (reset-panel-stack))
   
   
+  (method override (draw-world? self)
+    #f)
+  
+  
   (method override (draw-message-offset self)
     65)
+  
+  
+  (method (draw-audio self surface)
+    (let ((client (current-client))
+          (world (current-world)))
+      (let ((udp-client (get-udp-client client))
+            (width (fxround (get-width world))))
+        (let ((base-h (- width 270))
+              (base-v 50))
+          (define (cpu-percentage threads)
+            (cond-expand
+              (mac
+               (bind (main . others) (map second threads)
+                 (values main (apply + others))))
+              (else)))
+          
+          (define (draw-streams threads)
+            (let ((rank 0)
+                  (type? #f))
+              (define (draw text color)
+                (let ((h base-h)
+                      (v (+ base-v 17)))
+                  (draw-text surface h v text color))
+                (increase! rank)
+                (increase! base-v 20))
+              
+              (let ((threads
+                      (collect (lambda (thread)
+                                 (bind (fullname percentage) thread
+                                   (and (and fullname (find fullname #\:))
+                                        (bind (name pad) (split-string fullname #\:)
+                                          (let ((split (split-string name #\_)))
+                                            (if (= (length split) 1)
+                                                (begin
+                                                  (format :terminal "Streaming thread {a} is missing an explicit name{%}" name)
+                                                  #f)
+                                              (bind (id element) split
+                                                (let ((bin (id->bin (string->number id))))
+                                                  (and bin
+                                                       (let ((bin-name (gst_object_get_name bin)))
+                                                         (list bin bin-name element pad percentage)))))))))))
+                               threads))
+                    (bins (sort nu<? (collect-bins) key: gst_object_get_name))
+                    (pipeline-color {Color World-Green})
+                    (thread-color {Color World-Blue})
+                    (info-color {Color White})
+                    (element-color {Color White}))
+                (for-each (lambda (bin)
+                            (let ((bin-name (gst_object_get_name bin)))
+                              (unless (starts-with? bin-name "video")
+                                (draw (format "<{a}>" bin-name) pipeline-color)
+                                (for-each (lambda (elem)
+                                            (define (parse-name name)
+                                              (let ((parts (split-string name #\_)))
+                                                (if (= (length parts) 1)
+                                                    (list #f name)
+                                                  parts)))
+                                            
+                                            (let ((name (gst_object_get_name elem))
+                                                  (class (g_object_class_name elem)))
+                                              (let ((info (cond ((equal? class "GstQueue")
+                                                                 (format " {r precision: 1}k" (/ (cast <fl> (g_object_get_uint elem "current-level-bytes")) 1024.)))
+                                                                ((equal? class "GstAudioRate")
+                                                                 (format " {a} {a}"
+                                                                         (g_object_get_uint elem "add")
+                                                                         (g_object_get_uint elem "drop")))
+                                                                (else
+                                                                 ""))))
+                                                (let ((type (if type? (format "{a} " class) ""))
+                                                      (color (if (empty-string? info) element-color info-color)))
+                                                  (bind (id element) (parse-name name)
+                                                    (if (not id)
+                                                        (draw (format "{a}{a}{a}" type element info) color)
+                                                      (let ((thread (find-if (lambda (thread)
+                                                                               (and (eq? (first thread) bin)
+                                                                                    (equal? (third thread) element)))
+                                                                             threads)))
+                                                        (if (not thread)
+                                                            (draw (format "{a}{a}{a}" type element info) color)
+                                                          (bind (bin bin-name element pad percentage) thread
+                                                            (draw (format "{a}{a}:{a}{a} {r precision: 1}%"
+                                                                          type
+                                                                          element
+                                                                          pad
+                                                                          info
+                                                                          (* percentage 100.))
+                                                                  thread-color))))))))))
+                                          (reverse (gst_bin_elements_sorted bin)))
+                                (increase! base-v 20))))
+                          bins))))
+          
+          (cond-expand
+            (mac
+             (with-bin-mutex
+               (lambda ()
+                 (let ((threads (collect-process-threads)))
+                   (receive (main others) (cpu-percentage threads)
+                     (let ((total (+ main others)))
+                       (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
+                       (draw-text surface base-h 10 (format "CPU: {r precision: 1}%, {r precision: 1}%" (* total 100.) (* others 100.)) {Color World-Red})
+                       (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                       (draw-streams threads)))))))
+            (else))))))
   
   
   (method (on-back self evt)
@@ -1770,7 +1890,7 @@
           (interface (current-interface)))
       (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
         (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
-        (new Push-Button name: 'back parent: root title: "Back" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
+        (new Push-Button name: 'back parent: root title: "Back" location: '(-30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
         (set! self.root root))))
     
   
@@ -1809,6 +1929,10 @@
     (nextmethod self)
     (hide-interface)
     (reset-panel-stack))
+  
+  
+  (method override (draw-world? self)
+    #f)
   
   
   (method (on-back self evt)
