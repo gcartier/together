@@ -1264,6 +1264,7 @@
         (<!>                 name: clear-console              active?: #t)
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
+        (<!>                 name: toggle-profiler            active?: #t)
         (<!>                 name: toggle-gc-sound            active?: #t)
         (<!>                 name: explore-interface          active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
