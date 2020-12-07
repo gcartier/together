@@ -171,14 +171,6 @@
 
 
 ;;;
-;;;; Stream
-;;;
-
-
-(set-debug-adapter? (world-setting 'world.debug-adapter? #f))
-
-
-;;;
 ;;;; Exceptions
 ;;;
 
