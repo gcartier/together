@@ -255,7 +255,8 @@
     (when audio-output
       (remove-sink (cache-audio) audio-output)
       (release audio-output)
-      (close audio-output))
+      (close audio-output)
+      (close-empty-audio (current-audio)))
     (when video-output
       (release video-output)
       (close video-output))
