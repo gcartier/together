@@ -371,9 +371,42 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
+  (import jazz.stream.syntax)
+  (import world.audio)
+  
+  (definition record-pads
+    (world-setting 'world.record-pads #f))
+  
+  (definition pad-monitors
+    #f)
+  
   (method (on-test self evt)
     (when (developer?)
-      ))
+      (when record-pads
+        (let ((world (current-world)))
+          (let ((dir {Directory Documents "recordings"})
+                (pipeline (get-pipeline (cache-audio))))
+            (cond ((not pad-monitors)
+                   (set! pad-monitors
+                         (map (lambda (info)
+                                (bind (elem-name pad-name) (split info ".")
+                                  (let ((filename (path-normalize (parse (new-file dir (format "{a}.raw" info))))))
+                                    (with-unref ((elem (gst_bin_get_by_name pipeline elem-name)))
+                                      (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
+                                        (gst_monitor_open pad filename))))))
+                              record-pads))
+                   (let ((count (length record-pads)))
+                     (display-message world (format "Recording {a} pad{a}..." count (format-plural count)))))
+              (else
+               (for-each (lambda (info monitor)
+                           (bind (elem-name pad-name) (split info ".")
+                             (with-unref ((elem (gst_bin_get_by_name pipeline elem-name)))
+                               (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
+                                 (gst_monitor_close pad monitor)))))
+                         record-pads
+                         pad-monitors)
+               (set! pad-monitors #f)
+               (display-message world "Recording done"))))))))
   
   
   ;;;
