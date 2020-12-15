@@ -2982,21 +2982,24 @@
                                         (let ((type (if type? (format "{a} " class) ""))
                                               (color element-color))
                                           (bind (element id) (parse-name name)
-                                            (if (not id)
-                                                (draw (format "{a}{a}" type element) color)
-                                              (let ((thread (find-if (lambda (thread)
-                                                                       (and (eq? (first thread) bin)
-                                                                            (equal? (third thread) element)))
-                                                                     threads)))
-                                                (if (not thread)
-                                                    (draw (format "{a}{a}" type element) color)
-                                                  (bind (bin bin-name element pad percentage) thread
-                                                    (draw (format "{a}{a}:{a} {r precision: 1}%"
-                                                                  type
-                                                                  element
-                                                                  pad
-                                                                  (* percentage 100.))
-                                                          thread-color)))))))
+                                            (let ((element (if (starts-with? element "capsfilter")
+                                                               "caps"
+                                                             element)))
+                                              (if (not id)
+                                                  (draw (format "{a}{a}" type element) color)
+                                                (let ((thread (find-if (lambda (thread)
+                                                                         (and (eq? (first thread) bin)
+                                                                              (equal? (third thread) element)))
+                                                                       threads)))
+                                                  (if (not thread)
+                                                      (draw (format "{a}{a}" type element) color)
+                                                    (bind (bin bin-name element pad percentage) thread
+                                                      (draw (format "{a}{a}:{a} {r precision: 1}%"
+                                                                    type
+                                                                    element
+                                                                    pad
+                                                                    (* percentage 100.))
+                                                            thread-color))))))))
                                         (cond ((equal? class "GstQueue")
                                                (draw-property "current-level-buffers" (format "{a}" (g_object_get_uint elem "current-level-buffers")))
                                                (draw-property "current-level-bytes" (format "{r precision: 1}k" (/ (cast <fl> (g_object_get_uint elem "current-level-bytes")) 1024.)))
