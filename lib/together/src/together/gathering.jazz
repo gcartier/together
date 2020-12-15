@@ -4055,16 +4055,18 @@
       (toggle-evolution world)
       (let ((panel (child interface 'evolution)))
         (when (get-visible? panel)
-          (set-span panel 30.)
-          (set-events-mode panel 'all)
-          (let ((udp-client (get-udp-client client)))
-            (let ((channels (table-values (get-receive-channels udp-client))))
-              ;; channelgazoum
-              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-                (when (not-null? audio-channels)
-                  (let ((origin (get-no (car audio-channels))))
-                    (set-origin panel origin)
-                    (invalidate-view panel))))))))))
+          (let ((lite? (world-setting 'world.timeline-lite? #t)))
+            (set-lite? panel lite?)
+            (set-span panel (world-setting 'world.timeline-span (if lite? 10. 30.)))
+            (set-events-mode panel 'all)
+            (let ((udp-client (get-udp-client client)))
+              (let ((channels (table-values (get-receive-channels udp-client))))
+                ;; channelgazoum
+                (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
+                  (when (not-null? audio-channels)
+                    (let ((origin (get-no (car audio-channels))))
+                      (set-origin panel origin)
+                      (invalidate-view panel)))))))))))
   
   
   (method (on-toggle-visualizer self evt)
