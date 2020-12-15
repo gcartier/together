@@ -386,23 +386,63 @@
         (let ((world (current-world)))
           (let ((dir {Directory Documents "recordings"})
                 (pipeline (get-pipeline (cache-audio))))
+            (define (with-pad info proc)
+              (define (parse-bin)
+                (let ((parts (split info "%")))
+                  (if (> (length parts) 1)
+                      parts
+                    (list #f info))))
+              
+              (define (parse-pad pad-name)
+                (if (ends-with? pad-name "^")
+                    (values (substring pad-name 0 (- (string-length pad-name) 1)) #t)
+                  (values pad-name #f)))
+              
+              (define (find-bin bin-name)
+                (if (not bin-name)
+                    pipeline
+                  (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
+                                (if (empty-string? bin-name)
+                                    (car sinks)
+                                  (find-if (lambda (sink)
+                                             (search (gst_object_get_name (get-bin sink)) bin-name ignore-case?: #t))
+                                           sinks)))))
+                    (get-bin sink))))
+              
+              (bind (bin-name pad-info) (parse-bin)
+                (bind (elem-name pad-name) (split pad-info ".")
+                  (receive (pad-name peer?) (parse-pad pad-name)
+                    (let ((filename (path-normalize (parse (new-file dir (format "{a}.raw" info))))))
+                      (define (call-pad pad)
+                        (if (not peer?)
+                            (proc pad filename)
+                          (with-unref ((pad (gst_pad_get_peer pad)))
+                            (proc pad filename))))
+                      
+                      (let ((bin (find-bin bin-name)))
+                        (cond ((empty-string? elem-name)
+                               (with-unref ((pad (car (gst_element_src_pads bin))))
+                                 (call-pad pad)))
+                            (else
+                             (with-unref ((elem (gst_bin_get_by_name bin elem-name)))
+                               (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
+                                 (call-pad pad)))))))))))
+            
+            (create-directories dir)
             (cond ((not pad-monitors)
                    (set! pad-monitors
                          (map (lambda (info)
-                                (bind (elem-name pad-name) (split info ".")
-                                  (let ((filename (path-normalize (parse (new-file dir (format "{a}.raw" info))))))
-                                    (with-unref ((elem (gst_bin_get_by_name pipeline elem-name)))
-                                      (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
-                                        (gst_monitor_open pad filename))))))
+                                (with-pad info
+                                  (lambda (pad filename)
+                                    (gst_monitor_open pad filename))))
                               record-pads))
                    (let ((count (length record-pads)))
                      (display-message world (format "Recording {a} pad{a}..." count (format-plural count)))))
               (else
                (for-each (lambda (info monitor)
-                           (bind (elem-name pad-name) (split info ".")
-                             (with-unref ((elem (gst_bin_get_by_name pipeline elem-name)))
-                               (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
-                                 (gst_monitor_close pad monitor)))))
+                           (with-pad info
+                             (lambda (pad filename)
+                               (gst_monitor_close pad monitor))))
                          record-pads
                          pad-monitors)
                (set! pad-monitors #f)
