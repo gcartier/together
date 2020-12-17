@@ -423,10 +423,10 @@
                         (cond ((empty-string? elem-name)
                                (with-unref ((pad (car (gst_element_src_pads bin))))
                                  (call-pad pad)))
-                            (else
-                             (with-unref ((elem (gst_bin_get_by_name bin elem-name)))
-                               (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
-                                 (call-pad pad)))))))))))
+                              (else
+                               (with-unref ((elem (gst_bin_get_by_name bin elem-name)))
+                                 (with-unref ((pad (gst_element_get_static_pad elem pad-name)))
+                                   (call-pad pad)))))))))))
             
             (create-directories dir)
             (cond ((not pad-monitors)
@@ -434,19 +434,19 @@
                          (map (lambda (info)
                                 (with-pad info
                                   (lambda (pad filename)
-                                    (gst_monitor_open pad filename))))
+                                    (gst_monitor_file pad filename info))))
                               record-pads))
                    (let ((count (length record-pads)))
                      (display-message world (format "Recording {a} pad{a}..." count (format-plural count)))))
-              (else
-               (for-each (lambda (info monitor)
-                           (with-pad info
-                             (lambda (pad filename)
-                               (gst_monitor_close pad monitor))))
-                         record-pads
-                         pad-monitors)
-               (set! pad-monitors #f)
-               (display-message world "Recording done"))))))))
+                  (else
+                   (for-each (lambda (info monitor)
+                               (with-pad info
+                                 (lambda (pad filename)
+                                   (gst_monitor_remove pad monitor))))
+                             record-pads
+                             pad-monitors)
+                   (set! pad-monitors #f)
+                   (display-message world "Recording done"))))))))
   
   
   ;;;
