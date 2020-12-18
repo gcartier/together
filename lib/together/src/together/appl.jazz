@@ -452,11 +452,17 @@
                             (thread-start! thread)
                             (cons 'analyse (list monitored listener thread)))))
                       
+                      (define (monitor-other)
+                        (let ((monitored (gst_monitor bin pad-info what pipeline)))
+                          (cons what monitored)))
+                      
                       (case what
                         ((file)
                          (monitor-file))
                         ((analyse)
-                         (monitor-analyse))))))))
+                         (monitor-analyse))
+                        (else
+                         (monitor-other))))))))
             
             (define (unmonitor info)
               (define (unmonitor-file monitored)
@@ -468,12 +474,17 @@
                   (close-stream-listener listener)
                   (gst_unmonitor monitored)))
               
+              (define (unmonitor-other monitored)
+                (gst_unmonitor monitored))
+              
               (bind (what . rest) info
                 (case what
                   ((file)
                    (unmonitor-file rest))
                   ((analyse)
-                   (unmonitor-analyse rest)))))
+                   (unmonitor-analyse rest))
+                  (else
+                   (unmonitor-other rest)))))
             
             (create-directories dir)
             (cond ((not pad-monitors)
