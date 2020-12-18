@@ -374,50 +374,99 @@
   (import jazz.stream.syntax)
   (import world.audio)
   
-  (definition record-pads
-    (world-setting 'world.record-pads #f))
+  (definition monitor-pads
+    (world-setting 'world.monitor-pads #f))
   
   (definition pad-monitors
     #f)
   
   (method (on-test self evt)
     (when (developer?)
-      (when record-pads
+      (when monitor-pads
         (let ((world (current-world)))
           (let ((dir {Directory Documents "recordings"})
                 (pipeline (get-pipeline (cache-audio))))
-            (define (monitor-file info)
-              (define (parse-bin)
-                (let ((parts (split info "%")))
-                  (if (> (length parts) 1)
-                      parts
-                    (list #f info))))
+            (define (parse-info info proc)
+              (cond ((string? info)
+                     (proc info 'file))
+                    ((pair? info)
+                     (proc (first info) (second info)))))
+            
+            (define (parse-bin info)
+              (let ((parts (split info "%")))
+                (if (> (length parts) 1)
+                    parts
+                  (list #f info))))
+            
+            (define (find-bin bin-name)
+              (if (not bin-name)
+                  pipeline
+                (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
+                              (if (empty-string? bin-name)
+                                  (car sinks)
+                                (find-if (lambda (sink)
+                                           (search (gst_object_get_name (get-bin sink)) bin-name ignore-case?: #t))
+                                         sinks)))))
+                  (get-bin sink))))
+            
+            (define (monitor info)
+              (parse-info info
+                (lambda (info what)
+                  (bind (bin-name pad-info) (parse-bin info)
+                    (let ((bin (find-bin bin-name)))
+                      (define (monitor-file)
+                        (let ((filename (path-normalize (parse (new-file dir (format "{a}.raw" info))))))
+                          (let ((monitored (gst_monitor bin pad-info 'file filename)))
+                            (cons 'file monitored))))
+                      
+                      (define (monitor-silence)
+                        (let ((listener (open-stream-listener)))
+                          (let ((monitored (gst_monitor bin pad-info 'silence (get-write-file listener)))
+                                (thread (new-thread
+                                          (lambda ()
+                                            (declare (proper-tail-calls))
+                                            (let (loop (count 0))
+                                              (wait listener)
+                                              (let ((new-count (+ count 1)))
+                                                (format :terminal "{a} -> {a}{%}" pad-info new-count)
+                                                (loop new-count))))
+                                          'monitor)))
+                            (thread-base-priority-set! thread background-priority)
+                            (thread-start! thread)
+                            (cons 'silence (list monitored listener thread)))))
+                      
+                      (case what
+                        ((file)
+                         (monitor-file))
+                        ((silence)
+                         (monitor-silence))))))))
+            
+            (define (unmonitor info)
+              (define (unmonitor-file monitored)
+                (gst_unmonitor monitored))
               
-              (define (find-bin bin-name)
-                (if (not bin-name)
-                    pipeline
-                  (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
-                                (if (empty-string? bin-name)
-                                    (car sinks)
-                                  (find-if (lambda (sink)
-                                             (search (gst_object_get_name (get-bin sink)) bin-name ignore-case?: #t))
-                                           sinks)))))
-                    (get-bin sink))))
+              (define (unmonitor-silence rest)
+                (bind (monitored listener thread) rest
+                  (exit-thread thread)
+                  (close-stream-listener listener)
+                  (gst_unmonitor monitored)))
               
-              (bind (bin-name pad-info) (parse-bin)
-                (let ((bin (find-bin bin-name))
-                      (filename (path-normalize (parse (new-file dir (format "{a}.raw" info))))))
-                  (gst_monitor bin pad-info 'file filename))))
+              (bind (what . rest) info
+                (case what
+                  ((file)
+                   (unmonitor-file rest))
+                  ((silence)
+                   (unmonitor-silence rest)))))
             
             (create-directories dir)
             (cond ((not pad-monitors)
-                   (set! pad-monitors (map monitor-file record-pads))
-                   (let ((count (length record-pads)))
-                     (display-message world (format "Recording {a} pad{a}..." count (format-plural count)))))
+                   (set! pad-monitors (map monitor monitor-pads))
+                   (let ((count (length monitor-pads)))
+                     (display-message world (format "Monitoring {a} pad{a}..." count (format-plural count)))))
                   (else
-                   (for-each gst_unmonitor pad-monitors)
+                   (for-each unmonitor pad-monitors)
                    (set! pad-monitors #f)
-                   (display-message world "Recording done"))))))))
+                   (display-message world "Monitoring done"))))))))
   
   
   ;;;
