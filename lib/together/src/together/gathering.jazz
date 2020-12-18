@@ -4055,7 +4055,7 @@
       (toggle-evolution world)
       (let ((panel (child interface 'evolution)))
         (when (get-visible? panel)
-          (let ((lite? (world-setting 'world.timeline-lite? #t)))
+          (let ((lite? (world-setting 'world.timeline-lite? #f)))
             (set-lite? panel lite?)
             (set-span panel (world-setting 'world.timeline-span (if lite? 10. 30.)))
             (set-events-mode panel 'all)
