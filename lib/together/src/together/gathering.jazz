@@ -3011,7 +3011,8 @@
                                                (let ((stats (gst_base_sink_get_stats elem)))
                                                  (draw-property "rate" (gst_structure_get_double stats "average-rate"))
                                                  (draw-property "dropped" (gst_structure_get_uint64 stats "dropped"))
-                                                 (draw-property "rendered" (gst_structure_get_uint64 stats "rendered")))))))
+                                                 (draw-property "rendered" (gst_structure_get_uint64 stats "rendered"))
+                                                 (gst_structure_free stats))))))
                                     (reverse elements)))
                         (case direction
                           ((horizontal)
