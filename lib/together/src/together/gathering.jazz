@@ -1787,12 +1787,13 @@
              (with-bin-mutex
                (lambda ()
                  (let ((threads (collect-process-threads)))
-                   (receive (main others) (cpu-percentage threads)
-                     (let ((total (+ main others)))
-                       (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-                       (draw-text surface base-h 10 (format "CPU: {r precision: 1}%, {r precision: 1}%" (* total 100.) (* others 100.)) {Color World-Red})
-                       (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                       (draw-streams together surface 'vertical threads base-h base-v #f)))))))
+                   (when threads
+                     (receive (main others) (cpu-percentage threads)
+                       (let ((total (+ main others)))
+                         (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
+                         (draw-text surface base-h 10 (format "CPU: {r precision: 1}%, {r precision: 1}%" (* total 100.) (* others 100.)) {Color World-Red})
+                         (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                         (draw-streams together surface 'vertical threads base-h base-v #f))))))))
             (else))))))
   
   
@@ -2918,11 +2919,12 @@
                  (with-bin-mutex
                    (lambda ()
                      (let ((threads (collect-process-threads)))
-                       (receive (main others) (cpu-percentage threads)
-                         (let ((total (+ main others)))
-                           (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})
-                           (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                           (draw-streams self surface 'horizontal threads 20 (+ 80 (* rank 28)) #f)))))))
+                       (when threads
+                         (receive (main others) (cpu-percentage threads)
+                           (let ((total (+ main others)))
+                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})
+                             (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                             (draw-streams self surface 'horizontal threads 20 (+ 80 (* rank 28)) #f))))))))
                 (else))
               @wait
               (let ((leaks (leaks)))
