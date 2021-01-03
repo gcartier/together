@@ -163,6 +163,8 @@
     (unless (and (effective-developer? self)
                  (world-setting 'world.inhibit-empty-fifos? #f))
       (empty-fifo-directory feedback?: (effective-developer? self)))
+    ;; enable glib / gstreamer log
+    (setup-gstreamer-log)
     (when (effective-developer? self)
       (start-debuggers self)))
   
