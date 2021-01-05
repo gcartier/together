@@ -767,7 +767,6 @@
     (register-event-look udp-id-reconnect        3 chronology-orange)   ;  S
     (register-event-look udp-id-throttle-on      3 chronology-yellow)   ; OS
     (register-event-look udp-id-throttle-off     3 chronology-green)    ; OS
-    (register-event-look udp-id-bookmark         3 chronology-magenta)  ;   R
     (register-event-look udp-id-write-failure    3 chronology-red)      ; OSR
     (register-event-look udp-id-ring-overflow    3 chronology-red))     ; OSR
   
