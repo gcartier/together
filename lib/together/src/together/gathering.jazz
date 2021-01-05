@@ -2923,18 +2923,18 @@
               @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
               (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
               (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red})
-              (cond-expand
-                (mac
-                 (with-bin-mutex
-                   (lambda ()
-                     (let ((threads (collect-process-threads)))
+              (with-bin-mutex
+                (lambda ()
+                  (let ((threads (collect-process-threads)))
+                    (cond-expand
+                      (mac
                        (when threads
                          (receive (main others) (cpu-percentage threads)
                            (let ((total (+ main others)))
-                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})
-                             (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                             (draw-streams self surface 'horizontal threads 20 (+ 80 (* rank 28)) #f))))))))
-                (else))
+                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})))))
+                      (else))
+                    (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                    (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))
               @wait
               (let ((leaks (leaks)))
                 (when (not-null? leaks)
