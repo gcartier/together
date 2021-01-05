@@ -97,6 +97,8 @@
   
   (slot local-debugger initialize #f)
   (slot catalogs-mutex initialize (make-mutex 'catalogs))
+  (slot log-listener   initialize #f)
+  (slot log-entries    initialize (new-queue))
 
   
   (method override (process-name self)
@@ -165,6 +167,7 @@
       (empty-fifo-directory feedback?: (effective-developer? self)))
     ;; enable glib / gstreamer log
     (setup-gstreamer-log)
+    (start-log-listener self)
     (when (effective-developer? self)
       (start-debuggers self)))
   
@@ -696,6 +699,53 @@
               (update catalog)))))
       (display-message world "Done")
       (render-scene window)))
+  
+  
+  ;;;
+  ;;;; Log
+  ;;;
+
+  
+  (method (start-log-listener self)
+    (let ((listener (open-stream-listener "log")))
+      (log_set_listener (get-write-file listener))
+      (let ((thread
+              (new-thread
+                (lambda ()
+                  (declare (proper-tail-calls))
+                  (let (loop)
+                    (let ((c (wait listener)))
+                      (case c
+                        ((#\.)
+                         (retrieve-log-entry self)
+                         (loop))
+                        ((#\@)
+                         )))))
+                'log)))
+        (thread-base-priority-set! thread background-priority)
+        (thread-start! thread))
+      (set! log-listener listener)))
+  
+  
+  (method (retrieve-log-entry self)
+    (let ((entry (log_pop_user_last_entry)))
+      (when entry
+        (enqueue log-entries entry)
+        (receive (level message stack) (parse-log-entry entry)
+          (record-event udp-id-log
+                        -1.
+                        -1.
+                        -1.
+                        (fixnum->flonum level)
+                        -1.
+                        -1.
+                        -1.)))))
+  
+  
+  (method (stop-log-listener self)
+    (stop-stream-listener log-listener)
+    (close-stream-listener log-listener)
+    (set! log-listener #f))
   
   
   ;;;
