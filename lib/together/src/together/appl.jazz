@@ -722,7 +722,9 @@
                         ((#\@)
                          )))))
                 'log)))
-        (thread-base-priority-set! thread background-priority)
+        ;; use a fairly high priority as thread is low work
+        ;; and also to get events showing in a responsive way
+        (thread-base-priority-set! thread event-priority)
         (thread-start! thread))
       (set! log-listener listener)))
   
