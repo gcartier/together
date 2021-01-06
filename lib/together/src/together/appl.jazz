@@ -734,16 +734,16 @@
       (when entry
         (enqueue log-entries entry)
         (receive (time level message stack) (parse-log-entry entry)
-          ;; quicky to override event time
-          (parameterize ((simulation-time time))
-            (record-event udp-id-log
-                          -1.
-                          -1.
-                          -1.
-                          (fixnum->flonum level)
-                          -1.
-                          -1.
-                          -1.))))))
+          ;; let record-event use current-seconds as overriding
+          ;; event time can sometimes lead to out-of-order times
+          (record-event udp-id-log
+                        -1.
+                        -1.
+                        -1.
+                        (fixnum->flonum level)
+                        -1.
+                        -1.
+                        -1.)))))
   
   
   (method (stop-log-listener self)
