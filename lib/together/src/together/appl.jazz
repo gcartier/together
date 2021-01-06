@@ -165,7 +165,7 @@
     (unless (and (effective-developer? self)
                  (world-setting 'world.inhibit-empty-fifos? #f))
       (empty-fifo-directory feedback?: (effective-developer? self)))
-    ;; enable glib / gstreamer log
+    (setup-gstreamer/gambit-time)
     (setup-gstreamer-log)
     (start-log-listener self)
     (when (effective-developer? self)
@@ -731,15 +731,17 @@
     (let ((entry (log_pop_user_last_entry)))
       (when entry
         (enqueue log-entries entry)
-        (receive (level message stack) (parse-log-entry entry)
-          (record-event udp-id-log
-                        -1.
-                        -1.
-                        -1.
-                        (fixnum->flonum level)
-                        -1.
-                        -1.
-                        -1.)))))
+        (receive (time level message stack) (parse-log-entry entry)
+          ;; quicky to override event time
+          (parameterize ((simulation-time time))
+            (record-event udp-id-log
+                          -1.
+                          -1.
+                          -1.
+                          (fixnum->flonum level)
+                          -1.
+                          -1.
+                          -1.))))))
   
   
   (method (stop-log-listener self)
