@@ -86,7 +86,6 @@
 
 
 (definition (register-kernel-properties)
-  (add-snapshot-property 'kernel.c-features c-features)
   (add-snapshot-property 'kernel.platform kernel-platform)
   (add-snapshot-property 'kernel.features kernel-features)
   (add-snapshot-property 'kernel.properties kernel-properties))
