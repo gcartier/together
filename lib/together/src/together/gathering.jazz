@@ -1952,7 +1952,7 @@
         (add-snapshot-property 'live.space (space-name space))
         (space-activate space))  
       
-      (define (reconnection mode zone group allow-audio-only?)
+      (define (handle-reconnection mode zone group allow-audio-only?)
         (unless (eq? zone 'start)
           (restore-zone zone))
         (reconnect client)
@@ -1990,16 +1990,17 @@
         (for-each (lambda (name)
                     (create-group client name #t #f #t #t))
                   (listify auto-create)))
-      (let ((reconnect-info (get-reconnect-info client)))
-        (cond (reconnect-info
+      (cond ((get-reconnect-info client)
+             =>
+             (lambda (reconnect-info)
                (bind (mode zone group allow-audio-only?) reconnect-info
-                 (reconnection mode zone group allow-audio-only?)))
-              (auto-join
-               (check-error (autojoin-circle self auto-join #f)))
-              (auto-enter
-               (check-error (enter-zone self)))
-              (else
-               (enter-gathering))))))
+                 (handle-reconnection mode zone group allow-audio-only?))))
+            (auto-join
+             (check-error (autojoin-circle self auto-join #f)))
+            (auto-enter
+             (check-error (enter-zone self)))
+            (else
+             (enter-gathering)))))
   
   
   (method (together-exit self)
