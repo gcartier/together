@@ -74,6 +74,7 @@
         (world.interface.menu)
         (world.interface.timeline)
         (world.io)
+        (world.logging)
         (world.parameters)
         (world.role)
         (world.settings)
@@ -97,8 +98,6 @@
   
   (slot local-debugger initialize #f)
   (slot catalogs-mutex initialize (make-mutex 'catalogs))
-  (slot log-listener   initialize #f)
-  (slot log-entries    initialize (new-queue))
 
   
   (method override (process-name self)
@@ -167,7 +166,7 @@
       (empty-fifo-directory feedback?: (effective-developer? self)))
     (setup-gstreamer/gambit-time)
     (setup-gstreamer-log)
-    (start-log-listener self)
+    (start-log-listener)
     (when (effective-developer? self)
       (start-debuggers self)))
   
@@ -699,57 +698,6 @@
               (update catalog)))))
       (display-message world "Done")
       (render-scene window)))
-  
-  
-  ;;;
-  ;;;; Log
-  ;;;
-
-  
-  (method (start-log-listener self)
-    (let ((listener (open-stream-listener "log")))
-      (log_set_listener (get-write-file listener))
-      (let ((thread
-              (new-thread
-                (lambda ()
-                  (declare (proper-tail-calls))
-                  (let (loop)
-                    (let ((c (wait listener)))
-                      (case c
-                        ((#\.)
-                         (retrieve-log-entry self)
-                         (loop))
-                        ((#\@)
-                         )))))
-                'log)))
-        ;; use a fairly high priority as thread is low work
-        ;; and also to get events showing in a responsive way
-        (thread-base-priority-set! thread event-priority)
-        (thread-start! thread))
-      (set! log-listener listener)))
-  
-  
-  (method (retrieve-log-entry self)
-    (let ((entry (log_pop_user_last_entry)))
-      (when entry
-        (enqueue log-entries entry)
-        (receive (time level message stack) (parse-log-entry entry)
-          ;; let record-event use current-seconds as overriding
-          ;; event time can sometimes lead to out-of-order times
-          (record-event udp-id-log
-                        -1.
-                        -1.
-                        -1.
-                        (fixnum->flonum level)
-                        -1.
-                        -1.
-                        -1.)))))
-  
-  
-  (method (stop-log-listener self)
-    (stop-stream-listener log-listener)
-    (close-stream-listener log-listener)
-    (set! log-listener #f))
   
   
   ;;;
