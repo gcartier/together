@@ -1955,7 +1955,7 @@
       (define (handle-reconnection mode zone group allow-audio-only?)
         (unless (eq? zone 'start)
           (restore-zone zone))
-        (reconnect client)
+        (reconnection client)
         (if (string? group)
             (check-error (rejoin-circle self group allow-audio-only?))
           (if (or (eq? mode 'observer)
