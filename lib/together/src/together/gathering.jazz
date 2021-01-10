@@ -578,7 +578,6 @@
           (set-visible? (child root 'circle) (not admin-visible?))
           (set-visible? (child root 'circle-join) (not admin-visible?))))
       (set-visible? (child root 'circle-create) #t)
-      @version0
       (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #t)
       (set-visible? (child interface 'people) #t)
@@ -1122,7 +1121,6 @@
       (set-visible? (child interface 'command-to) #f)
       (set-visible? (child interface 'chat) #t)
       (set-visible? (child interface 'belt) #t)
-      @version0
       (set-visible? (child mainbar 'profile) #f)
       (layout-interface)))
   
@@ -1326,7 +1324,6 @@
       (set-unbind-camera? #f)
       (set-visible? (child mainbar 'circle-name) #t)
       (set-title (child mainbar 'circle-name) (get-circle-name together))
-      @version0
       (set-visible? (child mainbar 'profile) #t)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -1540,7 +1537,6 @@
         (show-cursor window)
         (show-mainbar self)
         (set-visible? (child mainbar 'circle-name) #t)
-        @version0
         (set-visible? (child mainbar 'profile) #t)
         (for-each (lambda (child)
                     (when (and (is? child World-Actionbar)
@@ -1572,7 +1568,6 @@
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
                                                 (set-visible? (child mainbar 'circle-name) #f)
-                                                @version0
                                                 (set-visible? (child mainbar 'profile) #f)
                                                 (for-each (lambda (child)
                                                             (when (and (is? child World-Actionbar)
@@ -1652,7 +1647,6 @@
   (method override (space-install self)
     (nextmethod self)
     (let ((interface (current-interface)))
-      @version0
       (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -1722,7 +1716,6 @@
       (set-visible? (child root 'timeline) #t)
       (set-visible? (child root 'evolution) #t)
       (set-visible? (child root 'back) #t)
-      @version0
       (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -1835,7 +1828,6 @@
     (let ((interface (current-interface)))
       (set-visible? (child root 'simulator) #t)
       (set-visible? (child root 'back) #t)
-      @version0
       (set-visible? (child mainbar 'profile) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
@@ -2072,7 +2064,6 @@
         (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
         (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
         (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
-      @version0
       (update-profile (child mainbar 'profile))))
   
   
@@ -2259,6 +2250,7 @@
           (toggle-camera client)
           (update-layouts video)
           (update-parameter world 'camera)
+          @version0
           (effective-base-profile-update)))))
   
   
@@ -2547,6 +2539,7 @@
               (else
                (change-circle-mode self 'avatar 'circle feedback?: #f)))
         (space-refresh space)
+        @version0
         (effective-base-profile-update)
         (setup-visibility mainbar))))
   
@@ -4616,12 +4609,10 @@
 ;;;
 
 
-@version0
 (definition change-profile-reversed?
   #t)
 
 
-@version0
 (class Profile-Label extends Label-View
   
   
@@ -4642,7 +4633,6 @@
         (update-profile self)))))
 
 
-@version0
 (definition protected (update-profile label)
   (define (update-label title color)
     (set-title label title)
