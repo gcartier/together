@@ -255,8 +255,7 @@
                                      (let (looping (count 0))
                                        (let ((info (process-audio receiver-audio-ring average debug-process?)))
                                          (when (neq? info 'terminate)
-                                           (bind (presentation-time . datas) info
-                                             (present-audio receiver-audio-channel presentation-time datas))
+                                           (present-audio receiver-audio-channel info)
                                            (looping (+ count 1)))))
                                      (sleep 1.)
                                      (release audio-output))))
