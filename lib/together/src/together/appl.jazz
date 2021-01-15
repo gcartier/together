@@ -74,7 +74,6 @@
         (world.interface.menu)
         (world.interface.timeline)
         (world.io)
-        (world.logging)
         (world.parameters)
         (world.role)
         (world.settings)
@@ -166,7 +165,6 @@
       (empty-fifo-directory feedback?: (effective-developer? self)))
     (setup-gstreamer/gambit-time)
     (setup-gstreamer-log)
-    (start-log-listener)
     (when (effective-developer? self)
       (start-debuggers self)))
   
