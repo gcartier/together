@@ -1520,12 +1520,8 @@
   
   (method (uninstall-hider self)
     (when hide-thread
-      (let ((thread hide-thread))
-        ;; can happen if a udp failure ends up
-        ;; calling bailout-client in this thread
-        (unless (eq? thread (current-thread))
-          (terminate hide-ring)
-          (thread-join! thread)))
+      (terminate hide-ring)
+      (thread-join! hide-thread)
       (set! hide-ring #f)
       (set! hide-thread #f)))
   
