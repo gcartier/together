@@ -2206,11 +2206,13 @@
   (method (on-invite self evt)
     (let ((tier (current-client))
           (world (current-world)))
-      (let ((recipient (cadr message-recipient)))
-        (let ((error (client-invite tier recipient)))
-          (if error
-              (display-error world error)
-            (chat-show world (format "Invite {a}" recipient)))))))
+      (if (not (has-microphone?))
+          (display-error world "No microphone found")
+        (let ((recipient (cadr message-recipient)))
+          (let ((error (client-invite tier recipient)))
+            (if error
+                (display-error world error)
+              (chat-show world (format "Invite {a}" recipient))))))))
   
   
   (method (on-leave self evt)
@@ -3559,12 +3561,14 @@
                      (values 'group (group-recipient) message #f)
                    (values 'whisper last-whisperer message (lambda () (show-panel-whisper last-whisperer message))))))
               ((starts-with? content "/invite ")
-               (let ((recipient (trim-whitespace (substring content 8 (string-length content)))))
-                 (let ((error (client-invite tier recipient)))
-                   (if error
-                       (show-panel-message (get-character-name tier) 'show error)
-                     (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient))))
-                 (values #f #f #f #f)))
+               (if (not (has-microphone?))
+                   (show-panel-message (get-character-name tier) 'show "No microphone found")
+                 (let ((recipient (trim-whitespace (substring content 8 (string-length content)))))
+                   (let ((error (client-invite tier recipient)))
+                     (if error
+                         (show-panel-message (get-character-name tier) 'show error)
+                       (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient))))))
+               (values #f #f #f #f))
               ((equal? (trim-trailing-whitespace content) "/leave")
                (let ((error (client-leave tier)))
                  (if error
