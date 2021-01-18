@@ -403,13 +403,15 @@
             (define (find-bin bin-name)
               (if (not bin-name)
                   pipeline
-                (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
-                              (if (empty-string? bin-name)
-                                  (car sinks)
-                                (find-if (lambda (sink)
-                                           (search (gst_object_get_name (get-bin sink)) bin-name ignore-case?: #t))
-                                         sinks)))))
-                  (get-bin sink))))
+                (if (equal? bin-name "mic")
+                    (get-mic-pipeline (get-src (get-pipeline (get-mic-channel (current-client)))))
+                  (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
+                                (if (empty-string? bin-name)
+                                    (car sinks)
+                                  (find-if (lambda (sink)
+                                             (search (gst_object_get_name (get-bin sink)) bin-name ignore-case?: #t))
+                                           sinks)))))
+                    (get-bin sink)))))
             
             (define (monitor info)
               (parse-info info
