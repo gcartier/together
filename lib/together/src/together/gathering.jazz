@@ -3654,8 +3654,8 @@
   
   (method protected (command-to-size self)
     (if chat-wide?
-        {Dimension 420 40}
-      {Dimension 220 40}))
+        {Dimension 426 40}
+      {Dimension 226 40}))
   
   
   (method protected (command-to-location self)
