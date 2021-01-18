@@ -454,6 +454,9 @@
     (<install>
       (<world-main!>
         (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: view-news                  active?: #t)
+        (<!>                 name: view-roadmap               active?: #t)
+        (<!>                 name: view-help                  active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
@@ -848,10 +851,6 @@
         (<!>                 name: audio-options              active?: #t)
         (<!>                 name: interface-options          active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
-        (<!>                 name: view-news                  active?: #t)
-        (<!>                 name: view-roadmap               active?: #t)
-        (<!>                 name: view-help                  active?: #t)
-        (<!>                 name: open-about                 active?: #t)
         (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
@@ -1229,10 +1228,6 @@
     (<install>
       (<world-main!>
         (<!>                 name: bindings-viewer            active?: #t)
-        (<!>                 name: view-news                  active?: #t)
-        (<!>                 name: view-roadmap               active?: #t)
-        (<!>                 name: view-help                  active?: #t)
-        (<!>                 name: open-about                 active?: #t)
         @roaming
         (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
