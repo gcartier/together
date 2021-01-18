@@ -143,13 +143,6 @@
 ;;;
 
 
-(definition public circle?
-  #f)
-
-(definition public (set-circle? flag)
-  (set! circle? flag))
-
-
 (set-default-server-host
   "togethersphere.com")
 
