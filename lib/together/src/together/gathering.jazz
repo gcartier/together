@@ -4611,6 +4611,19 @@
 
 
 ;;;
+;;;; Circle-Label
+;;;
+
+
+(class Circle-Label extends Kind-Label
+  
+  
+  (method override (mouse-up self evt)
+    (let ((together (current-together)))
+      (update-message-recipient together (list 'group (get-circle-name together))))))
+
+
+;;;
 ;;;; Profile-Label
 ;;;
 

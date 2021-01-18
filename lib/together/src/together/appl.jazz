@@ -948,7 +948,7 @@
       (<World-Separator>)
       (<World-Action-Button>    name: central-menu        resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
       (<Name-Label>             name: name                location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
-      (<Kind-Label>             name: circle-name         location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
+      (<Circle-Label>           name: circle-name         location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
       (<World-Separator>        name: name-separator      location: tail size: {Dimension 10 0})
       (<Profile-Label>          name: profile             location: tail size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: (tail head))
       (<World-Separator>                                  location: tail size: {Dimension 18 0})))
