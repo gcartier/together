@@ -180,6 +180,13 @@
   (set! show-debug? flag))
 
 
+(definition protected show-media
+  #f)
+
+(definition protected (set-show-media what)
+  (set! show-media what))
+
+
 ;; YOWNU quicky
 (definition *available-zones*
   #f)
@@ -972,6 +979,8 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-audio         active?: #t)
+        (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
@@ -1086,6 +1095,8 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-audio         active?: #t)
+        (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
@@ -1285,6 +1296,8 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-audio         active?: #t)
+        (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
@@ -2928,8 +2941,9 @@
                            (let ((total (+ main others)))
                              (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})))))
                       (else))
-                    (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                    (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))
+                    (when show-media
+                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                      (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f)))))
               @wait
               (let ((leaks (leaks)))
                 (when (not-null? leaks)
@@ -2973,7 +2987,9 @@
             (element-color {Color White}))
         (for-each (lambda (bin)
                     (let ((bin-name (gst_object_get_name bin)))
-                      (unless (starts-with? bin-name "video")
+                      (when (case show-media
+                              ((audio) (starts-with? bin-name "audio"))
+                              ((video) (starts-with? bin-name "video")))
                         (draw (format "<{a}>" bin-name) pipeline-color)
                         (with-unref ((elements (gst_bin_elements_sorted bin)))
                           (for-each (lambda (elem)
@@ -3990,6 +4006,26 @@
   (method (on-toggle-debug self evt)
     (when (is? space Void-Space)
       (set-show-debug? (not show-debug?))
+      (invalidate-interface)))
+  
+  
+  (method (on-toggle-debug-audio self evt)
+    (when (is? space Void-Space)
+      (cond ((eq? show-media 'audio)
+             (set-show-media #f))
+            (else
+             (set-show-debug? #t)
+             (set-show-media 'audio)))
+      (invalidate-interface)))
+  
+  
+  (method (on-toggle-debug-video self evt)
+    (when (is? space Void-Space)
+      (cond ((eq? show-media 'video)
+             (set-show-media #f))
+            (else
+             (set-show-debug? #t)
+             (set-show-media 'video)))
       (invalidate-interface)))
   
   
