@@ -17,8 +17,8 @@
    <key>NSHighResolutionCapable</key>
 	<true/>
    <key>NSCameraUsageDescription</key>
-   <string>Together requires access your Camera.</string>
+   <string>Together requires access to your Camera.</string>
    <key>NSMicrophoneUsageDescription</key>
-   <string>Together requires access your Microphone.</string>
+   <string>Together requires access to your Microphone.</string>
 </dict>
 </plist>
