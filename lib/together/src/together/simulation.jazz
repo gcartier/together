@@ -100,14 +100,14 @@
                                     "tee."
                                     "queue"
                                     "wavenc"
-                                    (format "filesink location={a}" (parse {File Documents "work" "test.wav"})))
+                                    (format "filesink location={a}" (parse {File Settings "work" "test.wav"})))
                                   @ogg
                                   (list
                                     "tee."
                                     "queue"
                                     "vorbisenc"
                                     "oggmux"
-                                    (format "filesink location={a}" (parse {File Documents "work" "test.ogg"}))))))
+                                    (format "filesink location={a}" (parse {File Settings "work" "test.ogg"}))))))
       (gst_object_set_name pipeline "audio.output")
       (with-unref ((appsrc (gst_bin_get_by_name pipeline "src")))
         (case codec
