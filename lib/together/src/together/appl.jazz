@@ -163,7 +163,6 @@
     (unless (and (effective-developer? self)
                  (world-setting 'world.inhibit-empty-fifos? #f))
       (empty-fifo-directory feedback?: (effective-developer? self)))
-    (setup-gstreamer/gambit-time)
     (setup-gstreamer-log)
     (when (effective-developer? self)
       (start-debuggers self)))
