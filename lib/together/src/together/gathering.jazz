@@ -2040,6 +2040,7 @@
         (set-unbind-camera? #t)
         (set! space (new Space))
         (set-current-space space)
+        (set-current-together #f)
         (clear-snapshot-property 'live.space))))
   
   
