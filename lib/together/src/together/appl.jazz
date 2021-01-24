@@ -896,25 +896,33 @@
 (define-parameter avatar-mode
   (new World-Parameter
     (lambda ()
-      (avatar-mode? (current-together)))))
+      (let ((together (current-together)))
+        (and together
+             (avatar-mode? together))))))
 
 
 (define-parameter circle-mode
   (new World-Parameter
     (lambda ()
-      (circle-mode? (current-together)))))
+      (let ((together (current-together)))
+        (and together
+             (circle-mode? together))))))
 
 
 (define-parameter focus-mode
   (new World-Parameter
     (lambda ()
-      (focus-mode? (current-together)))))
+      (let ((together (current-together)))
+        (and together
+             (focus-mode? together))))))
 
 
 (define-parameter gallery-mode
   (new World-Parameter
     (lambda ()
-      (gallery-mode? (current-together)))))
+      (let ((together (current-together)))
+        (and together
+             (gallery-mode? together))))))
 
 
 ;;;
