@@ -253,10 +253,8 @@
   
   (method override (destroy self)
     (when audio-output
-      (remove-sink (cache-audio) audio-output)
       (release audio-output)
-      (close audio-output)
-      (close-empty-audio (current-audio)))
+      (close audio-output))
     (when video-output
       (release video-output)
       (close video-output))
