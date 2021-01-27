@@ -1752,12 +1752,14 @@
           (world (current-world)))
       (layout-message world)
       (layout-working world)
+      @wait-too-much-should-be-toggeable (
       (set! draw-hook (~ draw-audio self))
-      (register-draw-hook interface draw-hook)))
+      (register-draw-hook interface draw-hook))))
   
   
   (method override (space-deactivate self)
     (nextmethod self)
+    @wait-too-much-should-be-toggeable
     (let ((interface (current-interface)))
       (unregister-draw-hook interface draw-hook)))
   
