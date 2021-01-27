@@ -388,7 +388,7 @@
         (set-visualizer-start timeline start)
         (set-visualizer-end timeline end))
       (when graph-latency?
-        (invalidate-view timeline))))
+        (redraw timeline))))
   
   
   (method protected (cycle-origins self reversed?)
