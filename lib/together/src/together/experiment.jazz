@@ -119,7 +119,7 @@
       (with-task-mutex
         (lambda ()
           (change-camera-resolution resolution)
-          (when (camera-playing? client)
+          (when (camera-on? client)
             (release-camera client)
             (play-camera client))))
       (feedback (format "Camera resolution set to {a}x{a}" (get-width resolution) (get-height resolution)))))
