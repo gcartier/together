@@ -403,7 +403,7 @@
               (if (not bin-name)
                   pipeline
                 (if (equal? bin-name "mic")
-                    (get-mic-pipeline (get-src (get-pipeline (get-mic-channel (current-client)))))
+                    (get-pipeline (get-src (get-pipeline (get-mic-channel (current-client)))))
                   (let ((sink (let ((sinks (get-ordered-outputs (current-audio))))
                                 (if (empty-string? bin-name)
                                     (car sinks)
