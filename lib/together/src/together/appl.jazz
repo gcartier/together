@@ -1259,7 +1259,7 @@
       (<Together-Media-Actions>      name: together-media)
       (<Together-Circle-Actions>     name: together-circle)
       (<Together-Zone-Actions>       name: together-zone)
-      (<Together-Viewer-Actions>     name: together-viewer)
+      (<Together-View-Actions>       name: together-view)
       (<Together-Share-Actions>      name: together-share)
       @wait
       (<Together-Navigate-Actions>   name: together-navigate)
@@ -1763,6 +1763,10 @@
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
+      (<together-view!>
+        (<!>                 name: toggle-paused              visible?: #t)
+        (<!>                 name: seek-backward              visible?: #t)
+        (<!>                 name: seek-forward               visible?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         visible?: #t)
         (<!>                 name: toggle-streams             visible?: #t)
