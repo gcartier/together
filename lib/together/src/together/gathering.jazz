@@ -2475,78 +2475,72 @@
   (method package (create&join-circle self)
     (let ((tier (current-client))
           (world (current-world)))
-      (if (not (has-microphone?))
-          (display-error world "No microphone found")
-        (if (not (acquire-microphone))
-            (display-error world "Unable to acquire microphone")
-          (let ((create (child (get-root space) 'circle-create)))
-            (let ((view (child create 'view))
-                  (allow-audio-only (child create 'allow-audio-only?)))
-              (let ((allow-audio-only? (get-checked? allow-audio-only))
-                    (camera? (has-camera?)))
-                (if (and (not camera?) (not allow-audio-only?))
-                    (display-error world "No camera found")
-                  (let ((text (locate view 'text)))
-                    (let ((name (trim-whitespace (get-string-content text))))
-                      (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
-                        (if (string? no/exception)
-                            (display-error world no/exception)
-                          (clear-message world)
-                          (set-string-content text "")
-                          (content-changed view)
-                          (set-checked? allow-audio-only #f)
-                          (join-circle self name allow-audio-only?)))))))))))))
+      (let ((create (child (get-root space) 'circle-create)))
+        (let ((allow-audio-only (child create 'allow-audio-only?))
+              (view (child create 'view)))
+          (let ((allow-audio-only? (get-checked? allow-audio-only)))
+            (let ((err (acquire-circle self allow-audio-only?)))
+              (if err
+                  (display-error world err)
+                (let ((text (locate view 'text)))
+                  (let ((name (trim-whitespace (get-string-content text))))
+                    (let ((no/exception (create-group tier name #f allow-audio-only? #f #f)))
+                      (if (string? no/exception)
+                          (display-error world no/exception)
+                        (clear-message world)
+                        (set-string-content text "")
+                        (content-changed view)
+                        (set-checked? allow-audio-only #f)
+                        (join-circle self name allow-audio-only?))))))))))))
   
   
   (method package (join-circle self name allow-audio-only?)
     (let ((tier (current-client))
           (world (current-world)))
-      (let ((microphone? (has-microphone?)))
-        (if (not microphone?)
-            (display-error world "No microphone found")
-          (if (not (acquire-microphone))
-              (display-error world "Unable to acquire microphone")
-            (let ((camera? (has-camera?)))
-              (if (and (not camera?) (not allow-audio-only?))
-                  (display-error world "No camera found")
-                (let ((no/streams/exception (join-group tier name 'player)))
-                  (if (string? no/streams/exception)
-                      (display-error world no/streams/exception)
-                    (setup-circle self name no/streams/exception))))))))))
+      (let ((err (acquire-circle self allow-audio-only?)))
+        (if err
+            (display-error world err)
+          (let ((no/streams/exception (join-group tier name 'player)))
+            (if (string? no/streams/exception)
+                (display-error world no/streams/exception)
+              (setup-circle self name no/streams/exception)))))))
   
   
   (method (autojoin-circle self name allow-audio-only?)
     (let ((tier (current-client)))
-      (let ((microphone? (has-microphone?)))
-        (if (not microphone?)
-            "No microphone found"
-          (if (not (acquire-microphone))
-              "Unable to acquire microphone"
-            (let ((camera? (has-camera?)))
-              (if (and (not camera?) (not allow-audio-only?))
-                  "No camera found"
-                (let ((no/streams/exception (join-group tier name 'player)))
-                  (if (string? no/streams/exception)
-                      no/streams/exception
-                    (setup-circle self name no/streams/exception)
-                    #f)))))))))
+      (let ((err (acquire-circle self allow-audio-only?)))
+        (if err
+            err
+          (let ((no/streams/exception (join-group tier name 'player)))
+            (if (string? no/streams/exception)
+                no/streams/exception
+              (setup-circle self name no/streams/exception)
+              #f))))))
   
   
   (method (rejoin-circle self name allow-audio-only?)
     (let ((tier (current-client)))
-      (let ((microphone? (has-microphone?)))
-        (if (not microphone?)
-            "No microphone found"
-          (if (not (acquire-microphone))
-              "Unable to acquire microphone"
-            (let ((camera? (has-camera?)))
-              (if (and (not camera?) (not allow-audio-only?))
-                  "No camera found"
-                (let ((no/streams/exception (rejoin-group tier name)))
-                  (if (string? no/streams/exception)
-                      no/streams/exception
-                    (setup-circle self name no/streams/exception)
-                    #f)))))))))
+      (let ((err (acquire-circle self allow-audio-only?)))
+        (if err
+            err
+          (let ((no/streams/exception (rejoin-group tier name)))
+            (if (string? no/streams/exception)
+                no/streams/exception
+              (setup-circle self name no/streams/exception)
+              #f))))))
+  
+  
+  (method (acquire-circle self allow-audio-only?)
+    (if (auto-live?)
+        (cond ((and auto-audio? (not (has-microphone?)))
+               "No microphone found")
+              ((and auto-audio? (not (acquire-microphone)))
+               "Unable to acquire microphone")
+              ((and auto-video? (not allow-audio-only?) (not (has-camera?)))
+               "No camera found")
+              (else
+               #f))
+      #f))
   
   
   (method (setup-circle self name no/streams/exception)
