@@ -1604,7 +1604,7 @@
         (<!>                 name: toggle-mic                 active?: #t)
         (<!>                 name: toggle-camera              active?: #t)
         (<!>                 name: change-quality             active?: #t)
-        (<!>                 name: toggle-denoise             active?: #t))
+        (<!>                 name: toggle-rndenoise           active?: #t))
       (<together-circle!>
         (<!>                 name: circle-mode                active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
@@ -2238,18 +2238,16 @@
     (chat-message self))
   
   
-  (method (on-toggle-denoise self evt)
-    @w
+  (method (on-toggle-rndenoise self evt)
     (let ((client (current-client))
           (world (current-world)))
       (when (is? space Void-Space)
-        (set-audio-denoise? (not audio-denoise?))
+        (set-audio-rndenoise? (not audio-rndenoise?))
         (let ((mic-channel (get-mic-channel client)))
           (when mic-channel
-            (let ((denoiser (get-denoiser (get-src (get-pipeline mic-channel)))))
-              (when denoiser
-                (set-denoising? denoiser audio-denoise?)))))
-        (display-on/off world "Denoise" audio-denoise?))))
+            (let ((src (get-src (get-pipeline mic-channel))))
+              (update-rndenoising src audio-rndenoise?))))
+        (display-on/off world "Aggressive Denoising" audio-rndenoise?))))
   
   
   (method (on-toggle-mic self evt)
