@@ -3929,93 +3929,109 @@
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
               (circle-switch-focus next))))))
     
-    (define (world/view-focused?)
-      (or (world-focused?)
-          (is? (active-focus) Circle-View)))
+    (define (world/circle-focus? focus)
+      (or (world-focus? focus)
+          (circle-focus? focus)))
     
-    (nucase shortcut
-      (({Shortcut Left})
-       (and (circle-mode? self)
-            (world-focused?)
-            (begin
-              (circle-left)
-              #t)))
-      (({Shortcut Right})
-       (and (circle-mode? self)
-            (world-focused?)
-            (begin
-              (circle-right)
-              #t)))
-      (({Shortcut Up})
-       (and (circle-mode? self)
-            (world/view-focused?)
-            (begin
-              (circle-up)
-              #t)))
-      (({Shortcut Down})
-       (and (circle-mode? self)
-            (world/view-focused?)
-            (begin
-              (circle-down)
-              #t)))
-      (({Shortcut Space})
-       (and (circle-mode? self)
-            (world-focused?)
-            (begin
-              (circle-space)
-              #t)))
-      (({Shortcut Return})
-       (and (circle-mode? self)
-            (world/view-focused?)
-            (begin
-              (circle-return)
-              #t)))
-      (({Shortcut #\1})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (begin
-              (focus-no 1)
-              #t)))
-      (({Shortcut #\2})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (begin
-              (focus-no 2)
-              #t)))
-      (({Shortcut #\3})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (begin
-              (focus-no 3)
-              #t)))
-      (({Shortcut #\4})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (begin
-              (focus-no 4)
-              #t)))
-      (({Shortcut #\5})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (begin
-              (focus-no 5)
-              #t)))
-      (({Shortcut Tab})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (world/view-focused?)
-            (begin
-              (cycle-focus #f)
-              #t)))
-      (({Shortcut :shift Tab})
-       (and (or (circle-mode? self)
-                (focus-mode? self))
-            (world/view-focused?)
-            (begin
-              (cycle-focus #t)
-              #t)))
-      (else
-       #f)))
+    (define (circle-focus? focus)
+      (is? focus Circle-View))
+    
+    (let ((focus (active-focus)))
+      (nucase shortcut
+        (({Shortcut Left})
+         (if (circle-focus? focus)
+             (begin
+               (seek-backward focus)
+               #t)
+           (and (circle-mode? self)
+                (world-focus? focus)
+                (begin
+                  (circle-left)
+                  #t))))
+        (({Shortcut Right})
+         (if (circle-focus? focus)
+             (begin
+               (seek-forward focus)
+               #t)
+           (and (circle-mode? self)
+                (world-focus? focus)
+                (begin
+                  (circle-right)
+                  #t))))
+        (({Shortcut Up})
+         (and (circle-mode? self)
+              (world/circle-focus? focus)
+              (begin
+                (circle-up)
+                #t)))
+        (({Shortcut Down})
+         (and (circle-mode? self)
+              (world/circle-focus? focus)
+              (begin
+                (circle-down)
+                #t)))
+        (({Shortcut Space})
+         (if (circle-focus? focus)
+             (begin
+               (toggle-paused focus)
+               #t)
+           (and (circle-mode? self)
+                (world-focus? focus)
+                (begin
+                  (circle-space)
+                  #t))))
+        (({Shortcut Return})
+         (and (circle-mode? self)
+              (world/circle-focus? focus)
+              (begin
+                (circle-return)
+                #t)))
+        (({Shortcut #\1})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (begin
+                (focus-no 1)
+                #t)))
+        (({Shortcut #\2})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (begin
+                (focus-no 2)
+                #t)))
+        (({Shortcut #\3})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (begin
+                (focus-no 3)
+                #t)))
+        (({Shortcut #\4})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (begin
+                (focus-no 4)
+                #t)))
+        (({Shortcut #\5})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (begin
+                (focus-no 5)
+                #t)))
+        (({Shortcut Tab})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (world/circle-focus? focus)
+              (begin
+                (cycle-focus #f)
+                #t)))
+        (({Shortcut :shift Tab})
+         (and (or (circle-mode? self)
+                  (focus-mode? self))
+              (world/circle-focus? focus)
+              (begin
+                (cycle-focus #t)
+                #t)))
+        (else
+         #f))))
   
   
   ;;;
