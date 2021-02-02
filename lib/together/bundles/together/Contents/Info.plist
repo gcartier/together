@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>together.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>Together</string>
+	<string>com.togethersphere.Together</string>
 	<key>CFBundleName</key>
 	<string>Together</string>
 	<key>CFBundlePackageType</key>
@@ -20,5 +20,7 @@
    <string>Together requires access to your Camera.</string>
    <key>NSMicrophoneUsageDescription</key>
    <string>Together requires access to your Microphone.</string>
+   <key>NSDocumentsFolderUsageDescription</key>
+   <string>Together requires access to your Documents.</string>
 </dict>
 </plist>

@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>together-server.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>Together-Server</string>
+	<string>com.togethersphere.TogetherServer</string>
 	<key>CFBundleName</key>
 	<string>Together-Server</string>
 	<key>CFBundlePackageType</key>

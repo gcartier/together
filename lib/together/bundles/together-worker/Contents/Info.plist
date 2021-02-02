@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>together-worker.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>Together-Worker</string>
+	<string>com.togethersphere.TogetherWorker</string>
 	<key>CFBundleName</key>
 	<string>Together-Worker</string>
 	<key>CFBundlePackageType</key>

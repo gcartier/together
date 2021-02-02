@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>together-processor.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>Together-Processor</string>
+	<string>com.togethersphere.TogetherProcessor</string>
 	<key>CFBundleName</key>
 	<string>Together-Processor</string>
 	<key>CFBundlePackageType</key>
