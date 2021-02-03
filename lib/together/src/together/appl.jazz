@@ -1309,7 +1309,8 @@
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t))
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
