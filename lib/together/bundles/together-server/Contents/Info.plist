@@ -12,6 +12,8 @@
 	<string>com.togethersphere.TogetherServer</string>
 	<key>CFBundleName</key>
 	<string>Together-Server</string>
+	<key>CFBundleDisplayName</key>
+	<string>Together-Server</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 </dict>

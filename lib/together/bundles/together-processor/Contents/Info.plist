@@ -12,6 +12,8 @@
 	<string>com.togethersphere.TogetherProcessor</string>
 	<key>CFBundleName</key>
 	<string>Together-Processor</string>
+	<key>CFBundleDisplayName</key>
+	<string>Together-Processor</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 </dict>

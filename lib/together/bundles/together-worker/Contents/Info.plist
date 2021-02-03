@@ -12,6 +12,8 @@
 	<string>com.togethersphere.TogetherWorker</string>
 	<key>CFBundleName</key>
 	<string>Together-Worker</string>
+	<key>CFBundleDisplayName</key>
+	<string>Together-Worker</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 </dict>
