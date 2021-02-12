@@ -161,13 +161,14 @@
 
 
 (definition protected together-skybox
-  (or (world-setting 'together.skybox (get-skybox (active-graphic-profile)))
-      (if (world-setting 'together.first-use? #t)
-          (begin
-            (set-setting options-settings 'together.first-use? #f)
-            (save-content options-settings)
-            "world/nebula")
-        (random-element '("world/calm_sea" "world/dark_sea" "world/nebula")))))
+  (and (client?)
+       (or (world-setting 'together.skybox (get-skybox (active-graphic-profile)))
+           (if (world-setting 'together.first-use? #t)
+               (begin
+                 (set-setting options-settings 'together.first-use? #f)
+                 (save-content options-settings)
+                 "world/nebula")
+             (random-element '("world/calm_sea" "world/dark_sea" "world/nebula"))))))
 
 
 ;;;
