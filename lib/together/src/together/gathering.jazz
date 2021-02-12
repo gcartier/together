@@ -2815,6 +2815,7 @@
           use: 'data
           test: same-entity?
           selection-position?: #f)
+        (people-selection-change self)
         (update-recipient-interface self)
         (refresh-compass world))))
   
