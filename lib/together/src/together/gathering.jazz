@@ -4434,7 +4434,7 @@
         (let ((text (locate panel '(console text))))
           (show-admin self)
           (acquire-focus text)
-          (insert-string text "request all replay")
+          (insert-string text "request replay all")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
