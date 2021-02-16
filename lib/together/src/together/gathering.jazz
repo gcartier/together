@@ -123,10 +123,11 @@
 (definition auto-hide?
   (world-setting 'together.auto-hide? #t))
 
-(definition auto-audio?
+
+(definition (auto-audio?)
   (world-setting 'together.auto-audio? #t))
 
-(definition auto-video?
+(definition (auto-video?)
   (world-setting 'together.auto-video? #t))
 
 (definition (auto-live?)
@@ -2535,11 +2536,11 @@
   
   (method (acquire-circle self allow-audio-only?)
     (if (auto-live?)
-        (cond ((and auto-audio? (not (has-microphone?)))
+        (cond ((and (auto-audio?) (not (has-microphone?)))
                "No microphone found")
-              ((and auto-audio? (not (acquire-microphone)))
+              ((and (auto-audio?) (not (acquire-microphone)))
                "Unable to acquire microphone")
-              ((and auto-video? (not allow-audio-only?) (not (has-camera?)))
+              ((and (auto-video?) (not allow-audio-only?) (not (has-camera?)))
                "No camera found")
               (else
                #f))
@@ -2558,9 +2559,9 @@
           (require-live-stream tier))
         (start udp)
         (when (auto-live?)
-          (when auto-audio?
+          (when (auto-audio?)
             (play-mic tier))
-          (when (and auto-video? (not allow-audio-only?))
+          (when (and (auto-video?) (not allow-audio-only?))
             (play-camera tier)))
         (clear-message world)
         (camera-copy! preserved-eye (get-eye world))
