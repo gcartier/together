@@ -6,7 +6,7 @@ DEST=cache/develop/Libraries/gstreamer
 
 cpplugin() {
     cp $GSTREAMER/$1 $LIB/$1
-    cache/develop/jazz -run relocate $LIB $1 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    cache/develop/jazz -run relocate file $LIB $1 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
     cp $LIB/$1 $DEST/$1
 }
 
@@ -18,7 +18,7 @@ cpshared() {
 #cpplugin lib/gstreamer-1.0/libgstaudiorate.dylib
 #cpplugin lib/gstreamer-1.0/libgstwavenc.dylib
 #cpplugin lib/gstreamer-1.0/libgstrsvg.dylib
-cpplugin lib/gstreamer-1.0/libgstwebrtcdsp.dylib
+#cpplugin lib/gstreamer-1.0/libgstwebrtcdsp.dylib
 
-cpshared lib/libgstbadaudio-1.0.0.dylib
-cpshared lib/libwebrtc_audio_processing.0.dylib
+#cpshared lib/libgstbadaudio-1.0.0.dylib
+#cpshared lib/libwebrtc_audio_processing.0.dylib

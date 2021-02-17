@@ -5,5 +5,5 @@ WEBRTCAUDIOPROCESSING=/Users/cartier/Devel/gstreamer/webrtcaudioprocessing/build
 DEST=cache/develop/Libraries/gstreamer/lib/gstreamer-1.0
 
 cp $WEBRTCAUDIOPROCESSING/$LIBNAME $DEST/$LIBNAME
-cache/develop/jazz -run relocate $DEST $LIBNAME /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+cache/develop/jazz -run relocate file $DEST $LIBNAME /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
 install_name_tool -change @rpath/libwebrtc.dylib @rpath/gstreamer/lib/libwebrtc.dylib $DEST/$LIBNAME
