@@ -166,6 +166,10 @@
   (world-setting 'together.navigate-shortcuts? #f))
 
 
+(definition preprocess-prime?
+  (world-setting 'together.preprocess-prime? #t))
+
+
 (definition edited-script
   (world-setting 'together.edited-script #f))
 
@@ -4477,7 +4481,7 @@
                                                      dir
                                                    stream-directory))
                                              stream-directory)))
-                                  (preprocess-directory dir prime?: #t feedback: feedback)))))))))))
+                                  (preprocess-directory dir prime?: preprocess-prime? feedback: feedback)))))))))))
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
