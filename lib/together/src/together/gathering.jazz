@@ -1707,6 +1707,22 @@
 ;;;
 
 
+(define-trait replay-bindings Bindings
+  (<Trait>                   name: replay
+    (<install>
+      (<world-main!>
+        (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: quit-world                 active?: #t))
+      (<world-interface!>
+        (<!>                 name: toggle-windowed-mode       active?: #t))
+      (<world-debug!>
+        (<!>                 name: explore-interface          active?: #t))
+      (<together-menu!>
+        (<!>                 name: central-menu               active?: #t))
+      (<together-debug!>
+        (<!>                 name: toggle-admin               active?: #t)))))
+
+
 (class Replay-Space extends Sphere-Space
   
   
@@ -1779,6 +1795,19 @@
     (close-emulators (child root 'visualizer))
     (hide-interface)
     (reset-panel-stack))
+  
+  
+  (method override (space-bindings self)
+    (list replay-bindings))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'world-main)
+                  (find-actions 'world-interface)
+                  (find-actions 'world-debug)
+                  (find-actions 'together-menu)
+                  (find-actions 'together-debug))
+            (nextmethod self)))
   
   
   (method override (draw-world? self)
