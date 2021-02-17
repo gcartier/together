@@ -1,0 +1,79 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Script Space
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.script-space jazz
+
+
+(import (jazz.component)
+        (jazz.view)
+        (world)
+        (world.context)
+        (world.interface)
+        (world.interface.mainbar)
+        (world.settings)
+        (together)
+        (together.sphere-space)
+        (together.zone))
+
+
+(class Script-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'script)
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (set! self.root root))))
+    
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (set-visible? (child mainbar 'profile) #f)
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (set-visible? (child interface 'streams-label) #f)
+      (set-visible? (child interface 'streams) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (set-visible? (child interface 'chat) #f)
+      (set-visible? (child interface 'command-to) #f)
+      (set-visible? (child interface 'command) #f)
+      (layout-view interface)
+      (layout-view root)
+      (show root)
+      (send-to-back root)
+      (if (admin?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (let ((manager (locate panel 'manager)))
+          (save-script manager))
+        (hide panel))))))

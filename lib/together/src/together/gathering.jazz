@@ -112,10 +112,14 @@
         (together.experiment)
         (together.network)
         (together.replay)
+        (together.replay-space)
         (together.script)
+        (together.script-space)
         (together.settings)
+        (together.simulate-space)
         (together.simulator)
         (together.space)
+        (together.sphere-space)
         (together.visualizer)
         (together.zone))
 
@@ -231,229 +235,6 @@
   
   (method override (void? self)
     #t))
-
-
-;;;
-;;;; Sphere-Space
-;;;
-
-
-(class Sphere-Space extends Together-Space
-  
-  
-  ;;;
-  ;;;; Interface
-  ;;;
-  
-  
-  (method protected virtual (show-interface self hide-interface?)
-    )
-  
-  
-  ;;;
-  ;;;; Events
-  ;;;
-  
-  
-  (method (on-toggle-people self evt)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (toggle-visible? (child interface 'people-label))
-      (toggle-visible? (child interface 'people))
-      (set-visible? (child interface 'streams-label) #f)
-      (set-visible? (child interface 'streams) #f)
-      (update-parameter world 'people)))
-  
-  
-  (method (on-toggle-streams self evt)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (toggle-visible? (child interface 'streams-label))
-      (toggle-visible? (child interface 'streams))
-      (when (get-visible? (child interface 'streams))
-        (view-streams self))
-      (update-parameter world 'streams)))
-  
-  
-  (method (on-toggle-chat self evt)
-    (let ((together (current-together))
-          (interface (current-interface))
-          (space (current-space))
-          (world (current-world)))
-      (typecase space
-        ((Void-Space)
-         (toggle-visible? (child interface 'chat-label))
-         (toggle-visible? (child interface 'chat))
-         (toggle-visible? (child interface 'command-to))
-         (toggle-visible? (child interface 'command)))
-        ((Zone-Space)
-         (cond ((get-visible? (child interface 'chat))
-                (set-visible? (child interface 'chat) #f)
-                (set-visible? (child interface 'command-to) #f)
-                (set-visible? (child interface 'command) #f))
-               (else
-                (set-visible? (child interface 'chat) #t)
-                (set-visible? (child interface 'command-to) #f)
-                (set-visible? (child interface 'command) #f)))))
-      (update-parameter world 'chat)))
-  
-  
-  ;;;
-  ;;;; Streams
-  ;;;
-  
-  
-  (method (streams-tree self)
-    (let ((interface (current-interface)))
-      (locate (child interface 'streams) '(streams streams))))
-  
-  
-  (method (view-streams self)
-    (let ((tier (current-tier))
-          (me (current-me)))
-      (let ((udp-client (get-udp-client tier))
-            (tree (streams-tree self)))
-        (remove-every-row tree)
-        (with-update-locked tree
-          (lambda ()
-            (let ((audio-extensions (streaming-audio-extensions))
-                  (video-extensions (streaming-video-extensions)))
-              (define (determine-kind files)
-                (let ((count (length files)))
-                  (cond ((and (= count 1)
-                              (member? (get-extension (car files)) '("jpg" "jpeg" "png") test: extension=?))
-                         'image)
-                        ((and (= count 1)
-                              (member? (get-extension (car files)) '("txt") test: extension=?))
-                         'text)
-                        (else
-                         (let ((audio? (some? (lambda (file)
-                                                (member? (get-extension file) audio-extensions test: extension=?))
-                                              files))
-                               (video? (some? (lambda (file)
-                                                (member? (get-extension file) video-extensions test: extension=?))
-                                              files)))
-                           (cond ((and audio? video?)
-                                  'video)
-                                 (audio?
-                                  'audio)
-                                 (video?
-                                  'video)
-                                 (else
-                                  #f)))))))
-              
-              (define (iterate dir (father #f))
-                (let ((files (collect-files dir
-                               (lambda (file)
-                                 (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
-                  (for-each (lambda (partition)
-                              (bind (base . files) partition
-                                (let ((kind (determine-kind files)))
-                                  (when kind
-                                    (let ((location (and kind (join (subpath {Directory Documents} (car files)) "/"))))
-                                      (let ((location (if (eq? kind 'image)
-                                                          location
-                                                        (filename-spine location))))
-                                        (let ((streaming (find-streaming udp-client location)))
-                                          (let ((title (streaming-title self streaming base))
-                                                (color (streaming-color self streaming)))
-                                            (add-row tree
-                                                     father: father
-                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                                     user-data: (and kind (list kind base location)))))))))))
-                            (partition files key: get-base test: filename=?)))
-                (iterate-directory dir
-                  (lambda (subdir)
-                    (let ((name (get-name subdir)))
-                      (let ((father (add-row tree
-                                             father: father
-                                             state: 'expanded
-                                             children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
-                        (iterate subdir father))))
-                  files?: #f
-                  directories?: #t
-                  recursive?: #f))
-              
-              (iterate-stream-directories iterate)))))))
-  
-  
-  (method (streaming-title self streaming base)
-    (if streaming
-        (format "{a} (playing)" base)
-      (format "{a}" base)))
-  
-  
-  (method (streaming-color self streaming)
-    (if streaming
-        {Color World-Blue}
-      {Color White}))
-  
-  
-  (method package (streams-action self)
-    (streams-action-selected self))
-  
-  
-  (method (streams-action-selected self)
-    (let ((tier (current-tier)))
-      (let ((udp-client (get-udp-client tier))
-            (tree (streams-tree self)))
-        (let ((row (get-selected-row tree)))
-          (when row
-            (let ((data (get-user-data row)))
-              (when data
-                (bind (kind base location) data
-                  (define (update-cell streaming)
-                    (let ((title (streaming-title self streaming base))
-                          (color (streaming-color self streaming))
-                          (line (row->line tree row))
-                          (col 0))
-                      (let ((cell (new Cell line col)))
-                        (let ((data (get-cell-data tree cell)))
-                          (set-title data title)
-                          (set-color data color))
-                        (invalidate-cell tree cell))))
-                  
-                  (let ((streaming (find-streaming udp-client location)))
-                    (if streaming
-                        (begin
-                          (close-send-stream udp-client streaming)
-                          (update-cell #f))
-                      (case kind
-                        ((text)
-                         (let ((name (filename-name location)))
-                           (let ((stream (stream-text location name)))
-                             (update-cell stream)
-                             (delay-streaming
-                               (lambda ()
-                                 (play stream))))))
-                        ((image)
-                         (let ((name (filename-name location)))
-                           (let ((stream (stream-image location name)))
-                             (update-cell stream)
-                             (delay-streaming
-                               (lambda ()
-                                 (play stream))))))
-                        ((audio)
-                         (let ((name (filename-name location)))
-                           (let ((stream (stream-audio location name)))
-                             (update-cell stream)
-                             (delay-streaming
-                               (lambda ()
-                                 (play stream))))))
-                        ((video)
-                         (let ((name (filename-name location))
-                               (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
-                           (let ((stream (stream-video location name audio?: (and audio-file? (not stream-silent?)))))
-                             (update-cell stream)
-                             (delay-streaming
-                               (lambda ()
-                                 (play stream)))))))))))))))))
-  
-  
-  (method package (streams-label-action self)
-    ))
 
 
 ;;;
@@ -1231,7 +1012,21 @@
   
   
   (method (on-command-slash self evt)
-    (chat-slash (together:current-together))))
+    (chat-slash (together:current-together)))
+  
+  
+  (method override (toggle-chat self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (cond ((get-visible? (child interface 'chat))
+             (set-visible? (child interface 'chat) #f)
+             (set-visible? (child interface 'command-to) #f)
+             (set-visible? (child interface 'command) #f))
+            (else
+             (set-visible? (child interface 'chat) #t)
+             (set-visible? (child interface 'command-to) #f)
+             (set-visible? (child interface 'command) #f)))
+      (update-parameter world 'chat))))
 
 
 ;;;
@@ -1455,6 +1250,16 @@
       (display-on/off world "Auto hide" auto-hide?)))
   
   
+  (method override (toggle-chat self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (toggle-visible? (child interface 'chat-label))
+      (toggle-visible? (child interface 'chat))
+      (toggle-visible? (child interface 'command-to))
+      (toggle-visible? (child interface 'command))
+      (update-parameter world 'chat)))
+  
+  
   ;;;
   ;;;; Mouse
   ;;;
@@ -1642,281 +1447,6 @@
         (<!>                 name: down-press                 active?: #t)
         (<!>                 name: tab-press                  active?: #t)
         (<!>                 name: number-press               active?: #t)))))
-
-
-;;;
-;;;; Script-Space
-;;;
-
-
-(class Script-Space extends Sphere-Space
-  
-  
-  (method override (space-name self)
-    'script)
-  
-  
-  (method override (space-setup self)
-    (nextmethod self)
-    (let ((together (current-together))
-          (interface (current-interface)))
-      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
-        (set! self.root root))))
-    
-  
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface)))
-      (set-visible? (child mainbar 'profile) #f)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'streams-label) #f)
-      (set-visible? (child interface 'streams) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-visible? (child interface 'chat) #f)
-      (set-visible? (child interface 'command-to) #f)
-      (set-visible? (child interface 'command) #f)
-      (layout-view interface)
-      (layout-view root)
-      (show root)
-      (send-to-back root)
-      (if (admin?)
-          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
-            (focus-world))
-        (focus-world))))
-  
-  
-  (method override (space-activate self)
-    (nextmethod self)
-    (let ((world (current-world)))
-      (layout-message world)
-      (layout-working world)))
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    (let ((interface (current-interface)))
-      (let ((panel (child interface 'script)))
-        (let ((manager (locate panel 'manager)))
-          (save-script manager))
-        (hide panel)))))
-
-
-;;;
-;;;; Replay-Space
-;;;
-
-
-(define-trait replay-bindings Bindings
-  (<Trait>                   name: replay
-    (<install>
-      (<world-main!>
-        (<!>                 name: bindings-viewer            active?: #t)
-        (<!>                 name: quit-world                 active?: #t))
-      (<world-interface!>
-        (<!>                 name: toggle-windowed-mode       active?: #t))
-      (<world-debug!>
-        (<!>                 name: explore-interface          active?: #t))
-      (<together-menu!>
-        (<!>                 name: central-menu               active?: #t))
-      (<together-debug!>
-        (<!>                 name: toggle-admin               active?: #t)))))
-
-
-(class Replay-Space extends Sphere-Space
-  
-  
-  (slot draw-hook initialize #f getter generate)
-  
-  
-  (method override (space-name self)
-    'replay)
-  
-  
-  (method override (space-setup self)
-    (nextmethod self)
-    (let ((together (current-together))
-          (interface (current-interface)))
-      (let ((root (new Together-Replay-Panel name: 'replay parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
-        (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: #t layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
-        (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
-        (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
-        (new Push-Button name: 'back parent: root title: "Back" location: '(-10 -10) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
-        (set! self.root root))))
-  
-  
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface)))
-      (set-visible? (child root 'visualizer) #t)
-      (set-visible? (child root 'timeline) #t)
-      (set-visible? (child root 'evolution) #t)
-      (set-visible? (child root 'back) #t)
-      (set-visible? (child mainbar 'profile) #f)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'streams-label) #f)
-      (set-visible? (child interface 'streams) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-visible? (child interface 'chat) #f)
-      (set-visible? (child interface 'command-to) #f)
-      (set-visible? (child interface 'command) #f)
-      (hide-mainbar self)
-      (layout-view interface)
-      (layout-view root)
-      (show root)
-      (send-to-back root)
-      (if (admin?)
-          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
-            (focus-world))
-        (focus-world))))
-  
-  
-  (method override (space-activate self)
-    (nextmethod self)
-    (let ((interface (current-interface))
-          (world (current-world)))
-      (layout-message world)
-      (layout-working world)
-      @wait-too-much-should-be-toggeable (
-      (set! draw-hook (~ draw-audio self))
-      (register-draw-hook interface draw-hook))))
-  
-  
-  (method override (space-deactivate self)
-    (nextmethod self)
-    @wait-too-much-should-be-toggeable
-    (let ((interface (current-interface)))
-      (unregister-draw-hook interface draw-hook)))
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    (close-emulators (child root 'visualizer))
-    (hide-interface)
-    (reset-panel-stack))
-  
-  
-  (method override (space-bindings self)
-    (list replay-bindings))
-  
-  
-  (method override (space-actions self)
-    (append (list (find-actions 'world-main)
-                  (find-actions 'world-interface)
-                  (find-actions 'world-debug)
-                  (find-actions 'together-menu)
-                  (find-actions 'together-debug))
-            (nextmethod self)))
-  
-  
-  (method override (draw-world? self)
-    #f)
-  
-  
-  (method override (draw-message-offset self)
-    65)
-  
-  
-  (method (draw-audio self surface)
-    (let ((together (current-together))
-          (client (current-client))
-          (world (current-world)))
-      (let ((udp-client (get-udp-client client))
-            (width (fxround (get-width world))))
-        (let ((base-h (- width 270))
-              (base-v 50))
-          (define (cpu-percentage threads)
-            (cond-expand
-              (mac
-               (bind (main . others) (map second threads)
-                 (values main (apply + others))))
-              (else)))
-          
-          (cond-expand
-            (mac
-             (with-bin-mutex
-               (lambda ()
-                 (let ((threads (collect-process-threads)))
-                   (when threads
-                     (receive (main others) (cpu-percentage threads)
-                       (let ((total (+ main others)))
-                         (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-                         (draw-text surface base-h 10 (format "CPU: {r precision: 1}%, {r precision: 1}%" (* total 100.) (* others 100.)) {Color World-Red})
-                         (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                         (draw-streams together surface 'vertical threads base-h base-v #f))))))))
-            (else))))))
-  
-  
-  (method (on-back self evt)
-    (goto-space (current-together) 'gathering)))
-
-
-;;;
-;;;; Simulate-Space
-;;;
-
-
-(class Simulate-Space extends Sphere-Space
-  
-  
-  (method override (space-name self)
-    'simulate)
-  
-  
-  (method override (space-setup self)
-    (nextmethod self)
-    (let ((together (current-together))
-          (interface (current-interface)))
-      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
-        (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
-        (new Push-Button name: 'back parent: root title: "Back" location: '(-30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
-        (set! self.root root))))
-    
-  
-  (method override (space-install self)
-    (nextmethod self)
-    (let ((interface (current-interface)))
-      (set-visible? (child root 'simulator) #t)
-      (set-visible? (child root 'back) #t)
-      (set-visible? (child mainbar 'profile) #f)
-      (set-visible? (child interface 'people-label) #f)
-      (set-visible? (child interface 'people) #f)
-      (set-visible? (child interface 'streams-label) #f)
-      (set-visible? (child interface 'streams) #f)
-      (set-visible? (child interface 'chat-label) #f)
-      (set-visible? (child interface 'chat) #f)
-      (set-visible? (child interface 'command-to) #f)
-      (set-visible? (child interface 'command) #f)
-      (layout-view interface)
-      (layout-view root)
-      (show root)
-      (send-to-back root)
-      (if (admin?)
-          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
-            (focus-world))
-        (focus-world))))
-  
-  
-  (method override (space-activate self)
-    (nextmethod self)
-    (let ((world (current-world)))
-      (layout-message world)
-      (layout-working world)))
-  
-  
-  (method override (space-uninstall self)
-    (nextmethod self)
-    (hide-interface)
-    (reset-panel-stack))
-  
-  
-  (method override (draw-world? self)
-    #f)
-  
-  
-  (method (on-back self evt)
-    (goto-space (current-together) 'gathering)))
 
 
 ;;;

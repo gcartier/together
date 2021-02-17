@@ -373,7 +373,7 @@
   
   (method protected (render-video self)
     (let ((zone (current-zone)))
-      (when (and (is? (current-space) together.gathering:Replay-Space)
+      (when (and (is? (current-space) together.replay-space:Replay-Space)
                  receiver-emulator)
         (let ((output (get-video-output receiver-emulator)))
           (when output

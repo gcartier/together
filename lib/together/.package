@@ -33,16 +33,20 @@
                               together.product-processor
                               together.product-server
                               together.replay
+                              together.replay-space
                               together.run
                               together.run-processor
                               together.run-server
                               together.script
                               together.scripts
+                              together.script-space
                               together.server
                               together.settings
+                              together.simulate-space
                               together.simulation
                               together.simulator
                               together.space
+                              together.sphere-space
                               together.validate
                               together.visualizer
                               together.window

@@ -1,0 +1,92 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Simulate Space
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.simulate-space jazz
+
+
+(import (jazz.component)
+        (jazz.graphic)
+        (jazz.ui)
+        (jazz.view)
+        (world)
+        (world.context)
+        (world.interface)
+        (world.interface.mainbar)
+        (world.interface.panel)
+        (world.settings)
+        (together)
+        (together.simulator)
+        (together.sphere-space)
+        (together.zone))
+
+
+(class Simulate-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'simulate)
+  
+  
+  (method override (space-setup self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify visible?: #f)))
+        (new Together-Simulator-Panel parent: root name: 'simulator visible?: #t layouter: (lambda (panel) (together-simulator-panel-layouter panel)))
+        (new Push-Button name: 'back parent: root title: "Back" location: '(-30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self))
+        (set! self.root root))))
+    
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((interface (current-interface)))
+      (set-visible? (child root 'simulator) #t)
+      (set-visible? (child root 'back) #t)
+      (set-visible? (child mainbar 'profile) #f)
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (set-visible? (child interface 'streams-label) #f)
+      (set-visible? (child interface 'streams) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (set-visible? (child interface 'chat) #f)
+      (set-visible? (child interface 'command-to) #f)
+      (set-visible? (child interface 'command) #f)
+      (layout-view interface)
+      (layout-view root)
+      (show root)
+      (send-to-back root)
+      (if (admin?)
+          (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
+            (focus-world))
+        (focus-world))))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (hide-interface)
+    (reset-panel-stack))
+  
+  
+  (method override (draw-world? self)
+    #f)
+  
+  
+  (method (on-back self evt)
+    (goto-space (current-together) 'gathering))))
