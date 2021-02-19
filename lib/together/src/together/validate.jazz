@@ -24,6 +24,7 @@
         (world.event)
         (world.evolution)
         (world.interface.timeline)
+        (world.record (phase syntax))
         (world.settings)
         (world.simulation)
         (world.udp)
@@ -65,39 +66,40 @@
                     (inserts suite))
                 (define (need-data kind origin sequence frame part total dts pts keyframe?)
                   (or (table-ref datas sequence #f)
-                      (let ((header-size (udp-media-header-size)))
-                        (let ((data (make-u8vector header-size))
-                              (nanodts (flonum->timestamp dts))
-                              (nanopts (flonum->timestamp pts)))
-                          (write-udp-kind data kind)
-                          (write-udp-sender data origin)
-                          (write-udp-sequence data sequence)
-                          (write-udp-frame data frame)
-                          (write-udp-part data part)
-                          (write-udp-total data total)
-                          (write-udp-media-dts data nanodts)
-                          (write-udp-media-pts data nanopts)
-                          (write-udp-media-keyframe? data keyframe?)
-                          (table-set! datas sequence data)
-                          (parameterize ((simulation-evolution origin-evolution))
-                            (record-event udp-id-create-packet
-                                          -1.
-                                          (fixnum->flonum origin)
-                                          (fixnum->flonum kind)
-                                          (fixnum->flonum sequence)
-                                          (fixnum->flonum frame)
-                                          (barbara-keyframe-hack keyframe?)
-                                          dts
-                                          pts)
-                            (record-event udp-id-create-info
-                                          -1.
-                                          (fixnum->flonum origin)
-                                          (fixnum->flonum kind)
-                                          (fixnum->flonum sequence)
-                                          (fixnum->flonum part)
-                                          (fixnum->flonum total)
-                                          -1.))
-                          data))))
+                      (with-record media
+                        (let ((header-size (udp-media-header-size)))
+                          (let ((data (make-u8vector header-size))
+                                (nanodts (flonum->timestamp dts))
+                                (nanopts (flonum->timestamp pts)))
+                            (write-header-kind data kind)
+                            (write-header-sender data origin)
+                            (write-media-sequence data sequence)
+                            (write-media-frame data frame)
+                            (write-media-part data part)
+                            (write-media-total data total)
+                            (write-media-dts data nanodts)
+                            (write-media-pts data nanopts)
+                            (write-media-keyframe? data keyframe?)
+                            (table-set! datas sequence data)
+                            (parameterize ((simulation-evolution origin-evolution))
+                              (record-event udp-id-create-packet
+                                            -1.
+                                            (fixnum->flonum origin)
+                                            (fixnum->flonum kind)
+                                            (fixnum->flonum sequence)
+                                            (fixnum->flonum frame)
+                                            (barbara-keyframe-hack keyframe?)
+                                            dts
+                                            pts)
+                              (record-event udp-id-create-info
+                                            -1.
+                                            (fixnum->flonum origin)
+                                            (fixnum->flonum kind)
+                                            (fixnum->flonum sequence)
+                                            (fixnum->flonum part)
+                                            (fixnum->flonum total)
+                                            -1.))
+                            data)))))
                 
                 @wait
                 (define (compare-events)
@@ -159,7 +161,8 @@
                                        (let ((info (process-audio receiver-ring average debug-process?)))
                                          (when (neq? info 'terminate)
                                            (when debug-validate?
-                                             (terminal 'present (read-udp-frame (car info))))
+                                             (terminal 'present (with-record media
+                                                                  (read-media-frame (car info)))))
                                            (present-audio receiver-channel info)
                                            (looping))))))
                                  'process)))
