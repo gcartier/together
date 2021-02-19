@@ -268,7 +268,7 @@
                                           (pts (evolutionary-udp-data5 origin-evolution create))
                                           (duration (evolutionary-udp-data4 origin-evolution info)))
                                       (with-record media
-                                        (let ((data (make-u8vector (udp-media-header-size)))
+                                        (let ((data (make-u8vector (calculate-media-size)))
                                               (nanodts (flonum->timestamp dts))
                                               (nanopts (flonum->timestamp pts))
                                               (nanoduration (flonum->timestamp duration)))
