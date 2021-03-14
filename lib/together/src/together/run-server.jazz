@@ -20,9 +20,9 @@
         (world.build)
         (world.server.presence)
         (world.server.problem)
+        (world.server.report)
         (together)
-        (together.domain)
-        (together.server))
+        (together.domain))
 
 
 (definition (prepare-logger)
