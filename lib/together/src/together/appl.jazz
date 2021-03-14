@@ -563,16 +563,19 @@
   (method protected (update-catalogs self)
     (let ((window (current-window))
           (world (current-world)))
-      (display-message world "Updating catalogs...")
-      (render-scene window)
-      (require-cataloguer)
-      (for-each-active-catalog (get-cataloguer) #f
-        (lambda (catalog)
-          (post-catalog
-            (lambda ()
-              (update catalog)))))
-      (display-message world "Done")
-      (render-scene window)))
+      (working world
+        (lambda ()
+          (for-each-active-catalog (require-cataloguer) #f
+            (lambda (catalog)
+              (working-progress world (format "Updating {a}..." (get-name catalog)) #f)
+              (let ((mutex (make-mutex 'updated)))
+                (mutex-lock! mutex)
+                (post-catalog
+                  (lambda ()
+                    (update catalog)
+                    (mutex-unlock! mutex)))
+                (mutex-lock! mutex)
+                (mutex-unlock! mutex))))))))
   
   
   ;;;
