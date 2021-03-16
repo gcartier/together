@@ -580,8 +580,13 @@
     (let ((dark-purple {Color red: .464 green: .141 blue: .732})
           (purple {Color Purple})
           (cyan {Color red: .120 green: .624 blue: .616}))
+      ;; debug
+      (register-site-look 'mic 10 chronology-cyan)
+      (register-site-look 'camera 10 chronology-blue)
+      (register-site-look 'self 10 chronology-purple)
+      (register-site-look 'screen 10 chronology-magenta)
       ;; origin
-      (register-site-look 'udp-release 10 chronology-orange)
+      @for-debugging-clarity (register-site-look 'udp-release 10 chronology-orange)
       (register-site-look 'audio 9 chronology-yellow)
       (register-site-look 'video 8 chronology-green) ;; SERVER
       ;; receiver
