@@ -70,6 +70,7 @@
         (world.biome)
         (world.block)
         (world.camera)
+        (world.capture)
         (world.change)
         (world.changes)
         (world.chronology)
