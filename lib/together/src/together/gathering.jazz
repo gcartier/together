@@ -1476,7 +1476,8 @@
   (slot circle-name                initialize #f getter generate)
   (slot circle-no                  initialize #f getter generate)
   (slot circle-allow-audio-only?   initialize #f getter generate)
-  (slot circle-start               initialize #f getter generate)
+  (slot circle-started             initialize #f getter generate)
+  (slot circle-joined              initialize #f getter generate)
   (slot circle-mode                initialize #f getter generate)
   (slot preserved-eye              initialize #f getter generate)
   (slot message-recipient          initialize #f getter generate)
@@ -2115,7 +2116,7 @@
     (let ((tier (current-client))
           (udp (current-udp))
           (world (current-world)))
-      (bind (no allow-audio-only? . streams) no/streams/exception
+      (bind (no allow-audio-only? duration . streams) no/streams/exception
         (when (eq? active-zone 'start)
           (reset-chronology)
           (bind-camera))
@@ -2136,7 +2137,8 @@
         (set! circle-name name)
         (set! circle-no no)
         (set! circle-allow-audio-only? allow-audio-only?)
-        (set! circle-start (current-seconds))
+        (set! circle-started (- (current-seconds) duration))
+        (set! circle-joined (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no allow-audio-only? streams)
         (install-circle-hooks self)
@@ -2202,7 +2204,7 @@
       (let ((no/streams/exception (rejoin-group tier group-no)))
         (if (string? no/streams/exception)
             no/streams/exception
-          (bind (no allow-audio-only? . streams) no/streams/exception
+          (bind (no allow-audio-only? duration . streams) no/streams/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier)
@@ -2521,7 +2523,7 @@
           (when (is? space Void-Space)
             (when show-debug?
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-              (draw (format "{a}" (present-duration (- (current-seconds) circle-start))) {Color World-Ochre})
+              (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
               (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
               (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
               (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
