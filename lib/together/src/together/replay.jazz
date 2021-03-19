@@ -200,7 +200,7 @@
               (if (member? highlighted highlighted-values)
                   (set-highlighted-values timeline (remove highlighted highlighted-values test: equal?))
                 (set-highlighted-values timeline (cons highlighted highlighted-values))))))
-        (invalidate-view timeline)
+        (redraw timeline)
         (invalidate-view panel)))))
 
 
@@ -1289,7 +1289,7 @@
                                                    (map (lambda (value)
                                                           (list rank value))
                                                         values)))
-          (invalidate-view timeline)))))
+          (redraw timeline)))))
   
   
   (method (on-ok self evt)
