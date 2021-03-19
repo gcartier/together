@@ -245,7 +245,7 @@
 
 (definition public (open-replay dir)
   (let ((client (current-client)))
-    (receive (names metadatas chronologies evolutions channels audios videos) (collect-replays dir)
+    (receive (names metadatas chronologies evolutions channels audios videos logs log-indexes) (collect-replays dir)
       (define (determine-tier character-name)
         (or (table-find names character-name test: equal?)
             (car (table-keys names))))
@@ -257,7 +257,7 @@
         (let ((tier (determine-tier character-name)))
           (let ((base-time (determine-base-time))
                 (title (get-name dir)))
-            (new Replay title dir tier names metadatas chronologies evolutions channels audios videos base-time)))))))
+            (new Replay title dir tier names metadatas chronologies evolutions channels audios videos logs log-indexes base-time)))))))
 
 
 ;;;

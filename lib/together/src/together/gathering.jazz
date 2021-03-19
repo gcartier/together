@@ -3873,6 +3873,7 @@
           (chronologies (get-chronologies replay))
           (evolutions (get-evolutions replay))
           (channels (get-channels replay))
+          (log-indexes (get-log-indexes replay))
           (base-time (get-base-time replay)))
       (let ((sites (metadata-sites (table-ref metadatas tier)))
             (chronology (table-ref chronologies tier))
@@ -3909,6 +3910,7 @@
           (set-names panel names)
           (set-channels panel channels)
           (set-evolutions panel evolutions)
+          (set-log-indexes panel log-indexes)
           (set-base-time panel base-time))
         
         (if (is? space Void-Space)
