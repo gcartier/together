@@ -345,7 +345,7 @@
 ;;;
 
 
-(definition public (simulate-replay origin origin-audio audio-caps origin-video origin-evolution server receiver)
+(definition public (simulate-replay origin origin-audio audio-codec audio-caps origin-video video-codec video-caps origin-evolution server receiver)
   (declare (proper-tail-calls))
   (let ((world (current-world)))
     (let ((names (list->table (list (cons origin "Origin")

@@ -92,8 +92,11 @@
   (slot stream-name           initialize #f  getter generate)
   (slot stream-label          initialize #f  getter generate)
   (slot channel-audio         initialize #f  getter generate)
+  (slot channel-audio-codec   initialize #f  getter generate)
   (slot channel-audio-caps    initialize #f  getter generate)
   (slot channel-video         initialize #f  getter generate)
+  (slot channel-video-codec   initialize #f  getter generate)
+  (slot channel-video-caps    initialize #f  getter generate)
   (slot media-kinds           initialize '() getter generate)
   (slot media-kind            initialize #f  getter generate)
   (slot audio-creates         initialize #f  getter generate)
@@ -184,8 +187,11 @@
   
   (method (setup-channels self)
     (let ((audio #f)
+          (audio-codec #f)
           (audio-caps #f)
           (video #f)
+          (video-codec #f)
+          (video-caps #f)
           (video-level #f))
       (when stream
         (bind (sender name no origin source-kind level channels) stream
@@ -194,6 +200,7 @@
                         (ecase media-kind
                           ((udp-audio)
                            (set! audio no)
+                           (set! audio-codec codec)
                            (set! audio-caps caps))
                           ((udp-video)
                            ;; quick hack to choose the highest level
@@ -201,11 +208,16 @@
                            (when (or (not video-level)
                                      (> level video-level))
                              (set! video no)
+                             (set! video-codec codec)
+                             (set! video-caps caps)
                              (set! video-level level))))))
                     channels)))
       (set! channel-audio audio)
+      (set! channel-audio-codec audio-codec)
       (set! channel-audio-caps audio-caps)
-      (set! channel-video video)))
+      (set! channel-video video)
+      (set! channel-video-codec video-codec)
+      (set! channel-video-caps video-caps)))
   
   
   (method (setup-channel-rings self)
@@ -326,7 +338,7 @@
       (set! call (simulate-udp-call (get-metadatas replay)))
       (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates stream-name channel-audio channel-video))
       (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates stream-name channel-audio channel-video))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio channel-audio-caps origin-video origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
+      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
       (set-emulator (locate self 'sender) sender-emulator)
       (set-emulator (locate self 'server) server-emulator)
       (set-emulator (locate self 'receiver) receiver-emulator)
@@ -449,7 +461,7 @@
   
   
   (method protected (replay-simulation self)
-    (together.simulation:simulate-replay origin origin-audio channel-audio-caps origin-video origin-evolution server-no tier)))
+    (together.simulation:simulate-replay origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution server-no tier)))
 
 
 ;;;
