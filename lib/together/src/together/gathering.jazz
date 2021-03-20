@@ -2490,7 +2490,7 @@
         (define (udp-receive-count)
           (let ((udp-client (get-udp-client (current-client))))
             (let ((channels (table-values (get-receive-channels udp-client))))
-              ;; channelgazoum
+              ;; quick solution use first audio channel
               (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
                 (if (null? audio-channels)
                     0
@@ -3723,10 +3723,10 @@
             (set-events-mode panel 'all)
             (let ((udp-client (get-udp-client client)))
               (let ((channels (table-values (get-receive-channels udp-client))))
-                ;; channelgazoum
+                ;; quick solution use first audio channel
                 (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
                   (when (not-null? audio-channels)
-                    (let ((origin (get-no (car audio-channels))))
+                    (let ((origin (get-origin (get-stream (car audio-channels)))))
                       (set-origin panel origin)
                       (invalidate-view panel)))))))))))
   
