@@ -42,8 +42,13 @@
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-windowed-mode       active?: #t))
+      (<world-script!>
+        (<!>                 name: clear-console              active?: #t)
+        (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
-        (<!>                 name: explore-interface          active?: #t))
+        (<!>                 name: toggle-gc-sound            active?: #t)
+        (<!>                 name: explore-interface          active?: #t)
+        (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
       (<together-debug!>
@@ -131,6 +136,7 @@
   (method override (space-actions self)
     (append (list (find-actions 'world-main)
                   (find-actions 'world-interface)
+                  (find-actions 'world-script)
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
                   (find-actions 'together-debug))
