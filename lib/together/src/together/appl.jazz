@@ -224,10 +224,16 @@
   (import (world.interface.script))
   (import (world.scriptum))
   (method override (activate self)
-    ;; super mega quicky
     (let ((interface (current-interface))
           (world (current-world))
           (zone (current-zone)))
+      ;; wakeup render
+      (let ((task (get-render-task zone)))
+        (when task
+          (task-wakeup task
+            (lambda (exit)
+              ))))
+      ;; super mega quicky
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
           (let ((script (find-asset world edited-path)))
