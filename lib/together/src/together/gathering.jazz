@@ -3956,6 +3956,7 @@
                     (setup-timeline-panel timeline)
                     (setup-evolution-panel evolution)
                     (display-evolutions root now)
+                    (update-visualizer root)
                     root)))
               
               (hide-admin self)
@@ -3967,7 +3968,8 @@
           (setup-visualizer-panel (child root 'visualizer))
           (setup-timeline-panel (child root 'timeline))
           (setup-evolution-panel (child root 'evolution))
-          (display-evolutions root now))))))
+          (display-evolutions root now)
+          (update-visualizer root))))))
   
   
   (method (on-profile-network self evt)

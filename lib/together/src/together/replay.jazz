@@ -280,15 +280,15 @@
   
   (method override (size-change self size)
     (nextmethod self size)
+    (update-visualizer self))
+  
+  
+  (method protected (update-visualizer self)
     (let ((visualizer (find-component self 'visualizer)))
       (when visualizer
         (let ((video-visualizer (locate-component visualizer 'video)))
           (when video-visualizer
-            ;; not pretty but it works
-            (update-video-output video-visualizer)
-            (delay-event
-              (lambda ()
-                (update-video-output video-visualizer))))))))
+            (update-video-output video-visualizer))))))
   
   
   (method override (draw self surface context)

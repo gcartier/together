@@ -42,6 +42,7 @@
         (world.interface.evolution)
         (world.interface.panel)
         (world.interface.replay)
+        (world.interface.sheet)
         (world.interface.text)
         (world.interface.timeline)
         (world.manager)
@@ -605,6 +606,7 @@
                 (let ((sheet (get-sheet output))
                       (full-mode? (get-full-mode? timeline)))
                   (make-orthographic-matrix! (get-projection-matrix sheet) 0. (get-width world) 0. (get-height world) 0. 10.)
+                  (refresh-array/buffer sheet)
                   (cond (full-mode?
                          (let ((width (cast <fl> (- (get-width panel) 2))))
                            (let ((height (/ (* width 9.) 16.)))
