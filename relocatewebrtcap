@@ -2,10 +2,10 @@
 
 LIBNAME=libgstwebrtcaudioprocessing.dylib
 WEBRTCAUDIOPROCESSING=/Users/cartier/Devel/gstreamer/webrtcaudioprocessing/build/plugin
-STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 DEST=cache/develop/Libraries/gstreamer/lib/gstreamer-1.0
+STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 
-cp $WEBRTCAUDIOPROCESSING/$LIBNAME $STREAM/gstreamer/lib/gstreamer-1.0/$LIBNAME
 cp $WEBRTCAUDIOPROCESSING/$LIBNAME $DEST/$LIBNAME
 cache/develop/jazz -run relocate file $DEST $LIBNAME /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
 install_name_tool -change @rpath/libwebrtc.dylib @rpath/gstreamer/lib/libwebrtc.dylib $DEST/$LIBNAME
+cp $DEST/$LIBNAME $STREAM/gstreamer/lib/gstreamer-1.0/$LIBNAME

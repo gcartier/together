@@ -2,8 +2,8 @@
 
 LIBNAME=libwebrtc.dylib
 WEBRTC=/Users/cartier/Devel/gstreamer/webrtc/build
-STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 DEST=cache/develop/Libraries/gstreamer/lib
+STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 
-cp $WEBRTC/$LIBNAME $STREAM/gstreamer/lib/$LIBNAME
 cp $WEBRTC/$LIBNAME $DEST/$LIBNAME
+cp $DEST/$LIBNAME $STREAM/gstreamer/lib/$LIBNAME
