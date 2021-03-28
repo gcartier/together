@@ -1413,9 +1413,9 @@
         (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
-        (<!>                 name: toggle-echo-cancel         active?: #t)
-        (<!>                 name: toggle-gain-control        active?: #t)
-        (<!>                 name: toggle-noise-suppress      active?: #t)
+        @wait-live-change (<!>                 name: toggle-echo-cancel         active?: #t)
+        @wait-live-change (<!>                 name: toggle-gain-control        active?: #t)
+        @wait-live-change (<!>                 name: toggle-noise-suppress      active?: #t)
         (<!>                 name: toggle-rndenoise           active?: #t)
         (<!>                 name: toggle-camera              active?: #t)
         (<!>                 name: change-quality             active?: #t))
@@ -1807,6 +1807,7 @@
     (chat-message self))
   
   
+  @wait-live-change
   (method (on-toggle-echo-cancel self evt)
     (let ((client (current-client))
           (world (current-world)))
@@ -1819,6 +1820,7 @@
         (display-on/off world "Echo Cancellation" audio-echo-cancel?))))
   
   
+  @wait-live-change
   (method (on-toggle-gain-control self evt)
     (let ((client (current-client))
           (world (current-world)))
@@ -1831,6 +1833,7 @@
         (display-on/off world "Gain Controller" audio-gain-control?))))
   
   
+  @wait-live-change
   (method (on-toggle-noise-suppress self evt)
     (let ((client (current-client))
           (world (current-world)))
