@@ -1413,9 +1413,12 @@
         (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-echo-cancel         active?: #t)
+        (<!>                 name: toggle-gain-control        active?: #t)
+        (<!>                 name: toggle-noise-suppress      active?: #t)
+        (<!>                 name: toggle-rndenoise           active?: #t)
         (<!>                 name: toggle-camera              active?: #t)
-        (<!>                 name: change-quality             active?: #t)
-        (<!>                 name: toggle-rndenoise           active?: #t))
+        (<!>                 name: change-quality             active?: #t))
       (<together-circle!>
         (<!>                 name: circle-mode                active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
@@ -1804,15 +1807,51 @@
     (chat-message self))
   
   
+  (method (on-toggle-echo-cancel self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (when (is? space Void-Space)
+        (set-audio-echo-cancel? (not audio-echo-cancel?))
+        (when (mic-on? client)
+          (let ((mic-channel (get-mic-channel client)))
+            (let ((src (get-src (get-pipeline mic-channel))))
+              (update-echo-cancel src audio-echo-cancel?))))
+        (display-on/off world "Echo Cancellation" audio-echo-cancel?))))
+  
+  
+  (method (on-toggle-gain-control self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (when (is? space Void-Space)
+        (set-audio-gain-control? (not audio-gain-control?))
+        (when (mic-on? client)
+          (let ((mic-channel (get-mic-channel client)))
+            (let ((src (get-src (get-pipeline mic-channel))))
+              (update-gain-control src audio-gain-control?))))
+        (display-on/off world "Gain Controller" audio-gain-control?))))
+  
+  
+  (method (on-toggle-noise-suppress self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (when (is? space Void-Space)
+        (set-audio-noise-suppress? (not audio-noise-suppress?))
+        (when (mic-on? client)
+          (let ((mic-channel (get-mic-channel client)))
+            (let ((src (get-src (get-pipeline mic-channel))))
+              (update-noise-suppress src audio-noise-suppress?))))
+        (display-on/off world "Noise Suppression" audio-noise-suppress?))))
+  
+  
   (method (on-toggle-rndenoise self evt)
     (let ((client (current-client))
           (world (current-world)))
       (when (is? space Void-Space)
         (set-audio-rndenoise? (not audio-rndenoise?))
-        (let ((mic-channel (get-mic-channel client)))
-          (when mic-channel
+        (when (mic-on? client)
+          (let ((mic-channel (get-mic-channel client)))
             (let ((src (get-src (get-pipeline mic-channel))))
-              (update-rndenoising src audio-rndenoise?))))
+              (update-rndenoise src audio-rndenoise?))))
         (display-on/off world "Aggressive Denoising" audio-rndenoise?))))
   
   

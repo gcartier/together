@@ -936,13 +936,16 @@
 
 (class Together-Media-Actions extends World-Actions
   
-  
+
   (form
-    (<install>                                        title: "Media"
-      (<World-Action-Item> name: toggle-mic           title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
-      (<World-Action-Item> name: toggle-camera        title: "Camera" action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
-      (<World-Action-Item> name: change-quality       title: "Change video quality" shortcut: {Shortcut "Click video quality"})
-      (<World-Action-Item> name: toggle-rndenoise     title: "Aggressive Denoising" action-handler: {Event-Handler :together on-toggle-rndenoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle aggressive denoising."))))
+    (<install>                                         title: "Media"
+      (<World-Action-Item> name: toggle-mic            title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
+      (<World-Action-Item> name: toggle-echo-cancel    title: "Echo Cancel" action-handler: {Event-Handler :together on-toggle-echo-cancel} shortcut: {Shortcut :alt :shift #\O} description: "Toggle echo cancellation.")
+      (<World-Action-Item> name: toggle-gain-control   title: "Gain Control" action-handler: {Event-Handler :together on-toggle-gain-control} shortcut: {Shortcut :alt :shift #\K} description: "Toggle gain controller.")
+      (<World-Action-Item> name: toggle-noise-suppress title: "Noise suppress" action-handler: {Event-Handler :together on-toggle-noise-suppress} shortcut: {Shortcut :alt :shift #\N} description: "Toggle noise suppression.")
+      (<World-Action-Item> name: toggle-rndenoise      title: "Aggressive Denoise" action-handler: {Event-Handler :together on-toggle-rndenoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle aggressive denoising.")
+      (<World-Action-Item> name: toggle-camera         title: "Camera" action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
+      (<World-Action-Item> name: change-quality        title: "Change video quality" shortcut: {Shortcut "Click video quality"}))))
 
 
 (class Together-Circle-Actions extends World-Actions
@@ -1191,9 +1194,12 @@
         (<!>                 name: goto-login                 visible?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-echo-cancel         visible?: #t)
+        (<!>                 name: toggle-gain-control        visible?: #t)
+        (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t)
-        (<!>                 name: toggle-rndenoise           visible?: #t))
+        (<!>                 name: change-quality             visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1337,9 +1343,12 @@
         (<!>                 name: goto-login                 visible?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-echo-cancel         visible?: #t)
+        (<!>                 name: toggle-gain-control        visible?: #t)
+        (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t)
-        (<!>                 name: toggle-rndenoise           visible?: #t))
+        (<!>                 name: change-quality             visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1498,9 +1507,12 @@
         (<!>                 name: goto-login                 visible?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-echo-cancel         visible?: #t)
+        (<!>                 name: toggle-gain-control        visible?: #t)
+        (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t)
-        (<!>                 name: toggle-rndenoise           visible?: #t))
+        (<!>                 name: change-quality             visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1769,9 +1781,12 @@
         (<!>                 name: goto-login                 visible?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-echo-cancel         visible?: #t)
+        (<!>                 name: toggle-gain-control        visible?: #t)
+        (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t)
-        (<!>                 name: toggle-rndenoise           visible?: #t))
+        (<!>                 name: change-quality             visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
