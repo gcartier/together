@@ -315,7 +315,9 @@
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
       (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t)))))
+        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-push-to-talk        active?: #t)
+        (<!>                 name: talk                       active?: #t)))))
 
 
 (define-trait gathering-circle-bindings Bindings
@@ -324,7 +326,9 @@
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t)))))
+        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-push-to-talk        active?: #t)
+        (<!>                 name: talk                       active?: #t)))))
 
 
 (class Gathering-Space extends Together-Space
@@ -1179,6 +1183,7 @@
       (hide-interface)
       (reset-panel-stack)
       (restore-fov)
+      (uninstall-push-to-talk)
       (circle-uninstall-camera)
       (hide root)
       (when auto-hide?
@@ -1413,6 +1418,8 @@
         (<!>                 name: leave-circle               active?: #t))
       (<together-media!>
         (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-push-to-talk        active?: #t)
+        (<!>                 name: talk                       active?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         active?: #t)
         @wait-live-change (<!>                 name: toggle-gain-control        active?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      active?: #t)
@@ -1443,8 +1450,8 @@
     (<install>
       (<together-circle!>
         (<!>                 name: bring-to-front             active?: #t)
+        (<!>                 name: backspace-press            active?: #t)
         (<!>                 name: enter-press                active?: #t)
-        (<!>                 name: space-press                active?: #t)
         (<!>                 name: left-press                 active?: #t)
         (<!>                 name: right-press                active?: #t)
         (<!>                 name: up-press                   active?: #t)
@@ -1874,6 +1881,10 @@
               (update-parameter world 'mic)))))))
   
   
+  (method (on-toggle-push-to-talk self evt)
+    (toggle-push-to-talk))
+  
+  
   (method (on-toggle-camera self evt)
     (let ((client (current-client))
           (video (current-video))
@@ -2225,6 +2236,7 @@
         (close-receive-streams udp-client))
       (leave-group tier circle-name 'observer)
       (when (eq? active-zone 'start)
+        (uninstall-push-to-talk)
         (circle-uninstall-camera)
         (restore-fov)
         (install-vista))
@@ -3580,21 +3592,17 @@
               (begin
                 (circle-down)
                 #t)))
-        (({Shortcut Space})
-         (if (circle-focus? focus)
-             (begin
-               (toggle-paused focus)
-               #t)
-           (and (circle-mode? self)
-                (world-focus? focus)
-                (begin
-                  (circle-space)
-                  #t))))
         (({Shortcut Return})
          (and (circle-mode? self)
               (world/circle-focus? focus)
               (begin
                 (circle-return)
+                #t)))
+        (({Shortcut Backspace})
+         (and (circle-mode? self)
+              (world/circle-focus? focus)
+              (begin
+                (circle-backspace)
                 #t)))
         (({Shortcut #\1})
          (and (or (circle-mode? self)
