@@ -3112,11 +3112,12 @@
     #f)
   
   
-  (method (chat-sender self sender)
+  (method (chat-sender self sender (user? #t))
     (update-message-recipient self (if (not sender)
                                        #f
                                      (list 'player sender)))
-    (focus-command-text self))
+    (when user?
+      (focus-command-text self)))
   
   
   (method package (chat-message self)
