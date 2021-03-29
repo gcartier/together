@@ -3561,6 +3561,13 @@
     
     (let ((focus (active-focus)))
       (nucase shortcut
+        (({Shortcut Space})
+         (if (and (circle-focus? focus)
+                  (not (push-to-talk?)))
+             (begin
+               (toggle-paused focus)
+               #t)
+           #f))
         (({Shortcut Left})
          (if (circle-focus? focus)
              (begin
