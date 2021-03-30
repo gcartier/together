@@ -644,13 +644,13 @@
     (register-event-look udp-id-resend-packet    1 chronology-purple)   ; OS
     (register-event-look udp-id-absent-packet    2 chronology-magenta)  ; OS
     (register-event-look udp-id-reject-packet    2 chronology-purple)   ;  SR
+    (register-event-look udp-id-throttle-on      2 chronology-yellow)   ; OS
+    (register-event-look udp-id-throttle-off     2 chronology-green)    ; OS
     (register-event-look udp-id-connecting       3 chronology-yellow)   ; O
     (register-event-look udp-id-connected        3 chronology-green)    ; O
     (register-event-look udp-id-connect          3 chronology-green)    ;  S
     (register-event-look udp-id-deconnect        3 chronology-blue)     ;  S
-    (register-event-look udp-id-reconnect        3 chronology-orange)   ;  S
-    (register-event-look udp-id-throttle-on      3 chronology-yellow)   ; OS
-    (register-event-look udp-id-throttle-off     3 chronology-green)    ; OS
+    (register-event-look udp-id-reconnect        3 chronology-purple)   ;  S
     (register-event-look udp-id-ring-overflow    3 chronology-red))     ; OSR
   
   
