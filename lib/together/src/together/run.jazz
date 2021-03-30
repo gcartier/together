@@ -104,7 +104,7 @@
                        (set-setting settings property value))
                      '(;; configure
                        world.render-rate          60.
-                       world.render-rate-inactive 30.
+                       world.render-rate-inactive 1.
                        world.view-distance        7
                        world.post-processing?     #t
                        world.multisampling        2
