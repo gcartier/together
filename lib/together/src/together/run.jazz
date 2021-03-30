@@ -115,6 +115,7 @@
                        ;; render
                        world.render-rate           60.
                        world.render-rate-inactive  .75
+                       world.tick-rate-inactive    .75
                        world.message-rate-inactive 5.
                        world.view-distance         7
                        world.post-processing?      #t
