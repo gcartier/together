@@ -103,48 +103,49 @@
 (definition (setup-options settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; configure
-                       world.render-rate          60.
-                       world.render-rate-inactive 1.
-                       world.view-distance        7
-                       world.post-processing?     #t
-                       world.multisampling        2
-                       ;; media
-                       world.video-layout         circle)))
+                     '(;; media
+                       world.video-layout          circle)))
 
 
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; configure
-                       world.start-time           9000
+                       world.start-time            9000
+                       ;; render
+                       world.render-rate           60.
+                       world.render-rate-inactive  .75
+                       world.message-rate-inactive 5.
+                       world.view-distance         7
+                       world.post-processing?      #t
+                       world.multisampling         2
                        ;; support
-                       world.block-pumps?         #t
+                       world.block-pumps?          #t
                        ;; test
-                       world.init-script          #f
-                       world.test-script          #f
-                       world.test1-script         #f
-                       world.test2-script         #f
-                       world.test3-script         #f
-                       world.test4-script         #f
-                       world.test5-script         #f
-                       world.test6-script         #f
-                       world.test7-script         #f
-                       world.test8-script         #f
-                       world.test9-script         #f
-                       world.test0-script         #f
+                       world.init-script           #f
+                       world.test-script           #f
+                       world.test1-script          #f
+                       world.test2-script          #f
+                       world.test3-script          #f
+                       world.test4-script          #f
+                       world.test5-script          #f
+                       world.test6-script          #f
+                       world.test7-script          #f
+                       world.test8-script          #f
+                       world.test9-script          #f
+                       world.test0-script          #f
                        ;; worker
-                       world.worker?              #f)))
+                       world.worker?               #f)))
 
 
 (definition (override-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; interface
-                       world.show-belt?           #f
+                       world.show-belt?            #f
                        ;; audio
-                       world.music?               #f
-                       world.ambience?            #f)))
+                       world.music?                #f
+                       world.ambience?             #f)))
 
 
 (definition (create-documents)
