@@ -233,6 +233,12 @@
           (task-wakeup task
             (lambda (exit)
               ))))
+      ;; wakeup tick
+      (let ((task (get-tick-task zone)))
+        (when task
+          (task-wakeup task
+            (lambda (exit)
+              ))))
       ;; super mega quicky
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
