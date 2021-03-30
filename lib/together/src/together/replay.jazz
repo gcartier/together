@@ -339,6 +339,10 @@
 ;;;
 
 
+(definition events-lexicon-time
+  #f)
+
+
 (class Evolution-Timeline-Panel extends Timeline-Panel
   
   
@@ -352,6 +356,23 @@
     (set! history #f)
     (set! chronology (copy-chronology (current-chronology)))
     (set! evolution (copy-evolution (current-evolution))))
+  
+  
+  (method override (timeline-start self)
+    (if (and live? events-lexicon-time)
+        (- events-lexicon-time .305)
+      (nextmethod self)))
+  
+  
+  (method override (timeline-end self) <fl>
+    (if (and live? events-lexicon-time)
+        (+ events-lexicon-time .01)
+      (nextmethod self)))
+  
+  
+  (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
+    (unless events-lexicon-time
+      (nextmethod self surface from to)))
   
   
   (method override (plot-events self surface from to)
@@ -449,6 +470,29 @@
                        ;; where the server and receiver evolutions are the same
                        (when (and receiver (not server?))
                          (plot receiver 0 8.)))))))))))
+
+
+(definition protected (record-events-lexicon)
+  (let ((queue (new-queue)))
+    (iterate-table event-looks
+      (lambda (id look)
+        (let ((id (fixnum->flonum id)))
+          (enqueue queue id))))
+    (let ((ids (queue-list queue))
+          (category #f))
+      (for-each (lambda (id)
+                  (let ((cat (quotient (flonum->fixnum id) 10)))
+                    (if (not (eqv? cat category))
+                        (begin
+                          (when category
+                            (terminal)
+                            (sleep .01))
+                          (set! category cat)))
+                    (terminal (evolution-id->name id))
+                    (record-event id -1. -1. -1. -1. -1. -1. -1. -1.)
+                    (sleep .01)))
+                (sort < ids))))
+  (set! events-lexicon-time (current-seconds)))
 
 
 ;;;
