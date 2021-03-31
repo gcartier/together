@@ -1363,8 +1363,6 @@
         @wait-later-version-as-it-needs-debugging
         (show-cursor window)
         (show-mainbar self)
-        (set-visible? (child mainbar 'circle-name) #t)
-        (set-visible? (child mainbar 'profile) #t)
         (for-each (lambda (child)
                     (when (and (is? child World-Actionbar)
                                (get-auto-show/hide? child))
@@ -1394,8 +1392,6 @@
                                                 @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
-                                                (set-visible? (child mainbar 'circle-name) #f)
-                                                (set-visible? (child mainbar 'profile) #f)
                                                 (for-each (lambda (child)
                                                             (when (and (is? child World-Actionbar)
                                                                        (get-auto-show/hide? child))
