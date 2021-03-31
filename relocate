@@ -4,14 +4,19 @@ GSTREAMER=/Library/Frameworks/GStreamer.framework/Versions/1.0
 LIB=jazz/lib/jazz.stream/foreign/mac/gstreamer/gstreamer
 DEST=cache/develop/Libraries/gstreamer
 
+relocate() {
+    cache/develop/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+}
+
 cpplugin() {
     cp $GSTREAMER/$1 $LIB/$1
-    cache/develop/jazz -run relocate file $LIB $1 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    relocate $LIB $1
     cp $LIB/$1 $DEST/$1
 }
 
 cpshared() {
     cp $GSTREAMER/$1 $LIB/$1
+    relocate $LIB $1
     cp $LIB/$1 $DEST/$1
 }
 
