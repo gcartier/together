@@ -16,6 +16,8 @@
 
 (import (jazz.io)
         (jazz.logger)
+        (jazz.platform)
+        (jazz.snapshot)
         (world)
         (world.build)
         (world.server.presence)
@@ -49,8 +51,20 @@
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename))
   (register-domain-names)
+  (register-kernel-properties)
+  (register-platform-properties)
   (setup-build ".together-server")
   (setup-presence))
+
+
+(definition (register-kernel-properties)
+  (add-snapshot-property 'kernel.platform kernel-platform)
+  (add-snapshot-property 'kernel.features kernel-features)
+  (add-snapshot-property 'kernel.properties kernel-properties))
+
+
+(definition (register-platform-properties)
+  (add-snapshot-property 'platform.version (present (get-platform-version))))
 
 
 (definition protected (prepare-settings)

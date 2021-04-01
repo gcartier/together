@@ -66,6 +66,7 @@
   (register-domain-names)
   (register-binaries-properties)
   (register-kernel-properties)
+  (register-platform-properties)
   (setup-build ".together")
   (setup-presence))
 
@@ -90,6 +91,10 @@
   (add-snapshot-property 'kernel.platform kernel-platform)
   (add-snapshot-property 'kernel.features kernel-features)
   (add-snapshot-property 'kernel.properties kernel-properties))
+
+
+(definition (register-platform-properties)
+  (add-snapshot-property 'platform.version (present (get-platform-version))))
 
 
 (definition protected (prepare-settings)
