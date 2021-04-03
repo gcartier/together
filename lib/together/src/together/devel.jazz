@@ -18,6 +18,7 @@
         (jazz.action)
         (jazz.application)
         (jazz.cairo)
+        (jazz.clipboard)
         (jazz.component)
         (jazz.debuggee)
         (jazz.development)
