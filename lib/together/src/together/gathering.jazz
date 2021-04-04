@@ -770,6 +770,7 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
@@ -886,6 +887,7 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
@@ -1101,6 +1103,7 @@
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
         (<!>                 name: toggle-debug               active?: #t)
+        (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
@@ -2559,8 +2562,18 @@
         (define (cpu-percentage threads)
           (cond-expand
             (mac
-             (bind (main . others) (map second threads)
-               (values main (apply + others))))
+             (bind (main . others) threads
+               (let ((main (second main))
+                     (gstreamer 0.)
+                     (other 0.))
+                 (for-each (lambda (thread)
+                             (bind (fullname percentage) thread
+                               (let ((fullname (or fullname "")))
+                                 (if (find fullname #\:)
+                                     (increase! gstreamer percentage)
+                                   (increase! other percentage)))))
+                           others)
+                 (values main gstreamer other))))
             (else)))
         
         (let ((rank 0))
@@ -2574,40 +2587,108 @@
             (when show-debug?
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
               (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
-              (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
-              (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
-              (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
-              @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
-              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
-              (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red})
+              (unless (eq? show-media 'energy)
+                (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
+                (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
+                (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
+                @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
+                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
+                (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red}))
               (with-bin-mutex
                 (lambda ()
                   (let ((threads (collect-process-threads)))
                     (cond-expand
                       (mac
                        (when threads
-                         (receive (main others) (cpu-percentage threads)
-                           (let ((total (+ main others)))
-                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (others)" (* total 100.) (* main 100.) (* others 100.)) {Color World-Red})))))
+                         (receive (main gstreamer other) (cpu-percentage threads)
+                           (let ((total (+ main gstreamer other)))
+                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red})))))
                       (else))
-                    (when show-media
-                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                      (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f)))))
+                    (case show-media
+                      ((energy)
+                       (cond-expand
+                         (mac
+                          (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                          (draw-energy self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28))))
+                         (else)))
+                      ((audio video)
+                       (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                       (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))))
               @wait
               (let ((leaks (leaks)))
                 (when (not-null? leaks)
                   (draw (format "Leaks: {a}" (length leaks)) {Color World-Red}))))))))))
   
   
+  (method protected (draw-energy self surface direction threads start-h start-v)
+    (let ((base-h start-h)
+          (base-v start-v)
+          (other-h (+ start-h 300))
+          (other-v start-v))
+      (define (draw text color (padding 0))
+        (let ((h (+ base-h padding))
+              (v (+ base-v 17)))
+          (draw-text surface h v text color))
+        (increase! base-v 20))
+      
+      (define (draw-other text color (padding 0))
+        (let ((h (+ other-h padding))
+              (v (+ other-v 17)))
+          (draw-text surface h v text color))
+        (increase! other-v 20))
+      
+      (define (streaming-name fullname)
+        (bind (name pad) (split-string fullname #\:)
+          (let ((split (split-string name #\%)))
+            (if (= (length split) 1)
+                (format :terminal "streaming thread {a} is missing an explicit name{%}" name)
+              (bind (element id) split
+                (let ((bin (id->bin (string->number id))))
+                  (if (not bin)
+                      "unknown"
+                    (let ((bin-name (gst_object_get_name bin)))
+                      (format "<{a}> {a}:{a}" bin-name element pad)
+                      @w
+                      (->string (list bin-name element pad))
+                      @w
+                      (list bin bin-name element pad percentage)))))))))
+      
+      (let ((main (car threads)))
+        (for-each (lambda (thread)
+                    (bind (fullname percentage) thread
+                      (let ((fullname (or fullname "")))
+                        (let ((main? (eq? thread main))
+                              (gstreamer? (find fullname #\:)))
+                          (let ((name (cond (main?
+                                             "main")
+                                            (gstreamer?
+                                             (streaming-name fullname))
+                                            ((empty-string? fullname)
+                                             "unknown")
+                                            (else
+                                             fullname)))
+                                (color (cond (main?
+                                              {Color World-Orange})
+                                             (gstreamer?
+                                              {Color World-Blue})
+                                             (else
+                                              {Color White}))))
+                            (let ((text (format "{a} {r precision: 1}%" name (* percentage 100.))))
+                              (if (or main? gstreamer?)
+                                  (draw text color)
+                                (draw-other text color))
+                              (when (eq? thread main)
+                                (increase! base-v 20))))))))
+                  (sort > threads key: second)))))
+  
+  
   (method protected (draw-streams self surface direction threads start-h start-v type?)
-    (let ((rank 0)
-          (base-h start-h)
+    (let ((base-h start-h)
           (base-v start-v))
       (define (draw text color (padding 0))
         (let ((h (+ base-h padding))
               (v (+ base-v 17)))
           (draw-text surface h v text color))
-        (increase! rank)
         (increase! base-v 20))
       
       (define (draw-property name value)
@@ -3679,6 +3760,16 @@
   (method (on-toggle-debug self evt)
     (when (is? space Void-Space)
       (set-show-debug? (not show-debug?))
+      (invalidate-interface)))
+  
+  
+  (method (on-toggle-debug-energy self evt)
+    (when (is? space Void-Space)
+      (cond ((eq? show-media 'energy)
+             (set-show-media #f))
+            (else
+             (set-show-debug? #t)
+             (set-show-media 'energy)))
       (invalidate-interface)))
   
   
