@@ -2647,11 +2647,7 @@
                   (if (not bin)
                       "unknown"
                     (let ((bin-name (gst_object_get_name bin)))
-                      (format "<{a}> {a}:{a}" bin-name element pad)
-                      @w
-                      (->string (list bin-name element pad))
-                      @w
-                      (list bin bin-name element pad percentage)))))))))
+                      (format "<{a}> {a}:{a}" bin-name element pad)))))))))
       
       (let ((main (car threads)))
         (for-each (lambda (thread)
