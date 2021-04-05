@@ -642,16 +642,16 @@
     (register-event-look udp-id-state-waiting    0 chronology-blue)     ;   R
     (register-event-look udp-id-packet-gap       0 chronology-cyan)     ;  SR
     (register-event-look udp-id-duplicate-packet 0 chronology-green)    ;  SR
-    (register-event-look udp-id-lost-packet      0 chronology-yellow)   ;   R
+    (register-event-look udp-id-reject-packet    0 chronology-yellow)   ;  SR
+    (register-event-look udp-id-lost-packet      0 chronology-red)      ;   R
     (register-event-look udp-id-discard-packet   0 chronology-orange)   ;   R
     (register-event-look udp-id-missing-packet   1 chronology-blue)     ;  SR
     (register-event-look udp-id-got-packet       1 chronology-green)    ;  SR
     (register-event-look udp-id-giveup-packet    1 chronology-orange)   ;  SR
     (register-event-look udp-id-resend-packet    1 chronology-purple)   ; OS
-    (register-event-look udp-id-absent-packet    2 chronology-magenta)  ; OS
-    (register-event-look udp-id-reject-packet    2 chronology-purple)   ;  SR
-    (register-event-look udp-id-throttle-on      2 chronology-yellow)   ; OS
-    (register-event-look udp-id-throttle-off     2 chronology-green)    ; OS
+    (register-event-look udp-id-absent-packet    1 chronology-magenta)  ; OS
+    (register-event-look udp-id-throttle-on      2 chronology-magenta)  ; OS
+    (register-event-look udp-id-throttle-off     2 chronology-purple)   ; OS
     (register-event-look udp-id-connecting       3 chronology-yellow)   ; O
     (register-event-look udp-id-connected        3 chronology-green)    ; O
     (register-event-look udp-id-connect          3 chronology-green)    ;  S
