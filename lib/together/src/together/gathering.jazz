@@ -2201,6 +2201,7 @@
               (else
                (change-circle-mode self 'avatar 'circle feedback?: #f)))
         (space-refresh space)
+        @admin-request
         (start-captures)
         @version0
         (effective-base-profile-update)
@@ -2226,6 +2227,7 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
+      @admin-request
       (stop-captures)
       (uninstall-circle-hooks self)
       (let ((udp-client (get-udp-client tier)))
