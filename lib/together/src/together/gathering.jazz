@@ -452,6 +452,7 @@
                   (find-actions 'world-debug)
                   (find-actions 'together-media)
                   (find-actions 'together-share)
+                  (find-actions 'together-profile)
                   (find-actions 'together-debug)
                   (find-actions 'together-script))
             (nextmethod self)))
