@@ -339,10 +339,6 @@
 ;;;
 
 
-(definition events-lexicon-time
-  #f)
-
-
 (class Evolution-Timeline-Panel extends Timeline-Panel
   
   
@@ -371,7 +367,8 @@
   
   
   (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
-    (unless events-lexicon-time
+    (if events-lexicon-time
+        (plot-lexicon self surface)
       (nextmethod self surface from to)))
   
   
@@ -469,7 +466,54 @@
                        ;; quick hack around what seems to be a visualizer bug
                        ;; where the server and receiver evolutions are the same
                        (when (and receiver (not server?))
-                         (plot receiver 0 8.)))))))))))
+                         (plot receiver 0 8.))))))))))
+  
+  
+  (method (plot-lexicon self surface)
+    (define (plot-roundtrip h dropped?)
+      (let ((v 100)
+            (color (if (not dropped?)
+                       {Color Green}
+                     {Color Red})))
+        (set-line-width surface .8)
+        (set-color surface color)
+        (move-to surface h v)
+        (line-to surface (+ h 50) v)))
+    
+    (define (plot-latency h)
+      (let ((v 85))
+        (set-line-width surface 1.)
+        (set-color surface {Color Blue})
+        (move-to surface h v)
+        (line-to surface (+ h 100) v)))
+    
+    (define (plot-traffic h direction)
+      (let ((v (- 80 (case direction ((send) 10) ((receive) 20))))
+            (color (case direction ((send) {Color Purple}) ((receive) {Color Dark-Purple}))))
+        (set-line-width surface 1.)
+        (set-color surface color)
+        (move-to surface h v)
+        (line-to surface (+ h 100) v)))
+    
+    (plot-roundtrip                     20 #f)
+    (plot-roundtrip                     70 #t)
+    (plot-latency                       20)
+    (plot-traffic                       20 'send)
+    (plot-traffic                       20 'receive)
+    (plot-garbage-collect self surface 100)
+    (plot-rebase-time     self surface 175 'up)
+    (plot-rebase-time     self surface 190 'down)
+    (plot-purge-ring      self surface 250 udp-audio)
+    (plot-purge-ring      self surface 250 udp-video)
+    (plot-discard/lost    self surface 280 udp-id-discard-packet udp-audio)
+    (plot-discard/lost    self surface 290 udp-id-lost-packet udp-audio)
+    (plot-discard/lost    self surface 280 udp-id-discard-packet udp-video)
+    (plot-discard/lost    self surface 290 udp-id-lost-packet udp-video)
+    (plot-log-entry       self surface 350 1)     ; G_ERROR
+    (plot-log-entry       self surface 360 2)     ; G_CRITICAL
+    (plot-log-entry       self surface 370 3)     ; G_WARNING
+    (plot-log-entry       self surface 380 4)     ; GST_ERROR
+    (plot-log-entry       self surface 390 5)))   ; GST_WARNING
 
 
 (definition protected (record-events-lexicon)
@@ -492,7 +536,7 @@
                     (record-event id -1. -1. -1. -1. -1. -1. -1. -1.)
                     (sleep .01)))
                 (sort < ids))))
-  (set! events-lexicon-time (current-seconds)))
+  (set-events-lexicon-time (current-seconds)))
 
 
 ;;;
