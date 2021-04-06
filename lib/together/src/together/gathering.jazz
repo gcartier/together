@@ -2651,33 +2651,32 @@
                     (let ((bin-name (gst_object_get_name bin)))
                       (format "<{a}> {a}:{a}" bin-name element pad)))))))))
       
-      (let ((main (car threads)))
+      (define (present name percentage)
+        (format "{a} {r precision: 1}%" name (* percentage 100.)))
+      
+      (bind (main . rest) threads
+        (let ((percentage (second main)))
+          (draw (present "main" percentage) {Color World-Orange})
+          (increase! base-v 20))
         (for-each (lambda (thread)
                     (bind (fullname percentage) thread
                       (let ((fullname (or fullname "")))
-                        (let ((main? (eq? thread main))
-                              (gstreamer? (find fullname #\:)))
-                          (let ((name (cond (main?
-                                             "main")
-                                            (gstreamer?
+                        (let ((gstreamer? (find fullname #\:)))
+                          (let ((name (cond (gstreamer?
                                              (streaming-name fullname))
                                             ((empty-string? fullname)
                                              "unknown")
                                             (else
                                              fullname)))
-                                (color (cond (main?
-                                              {Color World-Orange})
-                                             (gstreamer?
+                                (color (cond (gstreamer?
                                               {Color World-Blue})
                                              (else
                                               {Color White}))))
-                            (let ((text (format "{a} {r precision: 1}%" name (* percentage 100.))))
-                              (if (or main? gstreamer?)
+                            (let ((text (present name percentage)))
+                              (if gstreamer?
                                   (draw text color)
-                                (draw-other text color))
-                              (when (eq? thread main)
-                                (increase! base-v 20))))))))
-                  (sort > threads key: second)))))
+                                (draw-other text color))))))))
+                  (sort > rest key: second)))))
   
   
   (method protected (draw-streams self surface direction threads start-h start-v type?)
