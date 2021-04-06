@@ -45,16 +45,14 @@
   
   
   (slot panel          getter generate)
-  (slot receive-thread getter generate)
   (slot pulse-thread   getter generate)
   (slot redraw-thread  getter generate)
   (slot send-thread    getter generate)
   
   
-  (method override (initialize self panel receive-thread pulse-thread redraw-thread send-thread)
+  (method override (initialize self panel pulse-thread redraw-thread send-thread)
     (nextmethod self)
     (set! self.panel panel)
-    (set! self.receive-thread receive-thread)
     (set! self.pulse-thread pulse-thread)
     (set! self.redraw-thread redraw-thread)
     (set! self.send-thread send-thread)))
@@ -97,17 +95,7 @@
       (set-chronology panel (get-profile-chronology udp-client))
       (set-evolution panel (get-profile-evolution udp-client))
       (layout-view interface)
-      (let ((receive-thread
-              (new-thread
-                (lambda ()
-                  (declare (proper-tail-calls))
-                  (let ((udp-port (get-udp-port udp-client)))
-                    (let (loop)
-                      (let ((data (read udp-port)))
-                        (receive-data udp-client data))
-                      (loop))))
-                'receive))
-            (pulse-thread
+      (let ((pulse-thread
               (new-thread
                 (lambda ()
                   (declare (proper-tail-calls))
@@ -179,8 +167,6 @@
                            (thread-join! pulse-thread)
                            (exit-thread redraw-thread)
                            (thread-join! redraw-thread)
-                           (exit-thread receive-thread)
-                           (thread-join! receive-thread)
                            (receive (server-profile client-profile) (retrieve-profiles client)
                              (stop-profile client)
                              (with-task-mutex
@@ -196,17 +182,15 @@
                                         (set! running-profile #f)
                                         (save-profile server-profile client-profile view-profile?: #f))))))))
                        'send))))
-          (thread-base-priority-set! receive-thread udp-priority)
           (thread-base-priority-set! pulse-thread udp-priority)
           (thread-base-priority-set! redraw-thread udp-priority)
           (when send-thread
             (thread-base-priority-set! send-thread udp-priority))
-          (thread-start! receive-thread)
           (thread-start! pulse-thread)
           (thread-start! redraw-thread)
           (when send-thread
             (thread-start! send-thread))
-          (set! running-profile (new Network-Profile panel receive-thread pulse-thread redraw-thread send-thread)))))))
+          (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread)))))))
 
 
 (definition protected (profile-pulse)
@@ -242,7 +226,6 @@
 (definition protected (terminate-profile)
   (let ((client (current-client)))
     (let ((panel (get-panel running-profile))
-          (receive-thread (get-receive-thread running-profile))
           (pulse-thread (get-pulse-thread running-profile))
           (redraw-thread (get-redraw-thread running-profile))
           (send-thread (get-send-thread running-profile)))
@@ -253,8 +236,6 @@
       (thread-join! pulse-thread)
       (exit-thread redraw-thread)
       (thread-join! redraw-thread)
-      (exit-thread receive-thread)
-      (thread-join! receive-thread)
       (stop-profile client)
       (close panel)
       (set! running-profile #f)))))
