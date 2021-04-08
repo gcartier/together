@@ -290,6 +290,7 @@
         (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
+        (<!>                 name: profile-bandwidth          active?: #t)
         (<!>                 name: profile-network            active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
@@ -4115,18 +4116,25 @@
           (update-visualizer root))))))
   
   
-  (method (on-profile-network self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile)
-        (profile-network))))
-  
-  
   (method (on-profile-pulse self evt)
     (when (is? space Gathering-Space)
       (if running-profile
           (cancel-profile)
         (profile-pulse))))
+  
+  
+  (method (on-profile-bandwidth self evt)
+    (when (is? space Gathering-Space)
+      (if running-profile
+          (cancel-profile)
+        (profile-bandwidth))))
+  
+  
+  (method (on-profile-network self evt)
+    (when (is? space Gathering-Space)
+      (if running-profile
+          (cancel-profile)
+        (profile-network))))
   
   
   (method (on-request-replays self evt)

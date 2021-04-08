@@ -1017,6 +1017,7 @@
   (form
     (<install>                                        title: "Profile"
       (<World-Action-Item> name: profile-pulse        title: "Profile pulse" shortcut: {Shortcut :control :shift #\P} action-handler: {Event-Handler :together on-profile-pulse} description: "Profile pulse.")
+      (<World-Action-Item> name: profile-bandwidth    title: "Profile bandwidth" shortcut: {Shortcut :control :shift #\B} action-handler: {Event-Handler :together on-profile-bandwidth} description: "Profile bandwidth.")
       (<World-Action-Item> name: profile-network      title: "Profile network" shortcut: {Shortcut :control :shift #\N} action-handler: {Event-Handler :together on-profile-network} description: "Profile network."))))
 
 
@@ -1836,6 +1837,7 @@
         (<!>                 name: capture-screen             visible?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              visible?: #t)
+        (<!>                 name: profile-bandwidth          visible?: #t)
         (<!>                 name: profile-network            visible?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            visible?: #t)
