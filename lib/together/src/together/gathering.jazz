@@ -2627,7 +2627,7 @@
   (method protected (draw-energy self surface direction threads start-h start-v)
     (let ((base-h start-h)
           (base-v start-v)
-          (other-h (+ start-h 300))
+          (other-h (+ start-h 330))
           (other-v start-v))
       (define (draw text color (padding 0))
         (let ((h (+ base-h padding))
