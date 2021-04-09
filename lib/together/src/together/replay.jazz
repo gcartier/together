@@ -339,6 +339,13 @@
 ;;;
 
 
+(definition protected events-lexicon-time
+  #f)
+
+(definition protected (set-events-lexicon-time time)
+  (set! events-lexicon-time time))
+
+
 (class Evolution-Timeline-Panel extends Timeline-Panel
   
   
