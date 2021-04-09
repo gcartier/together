@@ -141,7 +141,7 @@
                        (lambda ()
                          (define (setup-pulse sent received key-callback)
                            (set! pulse-sent sent)
-                           (set-profile-pulse-callback udp received)
+                           (set-profile-ack-callback udp received)
                            (set-key-callback panel key-callback))
                          
                          (sender panel setup-pulse wait)
@@ -150,7 +150,7 @@
                          (exit-thread redraw-thread)
                          (thread-join! redraw-thread)
                          (receive (server-profile client-profile) (retrieve-profiles client)
-                           (set-profile-pulse-callback udp #f)
+                           (set-profile-ack-callback udp #f)
                            (stop-profile client)
                            (with-task-mutex
                              (lambda ()
@@ -241,15 +241,15 @@
           (table-set! pulses sequence data))))
     
     (define (pulse-received data)
-      (with-record profile-pulse
+      (with-record profile-ack
         (let ((now (current-seconds))
-              (sequence (read-profile-pulse-sequence data)))
+              (sequence (read-profile-ack-pulse-sequence data)))
           (let ((sent (table-ref pulses sequence)))
             (let ((rtt (- now (read-header-sent sent))))
               (if (not last)
                   (when show?
                     (format :terminal "<<< {a} rtt {r precision: 3}{%}" sequence rtt))
-                (let ((expected (+ (read-profile-pulse-sequence last) 1)))
+                (let ((expected (+ (read-profile-ack-pulse-sequence last) 1)))
                   (let ((gap (- sequence expected)))
                     (when show?
                       (loop (for seq from expected below sequence)
@@ -360,7 +360,7 @@
       (thread-join! pulse-thread)
       (exit-thread redraw-thread)
       (thread-join! redraw-thread)
-      (set-profile-pulse-callback udp #f)
+      (set-profile-ack-callback udp #f)
       (stop-profile client)
       (close panel)
       (set! running-profile #f)))))
