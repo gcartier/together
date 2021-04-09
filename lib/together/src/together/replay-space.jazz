@@ -39,6 +39,7 @@
     (<install>
       (<world-main!>
         (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-windowed-mode       active?: #t))
