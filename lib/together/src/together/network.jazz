@@ -263,8 +263,10 @@
       #f)
     
     (define (key-callback key)
-      (define (adjust-rate adjustment)
-        (set-rate (+ rate adjustment))
+      (define rates
+        '(0. .1 .25 .5 .75 1. 2. 3. 4. 6. 8. 12. 16. 20.))
+      
+      (define (record-rate adjustment)
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (record-event udp-id-throttle-rate
                         -1.
@@ -276,26 +278,43 @@
                         -1.
                         -1.)))
       
+      (define (increase-rate)
+        (let ((new-rate (next-element rates rate cycle?: #f)))
+          (when new-rate
+            (set-rate new-rate)
+            (record-rate (- new-rate rate)))))
+      
+      (define (decrease-rate)
+        (let ((new-rate (previous-element rates rate cycle?: #f)))
+          (when new-rate
+            (set-rate new-rate)
+            (record-rate (- new-rate rate)))))
+      
       (define (set-rate r)
         (set! rate r)
         (display-rate))
       
       (define (display-rate)
-        (display-message world (format "Rate {r precision: 1}" rate)))
+        (display-message world (format "Rate {r precision: 2}" rate)))
       
       (case key
         ((#\a)
-         (adjust-rate -1.))
+         (decrease-rate))
         ((#\s)
          (display-rate))
         ((#\d)
-         (adjust-rate 1.))
+         (increase-rate))
         ((#\r)
          (set-rate 1.))
         ((#\z)
          (set-rate 0.))
         ((#\f #\space)
-         (toggle-frozen panel)
+         (cond ((time-frozen? panel)
+                (thaw-events)
+                (thaw-time panel))
+               (else
+                (freeze-events)
+                (freeze-time panel)))
          (redraw panel))
         ((#\v)
          (done-profile))))
@@ -306,14 +325,18 @@
     (setup-pulse pulse-sent pulse-received key-callback)
     (let (loop (previous start))
       (let ((end +inf.0)
-            (bytes/second (mbps->bytes rate))
+            (bytes/second (cast <fl> (mbps->bytes rate)))
             (size (+ (calculate-profile-media-size payload) udp-code-size)))
-        (let ((period (/ size (cast <fl> bytes/second))))
+        (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
           (let ((now (current-seconds)))
             (when (< now end)
-              (send-profile-media udp payload)
-              (wait (+ previous period))
-              (loop now))))))))
+              (if (not period)
+                  (begin
+                    (wait (+ previous .01))
+                    (loop now))
+                (send-profile-media udp payload)
+                (wait (+ previous period))
+                (loop now)))))))))
 
 
 (definition protected (profile-pulse)
