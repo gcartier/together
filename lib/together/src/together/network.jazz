@@ -226,6 +226,10 @@
       (profile-bandwidths profile-both))))
 
 
+(definition protected base-rate
+  1.)
+
+
 (definition (send-network panel setup-pulse wait)
   (declare (proper-tail-calls))
   (let ((world (current-world))
@@ -234,7 +238,6 @@
         (last #f)
         (show? #f)
         (start (current-seconds))
-        (rate 1.)
         (payload (make-u8vector 1000)))
     (define (pulse-sent data)
       (with-record profile-pulse
@@ -279,23 +282,23 @@
                         -1.)))
       
       (define (increase-rate)
-        (let ((new-rate (next-element rates rate cycle?: #f)))
+        (let ((new-rate (next-element rates base-rate cycle?: #f)))
           (when new-rate
             (set-rate new-rate)
-            (record-rate (- new-rate rate)))))
+            (record-rate (- new-rate base-rate)))))
       
       (define (decrease-rate)
-        (let ((new-rate (previous-element rates rate cycle?: #f)))
+        (let ((new-rate (previous-element rates base-rate cycle?: #f)))
           (when new-rate
             (set-rate new-rate)
-            (record-rate (- new-rate rate)))))
+            (record-rate (- new-rate base-rate)))))
       
-      (define (set-rate r)
-        (set! rate r)
+      (define (set-rate rate)
+        (set! base-rate rate)
         (display-rate))
       
       (define (display-rate)
-        (display-message world (format "Rate {r precision: 2}" rate)))
+        (display-message world (format "Rate {r precision: 2}" base-rate)))
       
       (case key
         ((#\a)
@@ -325,7 +328,7 @@
     (setup-pulse pulse-sent ack-received key-callback)
     (let (loop (previous start))
       (let ((end +inf.0)
-            (bytes/second (cast <fl> (mbps->bytes rate)))
+            (bytes/second (cast <fl> (mbps->bytes base-rate)))
             (size (+ (calculate-profile-media-size payload) udp-code-size)))
         (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
           (let ((now (current-seconds)))
