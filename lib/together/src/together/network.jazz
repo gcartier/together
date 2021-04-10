@@ -33,6 +33,7 @@
         (world.settings)
         (world.streaming)
         (world.task)
+        (world.throttle)
         (world.udp)
         (world.video)
         (together))
@@ -234,52 +235,39 @@
   (declare (proper-tail-calls))
   (let ((world (current-world))
         (udp (current-udp))
-        (pulses (make-table))
-        (last #f)
-        (show? #f)
-        (start (current-seconds))
-        (payload (make-u8vector 1000)))
+        (throttle (new UDP-Throttle)))
     (define (pulse-sent data)
-      (with-record profile-pulse
-        (let ((sequence (read-profile-pulse-sequence data)))
-          (table-set! pulses sequence data))))
+      )
     
     (define (ack-received data)
       (with-record profile-ack
         (let ((now (current-seconds))
+              (sent (read-profile-ack-pulse-sent data))
               (sequence (read-profile-ack-pulse-sequence data)))
-          (let ((sent (table-ref pulses sequence)))
-            (let ((rtt (- now (read-header-sent sent))))
-              (if (not last)
-                  (when show?
-                    (format :terminal "<<< {a} rtt {r precision: 3}{%}" sequence rtt))
-                (let ((expected (+ (read-profile-ack-pulse-sequence last) 1)))
-                  (let ((gap (- sequence expected)))
-                    (when show?
-                      (loop (for seq from expected below sequence)
-                            (format :terminal "*** {a}{%}" seq)))))
-                (let ((latency (- now (read-header-sent last))))
-                  (when show?
-                    (format :terminal "<<< {a} rtt {r precision: 3} {r precision: 3}{%}" sequence rtt latency))))
-              (table-clear pulses sequence)
-              (set! last data)))))
+          (receive-ack throttle sent sequence
+            (lambda (adjustment)
+              (record-rate adjustment)
+              (display-rate)))))
       #f)
+    
+    (define (display-rate)
+      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle base-rate)) duration: +inf.0))
+    
+    (define (record-rate adjustment)
+      (parameterize ((simulation-evolution (get-profile-evolution udp)))
+        (record-event udp-id-throttle-rate
+                      -1.
+                      -1.
+                      -1.
+                      adjustment
+                      -1.
+                      -1.
+                      -1.
+                      -1.)))
     
     (define (key-callback key)
       (define rates
         '(0. .1 .25 .5 .75 1. 2. 3. 4. 6. 8. 12. 16. 20.))
-      
-      (define (record-rate adjustment)
-        (parameterize ((simulation-evolution (get-profile-evolution udp)))
-          (record-event udp-id-throttle-rate
-                        -1.
-                        -1.
-                        -1.
-                        adjustment
-                        -1.
-                        -1.
-                        -1.
-                        -1.)))
       
       (define (increase-rate)
         (let ((new-rate (next-element rates base-rate cycle?: #f)))
@@ -296,9 +284,6 @@
       (define (set-rate rate)
         (set! base-rate rate)
         (display-rate))
-      
-      (define (display-rate)
-        (display-message world (format "Rate {r precision: 2}" base-rate)))
       
       (case key
         ((#\a)
@@ -326,20 +311,22 @@
       (sleep (- target (current-seconds))))
     
     (setup-pulse pulse-sent ack-received key-callback)
-    (let (loop (previous start))
-      (let ((end +inf.0)
-            (bytes/second (cast <fl> (mbps->bytes base-rate)))
-            (size (+ (calculate-profile-media-size payload) udp-code-size)))
-        (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
-          (let ((now (current-seconds)))
-            (when (< now end)
-              (if (not period)
-                  (begin
-                    (wait (+ previous .01))
-                    (loop now))
-                (send-profile-media udp payload)
-                (wait (+ previous period))
-                (loop now)))))))))
+    (let ((start (current-seconds))
+          (payload (make-u8vector 1000)))
+      (let (loop (previous start))
+        (let ((end +inf.0)
+              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle base-rate))))
+              (size (+ (calculate-profile-media-size payload) udp-code-size)))
+          (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
+            (let ((now (current-seconds)))
+              (when (< now end)
+                (if (not period)
+                    (begin
+                      (wait (+ previous .01))
+                      (loop now))
+                  (send-profile-media udp payload)
+                  (wait (+ previous period))
+                  (loop now))))))))))
 
 
 (definition protected (profile-pulse)
