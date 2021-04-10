@@ -241,7 +241,7 @@
         (let ((sequence (read-profile-pulse-sequence data)))
           (table-set! pulses sequence data))))
     
-    (define (pulse-received data)
+    (define (ack-received data)
       (with-record profile-ack
         (let ((now (current-seconds))
               (sequence (read-profile-ack-pulse-sequence data)))
@@ -322,7 +322,7 @@
     (define (wait target)
       (sleep (- target (current-seconds))))
     
-    (setup-pulse pulse-sent pulse-received key-callback)
+    (setup-pulse pulse-sent ack-received key-callback)
     (let (loop (previous start))
       (let ((end +inf.0)
             (bytes/second (cast <fl> (mbps->bytes rate)))
