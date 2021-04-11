@@ -2531,19 +2531,6 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
-        (define (count-nacks kind)
-          (let ((total 0)
-                (channels 0))
-            (iterate-table (get-receive-channels udp-client)
-              (lambda (key channel)
-                (when (= (get-media-kind channel) kind)
-                  (let ((len (count-missing channel)))
-                    (increase! total len)
-                    (increase! channels)))))
-            (if (= channels 0)
-                "N/A"
-              (format "{a}" (fxround (/ (cast <fl> total) (cast <fl> channels)))))))
-        
         (define (udp-receive-count)
           (let ((udp-client (get-udp-client (current-client))))
             (let ((channels (table-values (get-receive-channels udp-client))))
@@ -2595,7 +2582,6 @@
                 (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
-                @comment (draw (format "Nack: {a} {a}" (count-nacks udp-audio) (count-nacks udp-video)) {Color World-Red})
                 (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
                 (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red}))
               (with-bin-mutex
