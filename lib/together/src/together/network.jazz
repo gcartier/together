@@ -241,10 +241,9 @@
     
     (define (ack-received data)
       (with-record profile-ack
-        (let ((now (current-seconds))
-              (sent (read-profile-ack-pulse-sent data))
+        (let ((sent (read-profile-ack-pulse-sent data))
               (sequence (read-profile-ack-pulse-sequence data)))
-          (receive-ack throttle sent sequence
+          (received-ack throttle sent sequence
             (lambda (adjustment)
               (record-rate adjustment)
               (display-rate)))))
