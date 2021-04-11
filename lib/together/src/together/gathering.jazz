@@ -103,6 +103,7 @@
         (world.streaming)
         (world.support)
         (world.task)
+        (world.throttle)
         (world.time)
         (world.timeline)
         (world.udp)
@@ -2532,23 +2533,21 @@
                 (format "{r precision: 1}s (evolution)" duration)))))
         
         (define (udp-receive-count)
-          (let ((udp-client (get-udp-client (current-client))))
-            (let ((channels (table-values (get-receive-channels udp-client))))
-              ;; quick solution use first audio channel
-              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-                (if (null? audio-channels)
-                    0
-                  (let ((channel (car audio-channels)))
-                    (get-count (get-process-ring channel))))))))
+          (let ((channels (table-values (get-receive-channels udp-client))))
+            ;; quick solution use first audio channel
+            (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
+              (if (null? audio-channels)
+                  0
+                (let ((channel (car audio-channels)))
+                  (get-count (get-process-ring channel)))))))
         
         (define (udp-send-count)
-          (let ((udp-client (get-udp-client (current-client))))
-            (let ((channels (table-values (get-send-channels udp-client))))
-              (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-                (if (null? audio-channels)
-                    0
-                  (let ((channel (car audio-channels)))
-                    (get-count (get-retain-ring channel))))))))
+          (let ((channels (table-values (get-send-channels udp-client))))
+            (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
+              (if (null? audio-channels)
+                  0
+                (let ((channel (car audio-channels)))
+                  (get-count (get-retain-ring channel)))))))
         
         (define (cpu-percentage threads)
           (cond-expand
@@ -2579,6 +2578,10 @@
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
               (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
               (unless (eq? show-media 'energy)
+                (let ((throttle (get-throttle udp-client))
+                      (rate (camera-rate client)))
+                  (when rate
+                    (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (effective-rate throttle (/ rate 1024.)) (* (get-multiplier throttle) 100.)) {Color World-Red})))
                 (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
