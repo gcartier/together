@@ -2581,7 +2581,8 @@
               (unless (eq? show-media 'energy)
                 (let ((throttle (get-throttle udp-client))
                       (rate (camera-rate client)))
-                  (when rate
+                  (if (not rate)
+                      (draw (format "Upload: ({r precision: 1}%)" (* (get-multiplier throttle) 100.)) {Color World-Red})
                     (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (effective-rate throttle (/ rate 1024.)) (* (get-multiplier throttle) 100.)) {Color World-Red})))
                 (draw (format "Quality: {a} {a}" (media-quality udp-audio) (media-quality udp-video)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
