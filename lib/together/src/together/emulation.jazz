@@ -415,8 +415,8 @@
                (when show-visualize?
                  (terminal 'waiting))
                (state-waiting ring))
-              ;; ack / traffic
-              ((udp-id-send-state udp-id-send-ack udp-id-receive-ack udp-id-traffic-rate))
+              ;; heartbeat / traffic
+              ((udp-id-send-heartbeat udp-id-send-ack udp-id-receive-ack udp-id-traffic-rate))
               ;; reset
               ((udp-id-reset-media))
               ;; throttle throttle-on throttle-off
