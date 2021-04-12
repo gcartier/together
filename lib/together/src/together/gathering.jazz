@@ -1346,6 +1346,7 @@
                       'hider)))
         (set! hide-ring (new Time-Ring 1))
         (set! hide-thread thread)
+        (thread-base-priority-set! thread event-priority)
         (thread-start! thread))))
   
   
