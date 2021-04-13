@@ -212,6 +212,7 @@
                       0.)))
                 
                 (define (latencer data)
+                  @convert-sent-removed-from-header
                   (with-record header
                     (let ((elapse (- (read-header-sent data) base-time)))
                       (/ (+ (sin (* elapse 8.)) 1.) 8.))))
