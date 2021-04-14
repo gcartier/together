@@ -4423,11 +4423,11 @@
             ((and (not change-profile-reversed?) (eq? user-base-profile 'poor))
              (set! change-profile-reversed? #t)))
       (let ((profile-list (case upper-base-profile
-                            ((high) '(high good medium low poor @RECOVERY recovery))
-                            ((good) '(good medium low poor @RECOVERY recovery))
-                            ((medium) '(medium low poor @RECOVERY recovery))
-                            ((low) '(low poor @RECOVERY recovery))
-                            ((poor) '(poor @RECOVERY recovery)))))
+                            ((high) '(high good medium low poor))
+                            ((good) '(good medium low poor))
+                            ((medium) '(medium low poor))
+                            ((low) '(low poor))
+                            ((poor) '(poor)))))
         (set-user-base-profile (or (cycle-element profile-list user-base-profile cycle?: #f reversed?: change-profile-reversed?) user-base-profile))
         (effective-base-profile-update)
         (update-profile self)))))
@@ -4443,8 +4443,7 @@
     ((good)     (update-label "Good"     {Color Pastel-Blue}))
     ((medium)   (update-label "Medium"   {Color Pastel-Green}))
     ((low)      (update-label "Low"      {Color Pastel-Yellow}))
-    ((poor)     (update-label "Poor"     {Color Pastel-Orange}))
-    ((recovery) (update-label "Recovery" {Color Pastel-Red}))))
+    ((poor)     (update-label "Poor"     {Color Pastel-Orange}))))
 
 
 ;;;
