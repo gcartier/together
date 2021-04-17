@@ -254,7 +254,7 @@
     
     (define (record-rate adjustment)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
-        (record-event udp-id-throttle-rate
+        (record-event udp-id-throttle-upload
                       -1.
                       -1.
                       -1.
