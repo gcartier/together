@@ -541,10 +541,8 @@
                     (if (not (eqv? cat category))
                         (begin
                           (when category
-                            (terminal)
                             (sleep .01))
                           (set! category cat)))
-                    (terminal (evolution-id->name id))
                     (record-event id -1. -1. -1. -1. -1. -1. -1. -1.)
                     (sleep .01)))
                 (sort < ids))))
