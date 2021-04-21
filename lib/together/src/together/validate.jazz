@@ -55,7 +55,6 @@
           (let ((receiver-client (require-tier call receiver)))
             (let ((receiver-channel #f @w (require-receive-channel receiver-client origin media-kind)))
               (let ((receiver-ring (get-process-ring receiver-channel))
-                    (average (new Average .05 1.))
                     (datas (make-table test: eqv?))
                     (origin-evolution (new Evolution 10000))
                     (server-evolution (new Evolution 10000))
@@ -158,7 +157,7 @@
                                      (let (looping)
                                        (when debug-validate?
                                          (terminal 'process))
-                                       (let ((info (process-audio receiver-ring average debug-process?)))
+                                       (let ((info (process-audio receiver-ring debug-process?)))
                                          (when (neq? info 'terminate)
                                            (when debug-validate?
                                              (terminal 'present (with-record media
