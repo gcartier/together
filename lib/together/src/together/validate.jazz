@@ -35,9 +35,6 @@
 (definition protected debug-validate?
   (world-setting 'together.debug-validate? #f))
 
-(definition protected debug-process?
-  (world-setting 'together.debug-process? #f))
-
 
 (definition public (test-ring media-kind suite (time-base: time-base #f))
   (declare (proper-tail-calls))
@@ -154,7 +151,7 @@
                                      (let (looping)
                                        (when debug-validate?
                                          (terminal 'process))
-                                       (let ((info (process-audio receiver-ring debug-process?)))
+                                       (let ((info (process-audio receiver-ring)))
                                          (when (neq? info 'terminate)
                                            (when debug-validate?
                                              (terminal 'present (with-record media

@@ -44,10 +44,6 @@
         (together.replay))
 
 
-(definition protected debug-process?
-  (world-setting 'together.debug-process? #f))
-
-
 ;;;
 ;;;; Output
 ;;;
@@ -254,7 +250,7 @@
                                                   (simulation-evolution receiver-evolution)
                                                   (simulation-audio audio-output))
                                      (let (looping (count 0))
-                                       (let ((info (process-audio receiver-audio-ring debug-process?)))
+                                       (let ((info (process-audio receiver-audio-ring)))
                                          (when (neq? info 'terminate)
                                            (present-audio receiver-audio-channel info)
                                            (looping (+ count 1)))))
@@ -474,7 +470,7 @@
                                               (simulation-evolution receiver-evolution)
                                               (simulation-audio (simulation-output)))
                                  (let (looping)
-                                   (let ((info (process-audio receiver-audio-ring debug-process?)))
+                                   (let ((info (process-audio receiver-audio-ring)))
                                      (when (neq? info 'terminate)
                                        (present-audio receiver-audio-channel info)
                                        (looping))))
@@ -486,7 +482,7 @@
                                (parameterize ((simulation? #t)
                                               (simulation-evolution receiver-evolution))
                                  (let (looping)
-                                   (let ((info (process-video receiver-video-ring debug-process?)))
+                                   (let ((info (process-video receiver-video-ring)))
                                      (when (neq? info 'terminate)
                                        (present-video receiver-video-channel info)
                                        (looping))))))
