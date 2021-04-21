@@ -32,10 +32,6 @@
         (together.replay))
 
 
-(definition protected debug-validate?
-  (world-setting 'together.debug-validate? #f))
-
-
 (definition public (test-ring media-kind suite (time-base: time-base #f))
   (declare (proper-tail-calls))
   (let ((world (current-world)))
@@ -124,8 +120,6 @@
                                           (set! start-time seconds))
                                         (let ((time (+ base (- seconds start-time))))
                                           (sleep (- time now))
-                                          (when debug-validate?
-                                            (terminal 'insert sequence frame))
                                           (let ((data (need-data media-kind origin sequence frame part total dts pts keyframe?)))
                                             (receive-media receiver-client media-kind data)))))
                                     
@@ -149,13 +143,8 @@
                                    (parameterize ((simulation? #t)
                                                   (simulation-evolution receiver-evolution))
                                      (let (looping)
-                                       (when debug-validate?
-                                         (terminal 'process))
                                        (let ((info (process-audio receiver-ring)))
                                          (when (neq? info 'terminate)
-                                           (when debug-validate?
-                                             (terminal 'present (with-record media
-                                                                  (read-media-frame (car info)))))
                                            (present-audio receiver-channel info)
                                            (looping))))))
                                  'process)))
@@ -164,8 +153,6 @@
                   (thread-start! process)
                   (thread-join! insert)
                   (thread-join! process)
-                  (when debug-validate?
-                    (terminal 'done))
                   @wait
                   (compare-events)
                   (clear-message world)
