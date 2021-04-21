@@ -2569,7 +2569,7 @@
                       (bitrate (camera-bitrate client)))
                   (if (not bitrate)
                       (draw (format "Upload: ({r precision: 1}%)" (* (get-multiplier throttle) 100.)) {Color World-Red})
-                    (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (effective-rate throttle (/ bitrate 1024.)) (* (get-multiplier throttle) 100.)) {Color World-Red})))
+                    (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1024.) (* (get-multiplier throttle) 100.)) {Color World-Red})))
                 (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
                 (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})

@@ -250,7 +250,7 @@
       #f)
     
     (define (display-rate)
-      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle base-rate)) duration: +inf.0))
+      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle 256. base-rate)) duration: +inf.0))
     
     (define (record-rate adjustment)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
@@ -314,7 +314,7 @@
           (payload (make-u8vector 1000)))
       (let (loop (previous start))
         (let ((end +inf.0)
-              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle base-rate))))
+              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle 256. base-rate))))
               (size (+ (calculate-profile-media-size payload) udp-code-size)))
           (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
             (let ((now (current-seconds)))
