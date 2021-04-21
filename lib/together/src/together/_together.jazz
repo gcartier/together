@@ -135,7 +135,7 @@
 
 
 (set-default-server-host
-  "togethersphere.com")
+  "sydney.togethersphere.com")
 
 
 ;;;

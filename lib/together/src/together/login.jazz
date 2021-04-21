@@ -133,7 +133,7 @@
               (date (build-short-date))
               (key (get-personal-key configuration)))
           (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-            (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+            (new Label-View name: 'welcome parent: root title: "Together Sydney" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
             (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
             (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
