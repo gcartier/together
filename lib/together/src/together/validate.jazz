@@ -35,9 +35,6 @@
 (definition protected debug-validate?
   (world-setting 'together.debug-validate? #f))
 
-(definition protected debug-insert?
-  (world-setting 'together.debug-insert? #f))
-
 (definition protected debug-process?
   (world-setting 'together.debug-process? #f))
 
@@ -130,7 +127,7 @@
                                           (set! start-time seconds))
                                         (let ((time (+ base (- seconds start-time))))
                                           (sleep (- time now))
-                                          (when (or debug-validate? debug-insert?)
+                                          (when debug-validate?
                                             (terminal 'insert sequence frame))
                                           (let ((data (need-data media-kind origin sequence frame part total dts pts keyframe?)))
                                             (receive-media receiver-client media-kind data)))))

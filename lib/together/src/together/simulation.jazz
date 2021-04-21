@@ -44,9 +44,6 @@
         (together.replay))
 
 
-(definition protected debug-insert?
-  (world-setting 'together.debug-insert? #f))
-
 (definition protected debug-process?
   (world-setting 'together.debug-process? #f))
 
