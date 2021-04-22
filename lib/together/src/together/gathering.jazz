@@ -778,6 +778,7 @@
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
+        (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
@@ -895,6 +896,7 @@
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
+        (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-replays            active?: #t)
@@ -1111,6 +1113,7 @@
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
+        (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
@@ -3785,6 +3788,17 @@
         (set-debug-stream (if (eq? debug-stream 'flow)
                               #f
                             'flow))
+        (invalidate-outputs video)
+        (when debug-stream
+          (show-interface (current-space) #t)))))
+  
+  
+  (method (on-toggle-debug-live self evt)
+    (when (is? space Void-Space)
+      (let ((video (current-video)))
+        (set-debug-stream (if (eq? debug-stream 'live)
+                              #f
+                            'live))
         (invalidate-outputs video)
         (when debug-stream
           (show-interface (current-space) #t)))))
