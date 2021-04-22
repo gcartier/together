@@ -4058,7 +4058,7 @@
                           (channel-output (current-video) channel root-view: (make-replay-view))
                           (let ((src (new Video-Src))
                                 (sink (new Stream-Frame-Consumer
-                                        consumer: (client-video-consumer client channel-no local?: stream-local?))))
+                                        consumer: (client-video-consumer client channel-no))))
                             (let ((pipeline (pipeline (list src sink))))
                               (set-pipeline channel pipeline)))))))))
               
