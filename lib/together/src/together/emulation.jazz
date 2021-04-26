@@ -314,7 +314,7 @@
               ;; missing
               ((udp-id-missing-packet))
               ;; gap
-              ((udp-id-packet-gap))
+              ((udp-id-packet-gap udp-id-purge-ring))
               ;; got
               ((udp-id-got-packet)
                (let ((sequence (evolutionary-udp-sequence evolution n)))
