@@ -1496,7 +1496,7 @@
   (slot preserved-eye              initialize #f getter generate)
   (slot message-recipient          initialize #f getter generate)
   (slot draw-hook                  initialize #f getter generate)
-  (slot sleep-disconnected?        initialize #f getter generate)
+  (slot sleep-disconnected         initialize #f getter generate)
   (slot chat-wide?                 initialize #f getter generate)
   (slot previous-command           initialize #f getter generate)
   (slot fade-thread                initialize #f getter generate)
@@ -1696,9 +1696,12 @@
     (assert-task-mutex)
     (when (client?)
       (let ((client (current-client)))
-        (when (is? space Sphere-Space)
-          (leave-circle self)
-          (set! sleep-disconnected? #t))
+        (cond ((circling? self)
+               (leave-circle self)
+               (set! sleep-disconnected 'circle))
+              ((grouped? self)
+               (leave-group self)
+               (set! sleep-disconnected 'group)))
         (sleep-to-server client))))
   
   
@@ -1710,9 +1713,9 @@
       (let ((client (current-client))
             (world (current-world)))
         (wake-to-server client)
-        (when sleep-disconnected?
-          (display-message world "Disconnected from circle" duration: 5.)
-          (set! sleep-disconnected? #f)))))
+        (when sleep-disconnected
+          (display-message world (format "Disconnected from {a}" sleep-disconnected) duration: 5.)
+          (set! sleep-disconnected #f)))))
   
   
   (method package (update-message-recipient self recipient)
@@ -2000,6 +2003,10 @@
   
   
   (method (on-leave-group self evt)
+    (leave-group self))
+  
+  
+  (method (leave-group self)
     (let ((tier (current-client)))
       (client-leave tier)))
   
