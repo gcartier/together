@@ -1,0 +1,143 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; User Options
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.options jazz
+
+
+(import (jazz.component)
+        (jazz.markup)
+        (jazz.stream)
+        (jazz.stream.syntax (phase syntax))
+        (jazz.tree)
+        (jazz.view)
+        (world)
+        (world.audio)
+        (world.circle)
+        (world.client.tier)
+        (world.context)
+        (world.interface.frame)
+        (world.interface.options)
+        (world.settings)
+        (world.video))
+
+
+;;;
+;;;; Audio
+;;;
+
+
+(class Audio-Options extends Option-Frame
+  
+  
+  (form
+    (<install>
+      (<caption~>           title: "Audio Options")
+      (<content~>                                         layout-type: center
+        (<View>                                           size: {Dimension 390 140}
+          (<Option-Label>   title: "Microphone"           position: {Point 0 1})
+          (<Combo-Option>                                 position: {Point 190 0} size: {Dimension 200 19} option: microphone)
+          (<Option-Label>   title: "Push to talk"         position: {Point 20 30} size: {Dimension 200 15})
+          (<Boolean-Option>                               position: {Point 0 30} option: push-to-talk)
+          (<Option-Label>   title: "Aggressive Denoising" position: {Point 20 60} size: {Dimension 200 15})
+          (<Boolean-Option>                               position: {Point 0 60} option: aggressive-denoising)
+          (<Option-Label>   title: "Speaker"              position: {Point 0 121} size: {Dimension 200 15})
+          (<Combo-Option>                                 position: {Point 190 120} size: {Dimension 200 19} option: speaker)))))
+  
+  
+  (method override (read-option self option)
+    (case option
+      ((microphone)
+       (with-microphone-devices
+         (lambda (devices)
+           (if (null? devices)
+               (values (list (list #f "<No microphone found>")) #f)
+             (let ((choices (cons (list #f "System Default")
+                                  (map (lambda (device)
+                                         (list (microphone-device-identifier device) (gst_device_get_display_name device)))
+                                       devices)))
+                   (identifier (read-mic-identifier devices)))
+               (let ((choice (assoc identifier choices)))
+                 (if choice
+                     (values choices (car choice))
+                   (values choices #f))))))))
+      ((push-to-talk)
+       (push-to-talk?))
+      ((aggressive-denoising)
+       audio-rndenoise?)
+      ((speaker)
+       (with-speaker-devices
+         (lambda (devices)
+           (if (null? devices)
+               (values (list (list #f "<No speaker found>")) #f)
+             (let ((choices (cons (list #f "System Default")
+                                  (map (lambda (device)
+                                         (list (speaker-device-identifier device) (gst_device_get_display_name device)))
+                                       devices)))
+                   (identifier (read-speaker-identifier devices)))
+               (let ((choice (assoc identifier choices)))
+                 (if choice
+                     (values choices (car choice))
+                   (values choices #f))))))))))
+  
+  
+  (method override (write-option self option value title)
+    (case option
+      ((microphone)
+       (update-mic-identifier (current-client) title value))
+      ((push-to-talk)
+       (change-push-to-talk value))
+      ((aggressive-denoising)
+       (change-rndenoise (current-client) value))
+      ((speaker)
+       (update-speaker-identifier (current-client) title value)))))
+
+
+;;;
+;;;; Video
+;;;
+
+
+(class Video-Options extends Option-Frame
+  
+  
+  (form
+    (<install>
+      (<caption~>           title: "Video Options")
+      (<content~>                                    layout-type: center
+        (<View>                                      size: {Dimension 390 134}
+          (<Option-Label>   title: "Camera"          position: {Point 0 1})
+          (<Combo-Option>                            position: {Point 140 0} size: {Dimension 250 19} option: camera)))))
+  
+  
+  (method override (read-option self option)
+    (case option
+      ((camera)
+       (with-camera-devices
+         (lambda (devices)
+           (if (null? devices)
+               (values (list (list #f "<No camera found>")) #f)
+             (let ((choices (cons (list #f "System Default")
+                                  (map (lambda (device)
+                                         (list (camera-device-identifier device) (gst_device_get_display_name device)))
+                                       devices)))
+                   (identifier (read-camera-identifier devices)))
+               (let ((choice (assoc identifier choices)))
+                 (if choice
+                     (values choices (car choice))
+                   (values choices #f))))))))))
+  
+  
+  (method override (write-option self option value title)
+    (case option
+      ((camera)
+       (update-camera-identifier (current-client) title value))))))

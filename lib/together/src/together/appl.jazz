@@ -831,8 +831,8 @@
       (<World-Action-Button>    name: leave-group         resource: {Icon-Resource "Logogram/Seperated-DIamond-Pointers"} action-handler: {Action together-menu leave-group})
       (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Logogram/Circles-Half"} action-handler: {Action together-menu leave-circle})
       (<World-Separator>                                  size: {Dimension 36 0})
-      (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-media toggle-mic} parameter: mic)
-      (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-media toggle-camera} parameter: camera)
+      (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-audio toggle-mic} parameter: mic)
+      (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-video toggle-camera} parameter: camera)
       (<World-Separator>)
       (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
       (<World-Parameter-Button> name: circle-mode         resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-mode} parameter: circle-mode)
@@ -886,8 +886,8 @@
   
   (form
     (<install>                  title: "Main"
-      (<World-Action-Button>    name: video-options resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action world-main video-options})
-      (<World-Action-Button>    name: audio-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main audio-options})
+      (<World-Action-Button>    name: graphics-options resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action world-main graphics-options})
+      (<World-Action-Button>    name: sound-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main sound-options})
       (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
       (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
       @wait
@@ -896,6 +896,8 @@
       @wait
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
       (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
@@ -940,20 +942,29 @@
       (<World-Action-Item> name: goto-login           title: "Go to Login screen" shortcut: {Shortcut "Click your name"} description: "Login."))))
 
 
-(class Together-Media-Actions extends World-Actions
+(class Together-Audio-Actions extends World-Actions
   
 
   (form
-    (<install>                                         title: "Media"
-      (<World-Action-Item> name: toggle-mic            title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
-      (<World-Action-Item> name: toggle-push-to-talk   title: "Push to talk" action-handler: {Event-Handler :together on-toggle-push-to-talk} shortcut: {Shortcut :alt Space} description: "Toggle push to talk.")
-      (<World-Action-Item> name: talk                  title: "Talk" shortcut: {Shortcut Space} description: "Talk.")
+    (<install>                                        title: "Audio"
+      (<World-Action-Item> name: toggle-mic           title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
+      (<World-Action-Item> name: toggle-push-to-talk  title: "Push to talk" action-handler: {Event-Handler :together on-toggle-push-to-talk} shortcut: {Shortcut :alt Space} description: "Toggle push to talk.")
+      (<World-Action-Item> name: talk                 title: "Talk" shortcut: {Shortcut Space} description: "Talk.")
       @wait-live-change (<World-Action-Item> name: toggle-echo-cancel    title: "Echo Cancellation" action-handler: {Event-Handler :together on-toggle-echo-cancel} shortcut: {Shortcut :alt :shift #\O} description: "Toggle echo cancellation.")
       @wait-live-change (<World-Action-Item> name: toggle-gain-control   title: "Gain Controller" action-handler: {Event-Handler :together on-toggle-gain-control} shortcut: {Shortcut :alt :shift #\K} description: "Toggle gain controller.")
       @wait-live-change (<World-Action-Item> name: toggle-noise-suppress title: "Noise Suppression" action-handler: {Event-Handler :together on-toggle-noise-suppress} shortcut: {Shortcut :alt :shift #\N} description: "Toggle noise suppression.")
-      (<World-Action-Item> name: toggle-rndenoise      title: "Aggressive Denoising" action-handler: {Event-Handler :together on-toggle-rndenoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle aggressive denoising.")
-      (<World-Action-Item> name: toggle-camera         title: "Camera" action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
-      (<World-Action-Item> name: change-quality        title: "Change video quality" shortcut: {Shortcut "Click video quality"}))))
+      (<World-Action-Item> name: toggle-rndenoise     title: "Aggressive Denoising" action-handler: {Event-Handler :together on-toggle-rndenoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle aggressive denoising.")
+      (<World-Action-Item> name: audio-options        title: "Audio options" action-handler: {Event-Handler :together on-audio-options} shortcut: {Shortcut :alt #\A} description: "Toggle audio options."))))
+
+
+(class Together-Video-Actions extends World-Actions
+  
+
+  (form
+    (<install>                                        title: "Video"
+      (<World-Action-Item> name: toggle-camera        title: "Camera" action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
+      (<World-Action-Item> name: change-quality       title: "Change video quality" shortcut: {Shortcut "Click video quality"})
+      (<World-Action-Item> name: video-options        title: "Video options" action-handler: {Event-Handler :together on-video-options} shortcut: {Shortcut :alt #\V} description: "Toggle video options."))))
 
 
 (class Together-Circle-Actions extends World-Actions
@@ -1153,7 +1164,8 @@
       (<World-Objective-Actions>     name: world-objective)
       (<World-Anonymous-Actions>     name: world-anonymous)
       ;; Together
-      (<Together-Media-Actions>      name: together-media)
+      (<Together-Audio-Actions>      name: together-audio)
+      (<Together-Video-Actions>      name: together-video)
       (<Together-Circle-Actions>     name: together-circle)
       (<Together-Zone-Actions>       name: together-zone)
       (<Together-View-Actions>       name: together-view)
@@ -1175,8 +1187,8 @@
   (<Role-Trait>        name: user
     (<install>
       (<world-main!>
-        (<!>                 name: video-options              visible?: #t)
-        (<!>                 name: audio-options              visible?: #t)
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
@@ -1203,7 +1215,7 @@
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
@@ -1211,8 +1223,11 @@
         @wait-live-change (<!>                 name: toggle-gain-control        visible?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
         (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t))
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1246,8 +1261,8 @@
   (<Role-Trait>              name: builder
     (<install>
       (<world-main!>
-        (<!>                 name: video-options              visible?: #t)
-        (<!>                 name: audio-options              visible?: #t)
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
@@ -1354,7 +1369,7 @@
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
@@ -1362,8 +1377,11 @@
         @wait-live-change (<!>                 name: toggle-gain-control        visible?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
         (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t))
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1393,8 +1411,8 @@
   (<Role-Trait>              name: builder
     (<install>
       (<world-main!>
-        (<!>                 name: video-options              visible?: #t)
-        (<!>                 name: audio-options              visible?: #t)
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
@@ -1520,7 +1538,7 @@
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
@@ -1528,8 +1546,11 @@
         @wait-live-change (<!>                 name: toggle-gain-control        visible?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
         (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t))
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)
@@ -1621,8 +1642,8 @@
       (<highlight-mode!>
         (<!>                 name: highlight                  visible?: #t))
       (<world-main!>
-        (<!>                 name: video-options              visible?: #t)
-        (<!>                 name: audio-options              visible?: #t)
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
@@ -1796,7 +1817,7 @@
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
@@ -1804,8 +1825,11 @@
         @wait-live-change (<!>                 name: toggle-gain-control        visible?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
         (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
         (<!>                 name: toggle-camera              visible?: #t)
-        (<!>                 name: change-quality             visible?: #t))
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
         (<!>                 name: circle-mode                visible?: #t)

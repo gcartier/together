@@ -113,6 +113,7 @@
         (together)
         (together.experiment)
         (together.network)
+        (together.options)
         (together.replay)
         (together.replay-space)
         (together.script)
@@ -286,6 +287,10 @@
         (<!>                 name: explore-interface          active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
+      (<together-audio!>
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: capture-screen             active?: #t))
@@ -316,10 +321,13 @@
     (<install>
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
-        (<!>                 name: talk                       active?: #t)))))
+        (<!>                 name: talk                       active?: #t)
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t)))))
 
 
 (define-trait gathering-circle-bindings Bindings
@@ -327,10 +335,13 @@
     (<install>
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
-        (<!>                 name: talk                       active?: #t)))))
+        (<!>                 name: talk                       active?: #t)
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t)))))
 
 
 (class Gathering-Space extends Together-Space
@@ -452,7 +463,8 @@
                   (find-actions 'world-chat)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
-                  (find-actions 'together-media)
+                  (find-actions 'together-audio)
+                  (find-actions 'together-video)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-debug)
@@ -648,8 +660,8 @@
   (<Trait>                   name: zone
     (<install>
       (<world-main!>
-        (<!>                 name: video-options              active?: #t)
-        (<!>                 name: audio-options              active?: #t)
+        (<!>                 name: graphics-options           active?: #t)
+        (<!>                 name: sound-options              active?: #t)
         (<!>                 name: interface-options          active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
         (<!>                 name: open-welcome               active?: #t)
@@ -791,8 +803,11 @@
     (<install>
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
-      (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t)))))
+      (<together-audio!>
+        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t)))))
 
 
 (define-trait zone-not-circling-bindings Bindings
@@ -808,8 +823,11 @@
     (<install>
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
-      (<together-media!>
-        (<!>                 name: toggle-mic                 active?: #t)))))
+      (<together-audio!>
+        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t)))))
 
 
 @bazoo
@@ -988,7 +1006,8 @@
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
-                  (find-actions 'together-media)
+                  (find-actions 'together-audio)
+                  (find-actions 'together-video)
                   (find-actions 'together-circle)
                   (find-actions 'together-zone)
                   (find-actions 'together-share)
@@ -1219,7 +1238,8 @@
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
-                  (find-actions 'together-media)
+                  (find-actions 'together-audio)
+                  (find-actions 'together-video)
                   (find-actions 'together-circle)
                   (find-actions 'together-view)
                   (find-actions 'together-share)
@@ -1420,7 +1440,7 @@
     (<install>
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
-      (<together-media!>
+      (<together-audio!>
         (<!>                 name: toggle-mic                 active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
         (<!>                 name: talk                       active?: #t)
@@ -1428,8 +1448,11 @@
         @wait-live-change (<!>                 name: toggle-gain-control        active?: #t)
         @wait-live-change (<!>                 name: toggle-noise-suppress      active?: #t)
         (<!>                 name: toggle-rndenoise           active?: #t)
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
         (<!>                 name: toggle-camera              active?: #t)
-        (<!>                 name: change-quality             active?: #t))
+        (<!>                 name: change-quality             active?: #t)
+        (<!>                 name: video-options              active?: #t))
       (<together-circle!>
         (<!>                 name: circle-mode                active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
@@ -1864,11 +1887,7 @@
     (let ((client (current-client))
           (world (current-world)))
       (when (is? space Void-Space)
-        (set-audio-rndenoise? (not audio-rndenoise?))
-        (when (mic-on? client)
-          (let ((mic-channel (get-mic-channel client)))
-            (let ((src (get-src (get-pipeline mic-channel))))
-              (update-rndenoise src audio-rndenoise?))))
+        (change-rndenoise client (not audio-rndenoise?))
         (display-on/off world "Aggressive Denoising" audio-rndenoise?))))
   
   
@@ -1886,6 +1905,22 @@
               (require-live-stream client)
               (toggle-mic client)
               (update-parameter world 'mic)))))))
+  
+  
+  (method (on-audio-options self evt)
+    (let ((interface (current-interface)))
+      (let ((frame (find-type interface Audio-Options)))
+        (if frame
+            (close frame)
+          (push-panel (open-frame (new Audio-Options size: {Dimension 466 288} location: 'center)))))))
+  
+  
+  (method (on-video-options self evt)
+    (let ((interface (current-interface)))
+      (let ((frame (find-type interface Video-Options)))
+        (if frame
+            (close frame)
+          (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))
   
   
   (method (on-toggle-push-to-talk self evt)

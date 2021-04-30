@@ -67,6 +67,7 @@
         (<Jazz-File>       name: replay-space      source: {File :context "src" "together" "replay-space.jazz"})
         (<Jazz-File>       name: sphere-space      source: {File :context "src" "together" "sphere-space.jazz"})
         (<Jazz-File>       name: simulate-space    source: {File :context "src" "together" "simulate-space.jazz"})
-        (<Jazz-File>       name: script-space      source: {File :context "src" "together" "script-space.jazz"}))
+        (<Jazz-File>       name: script-space      source: {File :context "src" "together" "script-space.jazz"})
+        (<Jazz-File>       name: options           source: {File :context "src" "together" "options.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))
