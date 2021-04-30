@@ -1946,13 +1946,7 @@
   
   (method (escape-press self)
     (let ((world (current-world)))
-      (typecase (current-space)
-        ((Gathering-Space)
-         (let ((frame (top-frame)))
-           (when frame
-             (close frame))))
-        ((Sphere-Space)
-         (toggle-radial-menu world)))))
+      (toggle-radial-menu world)))
   
   
   @bazoo
