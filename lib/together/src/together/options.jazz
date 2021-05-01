@@ -75,7 +75,7 @@
       ((aggressive-denoising)
        audio-rndenoise?)
       ((speaker)
-       (with-speaker-devices (list audiosink)
+       (with-speaker-devices
          (lambda (devices)
            (if (null? devices)
                (values (list (list #f "<No speaker found>")) #f)
