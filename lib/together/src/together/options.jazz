@@ -65,7 +65,7 @@
                                   (map (lambda (device)
                                          (list (microphone-device-identifier device) (gst_device_get_display_name device)))
                                        devices)))
-                   (identifier (read-mic-identifier devices)))
+                   (identifier (read-microphone-identifier devices)))
                (let ((choice (assoc identifier choices)))
                  (if choice
                      (values choices (car choice))
@@ -93,7 +93,7 @@
   (method override (write-option self option value title)
     (case option
       ((microphone)
-       (update-mic-identifier (current-client) title value))
+       (update-microphone-identifier (current-client) title value))
       ((push-to-talk)
        (change-push-to-talk value))
       ((aggressive-denoising)

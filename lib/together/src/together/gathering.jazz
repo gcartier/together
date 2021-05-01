@@ -322,7 +322,7 @@
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
         (<!>                 name: talk                       active?: #t)
         (<!>                 name: audio-options              active?: #t))
@@ -336,7 +336,7 @@
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
         (<!>                 name: talk                       active?: #t)
         (<!>                 name: audio-options              active?: #t))
@@ -804,7 +804,7 @@
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: audio-options              active?: #t))
       (<together-video!>
         (<!>                 name: video-options              active?: #t)))))
@@ -824,7 +824,7 @@
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: audio-options              active?: #t))
       (<together-video!>
         (<!>                 name: video-options              active?: #t)))))
@@ -1441,7 +1441,7 @@
       (<together-menu!>
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 active?: #t)
+        (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
         (<!>                 name: talk                       active?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         active?: #t)
@@ -1822,7 +1822,7 @@
           (world (current-world)))
       (if (not (has-microphone?))
           (display-error world "No microphone found")
-        (if (not (acquire-microphone))
+        (if (not (acquire-microphone-pipeline))
             (display-error world "Unable to acquire microphone")
           (let ((recipient (cadr message-recipient)))
             (let ((error (client-invite tier recipient)))
@@ -1850,9 +1850,9 @@
           (world (current-world)))
       (when (is? space Void-Space)
         (set-audio-echo-cancel? (not audio-echo-cancel?))
-        (when (mic-on? client)
-          (let ((mic-channel (get-mic-channel client)))
-            (let ((src (get-src (get-pipeline mic-channel))))
+        (when (microphone-on? client)
+          (let ((microphone-channel (get-microphone-channel client)))
+            (let ((src (get-src (get-pipeline microphone-channel))))
               (update-echo-cancel src audio-echo-cancel?))))
         (display-on/off world "Echo Cancellation" audio-echo-cancel?))))
   
@@ -1863,9 +1863,9 @@
           (world (current-world)))
       (when (is? space Void-Space)
         (set-audio-gain-control? (not audio-gain-control?))
-        (when (mic-on? client)
-          (let ((mic-channel (get-mic-channel client)))
-            (let ((src (get-src (get-pipeline mic-channel))))
+        (when (microphone-on? client)
+          (let ((microphone-channel (get-microphone-channel client)))
+            (let ((src (get-src (get-pipeline microphone-channel))))
               (update-gain-control src audio-gain-control?))))
         (display-on/off world "Gain Controller" audio-gain-control?))))
   
@@ -1876,9 +1876,9 @@
           (world (current-world)))
       (when (is? space Void-Space)
         (set-audio-noise-suppress? (not audio-noise-suppress?))
-        (when (mic-on? client)
-          (let ((mic-channel (get-mic-channel client)))
-            (let ((src (get-src (get-pipeline mic-channel))))
+        (when (microphone-on? client)
+          (let ((microphone-channel (get-microphone-channel client)))
+            (let ((src (get-src (get-pipeline microphone-channel))))
               (update-noise-suppress src audio-noise-suppress?))))
         (display-on/off world "Noise Suppression" audio-noise-suppress?))))
   
@@ -1897,14 +1897,14 @@
       (if (and (not circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
-        (let ((mic-on? (mic-on? client)))
-          (if (and (not mic-on?) (not (has-microphone?)))
+        (let ((microphone-on? (microphone-on? client)))
+          (if (and (not microphone-on?) (not (has-microphone?)))
               (display-error world "No microphone found")
-            (if (and (not mic-on?) (not (acquire-microphone)))
+            (if (and (not microphone-on?) (not (acquire-microphone-pipeline)))
                 (display-error world "Unable to acquire microphone")
               (require-live-stream client)
-              (toggle-mic client)
-              (update-parameter world 'mic)))))))
+              (toggle-microphone client)
+              (update-parameter world 'microphone)))))))
   
   
   (method (on-audio-options self evt)
@@ -1961,7 +1961,7 @@
           (world (current-world)))
       (if (not (has-microphone?))
           (display-error world "No microphone found")
-        (if (not (acquire-microphone))
+        (if (not (acquire-microphone-pipeline))
             (display-error world "Unable to acquire microphone")
           ;; auto name is just silly code for me to be removed
           (if auto-name?
@@ -2196,7 +2196,7 @@
     (if (auto-live?)
         (cond ((and (auto-audio?) (not (has-microphone?)))
                "No microphone found")
-              ((and (auto-audio?) (not (acquire-microphone)))
+              ((and (auto-audio?) (not (acquire-microphone-pipeline)))
                "Unable to acquire microphone")
               ((and (auto-video?) (not allow-audio-only?) (not (has-camera?)))
                "No camera found")
@@ -2218,7 +2218,7 @@
         (start udp)
         (when (auto-live?)
           (when (auto-audio?)
-            (play-mic tier))
+            (play-microphone tier))
           (when (and (auto-video?) (not allow-audio-only?))
             (play-camera tier)))
         (clear-message world)
@@ -2305,7 +2305,7 @@
               (start udp-client)
               (require-live-stream tier)
               (streams-add tier no allow-audio-only? streams)
-              (play-mic tier)
+              (play-microphone tier)
               #f))))))
   
   
@@ -3304,7 +3304,7 @@
               ((starts-with? content "/invite ")
                (if (not (has-microphone?))
                    (show-panel-message (get-character-name tier) 'show "No microphone found")
-                 (if (not (acquire-microphone))
+                 (if (not (acquire-microphone-pipeline))
                      (show-panel-message (get-character-name tier) 'show "Unable to acquire microphone")
                    (let ((recipient (trim-whitespace (substring content 8 (string-length content)))))
                      (let ((error (client-invite tier recipient)))

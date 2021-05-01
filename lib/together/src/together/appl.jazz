@@ -593,7 +593,7 @@
           (purple {Color Purple})
           (cyan {Color red: .120 green: .624 blue: .616}))
       ;; debug
-      (register-site-look 'mic 10 chronology-cyan)
+      (register-site-look 'microphone 10 chronology-cyan)
       (register-site-look 'camera 10 chronology-blue)
       (register-site-look 'self 10 chronology-purple)
       (register-site-look 'screen 10 chronology-magenta)
@@ -831,7 +831,7 @@
       (<World-Action-Button>    name: leave-group         resource: {Icon-Resource "Logogram/Seperated-DIamond-Pointers"} action-handler: {Action together-menu leave-group})
       (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Logogram/Circles-Half"} action-handler: {Action together-menu leave-circle})
       (<World-Separator>                                  size: {Dimension 36 0})
-      (<World-Parameter-Button> name: toggle-mic          resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-audio toggle-mic} parameter: mic)
+      (<World-Parameter-Button> name: toggle-microphone   resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-audio toggle-microphone} parameter: microphone)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-video toggle-camera} parameter: camera)
       (<World-Separator>)
       (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
@@ -947,7 +947,7 @@
 
   (form
     (<install>                                        title: "Audio"
-      (<World-Action-Item> name: toggle-mic           title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
+      (<World-Action-Item> name: toggle-microphone    title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
       (<World-Action-Item> name: toggle-push-to-talk  title: "Push to talk" action-handler: {Event-Handler :together on-toggle-push-to-talk} shortcut: {Shortcut :alt Space} description: "Toggle push to talk.")
       (<World-Action-Item> name: talk                 title: "Talk" shortcut: {Shortcut Space} description: "Talk.")
       @wait-live-change (<World-Action-Item> name: toggle-echo-cancel    title: "Echo Cancellation" action-handler: {Event-Handler :together on-toggle-echo-cancel} shortcut: {Shortcut :alt :shift #\O} description: "Toggle echo cancellation.")
@@ -1216,7 +1216,7 @@
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-microphone          visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
@@ -1370,7 +1370,7 @@
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-microphone          visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
@@ -1539,7 +1539,7 @@
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-microphone          visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
@@ -1818,7 +1818,7 @@
         (<!>                 name: leave-circle               visible?: #t)
         (<!>                 name: goto-login                 visible?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-mic                 visible?: #t)
+        (<!>                 name: toggle-microphone          visible?: #t)
         (<!>                 name: toggle-push-to-talk        visible?: #t)
         (<!>                 name: talk                       visible?: #t)
         @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
