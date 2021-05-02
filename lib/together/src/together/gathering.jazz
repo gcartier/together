@@ -1397,7 +1397,6 @@
           (video (current-video)))
       ;; YOWNU
       (unless buttons-shown?
-        @wait-later-version-as-it-needs-debugging
         (show-cursor window)
         (show-mainbar self)
         (for-each (lambda (child)
@@ -1425,7 +1424,6 @@
                                               (let ((window (current-window))
                                                     (interface (current-interface))
                                                     (video (current-video)))
-                                                @wait-later-version-as-it-needs-debugging
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
                                                 (for-each (lambda (child)
