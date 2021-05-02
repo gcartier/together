@@ -77,6 +77,7 @@
         (world.parameters)
         (world.role)
         (world.settings)
+        (world.space)
         (world.syntax (phase syntax))
         (world.task)
         (world.udp)
@@ -225,8 +226,10 @@
   (import (world.scriptum))
   (method override (activate self)
     (let ((interface (current-interface))
+          (space (current-space))
           (world (current-world))
           (zone (current-zone)))
+      (application-activate space)
       ;; wakeup render
       (let ((task (get-render-task zone)))
         (when task
@@ -258,6 +261,12 @@
                           (set-text (get-script entity) content)
                           @a-bit-too-much-especially-when-errors
                           (execute-script world edited-path))))))))))))
+    (nextmethod self))
+  
+  
+  (method override (deactivate self)
+    (let ((space (current-space)))
+      (application-deactivate space))
     (nextmethod self))
   
   

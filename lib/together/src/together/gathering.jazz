@@ -472,6 +472,14 @@
             (nextmethod self)))
   
   
+  (method override (application-activate self)
+    (install-vista))
+  
+  
+  (method override (application-deactivate self)
+    (uninstall-vista))
+  
+  
   (method override (central-menu-show self)
     (update-center-interface self))
   

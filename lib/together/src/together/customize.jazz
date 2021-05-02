@@ -54,6 +54,7 @@
         (world.settings)
         (world.skybox)
         (world.space)
+        (world.support)
         (world.task)
         (world.window)
         (together)
@@ -121,6 +122,18 @@
     (append (list (find-actions 'world-main)
                   (find-actions 'world-interface))
             (nextmethod self)))
+  
+  
+  (method override (application-activate self)
+    (let ((world (current-world)))
+      (install-vista)
+      (animated (get-showcase world))))
+  
+  
+  (method override (application-deactivate self)
+    (let ((world (current-world)))
+      (uninstall-vista)
+      (unanimated (get-showcase world))))
   
   
   (method override (mouse-track self elapse dx dy)
