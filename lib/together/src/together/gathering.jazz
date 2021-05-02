@@ -1086,8 +1086,7 @@
         (<!>                 name: toggle-windowed-mode       active?: #t)
         (<!>                 name: toggle-user                active?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              active?: #t)
-        (<!>                 name: who-panel                  active?: #t))
+        (<!>                 name: toggle-people              active?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
