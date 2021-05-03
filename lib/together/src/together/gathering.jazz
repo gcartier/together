@@ -2271,6 +2271,7 @@
   
   (method (leave-circle self)
     (let ((tier (current-client))
+          (window (current-window))
           (world (current-world))
           (zone (current-zone)))
       @admin-request
@@ -2282,6 +2283,7 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (leave-group tier circle-name 'observer)
+      (show-cursor window)
       (when (eq? active-zone 'start)
         (uninstall-push-to-talk)
         (circle-uninstall-camera)
