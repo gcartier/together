@@ -16,6 +16,19 @@
 	<string>Together</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+   <key>CFBundleDocumentTypes</key>
+	<array>
+	  <dict>
+	    <key>CFBundleTypeExtensions</key>
+	    <array>
+	        <string>*</string>
+	    </array>
+	    <key>CFBundleTypeName</key>
+	    <string>All Files</string>
+	    <key>CFBundleTypeRole</key>
+	    <string>Viewer</string>
+	  </dict>
+	</array>
    <key>NSHighResolutionCapable</key>
 	<true/>
    <key>NSCameraUsageDescription</key>

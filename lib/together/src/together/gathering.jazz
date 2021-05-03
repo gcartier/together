@@ -1303,6 +1303,29 @@
   
   
   ;;;
+  ;;;; Files
+  ;;;
+  
+  
+  (method package (receive-files self pos pathnames)
+    (when (developer?)
+      (for-each (lambda (pathname)
+                  (cond ((directory? pathname)
+                         @this-needs-to-be-really-thought-out-correctly
+                         (iterate-directory pathname
+                           (lambda (file)
+                             (when (and (file? file)
+                                        (member? (get-extension file) '("jpg" "jpeg" "png") test: extension=?))
+                               (let ((stream (stream-image-file file)))
+                                 (delay-stream stream))))))
+                        ((file? pathname)
+                         (when (member? (get-extension pathname) '("jpg" "jpeg" "png") test: extension=?)
+                           (let ((stream (stream-image-file pathname)))
+                             (delay-stream stream))))))
+                pathnames)))
+  
+  
+  ;;;
   ;;;; Mouse
   ;;;
   
