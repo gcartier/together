@@ -421,8 +421,7 @@
   
   (method override (receive-files self pos pathnames)
     (let ((space (current-space)))
-      (when (is? space Void-Space)
-        (receive-files space pos pathnames))))
+      (receive-files space pos pathnames)))
   
   
   (method override (news-file self)

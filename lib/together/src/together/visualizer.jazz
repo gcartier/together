@@ -34,6 +34,7 @@
         (world)
         (world.audio)
         (world.chronology)
+        (world.client.tier)
         (world.client.udp)
         (world.context)
         (world.event)
@@ -462,7 +463,20 @@
   
   
   (method protected (replay-simulation self)
-    (together.simulation:simulate-replay origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution server-no tier)))
+    (together.simulation:simulate-replay origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution server-no tier))
+  
+  
+  (method protected (replay-simulate self)
+    (let ((client (current-client))
+          (world (current-world)))
+      (if (not origin-evolution)
+          (bell)
+        (let ((simulation (together.simulation:extract-evolution-simulation receiver-evolution)))
+          (let ((simulator (require-simulator (get-udp-client client))))
+            (setup-simulation simulator simulation)
+            @wait-for-now-latency-is-all-origin-side
+            (admin-server-command client 'simulate (list simulation))
+            (display-on/off world "Simulate" #t)))))))
 
 
 ;;;
@@ -633,7 +647,9 @@
       ((#\f)
        (toggle-full-mode self))
       ((#\r)
-       (replay-simulation panel))))
+       (replay-simulation panel))
+      ((#\s)
+       (replay-simulate panel))))
   
   
   (method override (left-arrow-press self modifiers)

@@ -1307,22 +1307,24 @@
   ;;;
   
   
-  (method package (receive-files self pos pathnames)
-    (when (developer?)
-      (for-each (lambda (pathname)
-                  (cond ((directory? pathname)
-                         @this-needs-to-be-really-thought-out-correctly
-                         (iterate-directory pathname
-                           (lambda (file)
-                             (when (and (file? file)
-                                        (member? (get-extension file) '("jpg" "jpeg" "png") test: extension=?))
-                               (let ((stream (stream-image-file file)))
-                                 (delay-stream stream))))))
-                        ((file? pathname)
-                         (when (member? (get-extension pathname) '("jpg" "jpeg" "png") test: extension=?)
-                           (let ((stream (stream-image-file pathname)))
-                             (delay-stream stream))))))
-                pathnames)))
+  (method override (receive-files self pos pathnames)
+    (let ((together (current-together)))
+      (when (developer?)
+        (or (receive-replay together pathnames)
+            (for-each (lambda (pathname)
+                        (cond ((directory? pathname)
+                               @this-needs-to-be-really-thought-out-correctly
+                               (iterate-directory pathname
+                                 (lambda (file)
+                                   (when (and (file? file)
+                                              (member? (get-extension file) '("jpg" "jpeg" "png") test: extension=?))
+                                     (let ((stream (stream-image-file file)))
+                                       (delay-stream stream))))))
+                              ((file? pathname)
+                               (when (member? (get-extension pathname) '("jpg" "jpeg" "png") test: extension=?)
+                                 (let ((stream (stream-image-file pathname)))
+                                   (delay-stream stream))))))
+                      pathnames)))))
   
   
   ;;;
@@ -4206,6 +4208,26 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
+  
+  
+  (method package (receive-replay self pathnames)
+    (if (and (client?)
+             (= 1 (length pathnames))
+             (extension=? (get-extension (car pathnames)) "replay"))
+        (let ((interface (current-interface)))
+          (let ((panel (child interface 'admin)))
+            (let ((text (locate panel '(console text)))
+                  (path (subpath {Directory Documents} (car pathnames))))
+              (if (not path)
+                  (bell)
+                (show-admin self)
+                (acquire-focus text)
+                (insert-string text (format "simulate {s}" (join path "/")))
+                (console-return text
+                  (lambda ()
+                    (console-evaluate text))))
+              #t)))
+      #f))
   
   
   (method (on-goto-simulate self evt)
