@@ -249,7 +249,7 @@
                   (parameterize ((simulation-evolution receiver-evolution))
                     (receive-media receiver-tier udp-audio data)))
                 
-                (set-simulator origin-tier (new UDP-Simulator #f @w latencer #f writer))
+                (set-simulator origin-tier (new UDP-Simulator writer))
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)
