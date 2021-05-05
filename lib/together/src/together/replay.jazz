@@ -707,6 +707,7 @@
                (nextmethod self evt))))))
   
   
+  @no-need-for-microphone-latency-at-the-moment
   (method override (plot-evolution self surface <Surface> from <fl> to <fl>)
     (nextmethod self surface from to)
     (let ((visualizer (brother self 'visualizer)))
@@ -899,6 +900,7 @@
                    (increase! v 7))))))))
   
   
+  @no-need-for-microphone-latency-at-the-moment
   (method override (plot-nowinfo self surface <Surface> from <fl> to <fl>)
     (nextmethod self surface from to)
     (when (and now (not live?))
