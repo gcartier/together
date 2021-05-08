@@ -21,6 +21,7 @@
         (jazz.geometry)
         (jazz.graphic)
         (jazz.handler)
+        (jazz.io)
         (jazz.markup)
         (jazz.outline)
         (jazz.platform)
@@ -466,17 +467,15 @@
     (together.simulation:simulate-replay origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution server-no tier))
   
   
-  (method protected (replay-simulate self)
+  (method protected (extract-simulation self)
     (let ((client (current-client))
           (world (current-world)))
       (if (not origin-evolution)
           (bell)
-        (let ((simulation (together.simulation:extract-evolution-simulation receiver-evolution)))
-          (let ((simulator (require-simulator (get-udp-client client))))
-            (setup-simulation simulator simulation)
-            @wait-for-now-latency-is-all-origin-side
-            (admin-server-command client 'simulate (list simulation))
-            (display-on/off world "Simulate" #t)))))))
+        (let ((file (new-file (new-unique-directory {Directory Documents "simulations"} "simulation" separator: "") "client.sim")))
+          (create-directories file)
+          (together.simulation:extract-evolution-simulation receiver-evolution file)
+          (display-message world (format "Saved to {a}" (get-name (get-parent file)))))))))
 
 
 ;;;
@@ -649,7 +648,7 @@
       ((#\r)
        (replay-simulation panel))
       ((#\s)
-       (replay-simulate panel))))
+       (extract-simulation panel))))
   
   
   (method override (left-arrow-press self modifiers)
