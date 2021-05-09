@@ -1422,6 +1422,7 @@
           (video (current-video)))
       ;; YOWNU
       (unless buttons-shown?
+        @wait-buggy
         (show-cursor window)
         (show-mainbar self)
         (for-each (lambda (child)
@@ -1449,6 +1450,7 @@
                                               (let ((window (current-window))
                                                     (interface (current-interface))
                                                     (video (current-video)))
+                                                @wait-buggy
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
                                                 (for-each (lambda (child)
@@ -2308,6 +2310,7 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (leave-group tier circle-name 'observer)
+      @wait-buggy
       (show-cursor window)
       (when (eq? active-zone 'start)
         (uninstall-push-to-talk)
