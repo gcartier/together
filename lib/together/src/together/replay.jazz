@@ -477,7 +477,7 @@
   
   
   (method (plot-lexicon self surface)
-    (define (plot-roundtrip h dropped?)
+    (define (plot-round-trip h dropped?)
       (let ((v 100)
             (color (if (not dropped?)
                        {Color Green}
@@ -502,8 +502,8 @@
         (move-to surface h v)
         (line-to surface (+ h 100) v)))
     
-    (plot-roundtrip                     20 #f)
-    (plot-roundtrip                     70 #t)
+    (plot-round-trip                    20 #f)
+    (plot-round-trip                    70 #t)
     (plot-latency                       20)
     (plot-traffic                       20 'send)
     (plot-traffic                       20 'receive)
