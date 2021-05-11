@@ -51,11 +51,15 @@
 
 (definition public (extract-evolution-simulation evolution file)
   (let ((last-sequence #f)
-        (last-latency #f))
+        (last-latency #f)
+        (pos 0))
     (call-with-output-file (path-settings file)
       (lambda (output)
         (define (print latency drop)
-          (format output "{r precision: 3} {r precision: 3}{%}" latency drop))
+          (if (= (modulo pos 10) 0)
+              (format output "{r precision: 3} {r precision: 3} ; {a}s{%}" latency drop (fxround/ pos 10))
+            (format output "{r precision: 3} {r precision: 3}{%}" latency drop))
+          (increase! pos))
         
         (format output "#f64({%}")
         (iterate-evolution evolution
@@ -65,7 +69,7 @@
                 (let ((sequence (flonum->fixnum (evolutionary-udp-receive-ack-heartbeat-sequence evolution n)))
                       (rtt (evolutionary-udp-receive-ack-round-trip evolution n)))
                   (let ((expected-sequence (and last-sequence (+ last-sequence 1)))
-                        (latency rtt @wait-for-now-latency-is-all-origin-side (/ rtt 2.)))
+                        (latency rtt @wait-for-now-latency-is-all-one-side (/ rtt 2.)))
                     (cond ((or (not expected-sequence) (= sequence expected-sequence))
                            (print latency 0.))
                           (else
