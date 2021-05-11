@@ -72,9 +72,9 @@
                            (let ((gap (- sequence expected-sequence)))
                              (loop (for n from 0 below gap)
                                    (let ((latency (interpolate n 0 gap last-latency latency)))
-                                     (print latency 1.))))
-                           (set! last-sequence sequence)
-                           (set! last-latency latency)))))))))
+                                     (print latency 1.))))))
+                    (set! last-sequence sequence)
+                    (set! last-latency latency)))))))
         (format output ")")))))
 
 
