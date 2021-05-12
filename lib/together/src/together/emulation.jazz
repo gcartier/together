@@ -148,7 +148,7 @@
                                     (if (= time-base -1.)
                                         (- time (evolutionary-udp-insert-packet-dts evolution n))
                                       time-base)))
-                       (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
+                       (time-latency (evolutionary-udp-insert-packet-effective-latency evolution n)))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
@@ -298,7 +298,7 @@
                                     (if (= time-base -1.)
                                         (- time (evolutionary-udp-insert-packet-dts evolution n))
                                       time-base)))
-                       (time-latency (evolutionary-udp-insert-packet-latency evolution n)))
+                       (time-latency (evolutionary-udp-insert-packet-effective-latency evolution n)))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
