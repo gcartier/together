@@ -187,7 +187,7 @@
     (set! stream (and (not-null? streams) (car streams)))
     (set! stream-name (and stream (second stream)))
     (set! stream-label (present-stream self stream stream-name))
-    (set! stream-kind (fifth stream)))
+    (set! stream-kind (and stream (fifth stream))))
   
   
   (method (setup-channels self)
