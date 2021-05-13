@@ -94,6 +94,7 @@
   (slot stream                initialize #f  getter generate)
   (slot stream-name           initialize #f  getter generate)
   (slot stream-label          initialize #f  getter generate)
+  (slot stream-kind           initialize #f  getter generate)
   (slot channel-audio         initialize #f  getter generate)
   (slot channel-audio-codec   initialize #f  getter generate)
   (slot channel-audio-caps    initialize #f  getter generate)
@@ -185,7 +186,8 @@
     (set! streams (collect-streams origin))
     (set! stream (and (not-null? streams) (car streams)))
     (set! stream-name (and stream (second stream)))
-    (set! stream-label (present-stream self stream stream-name)))
+    (set! stream-label (present-stream self stream stream-name))
+    (set! stream-kind (fifth stream)))
   
   
   (method (setup-channels self)
@@ -430,6 +432,7 @@
       (set! stream (cycle-element streams stream reversed?: reversed?))
       (set! stream-name (second stream))
       (set! stream-label (present-stream self stream stream-name))
+      (set! stream-kind (fifth stream))
       (setup-channels self)
       (setup-channel-rings self)
       (setup-media-kinds self)
@@ -884,7 +887,7 @@
   
   
   (method override (ring-span self)
-    udp-sender-retain-window)
+    (effective-retain-window (get-stream-kind panel)))
   
   
   (method override (draw self surface context)
@@ -913,7 +916,7 @@
   
   
   (method override (ring-span self)
-    udp-server-retain-window)
+    (effective-retain-window (get-stream-kind panel)))
   
   
   (method override (draw self surface context)
