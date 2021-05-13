@@ -492,6 +492,14 @@
   (slot panel initialize #f accessors generate)
   
   
+  (method override (size-change self size)
+    (nextmethod self size)
+    (let ((width (- (get-width size) 234)))
+      (set-size (child self 'sender) (new Dimension width 24))
+      (set-size (child self 'server) (new Dimension width 24))
+      (set-size (child self 'receiver) (new Dimension width 24))))
+  
+  
   @network-visualizer
   (method override (draw self surface context)
     (let ((h 300.)
