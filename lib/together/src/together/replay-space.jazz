@@ -53,7 +53,8 @@
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
       (<together-debug!>
-        (<!>                 name: toggle-admin               active?: #t)))))
+        (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: test                       active?: #t)))))
 
 
 (class Replay-Space extends Sphere-Space
