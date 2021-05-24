@@ -1878,6 +1878,12 @@
         (<!>                 name: profile-pulse              visible?: #t)
         (<!>                 name: profile-bandwidth          visible?: #t)
         (<!>                 name: profile-network            visible?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          visible?: #t)
+        (<!>                 name: run-experiment7            visible?: #t)
+        (<!>                 name: run-experiment8            visible?: #t)
+        (<!>                 name: run-experiment9            visible?: #t)
+        (<!>                 name: run-experiment0            visible?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            visible?: #t)
         (<!>                 name: edit-definition            visible?: #t)

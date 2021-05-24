@@ -1117,6 +1117,12 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          active?: #t)
+        (<!>                 name: run-experiment7            active?: #t)
+        (<!>                 name: run-experiment8            active?: #t)
+        (<!>                 name: run-experiment9            active?: #t)
+        (<!>                 name: run-experiment0            active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -4337,19 +4343,19 @@
   
   
   (method (on-run-experiment7 self evt)
-    )
+    (experiment7))
   
   
   (method (on-run-experiment8 self evt)
-    )
+    (experiment8))
   
   
   (method (on-run-experiment9 self evt)
-    )
+    (experiment9))
   
   
   (method (on-run-experiment0 self evt)
-    )
+    (experiment0))
   
   
   (method (show-experiment self)

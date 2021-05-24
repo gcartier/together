@@ -67,6 +67,22 @@
 ;;;
 
 
+(definition protected (experiment7)
+  (display-message (current-world) "No experiment #7"))
+
+
+(definition protected (experiment8)
+  (display-message (current-world) "No experiment #8"))
+
+
+(definition protected (experiment9)
+  (display-message (current-world) "No experiment #9"))
+
+
+(definition protected (experiment0)
+  (display-message (current-world) "No experiment #0"))
+
+
 (definition protected install-experiments
   (let ((installed? #f))
     (lambda ()
