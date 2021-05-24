@@ -1051,7 +1051,7 @@
   
   (form
     (<install>                                        title: "Experiment"
-      (<World-Action-Item> name: toggle-experiment    title: "Experiment" action-handler: {Event-Handler :together on-toggle-experiment} description: "Toggle experiment panel.")
+      (<World-Action-Item> name: toggle-experiment    title: "Experiment" action-handler: {Event-Handler :together on-toggle-experiment} shortcut: {Shortcut :alt :shift #\X} description: "Toggle experiment panel.")
       (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" action-handler: {Event-Handler :together on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
       (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" action-handler: {Event-Handler :together on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
       (<World-Action-Item> name: run-experiment9      title: "Run experiment #9" action-handler: {Event-Handler :together on-run-experiment9} shortcut: {Shortcut :control #\9} description: "Run experiment #9.")
