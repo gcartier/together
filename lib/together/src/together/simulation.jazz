@@ -29,6 +29,7 @@
         (world.context)
         (world.event)
         (world.evolution)
+        (world.interface)
         (world.interface.evolution)
         (world.interface.timeline)
         (world.math)
@@ -38,8 +39,10 @@
         (world.simulate)
         (world.simulation)
         (world.stream)
+        (world.syntax (phase syntax))
         (world.time)
         (world.udp)
+        (together)
         (together.gathering)
         (together.replay))
 
@@ -82,9 +85,26 @@
         (format output ")")))))
 
 
-(definition public (load-simulation file)
-  (call-with-input-file (path-settings file)
-    read))
+(definition public (load-simulation file (start: start #f) (end: end #f))
+  (let ((data (call-with-input-file (path-settings file)
+                read)))
+    (if (and (not start)
+             (not end))
+        data
+      (let ((len (f64vector-length data)))
+        (define (time->pos time)
+          (let ((rank (fxround (* time 10.))))
+            (let ((pos (* rank 2)))
+              (between 0 pos (- len 1)))))
+        
+        (let ((from (if start (time->pos start) 0))
+              (to (if end (time->pos end) len)))
+          (subf64vector data from to))))))
+
+
+(definition public (simulation-duration sim)
+  (let ((count (/ (f64vector-length sim) 2)))
+    (/ (cast <fl> count) 10.)))
 
 
 ;;;
@@ -260,7 +280,6 @@
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation? #t)
-                                                 (simulation-update-time update-time)
                                                  (simulation-evolution origin-evolution))
                                     (let ((file (new-file {Directory Documents} (add-extension location (audio-profile-extension)))))
                                       (let ((reader (new Stream-Reader file)))
@@ -374,6 +393,194 @@
     (save-audio)
     (save-video)
     directory))
+
+
+;;;
+;;;; Latency
+;;;
+
+
+(definition public (simulate-latency name file (start: start #f) (end: end #f) (speedup: speedup #f))
+  (let ((together (current-together)))
+    (let ((name (capitalize name))
+          (origin 1)
+          (server 0)
+          (receiver 2)
+          (stream-no 0)
+          (channel-no 0))
+      (let ((names (list->table (list (cons origin name)
+                                      (cons server "_server")
+                                      (cons receiver "Receiver"))))
+            (origin-evolution (new Evolution 10000))
+            (server-evolution (new Evolution 10000))
+            (receiver-evolution (new Evolution 10000))
+            (frequency 10))
+        (parameterize ((simulation? #t))
+          (let ((receive-stream (new UDP-Receive-Stream name 'receive channel-no origin 'live #f)))
+            (let ((receive-channel (new UDP-Receive-Channel receive-stream channel-no udp-audio 'live #f #f #f #f #f #f #f))
+                  (simulation (load-simulation file start: start end: end))
+                  (speedup (or speedup 1.))
+                  (sequence 0)
+                  (base-time (current-seconds))
+                  (period (flonum->timestamp (/ 1. (cast <fl> frequency))))
+                  (late-frames '())
+                  (flushed-frames '())
+                  (simulation-done? #f))
+              (define (need-data kind origin sequence frame part total buffer dts pts duration keyframe? off?)
+                (with-record media
+                  (let ((size (+ (calculate-media-size) (u8vector-length buffer))))
+                    (let ((data (make-u8vector size)))
+                      (write-header-kind data kind)
+                      (write-header-sender data origin)
+                      (write-media-sequence data sequence)
+                      (write-media-frame data frame)
+                      (write-media-part data part)
+                      (write-media-total data total)
+                      (write-media-dts data dts)
+                      (write-media-pts data pts)
+                      (write-media-duration data duration)
+                      (write-media-payload data buffer)
+                      (write-media-keyframe? data keyframe?)
+                      (write-media-off? data off?)
+                      data))))
+              
+              (define (simulated-time)
+                (+ base-time (* (- (current-seconds) base-time) speedup)))
+              
+              (define (simulated-elapse elap)
+                (/ elap speedup))
+              
+              (define (late-frame frame)
+                (set! late-frames (cons frame late-frames)))
+              
+              (define (flush-frame frame)
+                (set! flushed-frames (cons frame flushed-frames)))
+              
+              (let ((simulator (new UDP-Simulator
+                                 (lambda (data info drop?)
+                                   (insert-media receive-channel data))
+                                 (lambda (thunk)
+                                   (parameterize ((simulation-time simulated-time)
+                                                  (simulation-elapse simulated-elapse)
+                                                  (simulation-evolution receiver-evolution))
+                                     (thunk)))))
+                    (process-ring (get-process-ring receive-channel)))
+                (setup-simulation simulator simulation)
+                (let ((insert (new-thread
+                                (lambda ()
+                                  (parameterize ((simulation-time simulated-time)
+                                                 (simulation-elapse simulated-elapse))
+                                    (let ((base (new Time-Base))
+                                          (last (* frequency (fxceiling (simulation-duration simulation)))))
+                                      (loop (for n from 0 to last)
+                                            (let ((now (simulable-time))
+                                                  (sequence n)
+                                                  (frame n)
+                                                  (nanodts (* n period))
+                                                  (nanoduration period))
+                                              (let ((dts (timestamp->flonum nanodts))
+                                                    (duration (timestamp->flonum nanoduration))
+                                                    (off? (= n last)))
+                                                (let ((data (need-data udp-audio origin sequence frame 0 1 (u8vector) nanodts nanodts nanoduration #f off?)))
+                                                  (when (and (<= speedup 10.) (= (modulo n frequency) 0))
+                                                    (format :terminal ">>> {a}s{%}" (fxfloor/ n frequency)))
+                                                  (update-start base now dts)
+                                                  (let ((sendtime (remote->local base dts)))
+                                                    (sleep (simulated-elapse (- sendtime now)))
+                                                    (send simulator data #f)))))))))
+                                'insert))
+                      (process (new-thread
+                                 (lambda ()
+                                   (continuation-capture
+                                     (lambda (exit)
+                                       (let ((last-dts #f)
+                                             (last-duration #f))
+                                         (define (simulated-off)
+                                           (continuation-return exit #f))
+                                         
+                                         (define (simulated-present packet dts duration)
+                                           (let ((frame (get-frame packet)))
+                                             (cond (gazaa?
+                                                    @w
+                                                    (when last-dts
+                                                      (let ((expected-dts (epoch+ last-dts last-duration)))
+                                                        (when (not (epoch= dts expected-dts))
+                                                          (terminal frame (duration->flonum (epoch- dts expected-dts))))))
+                                                    (set! last-dts dts)
+                                                    (set! last-duration duration)
+                                                    @w
+                                                    (let ((running-time (simulable-time)))
+                                                      (when (>= (epoch->flonum dts) (+ running-time gazaa-mixer))
+                                                        (late-frame frame))))
+                                                   (else
+                                                    (let ((time-base (get-time-base process-ring)))
+                                                      (let ((now (simulable-time))
+                                                            (late-time (+ (remote->local time-base dts) udp-audio-mixer)))
+                                                        (when (>= now late-time)
+                                                          (late-frame frame))))))))
+                                         
+                                         (define (simulated-flush packet)
+                                           (let ((frame (get-frame packet)))
+                                             (flush-frame frame)))
+                                         
+                                         (parameterize ((simulation? #t)
+                                                        (simulation-time simulated-time)
+                                                        (simulation-elapse simulated-elapse)
+                                                        (simulation-evolution receiver-evolution)
+                                                        (simulation-off simulated-off)
+                                                        (simulation-present simulated-present)
+                                                        (simulation-flush simulated-flush))
+                                           (if gazaa?
+                                               (process-audio-gazaa process-ring receive-channel exit)
+                                             (process-audio process-ring receive-channel exit)))))))
+                                 'process)))
+                  (thread-start! insert)
+                  (thread-start! process)
+                  (thread-join! insert)
+                  ;; quicky around accumulate
+                  (if gazaa?
+                      (let ((unique (list 'unique)))
+                        (when (eq? (thread-join! process 2. unique) unique)
+                          (exit-thread process)))
+                    (thread-join! process))
+                  @wait
+                  (let ((time-base (get-time-base process-ring)))
+                    (terminal (get-total-rises time-base) 'rises)
+                    (terminal (get-total-falls time-base) 'falls)
+                    (terminal (length late-frames) 'late)
+                    (terminal (length flushed-frames) 'flushed))
+                  (let ((evolution receiver-evolution))
+                    (let ((content (get-content evolution)))
+                      (loop (for n from (first-position evolution) to (last-position evolution))
+                            (let ((id (evolutionary-udp-id evolution n)))
+                              (when (and (= id udp-id-insert-packet)
+                                         (eqv? (flonum->fixnum (evolutionary-udp-origin evolution n)) origin)
+                                         (eqv? (flonum->fixnum (evolutionary-udp-kind evolution n)) udp-audio))
+                                (let ((frame (evolutionary-udp-frame evolution n)))
+                                  (cond ((memv? frame late-frames)
+                                         (let ((index (index evolution n)))
+                                           (f64vector-set! content (+ index 9) -2.)))
+                                        ((memv? frame flushed-frames)
+                                         (let ((index (index evolution n)))
+                                           (f64vector-set! content (+ index 9) -3.))))))))))
+                  (let ((stream
+                          (list name "simulation" stream-no origin 'live #f
+                            (list (list channel-no udp-audio 'live #f #f #f #f #f #f '())))))
+                    (let ((metadatas (list->table (list (cons origin (list origin name (list) (list stream) (list)))
+                                                        (cons server (list server "_server" (list) (list) (list) 0.))
+                                                        (cons receiver (list receiver "Receiver" (list) (list stream) (list))))))
+                          (chronologies (list->table (list (cons origin (new Chronology 10))
+                                                           (cons server (new Chronology 10))
+                                                           (cons receiver (new Chronology 10)))))
+                          (evolutions (list->table (list (cons origin origin-evolution)
+                                                         (cons server server-evolution)
+                                                         (cons receiver receiver-evolution))))
+                          (channels (make-table test: eqv?))
+                          (audios #f)
+                          (videos #f))
+                      (set-evolution-proportional? #t)
+                      (let ((replay (new Replay name #f receiver names metadatas chronologies evolutions channels audios videos '() '() base-time)))
+                        (view-replay together replay)))))))))))))
 
 
 ;;;
@@ -547,10 +754,10 @@
 
 
 (definition public (view-simulation origin server receiver names origin-evolution server-evolution receiver-evolution base-time)
-  (let ((zone (current-zone)))
-    (let ((metadatas (list->table (list (cons origin (list origin "Origin" (list udp-audio udp-video) (list)))
-                                        (cons server (list server "_server"))
-                                        (cons receiver (list receiver "Receiver" (list) (list (cons origin udp-audio) (cons origin udp-video)))))))
+  (let ((together (current-together)))
+    (let ((metadatas (list->table (list (cons origin (list origin "Origin" (list udp-audio udp-video) (list) (list)))
+                                        (cons server (list server "_server" (list) (list) (list) 0.))
+                                        (cons receiver (list receiver "Receiver" (list) (list (cons origin udp-audio) (cons origin udp-video)) (list))))))
           (chronologies (list->table (list (cons origin (new Chronology 10))
                                            (cons server (new Chronology 10))
                                            (cons receiver (new Chronology 10)))))
@@ -559,8 +766,9 @@
                                          (cons receiver receiver-evolution))))
           (audios #f)
           (videos #f))
-      (let ((replay (new Replay "simulate" #f receiver names metadatas chronologies evolutions audios videos base-time)))
-        (view-replay zone replay)
+      (let ((replay (new Replay "simulate" #f receiver names metadatas chronologies evolutions '() audios videos '() '() base-time)))
+        (view-replay together replay)
+        @convert
         (let ((root (get-root zone)))
           (let ((panel (child root 'timeline)))
             (let ((start (timeline-start panel))
