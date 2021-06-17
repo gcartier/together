@@ -44,6 +44,16 @@
       (<world-interface!>
         (<!>                 name: toggle-windowed-mode       active?: #t))
       (<world-script!>
+        (<!>                 name: test1                      active?: #t)
+        (<!>                 name: test2                      active?: #t)
+        (<!>                 name: test3                      active?: #t)
+        (<!>                 name: test4                      active?: #t)
+        (<!>                 name: test5                      active?: #t)
+        (<!>                 name: test6                      active?: #t)
+        (<!>                 name: test7                      active?: #t)
+        (<!>                 name: test8                      active?: #t)
+        (<!>                 name: test9                      active?: #t)
+        (<!>                 name: test0                      active?: #t)
         (<!>                 name: clear-console              active?: #t)
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
@@ -52,6 +62,19 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
+      (<together-script!>
+        (<!>                 name: update-catalogs            active?: #t)
+        (<!>                 name: edit-definition            active?: #t)
+        (<!>                 name: edit-script1               active?: #t)
+        (<!>                 name: edit-script2               active?: #t)
+        (<!>                 name: edit-script3               active?: #t)
+        (<!>                 name: edit-script4               active?: #t)
+        (<!>                 name: edit-script5               active?: #t)
+        (<!>                 name: edit-script6               active?: #t)
+        (<!>                 name: edit-script7               active?: #t)
+        (<!>                 name: edit-script8               active?: #t)
+        (<!>                 name: edit-script9               active?: #t)
+        (<!>                 name: edit-script0               active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: test                       active?: #t)))))
@@ -141,6 +164,7 @@
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
                   (find-actions 'together-menu)
+                  (find-actions 'together-script)
                   (find-actions 'together-debug))
             (nextmethod self)))
   
