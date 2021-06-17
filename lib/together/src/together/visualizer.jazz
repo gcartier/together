@@ -960,7 +960,7 @@
   (method protected (reset-media-kind self)
     (let ((media-kind (get-media-kind panel)))
       (when media-kind
-        (set! present-window (if (= media-kind udp-audio) udp-audio-present udp-video-present))
+        (set! present-window (if (= media-kind udp-audio) 0. udp-video-present))
         (set! late-window (if (= media-kind udp-audio) 0. udp-video-late))
         (set! giveup-window (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup)))))
   
