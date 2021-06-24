@@ -419,9 +419,10 @@
           (let ((receive-stream (new UDP-Receive-Stream name 'receive channel-no origin 'live #f)))
             (let ((receive-channel (new UDP-Receive-Channel receive-stream channel-no udp-audio 'live #f #f #f #f #f #f #f))
                   (simulation (load-simulation file start: start end: end))
-                  (speedup (or speedup 1.))
+                  (speedup (or speedup 1))
                   (sequence 0)
                   (base-time (current-seconds))
+                  (base-timestamp (current-timestamp))
                   (period (flonum->timestamp (/ 1. (cast <fl> frequency))))
                   (late-frames '())
                   (flushed-frames '())
@@ -445,7 +446,10 @@
                       data))))
               
               (define (simulated-time)
-                (+ base-time (* (- (current-seconds) base-time) speedup)))
+                (+ base-time (* (- (current-seconds) base-time) (cast <fl> speedup))))
+              
+              (define (simulated-timestamp)
+                (+ base-timestamp (* (- (current-timestamp) base-timestamp) speedup)))
               
               (define (simulated-elapse elap)
                 (/ elap speedup))
@@ -461,6 +465,7 @@
                                    (insert-media receive-channel data))
                                  (lambda (thunk)
                                    (parameterize ((simulation-time simulated-time)
+                                                  (simulation-timestamp simulated-timestamp)
                                                   (simulation-elapse simulated-elapse)
                                                   (simulation-evolution receiver-evolution))
                                      (thunk)))))
@@ -469,6 +474,7 @@
                 (let ((insert (new-thread
                                 (lambda ()
                                   (parameterize ((simulation-time simulated-time)
+                                                 (simulation-timestamp simulated-timestamp)
                                                  (simulation-elapse simulated-elapse))
                                     (let ((base (new Time-Base))
                                           (last (* frequency (fxceiling (simulation-duration simulation)))))
@@ -503,18 +509,20 @@
                                              (cond (gazaa?
                                                     @w
                                                     (when last-dts
-                                                      (let ((expected-dts (epoch+ last-dts last-duration)))
-                                                        (when (not (epoch= dts expected-dts))
-                                                          (terminal frame (duration->flonum (epoch- dts expected-dts))))))
+                                                      (assert-timestamp last-dts)
+                                                      (assert-timestamp last-duration)
+                                                      (let ((expected-dts (+ last-dts last-duration)))
+                                                        (when (/= dts expected-dts)
+                                                          (terminal frame (timestamp->flonum (- dts expected-dts))))))
                                                     (set! last-dts dts)
                                                     (set! last-duration duration)
                                                     @w
-                                                    (let ((running-time (simulable-time)))
-                                                      (when (>= (epoch->flonum dts) (+ running-time gazaa-mixer))
+                                                    (let ((running-timestamp (simulable-timestamp)))
+                                                      (when (>= dts (+ running-time gazaa-mixer))
                                                         (late-frame frame))))
                                                    (else
                                                     (let ((time-base (get-time-base process-ring)))
-                                                      (let ((now (simulable-time))
+                                                      (let ((now (simulable-timestamp))
                                                             (late-time (+ (remote->local time-base dts) udp-audio-mixer)))
                                                         (when (>= now late-time)
                                                           (late-frame frame))))))))
@@ -525,6 +533,7 @@
                                          
                                          (parameterize ((simulation? #t)
                                                         (simulation-time simulated-time)
+                                                        (simulation-timestamp simulated-timestamp)
                                                         (simulation-elapse simulated-elapse)
                                                         (simulation-evolution receiver-evolution)
                                                         (simulation-off simulated-off)
