@@ -508,8 +508,6 @@
     (plot-traffic                       20 'send)
     (plot-traffic                       20 'receive)
     (plot-garbage-collect self surface 100)
-    (plot-rebase-time     self surface 175 'up)
-    (plot-rebase-time     self surface 190 'down)
     (plot-purge-ring      self surface 250 udp-purge-gap udp-audio)
     (plot-purge-ring      self surface 265 udp-purge-seek udp-audio)
     (plot-purge-ring      self surface 250 udp-purge-gap udp-video)
