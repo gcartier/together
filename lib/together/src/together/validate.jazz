@@ -71,23 +71,25 @@
                             (write-media-keyframe? data keyframe?)
                             (table-set! datas sequence data)
                             (parameterize ((simulation-evolution origin-evolution))
-                              (record-event udp-id-create-packet
-                                            -1.
-                                            (fixnum->flonum origin)
-                                            (fixnum->flonum kind)
-                                            (fixnum->flonum sequence)
-                                            (fixnum->flonum frame)
-                                            (barbara-keyframe-hack keyframe?)
-                                            dts
-                                            pts)
-                              (record-event udp-id-create-info
-                                            -1.
-                                            (fixnum->flonum origin)
-                                            (fixnum->flonum kind)
-                                            (fixnum->flonum sequence)
-                                            (fixnum->flonum part)
-                                            (fixnum->flonum total)
-                                            -1.))
+                              (when record-events?
+                                (record-event udp-id-create-packet
+                                              -1.
+                                              (fixnum->flonum origin)
+                                              (fixnum->flonum kind)
+                                              (fixnum->flonum sequence)
+                                              (fixnum->flonum frame)
+                                              (barbara-keyframe-hack keyframe?)
+                                              dts
+                                              pts))
+                              (when record-events?
+                                (record-event udp-id-create-info
+                                              -1.
+                                              (fixnum->flonum origin)
+                                              (fixnum->flonum kind)
+                                              (fixnum->flonum sequence)
+                                              (fixnum->flonum part)
+                                              (fixnum->flonum total)
+                                              -1.)))
                             data)))))
                 
                 @wait
@@ -97,14 +99,15 @@
                                 (parameterize ((simulation-time (+ base time))
                                                (simulation-evolution expected))
                                   (let ((id (evolution-abbrev->id abbrev)))
-                                    (record-event id
-                                                  -1.
-                                                  (fixnum->flonum origin)
-                                                  (fixnum->flonum media-kind)
-                                                  data1
-                                                  data2
-                                                  data3
-                                                  data4)))))
+                                    (when record-events?
+                                      (record-event id
+                                                    -1.
+                                                    (fixnum->flonum origin)
+                                                    (fixnum->flonum media-kind)
+                                                    data1
+                                                    data2
+                                                    data3
+                                                    data4))))))
                             events))
                 
                 (when time-base

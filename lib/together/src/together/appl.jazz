@@ -360,15 +360,16 @@
   
   (method (on-add-bookmark self evt)
     (let ((world (current-world)))
-      (record-event udp-id-bookmark
-                    -1.
-                    -1.
-                    -1.
-                    -1.
-                    -1.
-                    -1.
-                    -1.)
-      (display-message world "Bookmarked!")))
+      (when record-events?
+        (record-event udp-id-bookmark
+                      -1.
+                      -1.
+                      -1.
+                      -1.
+                      -1.
+                      -1.
+                      -1.)
+        (display-message world "Bookmarked!"))))
   
   
   (method (on-update-catalogs self evt)
