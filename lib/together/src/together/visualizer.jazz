@@ -473,12 +473,9 @@
   (method protected (extract-simulation self)
     (let ((client (current-client))
           (world (current-world)))
-      (if (not origin-evolution)
+      (if (not receiver-evolution)
           (bell)
-        (let ((file (new-file (new-unique-directory {Directory Documents "simulations"} "simulation" separator: "") "client.sim")))
-          (create-directories file)
-          (together.simulation:extract-evolution-simulation receiver-evolution file)
-          (display-message world (format "Saved to {a}" (get-name (get-parent file)))))))))
+        (together.simulation:extract-evolution-simulation receiver-evolution)))))
 
 
 ;;;

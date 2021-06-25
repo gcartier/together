@@ -52,7 +52,15 @@
 ;;;
 
 
-(definition public (extract-evolution-simulation evolution file)
+(definition public (extract-evolution-simulation evolution)
+  (let ((world (current-world)))
+    (let ((file (new-file (new-unique-directory {Directory Documents "simulations"} "simulation" separator: "") "client.sim")))
+      (create-directories file)
+      (save-evolution-simulation evolution file)
+      (display-message world (format "Saved to {a}" (get-name (get-parent file)))))))
+
+
+(definition public (save-evolution-simulation evolution file)
   (let ((last-sequence #f)
         (last-latency #f)
         (pos 0))
