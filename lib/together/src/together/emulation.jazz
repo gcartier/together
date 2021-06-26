@@ -350,7 +350,7 @@
                                (let ((first (packet-ref ring 0)))
                                  (let ((sequence (get-sequence first))
                                        (total (get-total first))
-                                       (keyframe? (get-keyframe? first)))
+                                       (keyframe? (is-keyframe? first)))
                                    (let ((packets (loop (for n from 0 below total)
                                                         (collect (locate-packet origin-media (+ sequence n))))))
                                      (when (loop (for packet in packets)
@@ -365,7 +365,7 @@
                                              (dts (flonum->timestamp (get-dts packet)))
                                              (pts (flonum->timestamp (get-pts packet)))
                                              (duration (get-duration packet))
-                                             (keyframe? (get-keyframe? packet)))
+                                             (keyframe? (is-keyframe? packet)))
                                          (ecase kind
                                            ((udp-audio)
                                             (when playing?

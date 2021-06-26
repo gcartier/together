@@ -713,7 +713,7 @@
                           (let ((size (interpolate age 0. full 4. 1.)))
                             (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
                               (let ((frame (get-frame packet))
-                                    (keyframe? (get-keyframe? packet)))
+                                    (keyframe? (is-keyframe? packet)))
                                 (let ((color (if keyframe?
                                                  {Color Purple}
                                                {Color Blue})))
@@ -737,7 +737,7 @@
                                         (else (interpolate age 0. full 1. 4.)))))
                         (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
                           (let ((frame (get-frame packet))
-                                (keyframe? (get-keyframe? packet)))
+                                (keyframe? (is-keyframe? packet)))
                             (let ((color (if keyframe?
                                              {Color Purple}
                                            {Color Blue})))
@@ -824,7 +824,7 @@
         (define (describe-packet packet)
           (format @too-much "Keyframe {a}, dts {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                   "Sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-                  @too-much (if (get-keyframe? packet) 'yes 'no)
+                  @too-much (if (is-keyframe? packet) 'yes 'no)
                   @too-much (get-dts packet)
                   @too-much (let ((duration (get-duration packet)))
                     (if (not duration)
