@@ -473,7 +473,8 @@
                                  (lambda (data info drop?)
                                    (insert-media receive-channel data))
                                  (lambda (thunk)
-                                   (parameterize ((simulation-time simulated-time)
+                                   (parameterize ((simulation-base base-timestamp)
+                                                  (simulation-time simulated-time)
                                                   (simulation-timestamp simulated-timestamp)
                                                   (simulation-elapse simulated-elapse)
                                                   (simulation-evolution receiver-evolution))
@@ -482,7 +483,8 @@
                 (setup-simulation simulator simulation)
                 (let ((insert (new-thread
                                 (lambda ()
-                                  (parameterize ((simulation-time simulated-time)
+                                  (parameterize ((simulation-base base-timestamp)
+                                                 (simulation-time simulated-time)
                                                  (simulation-timestamp simulated-timestamp)
                                                  (simulation-elapse simulated-elapse))
                                     (let ((base (new Time-Base))
@@ -541,6 +543,7 @@
                                              (flush-frame frame)))
                                          
                                          (parameterize ((simulation? #t)
+                                                        (simulation-base base-timestamp)
                                                         (simulation-time simulated-time)
                                                         (simulation-timestamp simulated-timestamp)
                                                         (simulation-elapse simulated-elapse)
