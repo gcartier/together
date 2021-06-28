@@ -1,0 +1,14 @@
+#! /bin/sh
+
+RNNOISE=/Users/cartier/Devel/gstreamer/rnnoise
+LIBNAME=libgstrnnoise.dylib
+DEST=cache/develop/Libraries/gstreamer/lib/gstreamer-1.0
+STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
+
+relocate() {
+    cache/develop/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+}
+
+cp $RNNOISE/build/plugin/$LIBNAME $DEST/$LIBNAME
+relocate $DEST $LIBNAME
+cp $DEST/$LIBNAME $STREAM/gstreamer/lib/gstreamer-1.0/$LIBNAME
