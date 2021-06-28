@@ -176,6 +176,12 @@
 (definition preprocess-prime?
   (world-setting 'together.preprocess-prime? #t))
 
+(definition preprocess-denoise?
+  (world-setting 'together.preprocess-denoise? #f))
+
+(definition preprocess-voice?
+  (world-setting 'together.preprocess-voice? #f))
+
 
 (definition edited-script
   (world-setting 'together.edited-script #f))
@@ -4275,7 +4281,7 @@
                                                      dir
                                                    stream-directory))
                                              stream-directory)))
-                                  (preprocess-directory dir prime?: preprocess-prime? feedback: feedback)))))))))))
+                                  (preprocess-directory dir prime?: preprocess-prime? denoise?: preprocess-denoise? voice?: preprocess-voice? feedback: feedback)))))))))))
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
