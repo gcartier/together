@@ -68,7 +68,7 @@
                             (write-media-total data total)
                             (write-media-dts data nanodts)
                             (write-media-pts data nanopts)
-                            (write-media-keyframe? data keyframe?)
+                            (write-media-flags data (frame-flags keyframe? #f))
                             (table-set! datas sequence data)
                             (parameterize ((simulation-evolution origin-evolution))
                               (when record-events?

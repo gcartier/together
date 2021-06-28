@@ -211,7 +211,7 @@
           (let (loop (count 0))
             (let ((frame (read-frame reader)))
               (when (and frame (< count max))
-                (receive (buffer dts pts duration keyframe?) frame
+                (receive (buffer dts pts duration flags) frame
                   (let ((time (current-seconds))
                         (nanodts (+ (timestamp->flonum dts) 0. @w (* count .01))))
                     (update-start time-base time nanodts)
@@ -295,7 +295,7 @@
                                           (let ((time (current-seconds)))
                                             (let ((frame (read-frame reader)))
                                               (when frame
-                                                (receive (buffer dts pts duration keyframe?) frame
+                                                (receive (buffer dts pts duration flags) frame
                                                   (let ((nanostamp (timestamp->flonum dts)))
                                                     (when (or (not base-nanostamp) (not end) (< (- nanostamp base-nanostamp) end))
                                                       (when (not base-time)
@@ -306,8 +306,7 @@
                                                         (let ((sendtime (+ (remote->local time-base nanostamp)
                                                                            (determine-latency (- nanostamp start-nanostamp)))))
                                                           (sleep (- sendtime time))
-                                                          (let ((flags (frame-flags keyframe? #f)))
-                                                            (send-media origin-tier channel-no buffer dts pts duration flags))))
+                                                          (send-media origin-tier channel-no buffer dts pts duration flags)))
                                                       (loop (+ count 1)))))))))
                                         (close reader))))
                                   ;; quicky give some time for process to finish
@@ -645,7 +644,7 @@
                       (write-media-dts data dts)
                       (write-media-pts data pts)
                       (write-media-payload data buffer)
-                      (write-media-keyframe? data keyframe?)
+                      (write-media-flags data (frame-flags keyframe? #f))
                       data))))
               
               (define (record-data data)
@@ -657,7 +656,7 @@
                           (frame (read-media-frame data))
                           (part (read-media-part data))
                           (total (read-media-total data))
-                          (keyframe? (read-media-keyframe? data))
+                          (flags (read-media-flags data))
                           (dts (read-media-dts data))
                           (pts (read-media-pts data))
                           (duration (read-media-duration data)))
@@ -667,7 +666,7 @@
                                     (fixnum->flonum kind)
                                     (fixnum->flonum sequence)
                                     (fixnum->flonum frame)
-                                    (barbara-keyframe-hack keyframe?)
+                                    (barbara-keyframe-hack (frame-keyframe? flags))
                                     (timestamp->flonum dts)
                                     (timestamp->flonum pts))
                       (record-event udp-id-create-info

@@ -299,7 +299,7 @@
                                           (write-media-dts data nanodts)
                                           (write-media-pts data nanopts)
                                           (write-media-duration data nanoduration)
-                                          (write-media-keyframe? data keyframe?)
+                                          (write-media-flags data (frame-flags keyframe? #f))
                                           (write-media-off? data #f)
                                           (write-media-resent data 0)
                                           data)))))
