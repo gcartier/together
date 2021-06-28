@@ -519,8 +519,6 @@
                                              (cond (gazaa?
                                                     @w
                                                     (when last-dts
-                                                      (assert-timestamp last-dts)
-                                                      (assert-timestamp last-duration)
                                                       (let ((expected-dts (+ last-dts last-duration)))
                                                         (when (/= dts expected-dts)
                                                           (terminal frame (timestamp->flonum (- dts expected-dts))))))
