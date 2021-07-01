@@ -516,24 +516,11 @@
                                          
                                          (define (simulated-present packet dts duration)
                                            (let ((frame (get-frame packet)))
-                                             (cond (gazaa?
-                                                    @w
-                                                    (when last-dts
-                                                      (let ((expected-dts (+ last-dts last-duration)))
-                                                        (when (/= dts expected-dts)
-                                                          (terminal frame (timestamp->flonum (- dts expected-dts))))))
-                                                    (set! last-dts dts)
-                                                    (set! last-duration duration)
-                                                    @w
-                                                    (let ((running-timestamp (simulable-timestamp)))
-                                                      (when (>= dts (+ running-time gazaa-mixer))
-                                                        (late-frame frame))))
-                                                   (else
-                                                    (let ((time-base (get-time-base process-ring)))
-                                                      (let ((now (simulable-timestamp))
-                                                            (late-time (+ (remote->local time-base dts) udp-audio-mixer)))
-                                                        (when (>= now late-time)
-                                                          (late-frame frame))))))))
+                                             (let ((time-base (get-time-base process-ring)))
+                                               (let ((now (simulable-timestamp))
+                                                     (late-time (+ (remote->local time-base dts) udp-audio-mixer)))
+                                                 (when (>= now late-time)
+                                                   (late-frame frame))))))
                                          
                                          (define (simulated-flush packet)
                                            (let ((frame (get-frame packet)))
@@ -548,25 +535,12 @@
                                                         (simulation-off simulated-off)
                                                         (simulation-present simulated-present)
                                                         (simulation-flush simulated-flush))
-                                           (if gazaa?
-                                               (process-audio-gazaa process-ring receive-channel exit)
-                                             (process-audio process-ring receive-channel exit)))))))
+                                           (process-audio process-ring receive-channel exit))))))
                                  'process)))
                   (thread-start! insert)
                   (thread-start! process)
                   (thread-join! insert)
-                  ;; quicky around accumulate
-                  (if gazaa?
-                      (let ((unique (list 'unique)))
-                        (when (eq? (thread-join! process 2. unique) unique)
-                          (exit-thread process)))
-                    (thread-join! process))
-                  @wait
-                  (let ((time-base (get-time-base process-ring)))
-                    (terminal (get-total-rises time-base) 'rises)
-                    (terminal (get-total-falls time-base) 'falls)
-                    (terminal (length late-frames) 'late)
-                    (terminal (length flushed-frames) 'flushed))
+                  (thread-join! process)
                   (let ((evolution receiver-evolution))
                     (let ((content (get-content evolution)))
                       (loop (for n from (first-position evolution) to (last-position evolution))
