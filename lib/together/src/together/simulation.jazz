@@ -241,7 +241,7 @@
           (channel-no 0)
           (stream-no 0))
       (let ((metadatas (list->table (list (cons origin-no (list origin-no origin-name
-                                                            (let ((channel (list channel-no udp-audio 'live #f #f #f #f audio-codec #f)))
+                                                            (let ((channel (list channel-no udp-audio 'live #f #f #f #f audio-codec #f '())))
                                                               (let ((stream (list origin-name "Live" stream-no origin-no 'live #f (list channel))))
                                                                 (list stream)))
                                                             '()
@@ -249,7 +249,7 @@
                                           (cons server-no (list server-no server-name '() '() '() start-time))
                                           (cons receiver-no (list receiver-no receiver-name
                                                               '()
-                                                              (let ((channel (list channel-no udp-audio 'live #f #f #f #f audio-codec #f)))
+                                                              (let ((channel (list channel-no udp-audio 'live #f #f #f #f audio-codec #f '())))
                                                                 (let ((stream (list origin-name "Live" stream-no origin-no 'live #f (list channel))))
                                                                   (list stream)))
                                                               '()))))))
