@@ -410,8 +410,7 @@
 
 (definition public (simulate-latency name file audio-location (start: start #f) (end: end #f) (speedup: speedup #f))
   (let ((together (current-together)))
-    (let ((name (capitalize name))
-          (origin-no 1)
+    (let ((origin-no 1)
           (origin-name "Origin")
           (server-no 0)
           (server-name "_server")
