@@ -635,7 +635,7 @@
                                     (fixnum->flonum kind)
                                     (fixnum->flonum sequence)
                                     (fixnum->flonum frame)
-                                    (barbara-keyframe-hack (frame-keyframe? flags))
+                                    (barbara-keyframe-hack kind (frame-keyframe? flags))
                                     (timestamp->flonum dts)
                                     (timestamp->flonum pts))
                       (record-event udp-id-create-info

@@ -78,7 +78,7 @@
                                               (fixnum->flonum kind)
                                               (fixnum->flonum sequence)
                                               (fixnum->flonum frame)
-                                              (barbara-keyframe-hack keyframe?)
+                                              (barbara-keyframe-hack kind keyframe?)
                                               dts
                                               pts))
                               (when record-events?
