@@ -148,7 +148,7 @@
                                      (let (looping)
                                        (let ((info (process-audio receiver-ring)))
                                          (when (neq? info 'terminate)
-                                           (present-audio receiver-channel info)
+                                           (give-audio receiver-channel info)
                                            (looping))))))
                                  'process)))
                   (display-message world "Validating..." duration: +inf.0)

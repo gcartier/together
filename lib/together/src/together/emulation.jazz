@@ -146,9 +146,9 @@
                      (sequence (evolutionary-udp-sequence evolution n)))
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-insert-packet-dts evolution n))
-                                      time-base)))
-                       (time-latency (evolutionary-udp-insert-packet-effective-latency evolution n)))
+                                        (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
+                                      (flonum->timestamp time-base))))
+                       (time-latency (flonum->timestamp (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
@@ -296,9 +296,9 @@
                      (sequence (evolutionary-udp-sequence evolution n)))
                  (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
                                     (if (= time-base -1.)
-                                        (- time (evolutionary-udp-insert-packet-dts evolution n))
-                                      time-base)))
-                       (time-latency (evolutionary-udp-insert-packet-effective-latency evolution n)))
+                                        (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
+                                      (flonum->timestamp time-base))))
+                       (time-latency (flonum->timestamp (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
@@ -362,8 +362,8 @@
                                                                               (read-media-payload data))
                                                                             (map get-data packets))))
                                                            (apply u8vector-append chunks)))))
-                                             (dts (flonum->timestamp (get-dts packet)))
-                                             (pts (flonum->timestamp (get-pts packet)))
+                                             (dts (get-dts packet))
+                                             (pts (get-pts packet))
                                              (duration (get-duration packet))
                                              (keyframe? (is-keyframe? packet)))
                                          (ecase kind
