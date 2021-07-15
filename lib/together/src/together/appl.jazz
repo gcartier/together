@@ -388,8 +388,7 @@
   
   
   (method (on-test self evt)
-    (set-audio-muted? (not audio-muted?))
-    (display-on/off (current-world) "Audio" (not audio-muted?)))
+    )
   
   
   ;;;
