@@ -641,7 +641,7 @@
                                  (set-video-position position)
                                  (set-video-size size))))))
                         (else
-                         (let ((position (nu+ (get-position panel) (new Point (- (fxround (get-width world)) 348) 29)))
+                         (let ((position (nu+ (get-position panel) (new Point (- (fxround (get-width world)) 218) 29)))
                                (size {Dimension 178 100}))
                            (set-position sheet position)
                            (set-size sheet size)
