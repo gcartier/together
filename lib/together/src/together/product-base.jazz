@@ -37,6 +37,7 @@
   (values (repository-digest {Directory Together})
           (repository-digest {Directory Together "world"})
           (repository-digest {Directory Together "jiri"})
+          (repository-digest {Directory Together "gaea"})
           (repository-digest {Directory Together "jazz"})))
 
 
@@ -46,8 +47,9 @@
       (lambda (output)
         (format output "date: {s}{%}" (system-date))
         (format output "sources: (")
-        (receive (together world jiri jazz) (source-digests)
+        (receive (together world jiri gaea jazz) (source-digests)
           (format output "(together . {s}){%}" together)
           (format output "          (world . {s}){%}" world)
           (format output "          (jiri . {s}){%}" jiri)
+          (format output "          (gaea . {s}){%}" gaea)
           (format output "          (jazz . {s})){%}" jazz)))))))
