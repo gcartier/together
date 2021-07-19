@@ -36,7 +36,7 @@
         (world.autoload)
         (world.client.tier)
         (world.context)
-        (world.geometry)
+        (gaea.geometry)
         (world.interface)
         (world.interface.dialogs)
         (world.interface.documents)

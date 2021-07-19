@@ -6,4 +6,4 @@
 ;;;
 
 
-(jazz:repositories "world;jiri;.")
+(jazz:repositories "gaea;world;jiri;.")

@@ -61,6 +61,7 @@
                                     (cond
                                       ((or mac windows) jiri))
                                     jazz.platform
+                                    gaea
                                     world
                                     world.client
                                     world.server))

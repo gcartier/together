@@ -3,6 +3,7 @@
 /build
 /cache
 /jazz
+/gaea
 /jiri
 /world
 /*.patch

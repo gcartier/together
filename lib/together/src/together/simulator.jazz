@@ -38,7 +38,7 @@
         (world.context)
         (world.event)
         (world.evolution)
-        (world.geometry)
+        (gaea.geometry)
         (world.interface.evolution)
         (world.interface.panel)
         (world.interface.text)

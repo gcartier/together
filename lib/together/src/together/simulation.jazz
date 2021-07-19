@@ -32,7 +32,7 @@
         (world.interface)
         (world.interface.evolution)
         (world.interface.timeline)
-        (world.math)
+        (gaea.math)
         (world.record (phase syntax))
         (world.server.udp)
         (world.settings)

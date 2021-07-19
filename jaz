@@ -4,6 +4,7 @@ REL="$(dirname "$0")"
 
 WRL="$REL/world"
 JIRI="$REL/jiri"
+GAEA="$REL/gaea"
 JAZZ="$REL/jazz"
 JAZ="$JAZZ/jaz"
 
@@ -43,6 +44,8 @@ display_all_info () {
     echo
     (display_info "Jiri" "$JIRI")
     echo
+    (display_info "Gaea" "$GAEA")
+    echo
     (display_info "Jazz" "$JAZZ")
 }
 
@@ -60,6 +63,8 @@ display_all_status () {
     (display_status "World" "$WRL")
     echo
     (display_status "Jiri" "$JIRI")
+    echo
+    (display_status "Gaea" "$GAEA")
     echo
     (display_status "Jazz" "$JAZZ")
 }
@@ -79,6 +84,8 @@ display_all_diff () {
     echo
     (display_diff "Jiri" "$JIRI")
     echo
+    (display_diff "Gaea" "$GAEA")
+    echo
     (display_diff "Jazz" "$JAZZ")
 }
 
@@ -96,6 +103,8 @@ pull_all () {
     (pull "World" "$WRL")
     echo
     (pull "Jiri" "$JIRI")
+    echo
+    (pull "Gaea" "$GAEA")
     echo
     (pull "Jazz" "$JAZZ")
 }

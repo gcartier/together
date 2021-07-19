@@ -60,10 +60,10 @@
         (world.configure)
         (world.context)
         @bazoo
-        (world.dye)
+        (gaea.dye)
         (world.evolution)
         (world.gc)
-        (world.geometry)
+        (gaea.geometry)
         (world.history)
         (world.interface)
         (world.interface.actions)
