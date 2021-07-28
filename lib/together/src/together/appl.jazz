@@ -387,8 +387,13 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
+  (import (world.client.udp))
   (method (on-test self evt)
-    )
+    (iterate-table (get-receive-channels (current-udp))
+      (lambda (no channel)
+        (let ((ring (get-process-ring channel)))
+          (when (is? ring UDP-Audio-Ring)
+            (terminal (get-voice-count ring)))))))
   
   
   ;;;
