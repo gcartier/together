@@ -249,6 +249,8 @@
     (set! self.origin-evolution origin-evolution)
     (set! self.audio-output (and origin-audio (visualizer-output (current-audio) codec: audio-codec caps: audio-caps)))
     (set! self.video-output (and origin-video (visualizer-output (current-video) video-position video-size codec: video-codec caps: video-caps)))
+    (set-appsrc audio-ring (get-appsrc audio-output))
+    (set-appsrc video-ring (get-color-appsrc video-output))
     (set! self.video-keyframe-played? #f))
   
   
