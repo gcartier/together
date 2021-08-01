@@ -1935,7 +1935,7 @@
         (display-on/off world "Aggressive Denoising" audio-rndenoise?))))
   
   
-  (method (on-toggle-mic self evt)
+  (method (on-toggle-microphone self evt)
     (let ((client (current-client))
           (world (current-world)))
       (if (and (not circle-name)

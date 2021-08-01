@@ -962,7 +962,7 @@
 
   (form
     (<install>                                        title: "Audio"
-      (<World-Action-Item> name: toggle-microphone    title: "Microphone" action-handler: {Event-Handler :together on-toggle-mic} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
+      (<World-Action-Item> name: toggle-microphone    title: "Microphone" action-handler: {Event-Handler :together on-toggle-microphone} shortcut: {Shortcut :alt #\M} description: "Toggle microphone.")
       (<World-Action-Item> name: toggle-push-to-talk  title: "Push to talk" action-handler: {Event-Handler :together on-toggle-push-to-talk} shortcut: {Shortcut :alt Space} description: "Toggle push to talk.")
       (<World-Action-Item> name: talk                 title: "Talk" shortcut: {Shortcut Space} description: "Talk.")
       @wait-live-change (<World-Action-Item> name: toggle-echo-cancel    title: "Echo Cancellation" action-handler: {Event-Handler :together on-toggle-echo-cancel} shortcut: {Shortcut :alt :shift #\O} description: "Toggle echo cancellation.")
