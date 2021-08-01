@@ -531,7 +531,8 @@
                                          (simulation-elapse simulated-elapse)
                                          (simulation-evolution origin-evolution))
                             (define (send-off)
-                              (send-media origin-tier channel-no #f #f #f #f 0))
+                              ;; convert old off
+                              )
                             
                             (let ((base (new Time-Base))
                                   (end (or end (- (simulation-duration simulation) .5)))
