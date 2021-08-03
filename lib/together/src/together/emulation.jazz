@@ -148,7 +148,7 @@
                                     (if (= time-base -1.)
                                         (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
                                       (flonum->timestamp time-base))))
-                       (time-latency (flonum->timestamp (evolutionary-udp-insert-packet-effective-latency evolution n))))
+                       (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
@@ -300,7 +300,7 @@
                                     (if (= time-base -1.)
                                         (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
                                       (flonum->timestamp time-base))))
-                       (time-latency (flonum->timestamp (evolutionary-udp-insert-packet-effective-latency evolution n))))
+                       (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
                        (when show-visualize?
