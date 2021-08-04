@@ -341,7 +341,7 @@
                        ;; on the other hand playing implies state ok or late...
                        (if (= id udp-id-play-frame)
                            (state-ok ring)
-                         (state-late ring))
+                         (state-freeze ring))
                        (let ((complete? (visualizer-frame-complete? ring 0)))
                          (visualizer-iterate-frame ring
                            (lambda (packet)
@@ -407,16 +407,21 @@
                (when show-visualize?
                  (terminal 'ok))
                (state-ok ring))
-              ;; late
-              ((udp-id-state-late)
+              ;; play
+              ((udp-id-state-play)
                (when show-visualize?
-                 (terminal 'late))
-               (state-late ring))
-              ;; waiting
-              ((udp-id-state-waiting)
+                 (terminal 'play))
+               (state-play ring))
+              ;; freeze
+              ((udp-id-state-freeze)
                (when show-visualize?
-                 (terminal 'waiting))
-               (state-waiting ring))
+                 (terminal 'freeze))
+               (state-freeze ring))
+              ;; wait
+              ((udp-id-state-wait)
+               (when show-visualize?
+                 (terminal 'wait))
+               (state-wait ring))
               ;; heartbeat / traffic
               ((udp-id-send-heartbeat udp-id-send-ack udp-id-receive-ack udp-id-traffic-rate))
               ;; reset

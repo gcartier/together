@@ -658,8 +658,9 @@
   
   (method override (register-event-looks self)
     (register-event-look udp-id-state-ok         0 chronology-magenta)  ;   R
-    (register-event-look udp-id-state-late       0 chronology-purple)   ;   R
-    (register-event-look udp-id-state-waiting    0 chronology-blue)     ;   R
+    (register-event-look udp-id-state-play       0 chronology-purple)   ;   R
+    (register-event-look udp-id-state-freeze     0 chronology-purple)   ;   R
+    (register-event-look udp-id-state-wait       0 chronology-blue)     ;   R
     (register-event-look udp-id-packet-gap       0 chronology-cyan)     ;  SR
     (register-event-look udp-id-duplicate-packet 0 chronology-green)    ;  SR
     (register-event-look udp-id-reject-packet    0 chronology-yellow)   ;  SR
