@@ -40,11 +40,11 @@
   {Text-Style Base color: {Color World-Red}})
 
  paragraphs:
- ((8 ("Together v0 closed-beta" 1))
+ ((8 ("Together v1.0 beta" 1))
   (3)
   (5 ("Welcome to Together, an exploration in conscious community." 20))
   (5)
-  (5 ("Copyright 2012-2020 Guillaume Cartier and Barbara Samson" 0))
+  (5 ("Copyright 2012-2021 Guillaume Cartier and Barbara Samson" 0))
   (5)
   (5 ("Contributors" 0))
   (5)
