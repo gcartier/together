@@ -144,10 +144,7 @@
               ((udp-id-retain-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
-                                    (if (= time-base -1.)
-                                        (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
-                                      (flonum->timestamp time-base))))
+                 (let ((time-base (flonum->timestamp (evolutionary-udp-insert-packet-base evolution n)))
                        (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
@@ -296,10 +293,7 @@
               ((udp-id-insert-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (let ((time-base (evolutionary-udp-insert-packet-base evolution n)))
-                                    (if (= time-base -1.)
-                                        (- (flonum->timestamp time) (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n)))
-                                      (flonum->timestamp time-base))))
+                 (let ((time-base (flonum->timestamp (evolutionary-udp-insert-packet-base evolution n)))
                        (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n))))
                    (let ((data (find-create sequence)))
                      (when data
