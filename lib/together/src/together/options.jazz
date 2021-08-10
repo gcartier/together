@@ -16,6 +16,7 @@
 
 (import (jazz.component)
         (jazz.markup)
+        (jazz.screen)
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
         (jazz.tree)
@@ -112,11 +113,29 @@
   
   (form
     (<install>
-      (<caption~>           title: "Video Options")
-      (<content~>                                    layout-type: center
-        (<View>                                      size: {Dimension 390 134}
-          (<Option-Label>   title: "Camera"          position: {Point 0 1})
-          (<Combo-Option>                            position: {Point 140 0} size: {Dimension 250 19} option: camera)))))
+      (<caption~>                               title: "Video Options")
+      (<content~>                                                      layout-type: center
+        (<View>                                                        size: {Dimension 390 134}
+          (<Option-Label>                       title: "Camera"        position: {Point 0 1})
+          (<Combo-Option>                                              position: {Point 140 0} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 91} visible?: #f)
+          (<Boolean-Option> name: retina-option                        position: {Point 0 90} size: {Dimension 250 19} visible?: #f option: retina)))))
+  
+  
+  (method override (install self rest)
+    (nextmethod self rest)
+    (reset-install/restart)
+    (cond-expand
+      (mac
+       (when (main-screen-retina?)
+         (set-visible? (locate self 'retina-label) #t)
+         (set-visible? (locate self 'retina-option) #t)))
+      (else)))
+  
+  
+  (method override (destroy self)
+    (warn-if-restart-needed "Together")
+    (nextmethod self))
   
   
   (method override (read-option self option)
@@ -134,10 +153,16 @@
                (let ((choice (assoc identifier choices)))
                  (if choice
                      (values choices (car choice))
-                   (values choices #f))))))))))
+                   (values choices #f))))))))
+      ((retina)
+       (world-setting 'world.retina? #t))))
   
   
   (method override (write-option self option value title)
     (case option
       ((camera)
-       (update-camera-identifier (current-client) title value))))))
+       (update-camera-identifier (current-client) title value))
+      ((retina)
+       (set-setting options-settings 'world.retina? value)
+       (save-content options-settings)
+       (need-restart))))))
