@@ -961,7 +961,7 @@
   
   (method override (ring-span self)
     (let ((media-kind (get-media-kind panel)))
-      (+ write-window giveup-window)))
+      (+ write-window late-window giveup-window)))
   
   
   (method override (draw self surface context)
