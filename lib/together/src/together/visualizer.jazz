@@ -820,10 +820,10 @@
               #f)))
         
         (define (describe-packet packet)
-          (format @too-much "Keyframe {a}, dts {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
-                  "Sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+          (format "Sequence {a}, frame {a}, part {a}, total {a}, data {a}"
+                  @too-much "Keyframe {a}, dts {r precision: 3}, duration {a}, sequence {a}, frame {a}, part {a}, total {a}, data {a}"
                   @too-much (if (is-keyframe? packet) 'yes 'no)
-                  @too-much (get-dts packet)
+                  @too-much (timestamp->flonum (get-dts packet))
                   @too-much (let ((duration (get-duration packet)))
                     (if (not duration)
                         (format "{a}" duration)
