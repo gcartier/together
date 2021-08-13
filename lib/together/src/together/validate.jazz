@@ -59,7 +59,8 @@
                         (let ((header-size (calculate-media-size)))
                           (let ((data (make-u8vector header-size))
                                 (nanodts (flonum->timestamp dts))
-                                (nanopts (flonum->timestamp pts)))
+                                (nanopts (flonum->timestamp pts))
+                                (flags (frame-flags keyframe? #f)))
                             (write-header-kind data kind)
                             (write-header-sender data origin)
                             (write-media-sequence data sequence)
@@ -68,7 +69,7 @@
                             (write-media-total data total)
                             (write-media-dts data nanodts)
                             (write-media-pts data nanopts)
-                            (write-media-flags data (frame-flags keyframe? #f))
+                            (write-media-flags data flags)
                             (table-set! datas sequence data)
                             (parameterize ((simulation-evolution origin-evolution))
                               (when record-events?
@@ -78,7 +79,7 @@
                                               (fixnum->flonum kind)
                                               (fixnum->flonum sequence)
                                               (fixnum->flonum frame)
-                                              (barbara-keyframe-hack kind keyframe?)
+                                              (fixnum->flonum flags)
                                               dts
                                               pts))
                               (when record-events?
