@@ -175,7 +175,7 @@
                  (let ((packet (visualizer-earliest-packet ring)))
                    (let ((consistent? (and packet (eqv? (get-sequence packet) sequence))))
                      (when (if debug-visualize? (assert consistent? #t) consistent?)
-                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) #f))
+                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) (visualizer-frame-complete? ring 0)))
                        (remove-earliest ring)))))))))))))
 
 
