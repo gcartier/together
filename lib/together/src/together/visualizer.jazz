@@ -891,7 +891,7 @@
   
   
   (method override (ring-span self)
-    (effective-retain-window (get-stream-kind panel)))
+    (timestamp->flonum (effective-retain-window (get-stream-kind panel))))
   
   
   (method override (draw self surface context)
@@ -920,7 +920,7 @@
   
   
   (method override (ring-span self)
-    (effective-retain-window (get-stream-kind panel)))
+    (timestamp->flonum (effective-retain-window (get-stream-kind panel))))
   
   
   (method override (draw self surface context)
