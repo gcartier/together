@@ -360,21 +360,24 @@
                                                                               (read-media-payload data))
                                                                             (map get-data packets))))
                                                            (apply u8vector-append chunks)))))
+                                             (latency (get-latency (get-time-base ring)))
                                              (dts (get-dts packet))
                                              (pts (get-pts packet))
                                              (duration (get-duration packet))
                                              (keyframe? (is-keyframe? packet)))
-                                         (ecase kind
-                                           ((udp-audio)
-                                            (when playing?
-                                              (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))
-                                           ((udp-video)
-                                            (if keyframe?
-                                                (begin
-                                                  (set! video-keyframe-played? #t)
-                                                  (receive-visualizer-video (current-video) video-output buffer dts pts duration keyframe?))
-                                              (when video-keyframe-played?
-                                                (receive-visualizer-video (current-video) video-output buffer dts pts duration keyframe?))))))))))))))
+                                         (let ((dts (+ dts latency))
+                                               (pts (+ pts latency)))
+                                           (ecase kind
+                                             ((udp-audio)
+                                              (when playing?
+                                                (receive-visualizer-audio (current-audio) audio-output buffer dts pts duration)))
+                                             ((udp-video)
+                                              (if keyframe?
+                                                  (begin
+                                                    (set! video-keyframe-played? #t)
+                                                    (receive-visualizer-video (current-video) video-output buffer dts pts duration keyframe?))
+                                                (when video-keyframe-played?
+                                                  (receive-visualizer-video (current-video) video-output buffer dts pts duration keyframe?)))))))))))))))
                        (visualizer-remove-frame ring))))))
               ;; lost
               ((udp-id-lost-packet)
