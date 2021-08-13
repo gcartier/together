@@ -770,7 +770,7 @@
           (selection-frame (get-selection-frame panel))
           (time-base (get-time-base ring)))
       (when time-base
-        (let ((time (timestamp->flonum (remote->local time-base (get-dts packet))))
+        (let ((time (visualizer-remote->local time-base (get-dts packet)))
               (frame (get-frame packet)))
           (let ((h (interpolate now time (+ time span) before-x after-x))
                 (v (+ offset 4.))
