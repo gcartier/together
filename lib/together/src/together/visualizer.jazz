@@ -695,7 +695,19 @@
   (method (draw-ring self surface left-x right-x before-x after-x span ring adds removes offset)
     (let ((replay (get-replay panel))
           (now (get-now panel))
-          (selection (get-selection panel)))
+          (selection (get-selection panel))
+          (media-kind (get-media-kind panel)))
+      (define (packet-color packet)
+        (ecase media-kind
+          ((udp-audio)
+           (if (has-voice? packet)
+               {Color Purple}
+             {Color Blue}))
+          (else
+           (if (is-keyframe? packet)
+               {Color Purple}
+             {Color Blue}))))
+      
       (when (and ring now)
         (let ((drawn (make-table test: eqv?)))
           (iterate-table-safe removes
@@ -712,16 +724,13 @@
                           (let ((size (interpolate age 0. full 4. 1.)))
                             (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
                               (let ((frame (get-frame packet))
-                                    (keyframe? (is-keyframe? packet)))
-                                (let ((color (if keyframe?
-                                                 {Color Purple}
-                                               {Color Blue})))
-                                  (cond ((not frame)
-                                         (ellipse$fl$ surface rect color #f))
-                                        ((not selection-frame?)
-                                         (ellipse$fl$ surface rect color (and complete? color)))
-                                        (else
-                                         (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                                    (color (packet-color packet)))
+                                (cond ((not frame)
+                                       (ellipse$fl$ surface rect color #f))
+                                      ((not selection-frame?)
+                                       (ellipse$fl$ surface rect color (and complete? color)))
+                                      (else
+                                       (ellipse$fl$ surface rect color (and (get-data packet) color)))))
                               (when (and selection (eq? (get-sequence packet) selection))
                                 (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))
           (iterate-packets self left-x right-x before-x after-x span ring offset
@@ -736,18 +745,15 @@
                                         (else (interpolate age 0. full 1. 4.)))))
                         (let ((rect (new Rect$fl$ (- h size) (- v size) (+ h size) (+ v size))))
                           (let ((frame (get-frame packet))
-                                (keyframe? (is-keyframe? packet)))
-                            (let ((color (if keyframe?
-                                             {Color Purple}
-                                           {Color Blue})))
-                              (cond ((not frame)
-                                     (ellipse$fl$ surface rect color #f))
-                                    ((not selection-frame?)
-                                     (unless (table-ref drawn frame #f)
-                                       (ellipse$fl$ surface rect color (and (visualizer-frame-complete? ring index) color))
-                                       (table-set! drawn frame #t)))
-                                    (else
-                                     (ellipse$fl$ surface rect color (and (get-data packet) color))))))
+                                (color (packet-color packet)))
+                            (cond ((not frame)
+                                   (ellipse$fl$ surface rect color #f))
+                                  ((not selection-frame?)
+                                   (unless (table-ref drawn frame #f)
+                                     (ellipse$fl$ surface rect color (and (visualizer-frame-complete? ring index) color))
+                                     (table-set! drawn frame #t)))
+                                  (else
+                                   (ellipse$fl$ surface rect color (and (get-data packet) color)))))
                           (when (and selection (eq? (get-sequence packet) selection))
                             (ellipse$fl$ surface (inflate-rect$fl$ rect 1 1) {Color White} #f))))))))))))))
   
