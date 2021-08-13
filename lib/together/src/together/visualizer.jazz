@@ -65,11 +65,12 @@
 (definition protected visualizer-text-color
   (world-setting 'world.visualizer-text {Color Dark-Gray}))
 
-(definition protected visualizer-before
-  (world-setting 'world.visualizer-before .05))
 
-(definition protected visualizer-after
-  (world-setting 'world.visualizer-after .05))
+(definition protected visualizer-before <fl>
+  40.)
+
+(definition protected visualizer-after <fl>
+  40.)
 
 
 ;;;
@@ -757,11 +758,10 @@
   
   (method (with-boundaries self proc)
     (let ((span (ring-span self)))
-      (let ((total (+ visualizer-before span visualizer-after))
-            (left-x 3.)
+      (let ((left-x 3.)
             (right-x (cast <fl> (- (get-width size) 3))))
-        (let ((before-x (interpolate visualizer-before 0. total left-x right-x))
-              (after-x (interpolate (+ visualizer-before span) 0. total left-x right-x)))
+        (let ((before-x (+ left-x visualizer-before))
+              (after-x (- right-x visualizer-after)))
           (proc left-x right-x before-x after-x span)))))
 
   
@@ -860,24 +860,23 @@
                 (height (get-height size)))
             (with-boundaries self
               (lambda (left-x right-x before-x after-x span)
-                (let ((total (+ visualizer-before span visualizer-after)))
-                  (let ((before-h (fxround before-x))
-                        (after-h (fxround after-x))
-                        (top 3)
-                        (bottom (- height 3))
-                        (state-color {Color Green alpha: .8}))
-                    (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
-                    (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
-                    (fill-rect surface (new Rect 3 top before-h bottom) {Color Gray alpha: .8})
-                    (fill-rect surface (new Rect before-h top after-h bottom) {Color Green alpha: .8})
-                    (fill-rect surface (new Rect after-h top (- width 3) bottom) {Color Red alpha: .8})
-                    (ecase media-kind
-                      ((udp-audio)
-                       (when audio-ring
-                         (draw-ring self surface left-x right-x before-x after-x span audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8)))
-                      ((udp-video)
-                       (when video-ring
-                         (draw-ring self surface left-x right-x before-x after-x span video-ring (get-video-adds emulator) (get-video-removes emulator) 8))))))))))))))
+                (let ((before-h (fxround before-x))
+                      (after-h (fxround after-x))
+                      (top 3)
+                      (bottom (- height 3))
+                      (state-color {Color Green alpha: .8}))
+                  (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
+                  (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
+                  (fill-rect surface (new Rect 3 top before-h bottom) {Color Gray alpha: .8})
+                  (fill-rect surface (new Rect before-h top after-h bottom) {Color Green alpha: .8})
+                  (fill-rect surface (new Rect after-h top (- width 3) bottom) {Color Red alpha: .8})
+                  (ecase media-kind
+                    ((udp-audio)
+                     (when audio-ring
+                       (draw-ring self surface left-x right-x before-x after-x span audio-ring (get-audio-adds emulator) (get-audio-removes emulator) 8)))
+                    ((udp-video)
+                     (when video-ring
+                       (draw-ring self surface left-x right-x before-x after-x span video-ring (get-video-adds emulator) (get-video-removes emulator) 8)))))))))))))
 
 
 ;;;
@@ -977,10 +976,10 @@
                       (height (get-height size)))
                   (with-boundaries self
                     (lambda (left-x right-x before-x after-x span)
-                      (let ((total (+ visualizer-before span visualizer-after)))
+                      (let ((total span))
                         (let ((before-h (fxround before-x))
-                              (present-h (fxround (interpolate (+ visualizer-before write-window) 0. total left-x right-x)))
-                              (freeze-h (fxround (interpolate (+ visualizer-before write-window late-window) 0. total left-x right-x)))
+                              (play-h (fxround (interpolate write-window 0. total before-x after-x)))
+                              (freeze-h (fxround (interpolate (+ write-window late-window) 0. total before-x after-x)))
                               (after-h (fxround after-x))
                               (top 3)
                               (bottom (- height 3))
@@ -992,8 +991,8 @@
                           (frame-rect surface (new Rect 1 (- top 2) (- width 1) (+ bottom 2)) state-color)
                           (frame-rect surface (new Rect 2 (- top 1) (- width 2) (+ bottom 1)) {Color Black})
                           (fill-rect surface (new Rect 3 top before-h bottom) {Color Gray alpha: .8})
-                          (fill-rect surface (new Rect before-h top present-h bottom) {Color Yellow alpha: .8})
-                          (fill-rect surface (new Rect present-h top freeze-h bottom) {Color Green alpha: .8})
+                          (fill-rect surface (new Rect before-h top play-h bottom) {Color Yellow alpha: .8})
+                          (fill-rect surface (new Rect play-h top freeze-h bottom) {Color Green alpha: .8})
                           (fill-rect surface (new Rect freeze-h top after-h bottom) {Color Orange alpha: .8})
                           (fill-rect surface (new Rect after-h top (- width 3) bottom) {Color Red alpha: .8})
                           (ecase media-kind
