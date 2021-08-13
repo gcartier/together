@@ -954,9 +954,9 @@
   (method protected (reset-media-kind self)
     (let ((media-kind (get-media-kind panel)))
       (when media-kind
-        (set! write-window (if (= media-kind udp-audio) 0. (timestamp->flonum udp-video-process)))
-        (set! late-window (if (= media-kind udp-audio) 0. (timestamp->flonum udp-video-late)))
-        (set! giveup-window (if (= media-kind udp-audio) (timestamp->flonum udp-audio-giveup) (timestamp->flonum udp-video-giveup))))))
+        (set! write-window (timestamp->flonum (if (= media-kind udp-audio) udp-audio-process udp-video-process)))
+        (set! late-window (timestamp->flonum (if (= media-kind udp-audio) udp-audio-late udp-video-late)))
+        (set! giveup-window .1 @too-large (timestamp->flonum (if (= media-kind udp-audio) udp-audio-giveup udp-video-giveup))))))
   
   
   (method override (ring-span self)
