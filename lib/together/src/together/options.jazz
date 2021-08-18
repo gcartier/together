@@ -15,6 +15,7 @@
 
 
 (import (jazz.component)
+        (jazz.graphic)
         (jazz.markup)
         (jazz.screen)
         (jazz.stream)
@@ -27,7 +28,9 @@
         (world.client.tier)
         (world.context)
         (world.interface.frame)
+        (world.interface.mainbar)
         (world.interface.options)
+        (world.profile)
         (world.settings)
         (world.video))
 
@@ -116,10 +119,12 @@
       (<caption~>                               title: "Video Options")
       (<content~>                                                      layout-type: center
         (<View>                                                        size: {Dimension 390 134}
-          (<Option-Label>                       title: "Camera"        position: {Point 0 1})
-          (<Combo-Option>                                              position: {Point 140 0} size: {Dimension 250 19} option: camera)
-          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 91} visible?: #f)
-          (<Boolean-Option> name: retina-option                        position: {Point 0 90} size: {Dimension 250 19} visible?: #f option: retina)))))
+          (<Option-Label>                       title: "Quality"       position: {Point 0 1})
+          (<Combo-Option>                                              position: {Point 140 0} size: {Dimension 250 19} option: quality)
+          (<Option-Label>                       title: "Camera"        position: {Point 0 51})
+          (<Combo-Option>                                              position: {Point 140 50} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 101} visible?: #f)
+          (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)))))
   
   
   (method override (install self rest)
@@ -140,6 +145,18 @@
   
   (method override (read-option self option)
     (case option
+      ((quality)
+       (let ((profile-list (case upper-base-profile
+                             ((full) '(full high standard medium low))
+                             ((high) '(high standard medium low))
+                             ((standard) '(standard medium low))
+                             ((medium) '(medium low))
+                             ((low) '(low)))))
+         (let ((choices (map (lambda (profile)
+                               (list profile (capitalize (symbol->string profile))))
+                             profile-list))
+               (choice user-base-profile))
+           (values choices choice))))
       ((camera)
        (with-camera-devices
          (lambda (devices)
@@ -160,9 +177,27 @@
   
   (method override (write-option self option value title)
     (case option
+      ((quality)
+       (set-user-base-profile value)
+       (effective-base-profile-update)
+       (update-profile-label))
       ((camera)
        (update-camera-identifier (current-client) title value))
       ((retina)
        (set-setting options-settings 'world.retina? value)
        (save-content options-settings)
-       (need-restart))))))
+       (need-restart)))))
+
+
+(definition protected (update-profile-label)
+  (define (update-label title color)
+    (let ((label (child mainbar 'profile)))
+      (set-title label title)
+      (set-color label color)))
+  
+  (case user-base-profile
+    ((full)     (update-label "Full"     {Color Pastel-Purple}))
+    ((high)     (update-label "High"     {Color Pastel-Blue}))
+    ((standard) (update-label "Standard" {Color Pastel-Green}))
+    ((medium)   (update-label "Medium"   {Color Pastel-Yellow}))
+    ((low)      (update-label "Low"      {Color Pastel-Orange})))))

@@ -1733,7 +1733,7 @@
         (new Kind-Label name: 'admin-label parent: interface title: "Admin" location: '(center 144) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
         (new Admin-Panel name: 'admin parent: interface location: '(center 180) proportion: '((bounds -500) (bounds -380)) layout-type: 'fill visible?: #f)
         (initial-banner (locate (child interface 'admin) '(console text)) "Together server"))
-      (update-profile (child mainbar 'profile))))
+      (update-profile-label)))
   
   
   (method (uninstall-zone self)
@@ -4516,48 +4516,6 @@
   (method override (mouse-up self evt)
     (let ((together (current-together)))
       (update-message-recipient together (list 'group (get-circle-name together))))))
-
-
-;;;
-;;;; Profile-Label
-;;;
-
-
-(definition change-profile-reversed?
-  #t)
-
-
-(class Profile-Label extends Label-View
-  
-  
-  (method override (mouse-up self evt)
-    (let ((client (current-client)))
-      (cond ((and change-profile-reversed? (eq? user-base-profile upper-base-profile))
-             (set! change-profile-reversed? #f))
-            ((and (not change-profile-reversed?) (eq? user-base-profile 'low))
-             (set! change-profile-reversed? #t)))
-      (let ((profile-list (case upper-base-profile
-                            ((full) '(full high standard medium low))
-                            ((high) '(high standard medium low))
-                            ((standard) '(standard medium low))
-                            ((medium) '(medium low))
-                            ((low) '(low)))))
-        (set-user-base-profile (or (cycle-element profile-list user-base-profile cycle?: #f reversed?: change-profile-reversed?) user-base-profile))
-        (effective-base-profile-update)
-        (update-profile self)))))
-
-
-(definition protected (update-profile label)
-  (define (update-label title color)
-    (set-title label title)
-    (set-color label color))
-  
-  (case user-base-profile
-    ((full)     (update-label "Full"     {Color Pastel-Purple}))
-    ((high)     (update-label "High"     {Color Pastel-Blue}))
-    ((standard) (update-label "Standard" {Color Pastel-Green}))
-    ((medium)   (update-label "Medium"   {Color Pastel-Yellow}))
-    ((low)      (update-label "Low"      {Color Pastel-Orange}))))
 
 
 ;;;
