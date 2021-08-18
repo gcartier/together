@@ -18,6 +18,7 @@
         (jazz.graphic)
         (jazz.markup)
         (jazz.screen)
+        (jazz.settings)
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
         (jazz.tree)
@@ -146,7 +147,7 @@
   (method override (read-option self option)
     (case option
       ((quality)
-       (let ((profile-list (case upper-base-profile
+       (let ((profile-list (case (find-setting 'caps.profile.base)
                              ((full) '(full high standard medium low))
                              ((high) '(high standard medium low))
                              ((standard) '(standard medium low))
@@ -178,6 +179,8 @@
   (method override (write-option self option value title)
     (case option
       ((quality)
+       (set-setting options-settings 'world.base-profile value)
+       (save-content options-settings)
        (set-user-base-profile value)
        (effective-base-profile-update)
        (update-profile-label))
