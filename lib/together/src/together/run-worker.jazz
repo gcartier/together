@@ -15,6 +15,8 @@
 
 
 (import (jazz.io)
+        (jazz.presence)
+        (jazz.presence.transmission)
         (world)
         (world.build)
         (together)
@@ -39,6 +41,19 @@
   (setup-presence))
 
 
+(definition (prepare-presence)
+  ;; be robust to master crashing
+  (set-presence-process-handler
+    (lambda (proc connection)
+      (handle-exception-filter
+        connection-exception?
+        (lambda (exc)
+          (exit 1))
+        (lambda ()
+          (proc connection))))
+    purpose: 'working))
+
+
 (definition protected (prepare-settings)
   (load-unit 'world.settings)
   (when start-tier-listener
@@ -49,6 +64,7 @@
 
 (definition (run-worker descriptor)
   (prepare-worker)
+  (prepare-presence)
   (prepare-settings)
   (load-unit 'together.boot-worker)
   (boot-process))
