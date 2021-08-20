@@ -187,10 +187,6 @@
   (world-setting 'together.edited-script #f))
 
 
-(definition protected show-dropped?
-  (world-setting 'together.show-dropped? #f))
-
-
 (definition protected show-debug?
   #f)
 
@@ -2557,19 +2553,11 @@
     (when (client?)
     (let ((client (current-client)))
       (let ((udp-client (get-udp-client client)))
-        (define (outgoing-dropped)
-          (let ((dropped (get-outgoing-dropped (get-statistics udp-client))))
-            (format "{a} (outgoing)" dropped)))
-        
         (define (outgoing-drop)
           (let ((drop (get-outgoing-drop (get-statistics udp-client))))
             (if drop
                 (format "{r precision: 1}% (outgoing)" drop)
               "N/A")))
-        
-        (define (incoming-dropped)
-          (let ((dropped (get-incoming-dropped (get-statistics udp-client))))
-            (format "{a} (incoming)" dropped)))
         
         (define (incoming-drop)
           (let ((drop (get-incoming-drop (get-statistics udp-client))))
@@ -2659,7 +2647,7 @@
                   (if (not bitrate)
                       (draw (format "Upload: ({r precision: 1}%)" (* (get-multiplier throttle) 100.)) {Color World-Red})
                     (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1024.) (* (get-multiplier throttle) 100.)) {Color World-Red})))
-                (draw (format "Drop: {a} {a}" (if show-dropped? (outgoing-dropped) (outgoing-drop)) (if show-dropped? (incoming-dropped) (incoming-drop))) {Color World-Red})
+                (draw (format "Drop: {a} {a}" (outgoing-drop) (incoming-drop)) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
                 (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
                 (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red}))
