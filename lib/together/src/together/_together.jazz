@@ -59,13 +59,13 @@
 (definition protected (determine-documents-root)
   (cond-expand
     (mac
-     (cond-expand (prod   '(Home "Documents" "Together" "prod"))
-                  (stage  '(Home "Documents" "Together" "stage"))
-                  (stable '(Home "Documents" "Together" "stable"))
-                  (triage '(Home "Documents" "Together" "triage"))
-                  (test   '(Home "Documents" "Together" "test"))
-                  (trial  '(Home "Documents" "Together" "trial"))
-                  (else   '(Home "Documents" "Together" "devel"))))
+     (cond-expand (prod   '(Home "Together" "prod"))
+                  (stage  '(Home "Together" "stage"))
+                  (stable '(Home "Together" "stable"))
+                  (triage '(Home "Together" "triage"))
+                  (test   '(Home "Together" "test"))
+                  (trial  '(Home "Together" "trial"))
+                  (else   '(Home "Together" "devel"))))
     (windows
      (let ((dir (get-special-folder CSIDL_PERSONAL)))
        (cond-expand (prod   (list dir "Together" "prod"))
