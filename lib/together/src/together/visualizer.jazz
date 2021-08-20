@@ -300,7 +300,7 @@
                                           (write-media-dts data nanodts)
                                           (write-media-pts data nanopts)
                                           (write-media-duration data nanoduration)
-                                          (write-media-flags data flags)
+                                          (write-media-flags data (if (or (= flags -1) (= flags 123456)) 0 flags))
                                           (write-media-resent data 0)
                                           data)))))
                           (table-set! (if (= kind udp-audio)
