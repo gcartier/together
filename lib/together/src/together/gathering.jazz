@@ -2553,29 +2553,36 @@
     (when (client?)
     (let ((client (current-client)))
       (let ((udp-client (get-udp-client client)))
-        (define (outgoing-drop)
-          (let ((drop (get-outgoing-drop (get-statistics udp-client))))
+        (define (upload-drop)
+          (let ((drop (get-upload-drop (get-statistics udp-client))))
             (if drop
-                (format "{r precision: 1}% (outgoing)" drop)
+                (format "{r precision: 1}% (upload)" drop)
               "N/A")))
         
-        (define (incoming-drop)
-          (let ((drop (get-incoming-drop (get-statistics udp-client))))
+        (define (download-drop)
+          (let ((drop (get-download-drop (get-statistics udp-client))))
             (if drop
-                (format "{r precision: 1}% (incoming)" drop)
+                (format "{r precision: 1}% (download)" drop)
               "N/A")))
         
-        (define (send-rate)
-          (let ((rate (get-last-send-rate (get-statistics udp-client))))
+        (define (upload-rate)
+          (let ((rate (get-last-upload-rate (get-statistics udp-client))))
             (if (and rate (/= rate -1.))
                 (format "{r precision: 1}Mbps (upload)" (bytes->mbps rate))
               "N/A")))
         
-        (define (receive-rate)
-          (let ((rate (get-last-receive-rate (get-statistics udp-client))))
+        (define (download-rate)
+          (let ((rate (get-last-download-rate (get-statistics udp-client))))
             (if (and rate (/= rate -1.))
                 (format "{r precision: 1}Mbps (download)" (bytes->mbps rate))
               "N/A")))
+        
+        (define (throttle-rate)
+          (let ((throttle (get-throttle udp-client))
+                (bitrate (camera-bitrate client)))
+            (if (not bitrate)
+                (format "({r precision: 1}%)" (* (get-multiplier throttle) 100.))
+              (format "{r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1024.) (* (get-multiplier throttle) 100.)))))
         
         (define (present-chronology-duration)
           (let ((chronology (current-chronology)))
@@ -2591,6 +2598,7 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
+        @debug
         (define (udp-receive-count)
           (let ((channels (table-values (get-receive-channels udp-client))))
             ;; quick solution use first audio channel
@@ -2600,6 +2608,7 @@
                 (let ((channel (car audio-channels)))
                   (get-count (get-process-ring channel)))))))
         
+        @debug
         (define (udp-send-count)
           (let ((channels (table-values (get-send-channels udp-client))))
             (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
@@ -2642,14 +2651,11 @@
                   (when info
                     (bind (allowed dropped) info
                       (draw (format "Probe: {a} allowed, {a} dropped" allowed dropped) {Color World-Red}))))
-                (let ((throttle (get-throttle udp-client))
-                      (bitrate (camera-bitrate client)))
-                  (if (not bitrate)
-                      (draw (format "Upload: ({r precision: 1}%)" (* (get-multiplier throttle) 100.)) {Color World-Red})
-                    (draw (format "Upload: {r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1024.) (* (get-multiplier throttle) 100.)) {Color World-Red})))
-                (draw (format "Drop: {a} {a}" (outgoing-drop) (incoming-drop)) {Color World-Red})
-                (draw (format "Traffic: {a} {a}" (send-rate) (receive-rate)) {Color World-Red})
+                (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
+                (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
+                (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
                 (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
+                @debug
                 (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red}))
               (with-bin-mutex
                 (lambda ()
