@@ -2648,7 +2648,7 @@
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
               (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
               (unless (eq? show-media 'energy)
-                ;; to debug camera jamming
+                @debug-camera-jamming
                 (let ((info (camera-probe client)))
                   (when info
                     (bind (allowed dropped) info
