@@ -3489,7 +3489,7 @@
   
   (method (profile-changed self profile)
     (let ((profile-title (capitalize (->string profile))))
-      (display-message (current-world) (format "Lowering video quality to {a}" profile-title) duration: 2.5))
+      (display-message (current-world) (format "Lowering video quality to {a}" profile-title) duration: 3.))
     (update-profile-label))
   
   
