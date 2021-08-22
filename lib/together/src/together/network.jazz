@@ -246,7 +246,9 @@
           (received-ack throttle sent sequence
             (lambda (adjustment)
               (record-rate adjustment)
-              (display-rate)))))
+              (display-rate))
+            (lambda ()
+              ))))
       #f)
     
     (define (display-rate)

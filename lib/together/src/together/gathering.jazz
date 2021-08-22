@@ -2380,6 +2380,7 @@
     (let ((interface (current-interface))
           (world (current-world))
           (tier (current-client))
+          (udp (current-udp))
           (audio (current-audio))
           (video (current-video)))
       (set-server-entered-hook tier (~ server-entered self))
@@ -2394,6 +2395,7 @@
       (set-group-leave-hook tier (~ group-leave self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
+      (set-profile-changed-hook udp (~ profile-changed self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
       (set! draw-hook (~ draw-debug self))
@@ -3478,6 +3480,17 @@
     (if (is? space Gathering-Space)
         '(-10 -146)
       '(-10 -200)))
+  
+  
+  ;;;
+  ;;;; Profile
+  ;;;
+  
+  
+  (method (profile-changed self profile)
+    (let ((profile-title (capitalize (->string profile))))
+      (display-message (current-world) (format "Lowering video quality to {a}" profile-title) duration: 2.5))
+    (update-profile-label))
   
   
   ;;;
