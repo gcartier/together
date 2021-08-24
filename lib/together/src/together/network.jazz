@@ -26,6 +26,7 @@
         (world.context)
         (world.event)
         (world.evolution)
+        (world.format)
         (world.interface.evolution)
         (world.interface.timeline)
         (world.profiling)

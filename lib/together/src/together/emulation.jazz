@@ -23,6 +23,7 @@
         (world.event)
         (world.evolution)
         (world.client.udp)
+        (world.format)
         (world.record (phase syntax))
         (world.server.udp)
         (world.settings)
