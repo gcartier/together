@@ -2555,14 +2555,15 @@
     (when (client?)
     (let ((client (current-client)))
       (let ((udp-client (get-udp-client client)))
-        (define (voice-count)
-          (let ((count 0))
-            (iterate-table (get-receive-channels (current-udp))
-              (lambda (no channel)
-                (let ((ring (get-process-ring channel)))
-                  (when (is? ring UDP-Audio-Ring)
-                    (increase! count (get-voice-count ring))))))
-            count))
+        (define (voice)
+          (continuation-capture
+            (lambda (return)
+              (iterate-table (get-receive-channels (current-udp))
+                (lambda (no channel)
+                  (let ((ring (get-process-ring channel)))
+                    (when (is? ring UDP-Audio-Ring)
+                      (continuation-return return (format "{r precision: 1}%" (voice-percentage ring)))))))
+              "N/A")))
         
         (define (upload-drop)
           (let ((drop (get-upload-drop (get-statistics udp-client))))
@@ -2662,7 +2663,7 @@
                   (when info
                     (bind (allowed dropped) info
                       (draw (format "Probe: {a} allowed, {a} dropped" allowed dropped) {Color World-Red}))))
-                (draw (format "Voice: {a}" (voice-count)) {Color World-Red})
+                (draw (format "Voice: {a}" (voice)) {Color World-Red})
                 (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
