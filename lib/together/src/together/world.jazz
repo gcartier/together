@@ -14,11 +14,11 @@
 (module together.world jazz
 
 
-(import (world)
+(import (gaea.geometry)
+        (world)
         (world.autoload)
         (world.context)
         (world.foreign)
-        (gaea.geometry)
         (world.interface)
         (world.interface.sheet)
         (world.sound)

@@ -44,6 +44,9 @@
         (jazz.view)
         (jazz.window)
         (time)
+        @bazoo
+        (gaea.dye)
+        (gaea.geometry)
         (world)
         (world.asset)
         (world.audio)
@@ -59,11 +62,8 @@
         (world.client.udp)
         (world.configure)
         (world.context)
-        @bazoo
-        (gaea.dye)
         (world.evolution)
         (world.gc)
-        (gaea.geometry)
         (world.history)
         (world.interface)
         (world.interface.actions)
