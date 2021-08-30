@@ -217,6 +217,7 @@
         (system-message (string-append "Together is already running")
                         type: 'message
                         title: "Together")
+        (load-feedback-done)
         #t)
     #f))
 
