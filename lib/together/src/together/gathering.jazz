@@ -4321,7 +4321,9 @@
                  (let ((channel (locate-screen-channel stream)))
                    (let ((info (require-caps channel)))
                      (if (not info)
-                         (display-error world "Unable to share screen")
+                         (begin
+                           (close-send-stream udp stream)
+                           (display-error world "Unable to share screen"))
                        (receive (caps resolution) info
                          (channel-init client (get-no channel) caps resolution)
                          (set-send-state channel 'on)
