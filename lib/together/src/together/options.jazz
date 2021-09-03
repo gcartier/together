@@ -147,7 +147,7 @@
   (method override (read-option self option)
     (case option
       ((quality)
-       (let ((profile-list (case (find-setting 'caps.profile.base)
+       (let ((profile-list (case (or explicit-base-profile (find-setting 'caps.profile.base))
                              ((full) '(full high standard medium low))
                              ((high) '(high standard medium low))
                              ((standard) '(standard medium low))
