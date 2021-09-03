@@ -2600,25 +2600,6 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
-        @debug
-        (define (udp-receive-count)
-          (let ((channels (table-values (get-receive-channels udp-client))))
-            ;; quick solution use first audio channel
-            (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-              (if (null? audio-channels)
-                  0
-                (let ((channel (car audio-channels)))
-                  (get-count (get-process-ring channel)))))))
-        
-        @debug
-        (define (udp-send-count)
-          (let ((channels (table-values (get-send-channels udp-client))))
-            (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-              (if (null? audio-channels)
-                  0
-                (let ((channel (car audio-channels)))
-                  (get-count (get-retain-ring channel)))))))
-        
         (define (cpu-percentage threads)
           (cond-expand
             (mac
@@ -2656,9 +2637,7 @@
                 (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
-                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})
-                @debug
-                (draw (format "UDP: {a} (send) {a} (receive)" (udp-send-count) (udp-receive-count)) {Color World-Red}))
+                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
               (with-bin-mutex
                 (lambda ()
                   (let ((threads (collect-process-threads)))
