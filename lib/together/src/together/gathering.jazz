@@ -3919,7 +3919,8 @@
   (method (on-toggle-evolution self evt)
     (let ((interface (current-interface))
           (world (current-world))
-          (client (current-client)))
+          (client (current-client))
+          (video (current-video)))
       (toggle-evolution world)
       (let ((panel (child interface 'evolution)))
         (when (get-visible? panel)
@@ -3927,14 +3928,15 @@
             (set-lite? panel lite?)
             (set-span panel (world-setting 'world.timeline-span (if lite? 10. 30.)))
             (set-events-mode panel 'all)
-            (let ((udp-client (get-udp-client client)))
-              (let ((channels (table-values (get-receive-channels udp-client))))
-                ;; quick solution use first audio channel
-                (let ((audio-channels (collect-if (lambda (channel) (= (get-media-kind channel) udp-audio)) channels)))
-                  (when (not-null? audio-channels)
-                    (let ((origin (get-origin (get-stream (car audio-channels)))))
-                      (set-origin panel origin)
-                      (invalidate-view panel)))))))))))
+            (let ((video-output (effective-focused-output video)))
+              (when video-output
+                (let ((video-channel (get-channel video-output)))
+                  (when (is? video-channel UDP-Receive-Channel)
+                    (let ((audio-channel (locate-stream-audio-channel (get-stream video-channel))))
+                      (when audio-channel
+                        (let ((origin (get-origin (get-stream audio-channel))))
+                          (set-origin panel origin)
+                          (invalidate-view panel)))))))))))))
   
   
   (method (on-toggle-visualizer self evt)
