@@ -3673,7 +3673,7 @@
     
     (define (cycle-focus reversed?)
       (let ((video (current-video)))
-        (let ((focused (get-focused-output video))
+        (let ((focused (effective-focused-output video))
               (outputs (get-ordered-outputs video)))
           (when focused
             (let ((next (cycle-element outputs focused reversed?: reversed?)))
