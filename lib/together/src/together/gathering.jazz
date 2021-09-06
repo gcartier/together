@@ -3936,6 +3936,7 @@
                       (when audio-channel
                         (let ((origin (get-origin (get-stream audio-channel))))
                           (set-origin panel origin)
+                          (set-channel panel (get-no audio-channel))
                           (invalidate-view panel)))))))))))))
   
   
