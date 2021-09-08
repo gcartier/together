@@ -173,9 +173,6 @@
   (world-setting 'together.navigate-shortcuts? #f))
 
 
-(definition preprocess-prime?
-  (world-setting 'together.preprocess-prime? #t))
-
 (definition preprocess-denoise?
   (world-setting 'together.preprocess-denoise? #f))
 
@@ -295,6 +292,7 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
+        (<!>                 name: preprocess-full            active?: #t)
         (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
@@ -1503,6 +1501,7 @@
         (<!>                 name: seek-forward               active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
+        (<!>                 name: preprocess-full            active?: #t)
         (<!>                 name: toggle-streams             active?: #t)
         (<!>                 name: add-image                  active?: #t)
         (<!>                 name: add-video                  active?: #t)
@@ -4249,6 +4248,15 @@
   
   
   (method (on-preprocess-streams self evt)
+    (preprocess-streams self #t))
+  
+  
+  (method (on-preprocess-full self evt)
+    (preprocess-streams self #t)
+    (preprocess-streams self #f))
+  
+  
+  (method (preprocess-streams self prime?)
     (let ((thread
             (new-thread
               (lambda ()
@@ -4257,9 +4265,8 @@
                     (let ((world (current-world)))
                       (working world
                         (lambda ()
-                          (define (feedback stage file suffix)
-                            (when (eq? stage 'start)
-                              (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) #f)))
+                          (define (feedback stage file suffix percentage)
+                            (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) percentage))
                           
                           (catch (Preprocess-Unsupported-Error err
                                    (display-error world (get-message err)))
@@ -4271,7 +4278,7 @@
                                                      dir
                                                    stream-directory))
                                              stream-directory)))
-                                  (preprocess-directory dir prime?: preprocess-prime? denoise?: preprocess-denoise? voice?: preprocess-voice? feedback: feedback)))))))))))
+                                  (preprocess-directory dir prime?: prime? denoise?: preprocess-denoise? voice?: preprocess-voice? feedback: feedback)))))))))))
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
