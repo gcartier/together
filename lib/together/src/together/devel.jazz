@@ -196,8 +196,6 @@
         (world.user)
         (world.video)
         (world.view)
-        @needs-work
-        (world.w3d)
         (world.water)
         (world.window)
         (world.work)
