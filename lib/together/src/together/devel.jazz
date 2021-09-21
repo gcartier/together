@@ -153,7 +153,6 @@
         (world.object)
         (world.opengl)
         (world.parts)
-        (world.planet)
         (world.player)
         (world.polygon)
         (world.procedural)
