@@ -2797,6 +2797,7 @@
                                               ((equal? class "GstAudioRate")
                                                (draw-property "add" (g_object_get_uint64 elem "add"))
                                                (draw-property "drop" (g_object_get_uint64 elem "drop")))
+                                              @gstreamer-1.18
                                               ((gst_is_base_sink elem)
                                                (let ((stats (gst_base_sink_get_stats elem)))
                                                  (draw-property "rate" (gst_structure_get_double stats "average-rate"))
