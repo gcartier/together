@@ -285,7 +285,6 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
-        (<!>                 name: preprocess-full            active?: #t)
         (<!>                 name: capture-screen             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
@@ -1493,8 +1492,6 @@
         (<!>                 name: seek-backward              active?: #t)
         (<!>                 name: seek-forward               active?: #t))
       (<together-share!>
-        (<!>                 name: preprocess-streams         active?: #t)
-        (<!>                 name: preprocess-full            active?: #t)
         (<!>                 name: toggle-streams             active?: #t)
         (<!>                 name: add-image                  active?: #t)
         (<!>                 name: add-video                  active?: #t)
@@ -4242,10 +4239,6 @@
   
   
   (method (on-preprocess-streams self evt)
-    (preprocess-streams self #t))
-  
-  
-  (method (on-preprocess-full self evt)
     (preprocess-streams self #t)
     (preprocess-streams self #f))
   
