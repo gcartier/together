@@ -2618,11 +2618,6 @@
               (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
               (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
               (unless (eq? show-media 'energy)
-                @debug-camera-jamming
-                (let ((info (camera-probe client)))
-                  (when info
-                    (bind (allowed dropped) info
-                      (draw (format "Probe: {a} allowed, {a} dropped" allowed dropped) {Color World-Red}))))
                 (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
                 (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
                 (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
