@@ -173,13 +173,6 @@
   (world-setting 'together.navigate-shortcuts? #f))
 
 
-(definition preprocess-denoise?
-  (world-setting 'together.preprocess-denoise? #f))
-
-(definition preprocess-voice?
-  (world-setting 'together.preprocess-voice? #f))
-
-
 (definition edited-script
   (world-setting 'together.edited-script #f))
 

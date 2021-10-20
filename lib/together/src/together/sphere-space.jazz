@@ -23,14 +23,25 @@
         (world)
         (world.audio)
         (world.client.udp)
+        (world.configure)
         (world.context)
+        (world.preprocess)
+        (world.settings)
         (world.stream)
         (world.streamer)
         (world.streaming)
+        (world.task)
         (world.udp)
         (world.video)
         (together)
         (together.space))
+
+
+(definition protected preprocess-denoise?
+  (world-setting 'together.preprocess-denoise? #f))
+
+(definition protected preprocess-voice?
+  (world-setting 'together.preprocess-voice? #f))
 
 
 (class Sphere-Space extends Together-Space
@@ -138,48 +149,102 @@
             (tree (streams-tree self)))
         (let ((row (get-selected-row tree)))
           (when row
-            (let ((data (get-user-data row)))
-              (when data
-                (bind (kind base location profiles) data
-                  (define (update-cell streaming)
-                    (let ((title (streaming-title self streaming base profiles))
-                          (color (streaming-color self streaming))
-                          (line (row->line tree row))
-                          (col 0))
-                      (let ((cell (new Cell line col)))
-                        (let ((data (get-cell-data tree cell)))
-                          (set-title data title)
-                          (set-color data color))
-                        (invalidate-cell tree cell))))
-                  
-                  (let ((streaming (find-streaming udp-client location)))
-                    (if streaming
-                        (begin
-                          (close-send-stream udp-client streaming)
-                          (update-cell #f))
-                      (case kind
-                        ((text)
-                         (let ((name (unicode->ascii (filename-name location))))
-                           (let ((stream (stream-text location name)))
-                             (update-cell stream)
-                             (delay-stream stream))))
-                        ((image)
-                         (let ((name (unicode->ascii (filename-name location))))
-                           (let ((stream (stream-image location name)))
-                             (update-cell stream)
-                             (delay-stream stream))))
-                        ((audio)
-                         (let ((name (unicode->ascii (filename-name location))))
-                           (let ((stream (stream-audio location name)))
-                             (update-cell stream)
-                             (delay-stream stream))))
-                        ((video)
-                         (let ((name (unicode->ascii (filename-name location)))
-                               (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
-                           (let ((stream (stream-video location name audio?: audio-file?)))
-                             (update-cell stream)
-                             (delay-stream stream)))))))))))))))
+            (let (again)
+              (let ((data (get-user-data row)))
+                (when data
+                  (bind (kind base location profiles) data
+                    (define (update-cell streaming)
+                      (let ((title (streaming-title streaming kind base profiles))
+                            (color (streaming-color streaming kind))
+                            (line (row->line tree row))
+                            (col 0))
+                        (let ((cell (new Cell line col)))
+                          (let ((data (get-cell-data tree cell)))
+                            (set-title data title)
+                            (set-color data color))
+                          (invalidate-cell tree cell))))
+                    
+                    (let ((streaming (find-streaming udp-client location)))
+                      (if streaming
+                          (begin
+                            (close-send-stream udp-client streaming)
+                            (update-cell #f))
+                        (case kind
+                          ((text)
+                           (let ((name (unicode->ascii (filename-name location))))
+                             (let ((stream (stream-text location name)))
+                               (update-cell stream)
+                               (delay-stream stream))))
+                          ((image)
+                           (let ((name (unicode->ascii (filename-name location))))
+                             (let ((stream (stream-image location name)))
+                               (update-cell stream)
+                               (delay-stream stream))))
+                          ((audio)
+                           (let ((name (unicode->ascii (filename-name location))))
+                             (let ((stream (stream-audio location name)))
+                               (update-cell stream)
+                               (delay-stream stream))))
+                          ((video)
+                           (let ((name (unicode->ascii (filename-name location)))
+                                 (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
+                             (let ((stream (stream-video location name audio?: audio-file?)))
+                               (update-cell stream)
+                               (delay-stream stream))))
+                          ((preprocess)
+                           (let ((file (new-file {Directory Documents} (tokenise-filename location))))
+                             (let ((preprocess-thread (preprocess-stream self file)))
+                               (let ((stream-thread
+                                       (new-thread
+                                         (lambda ()
+                                           (when (thread-join! preprocess-thread)
+                                             (with-task-mutex
+                                               (lambda ()
+                                                 (let ((audio-extensions (streaming-audio-extensions))
+                                                       (video-profiles (streaming-video-profiles))
+                                                       (files (collect-files (get-parent file)
+                                                                (lambda (file)
+                                                                  (filename=? (get-base file) base)))))
+                                                   (receive (kind location profiles title color) (streaming-information udp-client base files audio-extensions video-profiles preprocess-extensions)
+                                                     (let ((title (streaming-title streaming kind base profiles))
+                                                           (color (streaming-color streaming kind))
+                                                           (line (row->line tree row))
+                                                           (col 0))
+                                                       (set-user-data row (and kind (list kind base location profiles)))
+                                                       (let ((cell (new Cell line col)))
+                                                         (let ((data (get-cell-data tree cell)))
+                                                           (set-title data title)
+                                                           (set-color data color))
+                                                         (invalidate-cell tree cell)))
+                                                     (if (memq? kind '(audio video))
+                                                         (again)
+                                                       (display-error (current-world) (format "Unable to stream {a}" (filename-name location)))))))))))))
+                                 (thread-base-priority-set! stream-thread background-priority)
+                                 (thread-start! stream-thread)))))))))))))))))
   
   
   (method package (streams-label-action self)
-    )))
+    )
+  
+  
+  (method (preprocess-stream self file)
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (with-task-mutex
+                  (lambda ()
+                    (let ((world (current-world)))
+                      (working world
+                        (lambda ()
+                          (define (feedback stage file suffix percentage)
+                            (working-progress world (format "Preprocessing {a} ({a})" (get-name file) suffix) percentage))
+                          
+                          (catch (Preprocess-Unsupported-Error err
+                                   (display-error world (get-message err))
+                                   #f)
+                            (preprocess-file file prime?: #t feedback: feedback)
+                            #t)))))))
+              'preprocess)))
+      (thread-base-priority-set! thread background-priority)
+      (thread-start! thread)
+      thread))))
