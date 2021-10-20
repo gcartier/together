@@ -100,49 +100,18 @@
           (lambda ()
             (let ((audio-extensions (streaming-audio-extensions))
                   (video-profiles (streaming-video-profiles)))
-              (define (determine-kind files)
-                (let ((count (length files)))
-                  (cond ((and (= count 1)
-                              (member? (get-extension (car files)) '("jpg" "jpeg" "png") test: extension=?))
-                         (values 'image #f))
-                        ((and (= count 1)
-                              (member? (get-extension (car files)) '("txt") test: extension=?))
-                         (values 'text #f))
-                        (else
-                         (let ((audio? (some? (lambda (file)
-                                                (member? (get-extension file) audio-extensions test: extension=?))
-                                              files))
-                               (video (collect (lambda (file)
-                                                 (find video-profiles (get-extension file) key: get-extension test: extension=? return: 'item))
-                                               files)))
-                           (cond ((and audio? (not-null? video))
-                                  (values 'video video))
-                                 (audio?
-                                  (values 'audio #f))
-                                 ((not-null? video)
-                                  (values 'video video))
-                                 (else
-                                  (values #f #f))))))))
-              
               (define (iterate dir (father #f))
                 (let ((files (collect-files dir
                                (lambda (file)
                                  (not (member? (get-name file) '(".DS_Store") test: filename=?))))))
                   (for-each (lambda (partition)
                               (bind (base . files) partition
-                                (receive (kind profiles) (determine-kind files)
+                                (receive (kind location profiles title color) (streaming-information udp-client base files audio-extensions video-profiles preprocess-extensions)
                                   (when kind
-                                    (let ((location (and kind (join (subpath {Directory Documents} (car files)) "/"))))
-                                      (let ((location (if (eq? kind 'image)
-                                                          location
-                                                        (filename-spine location))))
-                                        (let ((streaming (find-streaming udp-client location)))
-                                          (let ((title (streaming-title self streaming base profiles))
-                                                (color (streaming-color self streaming)))
-                                            (add-row tree
-                                                     father: father
-                                                     children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                                     user-data: (and kind (list kind base location profiles)))))))))))
+                                    (add-row tree
+                                             father: father
+                                             children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                             user-data: (and kind (list kind base location profiles)))))))
                             (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
                   (lambda (subdir)
@@ -157,19 +126,6 @@
                   recursive?: #f))
               
               (iterate-stream-directories iterate)))))))
-  
-  
-  (method (streaming-title self streaming base profiles)
-    (let ((title (string-append base (streaming-level-suffix profiles))))
-      (if streaming
-          (format "{a} (playing)" title)
-        title)))
-  
-  
-  (method (streaming-color self streaming)
-    (if streaming
-        {Color World-Blue}
-      {Color White}))
   
   
   (method package (streams-action self)
