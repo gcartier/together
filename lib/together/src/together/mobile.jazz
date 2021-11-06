@@ -18,13 +18,13 @@
 
 
 (definition server-host
-  "localhost"
-  ;"togethersphere.com"
+  ;"localhost"
+  "togethersphere.com"
   )
 
 (definition server-service
-  50950
-  ;50050
+  50050
+  ;50950
   )
 
 
