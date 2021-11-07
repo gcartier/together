@@ -36,20 +36,20 @@
   "A06250E4-B0D2-4119-90AB-E4B84D2FFCF3")
 
 
-(definition public p
+(definition public port
   #f)
 
 
 (definition public (ws obj)
-  (write-string validation-code p)
-  (print-json obj p)
-  (force-output p))
+  (write-string validation-code port)
+  (print-json obj port)
+  (force-output port))
 
 
 (definition public (rs)
   (let ((output (open-output-string)))
     (let (loop)
-      (let ((c (read-char p)))
+      (let ((c (read-char port)))
         (if (eqv? c #\|)
             (call-with-input-string (list init: (get-output-string output) readtable: json-readtable)
               read-json)
@@ -58,11 +58,11 @@
 
 
 (definition public (c)
-  (set! p (open-tcp-client (list server-address: server-host port-number: server-service)))
-  (input-port-readtable-set! p json-readtable)
+  (set! port (open-tcp-client (list server-address: server-host port-number: server-service)))
+  (input-port-readtable-set! port json-readtable)
   (ws pixel-key)
   (terminal (rs))
-  (process p)
+  (process)
   (unspecified))
 
 
@@ -70,7 +70,7 @@
   #f)
 
 
-(definition (process p)
+(definition (process)
   (let ((thread
           (new-thread
             (lambda ()
