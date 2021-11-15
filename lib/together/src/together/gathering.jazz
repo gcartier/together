@@ -2854,7 +2854,7 @@
             (for-each add-player players))
           
           (define (add-player player)
-            (bind (name id no asleep? disconnected? roaming? zone mode) player
+            (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
               (if (eq? zone 'start)
                   (set! observers (cons player observers))
                 (add zone (cons 'player player)))))
@@ -2880,7 +2880,7 @@
                                  (add zone (cons 'group group)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
-                                             (bind (name id no asleep? disconnected? roaming? zone mode) player
+                                             (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
                                                (when (or (eq? mode 'observer)
                                                          (not (equal? zone group-zone)))
                                                  (add-player player))))
@@ -2904,12 +2904,13 @@
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
-                (bind (player id no asleep? disconnected? roaming? zone mode) info
-                  (register-player-info player mode (and party (map car party)) asleep? disconnected? roaming?)
+                (bind (player id no asleep? disconnected? roaming? zone mode mobile?) info
+                  (register-player-info player mode (and party (map car party)) asleep? disconnected? roaming? mobile?)
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
+                                         (mobile? (format "{a} (mobile)" player-title))
                                          (else player-title)))
                             (font {Font Label-User})
                             (color (cond ((or disconnected? asleep? (and roaming? group))
@@ -4421,8 +4422,8 @@
 (definition player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name mode party asleep? disconnected? roaming?)
-  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected? roaming?)))
+(definition package (register-player-info name mode party asleep? disconnected? roaming? mobile?)
+  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected? roaming? mobile?)))
 
 (definition package (registered-player-info name)
   (table-ref player-infos name #f))
@@ -4440,16 +4441,18 @@
   (slot asleep?       getter generate)
   (slot disconnected? getter generate)
   (slot roaming?      getter generate)
+  (slot mobile?       getter generate)
   
   
-  (method override (initialize self name mode party asleep? disconnected? roaming?)
+  (method override (initialize self name mode party asleep? disconnected? roaming? mobile?)
     (nextmethod self)
     (set! self.name name)
     (set! self.mode mode)
     (set! self.party party)
     (set! self.asleep? asleep?)
     (set! self.disconnected? disconnected?)
-    (set! self.roaming? roaming?))
+    (set! self.roaming? roaming?)
+    (set! self.mobile? mobile?))
   
   
   (method override (print self output readably)
