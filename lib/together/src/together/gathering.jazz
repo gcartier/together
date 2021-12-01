@@ -2913,8 +2913,10 @@
                                          (asleep? (format "{a} (offline)" player-title))
                                          (mobile? (format "{a} (mobile)" player-title))
                                          (else player-title)))
-                            (font {Font Label-User})
-                            (color (cond ((or disconnected? asleep? (and roaming? group))
+                            (font (if (and roaming? group)
+                                      {Font Label-Italic}
+                                    {Font Label-User}))
+                            (color (cond ((or disconnected? asleep?)
                                           {Color Medium-Gray})
                                          ((eq? mode 'player)
                                           player-color)
