@@ -285,7 +285,10 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
-        (<!>                 name: capture-screen             active?: #t))
+        ;; for testing
+        (<!>                 name: toggle-screen-share        active?: #t)
+        (<!>                 name: toggle-view-share          active?: #t)
+        (<!>                 name: capture-view               active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
         (<!>                 name: profile-bandwidth          active?: #t)
@@ -4265,25 +4268,27 @@
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
-      (let ((stream (locate-view-stream)))
-        (cond ((not stream)
-               (let ((stream (stream-view "View")))
-                 (play stream)
-                 (let ((channel (locate-view-channel stream)))
-                   (let ((info (require-caps channel)))
-                     (if (not info)
-                         (begin
-                           (close-send-stream udp stream)
-                           (display-error world "Unable to share view"))
-                       (receive (caps resolution) info
-                         (channel-init client (get-no channel) caps resolution)
-                         (set-send-state channel 'on)
-                         (set-caps channel caps)
-                         (set-resolution channel resolution))
-                       (display-on/off world "View sharing" #t))))))
-              (else
-               (close-send-stream udp stream)
-               (display-on/off world "View sharing" #f))))))
+      (if (not circle-name)
+          (display-error world "You are not in a group")
+        (let ((stream (locate-view-stream)))
+          (cond ((not stream)
+                 (let ((stream (stream-view "View")))
+                   (play stream)
+                   (let ((channel (locate-view-channel stream)))
+                     (let ((info (require-caps channel)))
+                       (if (not info)
+                           (begin
+                             (close-send-stream udp stream)
+                             (display-error world "Unable to share view"))
+                         (receive (caps resolution) info
+                           (channel-init client (get-no channel) caps resolution)
+                           (set-send-state channel 'on)
+                           (set-caps channel caps)
+                           (set-resolution channel resolution))
+                         (display-on/off world "View sharing" #t))))))
+                (else
+                 (close-send-stream udp stream)
+                 (display-on/off world "View sharing" #f)))))))
   
   
   (method (on-toggle-screen-share self evt)
@@ -4294,25 +4299,27 @@
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
-      (let ((stream (locate-screen-stream)))
-        (cond ((not stream)
-               (let ((stream (stream-screen "Screen")))
-                 (play stream)
-                 (let ((channel (locate-screen-channel stream)))
-                   (let ((info (require-caps channel)))
-                     (if (not info)
-                         (begin
-                           (close-send-stream udp stream)
-                           (display-error world "Unable to share screen"))
-                       (receive (caps resolution) info
-                         (channel-init client (get-no channel) caps resolution)
-                         (set-send-state channel 'on)
-                         (set-caps channel caps)
-                         (set-resolution channel resolution))
-                       (display-on/off world "Screen sharing" #t))))))
-              (else
-               (close-send-stream udp stream)
-               (display-on/off world "Screen sharing" #f))))))
+      (if (not circle-name)
+          (display-error world "You are not in a group")
+        (let ((stream (locate-screen-stream)))
+          (cond ((not stream)
+                 (let ((stream (stream-screen "Screen")))
+                   (play stream)
+                   (let ((channel (locate-screen-channel stream)))
+                     (let ((info (require-caps channel)))
+                       (if (not info)
+                           (begin
+                             (close-send-stream udp stream)
+                             (display-error world "Unable to share screen"))
+                         (receive (caps resolution) info
+                           (channel-init client (get-no channel) caps resolution)
+                           (set-send-state channel 'on)
+                           (set-caps channel caps)
+                           (set-resolution channel resolution))
+                         (display-on/off world "Screen sharing" #t))))))
+                (else
+                 (close-send-stream udp stream)
+                 (display-on/off world "Screen sharing" #f)))))))
   
   
   (method (on-capture-view self evt)
