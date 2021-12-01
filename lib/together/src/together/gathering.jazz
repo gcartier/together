@@ -768,7 +768,7 @@
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t))
       (<together-share!>
-        (<!>                 name: capture-screen             active?: #t))
+        (<!>                 name: capture-view               active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -1498,7 +1498,8 @@
         (<!>                 name: add-music                  active?: #t)
         (<!>                 name: remove-stream              active?: #t)
         (<!>                 name: toggle-screen-share        active?: #t)
-        (<!>                 name: capture-screen             active?: #t)))))
+        (<!>                 name: toggle-view-share          active?: #t)
+        (<!>                 name: capture-view               active?: #t)))))
 
 
 (define-trait circle-bindings Bindings
@@ -4256,6 +4257,35 @@
       (thread-start! thread)))
   
   
+  (method (on-toggle-view-share self evt)
+    (toggle-view-share self))
+  
+  
+  (method (toggle-view-share self)
+    (let ((world (current-world))
+          (client (current-client))
+          (udp (current-udp)))
+      (let ((stream (locate-view-stream)))
+        (cond ((not stream)
+               (let ((stream (stream-view "View")))
+                 (play stream)
+                 (let ((channel (locate-view-channel stream)))
+                   (let ((info (require-caps channel)))
+                     (if (not info)
+                         (begin
+                           (close-send-stream udp stream)
+                           (display-error world "Unable to share view"))
+                       (receive (caps resolution) info
+                         (channel-init client (get-no channel) caps resolution)
+                         (set-send-state channel 'on)
+                         (set-caps channel caps)
+                         (set-resolution channel resolution))
+                       (display-on/off world "View sharing" #t))))))
+              (else
+               (close-send-stream udp stream)
+               (display-on/off world "View sharing" #f))))))
+  
+  
   (method (on-toggle-screen-share self evt)
     (toggle-screen-share self))
   
@@ -4285,15 +4315,15 @@
                (display-on/off world "Screen sharing" #f))))))
   
   
-  (method (on-capture-screen self evt)
-    (capture-screen self))
+  (method (on-capture-view self evt)
+    (capture-view self))
   
   
-  (method (capture-screen self)
+  (method (capture-view self)
     (let ((world (current-world)))
       (let ((file (timestamped-file {Directory Documents "screenshots"} "together" "png")))
         (create-directories file)
-        (capture-screen-to-file file)
+        (capture-view-to-file file)
         (display-message world "Screenshot captured"))))
   
   
