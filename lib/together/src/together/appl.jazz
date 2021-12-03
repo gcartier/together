@@ -1211,6 +1211,7 @@
         (<!>                 name: view-roadmap               visible?: #t)
         (<!>                 name: view-help                  visible?: #t)
         (<!>                 name: open-about                 visible?: #t)
+        @wait
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-interface!>
@@ -1284,6 +1285,7 @@
         (<!>                 name: view-roadmap               visible?: #t)
         (<!>                 name: view-help                  visible?: #t)
         (<!>                 name: open-about                 visible?: #t)
+        @wait
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-graphics!>
