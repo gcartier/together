@@ -170,6 +170,10 @@
                  "world/nebula")
              (random-element '("world/calm_sea" "world/dark_sea" "world/nebula"))))))
 
+(definition protected together-skybox?
+  (and (client?)
+       (world-setting 'together.skybox? #t)))
+
 
 ;;;
 ;;;; Exceptions

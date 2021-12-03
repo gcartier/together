@@ -494,8 +494,14 @@
   
   
   (method override (only-skybox? self)
-    (let ((zone (current-zone)))
-      (void? zone)))
+    (if together-skybox?
+        (let ((zone (current-zone)))
+          (void? zone))
+      #f))
+  
+  
+  (method override (draw-world? self)
+    together-skybox?)
   
   
   (method override (draw-message-offset self)
