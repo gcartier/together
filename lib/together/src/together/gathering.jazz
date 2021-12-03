@@ -558,7 +558,7 @@
                   (set-enabled? (child create 'create) enabled?)
                   (set-visible? (child create 'allow-audio-only?) (and flag enabled?))))))
           
-          (unless (get-visible? (child interface 'admin))
+          (when (not (and (admin?) (get-visible? (child interface 'admin))))
             (if loaded?
                 (set-title (child root 'selected-label) "")
               (set-color (child root 'selected-label) (get-selected-color together))
