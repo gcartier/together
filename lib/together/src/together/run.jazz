@@ -72,6 +72,7 @@
 
 
 (definition (register-binaries-properties)
+  @port-to-jas
   ;; libgit2 not yet ported to linux
   (cond-expand
     (linux)
