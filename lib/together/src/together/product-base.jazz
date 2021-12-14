@@ -22,6 +22,9 @@
 ;; dependency inside the build system and also
 ;; because it has yet to be ported to linux
 (definition (repository-digest dir)
+  ;; use some random uuid until ported to jas
+  "3878BC9C-1F52-4347-8FEC-E51CD343484D"
+  @port-to-jas
   (let ((port
           (open-process
             (list
