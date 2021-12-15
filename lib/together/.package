@@ -57,7 +57,6 @@
                                     jazz.editor.commonlisp
                                     jazz.editor.jazz
                                     jazz.fonts
-                                    jazz.git
                                     (cond
                                       ((or mac windows) jiri))
                                     jazz.platform
