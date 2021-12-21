@@ -1662,7 +1662,7 @@
       (let ((world (current-world)))
         (setup-configuration self)
         (start-gc-monitor)
-        (start-log-listener)
+        (setup-log-listener)
         (prepare-skybox self)
         (install-zone self)
         (install-hooks self)
