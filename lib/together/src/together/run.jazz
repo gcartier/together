@@ -222,7 +222,7 @@
     #f))
 
 
-(definition (run-together descriptor)
+(definition protected (run-together descriptor)
   (when (install-valid?)
     (unless (already-running?)
       (start-debugging)
@@ -234,8 +234,4 @@
       (create-documents)
       (load-unit 'world.work)
       (load-unit 'together.boot)
-      (boot-process))))
-
-
-(register-product-run 'together
-  run-together))
+      (boot-process)))))

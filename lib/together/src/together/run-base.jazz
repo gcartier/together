@@ -1,0 +1,100 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Run Base
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.run-base jazz
+
+
+(import (jazz.associative)
+        (jazz.associative.client)
+        (jazz.io)
+        (jazz.settings))
+
+
+(definition remote-host
+  (string-argument "remote-host" #f))
+
+(definition remote-path
+  (string-argument "remote-path" #f))
+
+(definition remote?
+  (and remote-host remote-path))
+
+
+(definition connected-client
+  #f)
+
+(definition (connect-client)
+  (or connected-client
+      (let ((dir (new Directory (tokenise-filename kernel-bundle-root))))
+        (let ((repo (new Associative-Repository dir)))
+          (let ((client (new Jas-Client repo remote-host remote-path)))
+            (connect client)
+            (set! connected-client client)
+            (add-exit-job! deconnect-client)
+            client)))))
+
+(definition (deconnect-client)
+  (when connected-client
+    (deconnect connected-client)
+    (set! connected-client #f)))
+
+
+(definition unit-paths
+  #f)
+
+(definition (build-unit-paths client)
+  (let ((paths (make-table test: eq?)))
+    (let ((index (get-remote-index client))
+          (o1 ".o1")
+          (src "/src/"))
+      (for-each (lambda (entry)
+                  (let ((path (get-path entry)))
+                    (when (ends-with? path o1)
+                      (let ((pos (search path src)))
+                        (let ((unit-path (substring path (+ pos (string-length src)) (- (string-length path) (string-length o1)))))
+                          (let ((parts (split unit-path "/")))
+                            (let ((last-part (last parts)))
+                              (let ((name-parts (if (starts-with? last-part "_")
+                                                    (butlast parts)
+                                                  parts)))
+                                (let ((unit-name (string->symbol (join name-parts "."))))
+                                  (table-set! paths unit-name path))))))))))
+                (get-entries index)))
+    paths))
+
+(definition (require-unit-paths client)
+  (or unit-paths
+      (let ((paths (build-unit-paths client)))
+        (set! unit-paths paths)
+        paths)))
+
+(definition (require-unit-path client unit-name)
+  (table-ref (require-unit-paths client) unit-name))
+
+
+(definition (install-unit unit-name)
+  (let ((client (connect-client)))
+    (let ((path (require-unit-path client unit-name)))
+      (download-file client path 'object-live))))
+
+
+(definition (run-together-base descriptor)
+  (when remote?
+    (set-unit-not-found-hook
+      (lambda (unit-name)
+        (install-unit unit-name))))
+  (together.run:run-together descriptor))
+
+
+(register-product-run 'together
+  run-together-base))

@@ -7,7 +7,7 @@
   (root "src")
   (products (together (title "Together")
                       (prefix "Together")
-                      (run together.run)
+                      (run together.run-base)
                       (product together.product)
                       (build (together executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
                       (update together
@@ -36,6 +36,7 @@
                               together.replay
                               together.replay-space
                               together.run
+                              together.run-base
                               together.run-processor
                               together.run-server
                               together.script
