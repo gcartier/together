@@ -35,7 +35,7 @@
 
 (definition (connect-client)
   (or connected-client
-      (let ((dir (new Directory (tokenise-filename kernel-bundle-root))))
+      (let ((dir (new Directory (tokenise-filename kernel-root))))
         (let ((repo (new Associative-Repository dir)))
           (let ((client (new Jas-Client repo remote-host remote-path)))
             (connect client)

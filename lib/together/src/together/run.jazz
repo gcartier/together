@@ -78,13 +78,10 @@
     (else
      (when (equal? (string-argument "called-from" #f)
                    "installer")
-       (let ((dirname (cond-expand
-                        (mac kernel-bundle-root)
-                        (else kernel-install))))
-         (let ((dir (new Directory (tokenise-filename dirname))))
-           (when (exists? dir)
-             (let ((digest (repository-head-digest dir)))
-               (add-snapshot-property 'binaries digest)))))))))
+       (let ((dir (new Directory (tokenise-filename kernel-root))))
+         (when (exists? dir)
+           (let ((digest (repository-head-digest dir)))
+             (add-snapshot-property 'binaries digest))))))))
 
 
 (definition (register-kernel-properties)
