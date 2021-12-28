@@ -1,0 +1,49 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Remote
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.remote jazz
+
+
+(import (jazz.associative)
+        (jazz.associative.client)
+        (jazz.io)
+        (jazz.settings))
+
+
+(definition remote-host
+  (string-argument "remote-host" #f))
+
+(definition remote-path
+  (string-argument "remote-path" #f))
+
+(definition protected remote-repository?
+  (and remote-host remote-path))
+
+
+(definition connected-client
+  #f)
+
+(definition protected (connect-client)
+  (or connected-client
+      (let ((dir (new Directory (tokenise-filename kernel-root))))
+        (let ((repo (new Associative-Repository dir)))
+          (let ((client (new Jas-Client repo remote-host remote-path)))
+            (connect client)
+            (set! connected-client client)
+            (add-exit-job! deconnect-client)
+            client)))))
+
+(definition (deconnect-client)
+  (when connected-client
+    (deconnect connected-client)
+    (set! connected-client #f))))

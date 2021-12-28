@@ -14,7 +14,9 @@
 (module together.settings jazz
 
 
-(import (jazz.component)
+(import (jazz.associative)
+        (jazz.associative.client)
+        (jazz.component)
         (jazz.debuggee)
         (jazz.io)
         (jazz.platform)
@@ -33,7 +35,8 @@
         (world.space)
         (world.tier)
         (together)
-        (together.exception))
+        (together.exception)
+        (together.remote))
 
 
 ;;;
@@ -51,6 +54,7 @@
   (let ((obj (open-client remote-file auto-enter: auto-enter)))
     (if (is? obj Zone)
         (begin
+          (retrieve-gstreamer)
           (retrieve-critical-assets)
           (enter-together auto-enter))
       (let ((title (if (string? obj) obj "Unable to connect to server"))
@@ -66,6 +70,15 @@
     (let ((together (new together.gathering:Together)))
       (set-current-together together)
       (together-enter together auto-enter))))
+
+
+(definition protected (retrieve-gstreamer)
+  (when remote-repository?
+    (when (not (world-setting 'together.gstreamer? #f))
+      (let ((client (connect-client)))
+        (download-sets client '(gstreamer)))
+      (set-setting options-settings 'together.gstreamer? #t)
+      (save-content options-settings))))
 
 
 (definition protected (retrieve-critical-assets)

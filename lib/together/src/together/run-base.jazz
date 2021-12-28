@@ -17,36 +17,8 @@
 (import (jazz.associative)
         (jazz.associative.client)
         (jazz.io)
-        (jazz.settings))
-
-
-(definition remote-host
-  (string-argument "remote-host" #f))
-
-(definition remote-path
-  (string-argument "remote-path" #f))
-
-(definition remote?
-  (and remote-host remote-path))
-
-
-(definition connected-client
-  #f)
-
-(definition (connect-client)
-  (or connected-client
-      (let ((dir (new Directory (tokenise-filename kernel-root))))
-        (let ((repo (new Associative-Repository dir)))
-          (let ((client (new Jas-Client repo remote-host remote-path)))
-            (connect client)
-            (set! connected-client client)
-            (add-exit-job! deconnect-client)
-            client)))))
-
-(definition (deconnect-client)
-  (when connected-client
-    (deconnect connected-client)
-    (set! connected-client #f)))
+        (jazz.settings)
+        (together.remote))
 
 
 (definition unit-paths
@@ -89,7 +61,7 @@
 
 
 (definition (run-together-base descriptor)
-  (when remote?
+  (when remote-repository?
     (set-unit-not-found-hook
       (lambda (unit-name)
         (install-unit unit-name))))
