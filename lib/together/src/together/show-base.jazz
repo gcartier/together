@@ -1,0 +1,28 @@
+(module together.show-base jazz
+
+
+(import (jazz.associative)
+        (jazz.associative.client)
+        (jazz.io)
+        (together.remote)
+        (together.run-base))
+
+
+(definition (with-connected-client proc)
+  (let ((dir {Directory Home "Devel" "together" "install" "together-prod.app"}))
+    (let ((repo (new Associative-Repository dir)))
+      (let ((client (new Jas-Client repo "togethersphere.com" "together-prod-mac")))
+        (connect client)
+        (proc client)
+        (deconnect client)))))
+
+
+(with-connected-client
+  (lambda (client)
+    (let ((output (current-output-port)))
+      (for-each (lambda (path)
+                  (format output "{a}{%}" path))
+                (sort nu<? (map (lambda (unit-name)
+                                  (or (find-unit-path client unit-name)
+                                      (format "*** not found: {a}" unit-name)))
+                                (table-keys (get-environment-table)))))))))

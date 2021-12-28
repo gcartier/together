@@ -61,4 +61,41 @@
 (definition (deconnect-client)
   (when connected-client
     (deconnect connected-client)
-    (set! connected-client #f))))
+    (set! connected-client #f)))
+
+
+(definition unit-paths
+  #f)
+
+(definition (build-unit-paths client)
+  (let ((paths (make-table test: eq?)))
+    (let ((index (get-remote-index client))
+          (o1 ".o1")
+          (src "/src/"))
+      (for-each (lambda (entry)
+                  (let ((path (get-path entry)))
+                    (when (ends-with? path o1)
+                      (let ((pos (search path src)))
+                        (let ((unit-path (substring path (+ pos (string-length src)) (- (string-length path) (string-length o1)))))
+                          (let ((parts (split unit-path "/")))
+                            (let ((last-part (last parts)))
+                              (let ((name-parts (if (starts-with? last-part "_")
+                                                    (butlast parts)
+                                                  parts)))
+                                (let ((unit-name (string->symbol (join name-parts "."))))
+                                  (table-set! paths unit-name path))))))))))
+                (get-entries index)))
+    paths))
+
+(definition (require-unit-paths client)
+  (or unit-paths
+      (let ((paths (build-unit-paths client)))
+        (set! unit-paths paths)
+        paths)))
+
+(definition protected (require-unit-path client unit-name)
+  (table-ref (require-unit-paths client) unit-name))
+
+
+(definition protected (find-unit-path client unit-name)
+  (table-ref (require-unit-paths client) unit-name #f)))

@@ -44,6 +44,7 @@
                               together.scripts
                               together.script-space
                               together.settings
+                              together.show-base
                               together.simulate-space
                               together.simulation
                               together.simulator
