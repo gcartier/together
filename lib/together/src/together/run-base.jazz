@@ -85,7 +85,7 @@
 (definition (install-unit unit-name)
   (let ((client (connect-client)))
     (let ((path (require-unit-path client unit-name)))
-      (download-file client path 'object-live))))
+      (download-file client path #t))))
 
 
 (definition (run-together-base descriptor)
