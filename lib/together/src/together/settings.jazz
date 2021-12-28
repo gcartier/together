@@ -74,11 +74,9 @@
 
 (definition protected (retrieve-gstreamer)
   (when remote-repository?
-    (when (not (world-setting 'together.gstreamer? #f))
+    (unless (have-set-locally? 'gstreamer)
       (let ((client (connect-client)))
-        (download-sets client '(gstreamer)))
-      (set-setting options-settings 'together.gstreamer? #t)
-      (save-content options-settings))))
+        (download-sets client '(gstreamer))))))
 
 
 (definition protected (retrieve-critical-assets)

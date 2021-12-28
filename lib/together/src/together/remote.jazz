@@ -30,18 +30,33 @@
   (and remote-host remote-path))
 
 
+(definition local-repository
+  #f)
+
+(definition (open-local-repository)
+  (or local-repository
+      (let ((dir (new Directory (tokenise-filename kernel-root))))
+        (let ((repo (new Associative-Repository dir)))
+          (set! local-repository repo)
+          repo))))
+
+(definition protected (have-set-locally? set)
+  (some? (lambda (entry)
+           (eq? (get-set entry) set))
+         (get-entries (get-index (open-local-repository)))))
+
+
 (definition connected-client
   #f)
 
 (definition protected (connect-client)
   (or connected-client
-      (let ((dir (new Directory (tokenise-filename kernel-root))))
-        (let ((repo (new Associative-Repository dir)))
-          (let ((client (new Jas-Client repo remote-host remote-path)))
-            (connect client)
-            (set! connected-client client)
-            (add-exit-job! deconnect-client)
-            client)))))
+      (let ((repo (open-local-repository)))
+        (let ((client (new Jas-Client repo remote-host remote-path)))
+          (connect client)
+          (set! connected-client client)
+          (add-exit-job! deconnect-client)
+          client))))
 
 (definition (deconnect-client)
   (when connected-client
