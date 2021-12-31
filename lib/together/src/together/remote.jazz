@@ -52,7 +52,7 @@
 (definition protected (connect-client)
   (or connected-client
       (let ((repo (open-local-repository)))
-        (let ((client (new Jas-Client repo remote-host remote-path)))
+        (let ((client (new Jas-Client repo remote-host remote-path 'read)))
           (connect client)
           (set! connected-client client)
           (add-exit-job! deconnect-client)
