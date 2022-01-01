@@ -162,23 +162,12 @@
 
 
 (definition (deploy descriptor)
-  (define (build-commit-message)
-    (let ((output (open-output-string)))
-      (receive (together world jiri gaea jazz) (source-digests)
-        (format output "together : {a}{%}" together)
-        (format output "world    : {a}{%}" world)
-        (format output "jiri     : {a}{%}" jiri)
-        (format output "gaea     : {a}{%}" gaea)
-        (format output "jazz     : {a}" jazz)
-        (get-output-string output))))
-  
   (initialize-aliases)
   ;; appl
   (deploy-application descriptor
                       (new-directory install-dir install-name)
                       make: 'together-all
-                      install: 'together
-                      commit-message: (build-commit-message)))
+                      install: 'together))
 
 
 ;;;
