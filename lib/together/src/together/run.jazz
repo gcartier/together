@@ -63,25 +63,10 @@
   (set-translucent-players? #t)
   (snapshot-prefix "Together")
   (register-domain-names)
-  (register-binaries-properties)
   (register-kernel-properties)
   (register-platform-properties)
   (setup-build ".together")
   (setup-presence))
-
-
-(definition (register-binaries-properties)
-  @port-to-jas
-  ;; libgit2 not yet ported to linux
-  (cond-expand
-    (linux)
-    (else
-     (when (equal? (string-argument "called-from" #f)
-                   "installer")
-       (let ((dir (new Directory (tokenise-filename kernel-root))))
-         (when (exists? dir)
-           (let ((digest (repository-head-digest dir)))
-             (add-snapshot-property 'binaries digest))))))))
 
 
 (definition (register-kernel-properties)
