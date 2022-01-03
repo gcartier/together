@@ -79,10 +79,12 @@
 
 (definition install-dir
   (cond-expand
+    (mac
+     {Directory Home "Devel" "together" "install"})
     (windows
      {Directory Home "together" "install"})
     (else
-     {Directory Home "Devel" "together" "install"})))
+     {Directory :root "mnt" "disks" "storage" "devel" "together" "install"})))
 
 
 (definition install-name
