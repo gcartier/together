@@ -30,6 +30,11 @@
   (and remote-host remote-path))
 
 
+;;;
+;;;; Local
+;;;
+
+
 (definition local-repository
   #f)
 
@@ -46,10 +51,15 @@
          (get-entries (get-index (open-local-repository)))))
 
 
+;;;
+;;;; Remote
+;;;
+
+
 (definition connected-client
   #f)
 
-(definition protected (connect-client)
+(definition (connect-client)
   (or connected-client
       (let ((repo (open-local-repository)))
         (let ((client (new Jas-Client repo remote-host remote-path 'read)))
@@ -62,6 +72,20 @@
   (when connected-client
     (deconnect connected-client)
     (set! connected-client #f)))
+
+
+(definition connected-client-mutex
+  (make-mutex 'connected-client))
+
+(definition protected (with-connected-client proc)
+  (mutex-lock! connected-client-mutex)
+  (unwind-protect (proc (connect-client))
+    (mutex-unlock! connected-client-mutex)))
+
+
+;;;
+;;;; Unit
+;;;
 
 
 (definition unit-paths
@@ -97,5 +121,26 @@
   (table-ref (require-unit-paths client) unit-name))
 
 
-(definition protected (find-unit-path client unit-name)
-  (table-ref (require-unit-paths client) unit-name #f)))
+;;;
+;;;; Resource
+;;;
+
+
+(definition (require-image-path client name)
+  (let ((index (get-remote-index client))
+        (path-suffix (format "lib/jazz.resources/resources/images/{a}.png" name)))
+    (continuation-capture
+      (lambda (return)
+        (for-each (lambda (entry)
+                    (let ((path (get-path entry)))
+                      (when (ends-with? path path-suffix)
+                        (continuation-return return path))))
+                  (get-entries index))
+        (error "Unable to find image path for {a}" name)))))
+
+
+(definition protected (install-image name)
+  (with-connected-client
+    (lambda (client)
+      (let ((path (require-image-path client name)))
+        (download-file client path #t))))))

@@ -19,26 +19,28 @@
         (together.remote))
 
 
-(definition (install-unit unit-name)
-  (let ((client (connect-client)))
-    (let ((path (require-unit-path client unit-name)))
-      (download-file client path #t))))
+(definition (install-unit client unit-name)
+  (let ((path (require-unit-path client unit-name)))
+    (download-file client path #t)))
 
 
-(definition (install-outline unit-name)
-  (install-unit unit-name)
-  (let ((client (connect-client)))
-    (download-sets client '(outline))))
+(definition (install-outline client unit-name)
+  (install-unit client unit-name)
+  (download-sets client '(outline)))
 
 
 (definition (run-together-base descriptor)
   (when remote-repository?
     (set-unit-not-found-hook
       (lambda (unit-name)
-        (install-unit unit-name)))
+        (with-connected-client
+          (lambda (client)
+            (install-unit client unit-name)))))
     (set-outline-not-found-hook
       (lambda (unit-name)
-        (install-outline unit-name))))
+        (with-connected-client
+          (lambda (client)
+            (install-outline client unit-name))))))
   (together.run:run-together descriptor))
 
 

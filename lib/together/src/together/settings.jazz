@@ -75,8 +75,9 @@
 (definition protected (retrieve-gstreamer)
   (when remote-repository?
     (unless (have-set-locally? 'gstreamer)
-      (let ((client (connect-client)))
-        (download-sets client '(gstreamer))))))
+      (with-connected-client
+        (lambda (client)
+          (download-sets client '(gstreamer)))))))
 
 
 (definition protected (retrieve-critical-assets)

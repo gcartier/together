@@ -8,7 +8,8 @@
         (together.run-base))
 
 
-(definition (with-connected-client proc)
+@show-base
+(definition (with-connected-prod-client proc)
   (let ((dir {Directory Home "Devel" "together" "install" "together-prod.app"}))
     (let ((repo (new Associative-Repository dir)))
       (let ((client (new Jas-Client repo "togethersphere.com" "together-prod-mac")))
@@ -17,7 +18,8 @@
         (deconnect client)))))
 
 
-(with-connected-client
+@show-base
+(with-connected-prod-client
   (lambda (client)
     (let ((output (current-output-port)))
       (for-each (lambda (path)

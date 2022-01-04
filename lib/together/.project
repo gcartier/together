@@ -70,6 +70,7 @@
         (<Jazz-File>       name: script-space      source: {File :context "src" "together" "script-space.jazz"})
         (<Jazz-File>       name: options           source: {File :context "src" "together" "options.jazz"})
         (<Jazz-File>       name: run-base          source: {File :context "src" "together" "run-base.jazz"})
-        (<Jazz-File>       name: remote            source: {File :context "src" "together" "remote.jazz"}))
+        (<Jazz-File>       name: remote            source: {File :context "src" "together" "remote.jazz"})
+        (<Jazz-File>       name: show-base         source: {File :context "src" "together" "show-base.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))
