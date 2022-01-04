@@ -56,6 +56,17 @@
 ;;;
 
 
+(definition deconnect-exit-job
+  #f)
+
+
+(definition deconnect-waiter
+  (make-waiter 'deconnect))
+
+(definition deconnect-delay
+  5)
+
+
 (definition connected-client
   #f)
 
@@ -65,13 +76,17 @@
         (let ((client (new Jas-Client repo remote-host remote-path 'read)))
           (connect client)
           (set! connected-client client)
-          (add-exit-job! deconnect-client)
+          (when (not deconnect-exit-job)
+            (set! deconnect-exit-job deconnect-client)
+            (add-exit-job! deconnect-exit-job))
           client))))
 
 (definition (deconnect-client)
+  (mutex-lock! connected-client-mutex)
   (when connected-client
     (deconnect connected-client)
-    (set! connected-client #f)))
+    (set! connected-client #f))
+  (mutex-lock! connected-client-mutex))
 
 
 (definition connected-client-mutex
@@ -79,7 +94,9 @@
 
 (definition protected (with-connected-client proc)
   (mutex-lock! connected-client-mutex)
-  (unwind-protect (proc (connect-client))
+  (unwind-protect (let ((client (connect-client)))
+                    (proc client)
+                    (in deconnect-waiter deconnect-delay deconnect-client))
     (mutex-unlock! connected-client-mutex)))
 
 
