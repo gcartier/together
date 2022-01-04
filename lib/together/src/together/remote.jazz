@@ -56,10 +56,6 @@
 ;;;
 
 
-(definition deconnect-exit-job
-  #f)
-
-
 (definition deconnect-waiter
   (make-waiter 'deconnect))
 
@@ -76,9 +72,6 @@
         (let ((client (new Jas-Client repo remote-host remote-path 'read)))
           (connect client)
           (set! connected-client client)
-          (when (not deconnect-exit-job)
-            (set! deconnect-exit-job deconnect-client)
-            (add-exit-job! deconnect-exit-job))
           client))))
 
 (definition (deconnect-client)
