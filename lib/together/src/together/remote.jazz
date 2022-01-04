@@ -79,7 +79,7 @@
   (when connected-client
     (deconnect connected-client)
     (set! connected-client #f))
-  (mutex-lock! connected-client-mutex))
+  (mutex-unlock! connected-client-mutex))
 
 
 (definition connected-client-mutex
