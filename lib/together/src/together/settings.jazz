@@ -74,7 +74,7 @@
 
 (definition protected (retrieve-gstreamer)
   (when remote-repository?
-    (unless (have-set-locally? 'gstreamer)
+    (when (and remote-repository? (not (have-set-locally? 'gstreamer)))
       (with-connected-client
         (lambda (client)
           (download-sets client '(gstreamer)))))))
@@ -112,7 +112,7 @@
                 (and config (not (get-character-avatar config)))
                 (and config (not (get-character-dye config)))
                 (world-setting 'together.login? #f)
-                (not (have-set-locally? 'gstreamer))
+                (and remote-repository? (not (have-set-locally? 'gstreamer)))
                 (not (world-setting 'together.critical-assets? #f))
                 (shift-down?))
             (open-login-zone)
