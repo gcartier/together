@@ -1052,7 +1052,8 @@
     (<install>                                        title: "Profile"
       (<World-Action-Item> name: profile-pulse        title: "Profile pulse" action-handler: {Event-Handler :together on-profile-pulse} description: "Profile pulse.")
       (<World-Action-Item> name: profile-bandwidth    title: "Profile bandwidth" shortcut: {Shortcut :control :shift #\B} action-handler: {Event-Handler :together on-profile-bandwidth} description: "Profile bandwidth.")
-      (<World-Action-Item> name: profile-network      title: "Profile network" shortcut: {Shortcut :control :shift #\N} action-handler: {Event-Handler :together on-profile-network} description: "Profile network."))))
+      (<World-Action-Item> name: profile-network      title: "Profile network" shortcut: {Shortcut :control :shift #\N} action-handler: {Event-Handler :together on-profile-network} description: "Profile network.")
+      (<World-Action-Item> name: test-network         title: "Test network" shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :together on-test-network} description: "Test network."))))
 
 
 (class Together-Experiment-Actions extends World-Actions
@@ -1271,7 +1272,9 @@
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t)))))
+        (<!>                 name: capture-view               visible?: #t))
+      (<together-profile!>
+        (<!>                 name: test-network               visible?: #t)))))
 
 
 ;;;
@@ -1424,7 +1427,9 @@
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t)))))
+        (<!>                 name: capture-view               visible?: #t))
+      (<together-profile!>
+        (<!>                 name: test-network               visible?: #t)))))
 
 
 @too-much-at-the-moment-lets-go-by-steps
@@ -1592,7 +1597,9 @@
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t)))))
+        (<!>                 name: capture-view               visible?: #t))
+      (<together-profile!>
+        (<!>                 name: test-network               visible?: #t)))))
 
 
 ;;;
@@ -1882,7 +1889,8 @@
       (<together-profile!>
         (<!>                 name: profile-pulse              visible?: #t)
         (<!>                 name: profile-bandwidth          visible?: #t)
-        (<!>                 name: profile-network            visible?: #t))
+        (<!>                 name: profile-network            visible?: #t)
+        (<!>                 name: test-network               visible?: #t))
       (<together-experiment!>
         (<!>                 name: toggle-experiment          visible?: #t)
         (<!>                 name: run-experiment7            visible?: #t)

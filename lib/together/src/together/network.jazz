@@ -94,7 +94,7 @@
       (draw-text surface 5 3 title {Color red: 32 green: 205 blue: 33}))))
 
 
-(definition protected (profile-run name sender)
+(definition protected (profile-run name sender (title: title "Profile"))
   (let ((interface (current-interface))
         (client (current-client))
         (udp (current-udp))
@@ -103,7 +103,7 @@
     (define (feedback message (duration #f))
       (display-message world message duration: duration))
     
-    (feedback (format "Profile {a} ..." name) +inf.0)
+    (feedback (format "{a} {a} ..." title name) +inf.0)
     (start-profile client)
     (let ((pulse-period (/ 1. 10.))
           (redraw-period (/ 1. 2.))
@@ -164,12 +164,12 @@
                            (with-task-mutex
                              (lambda ()
                                (cond ((developer?)
-                                      (feedback "Profile done")
+                                      (feedback "{a} done" title)
                                       (close panel)
                                       (set! running-profile #f)
                                       (save-profile server-profile client-profile))
                                      (else
-                                      (feedback "Profile saved")
+                                      (feedback "{a} saved" title)
                                       (close panel)
                                       (set! running-profile #f)
                                       (save-profile server-profile client-profile view-profile?: #f)))))))
@@ -359,6 +359,63 @@
                   (loop now))))))))))
 
 
+(definition (send-test panel setup-pulse wait)
+  (declare (proper-tail-calls))
+  (let ((world (current-world))
+        (udp (current-udp))
+        (throttle (new UDP-Throttle))
+        (base-rate 4.))
+    (define (pulse-sent data)
+      )
+    
+    (define (ack-received data)
+      (with-record profile-ack
+        (let ((sent (read-profile-ack-pulse-sent data))
+              (sequence (read-profile-ack-pulse-sequence data))
+              (statistics (get-profile-statistics udp)))
+          (received-ack throttle sent sequence statistics
+            (lambda (adjustment reason)
+              (record-rate adjustment)
+              (display-rate))
+            (lambda (profile)
+              ))))
+      #f)
+    
+    (define (key-callback key)
+      (case key
+        ((#\f #\space)
+         (cond ((time-frozen? panel)
+                (thaw-events)
+                (thaw-time panel))
+               (else
+                (freeze-events)
+                (freeze-time panel)))
+         (redraw panel))
+        ((#\v)
+         (done-profile title: "Test"))))
+    
+    (define (wait now target)
+      (sleep (- target now)))
+    
+    (setup-pulse pulse-sent ack-received key-callback)
+    (let ((start (current-seconds))
+          (payload (make-u8vector 1000)))
+      (let (loop (previous start))
+        (let ((end +inf.0)
+              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle 0. base-rate))))
+              (size (+ (calculate-profile-media-size payload) udp-code-size)))
+          (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
+            (let ((now (current-seconds)))
+              (when (< now end)
+                (if (not period)
+                    (begin
+                      (wait now (+ previous .01))
+                      (loop now))
+                  (send-profile-media udp payload)
+                  (wait now (+ previous period))
+                  (loop now))))))))))
+
+
 (definition protected (profile-pulse)
   (profile-run "Pulse" #f))
 
@@ -369,6 +426,10 @@
 
 (definition protected (profile-network)
   (profile-run "Network" send-network))
+
+
+(definition protected (test-network)
+  (profile-run "Network" send-test title: "Test"))
 
 
 (definition protected (save-profile server-profile client-profile (view-profile?: view-profile? #t))
@@ -382,19 +443,19 @@
           (view-replay-directory dir))))))
 
 
-(definition protected (done-profile)
+(definition protected (done-profile (title: title "Profile"))
   (let ((client (current-client))
         (world (current-world)))
     (receive (server-profile client-profile) (retrieve-profiles client)
       (terminate-profile)
       (save-profile server-profile client-profile)
-      (display-message world "Profile done"))))
+      (display-message world (format "{a} done" title)))))
 
 
-(definition protected (cancel-profile)
+(definition protected (cancel-profile (title: title "Profile"))
   (let ((world (current-world)))
     (terminate-profile)
-    (display-message world "Profile cancelled")))
+    (display-message world (format "{a} cancelled" title))))
 
 
 (definition protected (terminate-profile)
