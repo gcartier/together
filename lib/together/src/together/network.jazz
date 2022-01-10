@@ -85,7 +85,13 @@
   
   (method override (key-press self evt)
     (when key-callback
-      (key-callback (get-key evt)))))
+      (key-callback (get-key evt))))
+  
+  
+  (method override (plot-info self surface <Surface> cpu-duration history-duration chronology-duration evolution-duration highlight-duration nowinfo-duration duration)
+    (nextmethod self surface cpu-duration history-duration chronology-duration evolution-duration highlight-duration nowinfo-duration duration)
+    (let ((title (format "RTT: {r precision: 3}s" (get-round-trip-rate (get-profile-statistics (current-udp))))))
+      (draw-text surface 5 3 title {Color red: 32 green: 205 blue: 33}))))
 
 
 (definition protected (profile-run name sender)
@@ -228,32 +234,30 @@
       (profile-bandwidths profile-both))))
 
 
-(definition protected base-rate
-  1.)
-
-
 (definition (send-network panel setup-pulse wait)
   (declare (proper-tail-calls))
   (let ((world (current-world))
         (udp (current-udp))
-        (throttle (new UDP-Throttle)))
+        (throttle (new UDP-Throttle))
+        (base-rate 1.))
     (define (pulse-sent data)
       )
     
     (define (ack-received data)
       (with-record profile-ack
         (let ((sent (read-profile-ack-pulse-sent data))
-              (sequence (read-profile-ack-pulse-sequence data)))
-          (received-ack throttle sent sequence
-            (lambda (adjustment)
+              (sequence (read-profile-ack-pulse-sequence data))
+              (statistics (get-profile-statistics udp)))
+          (received-ack throttle sent sequence statistics
+            (lambda (adjustment reason)
               (record-rate adjustment)
               (display-rate))
-            (lambda ()
+            (lambda (profile)
               ))))
       #f)
     
     (define (display-rate)
-      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle 256. base-rate)) duration: +inf.0))
+      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle 0. base-rate)) duration: +inf.0))
     
     (define (record-rate adjustment)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
@@ -271,33 +275,57 @@
       (define rates
         '(0. .1 .25 .5 .75 1. 2. 3. 4. 6. 8. 12. 16. 20.))
       
-      (define (increase-rate)
-        (let ((new-rate (next-element rates base-rate cycle?: #f)))
-          (when new-rate
-            (set-rate new-rate)
-            (record-rate (- new-rate base-rate)))))
+      (define (closest-rate)
+        (bind (dist . rate) (car (sort < (map (lambda (rate)
+                                                (cons (abs (- rate base-rate)) rate))
+                                              rates)
+                                   key: car))
+          (let ((exact? (= dist 0.)))
+            (values rate exact?))))
       
       (define (decrease-rate)
-        (let ((new-rate (previous-element rates base-rate cycle?: #f)))
-          (when new-rate
-            (set-rate new-rate)
-            (record-rate (- new-rate base-rate)))))
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (previous-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #t)
+              (record-rate (- new-rate base-rate))))))
       
-      (define (set-rate rate)
+      (define (increase-rate)
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (next-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #f)
+              (record-rate (- new-rate base-rate))))))
+      
+      (define (down-rate)
+        (set-rate (- base-rate .1) #t)
+        (record-rate -.1))
+      
+      (define (up-rate)
+        (set-rate (+ base-rate .1) #t)
+        (record-rate .1))
+      
+      (define (set-rate rate reset?)
         (set! base-rate rate)
+        (when reset?
+          (reset throttle))
         (display-rate))
       
       (case key
         ((#\a)
          (decrease-rate))
+        ((#\A)
+         (down-rate))
         ((#\s)
          (display-rate))
         ((#\d)
          (increase-rate))
+        ((#\D)
+         (up-rate))
         ((#\r)
-         (set-rate 1.))
+         (set-rate 1. #t))
         ((#\z)
-         (set-rate 0.))
+         (set-rate 0. #t))
         ((#\f #\space)
          (cond ((time-frozen? panel)
                 (thaw-events)
@@ -309,25 +337,25 @@
         ((#\v)
          (done-profile))))
     
-    (define (wait target)
-      (sleep (- target (current-seconds))))
+    (define (wait now target)
+      (sleep (- target now)))
     
     (setup-pulse pulse-sent ack-received key-callback)
     (let ((start (current-seconds))
           (payload (make-u8vector 1000)))
       (let (loop (previous start))
         (let ((end +inf.0)
-              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle 256. base-rate))))
+              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle 0. base-rate))))
               (size (+ (calculate-profile-media-size payload) udp-code-size)))
           (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
             (let ((now (current-seconds)))
               (when (< now end)
                 (if (not period)
                     (begin
-                      (wait (+ previous .01))
+                      (wait now (+ previous .01))
                       (loop now))
                   (send-profile-media udp payload)
-                  (wait (+ previous period))
+                  (wait now (+ previous period))
                   (loop now))))))))))
 
 
