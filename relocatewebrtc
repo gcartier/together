@@ -1,12 +1,16 @@
 #! /bin/sh
 
+if [ -f ".jaz" ]; then
+    . "$(pwd)/.jaz"
+fi
+
 LIBNAME=libwebrtc.dylib
 WEBRTC=/Users/cartier/Devel/gstreamer/webrtc/build
-DEST=cache/develop/Libraries/gstreamer/lib
+DEST=$JAZDEST/Libraries/gstreamer/lib
 STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 
 relocate() {
-    cache/develop/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    $JAZDEST/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
 }
 
 cp $WEBRTC/$LIBNAME $DEST/$LIBNAME
