@@ -293,7 +293,8 @@
         (<!>                 name: profile-pulse              active?: #t)
         (<!>                 name: profile-bandwidth          active?: #t)
         (<!>                 name: profile-network            active?: #t)
-        (<!>                 name: test-network               active?: #t))
+        (<!>                 name: test-network               active?: #t)
+        (<!>                 name: test-bbr                   active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: test                       active?: #t))
@@ -4194,6 +4195,13 @@
       (if running-profile
           (cancel-profile title: "Test")
         (test-network))))
+  
+  
+  (method (on-test-bbr self evt)
+    (when (is? space Gathering-Space)
+      (if running-profile
+          (cancel-profile title: "BBR")
+        (test-bbr))))
   
   
   (method (on-request-replays self evt)

@@ -14,15 +14,18 @@
 (module together.network jazz
 
 
-(import (jazz.event)
+(import (jazz.debuggee)
+        (jazz.event)
         (jazz.graphic)
         (jazz.io)
+        (jazz.math)
         (jazz.time)
         (jazz.view)
         (world)
         (world.client.tier)
         (world.client.udp)
         (world.configure)
+        (world.congestion)
         (world.context)
         (world.event)
         (world.evolution)
@@ -30,6 +33,7 @@
         (world.interface.evolution)
         (world.interface.timeline)
         (world.profiling)
+        (world.rate)
         (world.record (phase syntax))
         (world.settings)
         (world.streaming)
@@ -51,26 +55,72 @@
   (slot pulse-thread   getter generate)
   (slot redraw-thread  getter generate)
   (slot send-thread    getter generate)
+  (slot user-data      getter generate)
+  (slot user-cleanup   getter generate)
   
   
-  (method override (initialize self panel pulse-thread redraw-thread send-thread)
+  (method override (initialize self panel pulse-thread redraw-thread send-thread user-data user-cleanup)
     (nextmethod self)
     (set! self.panel panel)
     (set! self.pulse-thread pulse-thread)
     (set! self.redraw-thread redraw-thread)
-    (set! self.send-thread send-thread)))
+    (set! self.send-thread send-thread)
+    (set! self.user-data user-data)
+    (set! self.user-cleanup user-cleanup)))
+
+
+(class Network-Quality extends Object
+  
+  
+  (slot lowest-round-trip         getter generate)
+  (slot deviation-round-trip      getter generate)
+  (slot round-trip-base-deviation getter generate)
+  (slot round-trip-deviation-rate getter generate)
+  
+  
+  (method override (initialize self)
+    (nextmethod self)
+    (set! lowest-round-trip #f)
+    (set! deviation-round-trip (new Average))
+    (set! round-trip-base-deviation #f)
+    (set! round-trip-deviation-rate -1.))
+  
+  
+  (method protected (update self round-trip)
+    (when (or (not lowest-round-trip)
+              (< round-trip lowest-round-trip))
+      (set! lowest-round-trip round-trip))
+    (let ((deviation (- round-trip lowest-round-trip)))
+      (add deviation-round-trip deviation)
+      (set! round-trip-deviation-rate (if (= round-trip-deviation-rate -1.) deviation (/ (+ (* 7. round-trip-deviation-rate) deviation) 8.)))))
+  
+  
+  (method protected (update-base self deviation)
+    (set! round-trip-base-deviation deviation)
+    (set! deviation-round-trip (new Average)))
+  
+  
+  (method protected (estimate-quality self statistics deviation)
+    (* (min 1. (/ round-trip-base-deviation deviation)) 100.)))
 
 
 (class Network-Timeline-Panel extends Timeline-Panel
   
   
-  (property key-callback initialize #f accessors generate)
+  (property key-callback  initialize #f accessors generate)
+  (property plot-callback initialize #f accessors generate)
+  
+  
+  (slot quality    getter generate)
+  (slot statistics getter generate)
   
   
   (method override (prepare self rest)
     (nextmethod self rest)
     (set! origin (get-client-no (current-client)))
-    (set! rtt-scale (* 82. graph-scale)))
+    (set! rtt-scale (* 82. graph-scale))
+    (set! quality (new Network-Quality))
+    (set! statistics (get-profile-statistics (current-udp))))
   
   
   (method override (timeline-start self) <fl>
@@ -89,12 +139,12 @@
   
   
   (method override (plot-info self surface <Surface> cpu-duration history-duration chronology-duration evolution-duration highlight-duration nowinfo-duration duration)
-    (nextmethod self surface cpu-duration history-duration chronology-duration evolution-duration highlight-duration nowinfo-duration duration)
-    (let ((title (format "RTT: {r precision: 3}s" (get-round-trip-rate (get-profile-statistics (current-udp))))))
-      (draw-text surface 5 3 title {Color red: 32 green: 205 blue: 33}))))
+    (when plot-callback
+      (set-font surface {Font Label})
+      (plot-callback surface))))
 
 
-(definition protected (profile-run name sender (title: title "Profile"))
+(definition protected (profile-run name setup sender (title: title "Profile"))
   (let ((interface (current-interface))
         (client (current-client))
         (udp (current-udp))
@@ -106,7 +156,7 @@
     (feedback (format "{a} {a} ..." title name) +inf.0)
     (start-profile client)
     (let ((pulse-period (/ 1. 10.))
-          (redraw-period (/ 1. 2.))
+          (redraw-period 1.25 @w (/ 1. 2.))
           (base (current-monotonic))
           (panel (new Network-Timeline-Panel parent: interface location: '(center 172) proportion: '((bounds -500) 120)))
           (pulse-sent #f))
@@ -120,73 +170,76 @@
       (set-chronology panel (get-profile-chronology udp))
       (set-evolution panel (get-profile-evolution udp))
       (layout-view interface)
-      (let ((pulse-thread
-              (new-thread
-                (lambda ()
-                  (declare (proper-tail-calls))
-                  (let (loop (n 0))
-                    (let ((data (send-profile-pulse udp)))
-                      (when pulse-sent
-                        (pulse-sent data)))
-                    (wait (* (cast <fl> n) pulse-period))
-                    (loop (+ n 1))))
-                'pulse))
-            (redraw-thread
-              (new-thread
-                (lambda ()
-                  (declare (proper-tail-calls))
-                  (let (loop (n 0))
-                    (delay-event
-                      (lambda ()
-                        (with-task-mutex
-                          (lambda ()
-                            (redraw panel)))))
-                    (wait (* (cast <fl> n) redraw-period))
-                    (loop (+ n 1))))
-                'redraw)))
-        (let ((send-thread
-                (and sender
-                     (new-thread
-                       (lambda ()
-                         (define (setup-pulse sent received key-callback)
-                           (set! pulse-sent sent)
-                           (set-profile-ack-callback udp received)
-                           (set-key-callback panel key-callback))
-                         
-                         (sender panel setup-pulse wait)
-                         (exit-thread pulse-thread)
-                         (thread-join! pulse-thread)
-                         (exit-thread redraw-thread)
-                         (thread-join! redraw-thread)
-                         (receive (server-profile client-profile) (retrieve-profiles client)
-                           (set-profile-ack-callback udp #f)
-                           (stop-profile client)
-                           (with-task-mutex
-                             (lambda ()
-                               (cond ((developer?)
-                                      (feedback "{a} done" title)
-                                      (close panel)
-                                      (set! running-profile #f)
-                                      (save-profile server-profile client-profile))
-                                     (else
-                                      (feedback "{a} saved" title)
-                                      (close panel)
-                                      (set! running-profile #f)
-                                      (save-profile server-profile client-profile view-profile?: #f)))))))
-                       'send))))
-          (thread-base-priority-set! pulse-thread udp-priority)
-          (thread-base-priority-set! redraw-thread udp-priority)
-          (when send-thread
-            (thread-base-priority-set! send-thread udp-priority))
-          (when send-thread
-            (thread-start! send-thread))
-          (thread-start! pulse-thread)
-          (thread-start! redraw-thread)
-          (acquire-focus panel)
-          (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread)))))))
+      (receive (user-data user-cleanup) (if setup (setup) (values #f #f))
+        (let ((pulse-thread
+                (new-thread
+                  (lambda ()
+                    (declare (proper-tail-calls))
+                    (let (loop (n 0))
+                      (let ((data (send-profile-pulse udp)))
+                        (when pulse-sent
+                          (pulse-sent data)))
+                      (wait (* (cast <fl> n) pulse-period))
+                      (loop (+ n 1))))
+                  'pulse))
+              (redraw-thread
+                (new-thread
+                  (lambda ()
+                    (declare (proper-tail-calls))
+                    (let (loop (n 0))
+                      (delay-event
+                        (lambda ()
+                          (with-task-mutex
+                            (lambda ()
+                              (redraw panel)))))
+                      (wait (* (cast <fl> n) redraw-period))
+                      (loop (+ n 1))))
+                  'redraw)))
+          (let ((send-thread
+                  (and sender
+                       (new-thread
+                         (lambda ()
+                           (define (setup-pulse sent received media-received key-callback plot-callback)
+                             (set! pulse-sent sent)
+                             (set-profile-ack-callback udp received)
+                             (set-profile-media-ack-callback udp media-received)
+                             (set-key-callback panel key-callback)
+                             (set-plot-callback panel plot-callback))
+                           
+                           (sender panel setup-pulse wait user-data)
+                           (exit-thread pulse-thread)
+                           (thread-join! pulse-thread)
+                           (exit-thread redraw-thread)
+                           (thread-join! redraw-thread)
+                           (receive (server-profile client-profile) (retrieve-profiles client)
+                             (set-profile-ack-callback udp #f)
+                             (stop-profile client)
+                             (with-task-mutex
+                               (lambda ()
+                                 (cond ((developer?)
+                                        (feedback "{a} done" title)
+                                        (close panel)
+                                        (set! running-profile #f)
+                                        (save-profile server-profile client-profile))
+                                       (else
+                                        (feedback "{a} saved" title)
+                                        (close panel)
+                                        (set! running-profile #f)
+                                        (save-profile server-profile client-profile view-profile?: #f)))))))
+                         'send))))
+            (thread-base-priority-set! pulse-thread udp-priority)
+            (thread-base-priority-set! redraw-thread background-priority)
+            (when send-thread
+              (thread-base-priority-set! send-thread udp-priority))
+            (when send-thread
+              (thread-start! send-thread))
+            (thread-start! pulse-thread)
+            (thread-start! redraw-thread)
+            (acquire-focus panel)
+            (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread user-data user-cleanup))))))))
 
 
-(definition (send-bandwidth panel setup-pulse wait)
+(definition (send-bandwidth panel setup-pulse wait user-data)
   (declare (proper-tail-calls))
   (let ((client (current-client))
         (udp (current-udp)))
@@ -234,15 +287,12 @@
       (profile-bandwidths profile-both))))
 
 
-(definition (send-network panel setup-pulse wait)
+(definition (send-network panel setup-pulse wait noack-waiter)
   (declare (proper-tail-calls))
   (let ((world (current-world))
         (udp (current-udp))
         (throttle (new UDP-Throttle))
         (base-rate 1.))
-    (define (pulse-sent data)
-      )
-    
     (define (ack-received data)
       (with-record profile-ack
         (let ((sent (read-profile-ack-pulse-sent data))
@@ -255,6 +305,160 @@
             (lambda (profile)
               ))))
       #f)
+    
+    (define (display-rate)
+      (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate base-rate @w (effective-rate throttle 0. base-rate)) duration: +inf.0))
+    
+    (define (record-rate adjustment)
+      (parameterize ((simulation-evolution (get-profile-evolution udp)))
+        (record-event udp-id-throttle-upload
+                      -1.
+                      -1.
+                      -1.
+                      adjustment
+                      -1.
+                      -1.
+                      -1.
+                      -1.)))
+    
+    (define (key-callback key)
+      (define rates
+        '(0. .1 .25 .5 .75 1. 2. 3. 4. 6. 8. 12. 16. 20.))
+      
+      (define (closest-rate)
+        (bind (dist . rate) (car (sort < (map (lambda (rate)
+                                                (cons (abs (- rate base-rate)) rate))
+                                              rates)
+                                   key: car))
+          (let ((exact? (= dist 0.)))
+            (values rate exact?))))
+      
+      (define (decrease-rate)
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (previous-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #t)
+              (record-rate (- new-rate base-rate))))))
+      
+      (define (increase-rate)
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (next-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #f)
+              (record-rate (- new-rate base-rate))))))
+      
+      (define (down-rate)
+        (set-rate (- base-rate .1) #t)
+        (record-rate -.1))
+      
+      (define (up-rate)
+        (set-rate (+ base-rate .1) #t)
+        (record-rate .1))
+      
+      (define (set-rate rate reset?)
+        (set! base-rate rate)
+        (when reset?
+          (reset throttle))
+        (display-rate))
+      
+      (case key
+        ((#\a)
+         (decrease-rate))
+        ((#\A)
+         (down-rate))
+        ((#\s)
+         (display-rate))
+        ((#\d)
+         (increase-rate))
+        ((#\D)
+         (up-rate))
+        ((#\r)
+         (set-rate 1. #t))
+        ((#\0)
+         (set-rate 0. #t))
+        ((#\f #\space)
+         (cond ((time-frozen? panel)
+                (thaw-events)
+                (thaw-time panel))
+               (else
+                (freeze-events)
+                (freeze-time panel)))
+         (redraw panel))
+        ((#\v)
+         (done-profile))))
+    
+    (define (plot-callback surface)
+      (let ((statistics (get-profile-statistics udp)))
+        (let ((round-trip-rate (get-round-trip-rate statistics))
+              (upload-drop (get-upload-drop statistics))
+              (upload (get-last-upload-rate statistics)))
+          (when (and (/= round-trip-rate -1.) upload-drop)
+            (let ((title (format "RTT: {r precision: 3}s, Drop: {r precision: 1}%, Upload: {r precision: 1}Mbps" round-trip-rate upload-drop (bytes->mbps upload))))
+              (draw-text surface 5 3 title {Color Light-Gray}))))))
+    
+    (define (wait now target)
+      (sleep (- target now)))
+    
+    (setup-pulse #f ack-received #f key-callback plot-callback)
+    (let ((start (current-seconds))
+          (payload (make-u8vector 1000)))
+      (let (loop (previous start))
+        (let ((end +inf.0)
+              (bytes/second (cast <fl> (mbps->bytes base-rate @w (effective-rate throttle 0. base-rate))))
+              (size (+ (calculate-profile-media-size payload) udp-code-size)))
+          (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
+            (let ((now (current-seconds)))
+              (when (< now end)
+                (if (not period)
+                    (begin
+                      (wait now (+ previous .01))
+                      (loop now))
+                  (send-profile-media udp payload)
+                  (wait now (+ previous period))
+                  (loop now))))))))))
+
+
+(definition (send-test panel setup-pulse wait noack-waiter)
+  (declare (proper-tail-calls))
+  (let ((world (current-world))
+        (udp (current-udp))
+        (throttle (new UDP-Throttle))
+        (target-phase 2.)
+        (base-rate 16.)
+        (quality (get-quality panel))
+        (noack-delay (* udp-heartbeat-period noack-heartbeats)))
+    (define (schedule-noack)
+      (in noack-waiter noack-delay
+        (lambda (again)
+          (let ((statistics (get-profile-statistics udp)))
+            (noack-received throttle statistics
+              (lambda (adjustment reason)
+                (report-adjustment adjustment reason))))
+          (again noack-delay))))
+    
+    (define (ack-received data)
+      (with-record profile-ack
+        (let ((sent (read-profile-ack-pulse-sent data))
+              (sequence (read-profile-ack-pulse-sequence data))
+              (statistics (get-profile-statistics udp)))
+          (let ((round-trip (- (current-seconds) sent)))
+            (update quality round-trip))
+          (received-ack throttle sent sequence statistics
+            (lambda (adjustment reason)
+              (report-adjustment adjustment reason))
+            (lambda (profile)
+              ))))
+      (schedule-noack)
+      #f)
+    
+    (define (report-adjustment adjustment reason)
+      @w
+      (when (< adjustment 0.)
+        (delay-event
+          (lambda ()
+            (with-task-mutex
+              (lambda ()
+                (display-message (current-world) "Stop!!")))))))
     
     (define (display-rate)
       (display-message world (format "Rate {r precision: 2} : {r precision: 2}" base-rate (effective-rate throttle 0. base-rate)) duration: +inf.0))
@@ -324,65 +528,8 @@
          (up-rate))
         ((#\r)
          (set-rate 1. #t))
-        ((#\z)
+        ((#\0)
          (set-rate 0. #t))
-        ((#\f #\space)
-         (cond ((time-frozen? panel)
-                (thaw-events)
-                (thaw-time panel))
-               (else
-                (freeze-events)
-                (freeze-time panel)))
-         (redraw panel))
-        ((#\v)
-         (done-profile))))
-    
-    (define (wait now target)
-      (sleep (- target now)))
-    
-    (setup-pulse pulse-sent ack-received key-callback)
-    (let ((start (current-seconds))
-          (payload (make-u8vector 1000)))
-      (let (loop (previous start))
-        (let ((end +inf.0)
-              (bytes/second (cast <fl> (mbps->bytes (effective-rate throttle 0. base-rate))))
-              (size (+ (calculate-profile-media-size payload) udp-code-size)))
-          (let ((period (and (> bytes/second 0.) (/ (cast <fl> size) bytes/second))))
-            (let ((now (current-seconds)))
-              (when (< now end)
-                (if (not period)
-                    (begin
-                      (wait now (+ previous .01))
-                      (loop now))
-                  (send-profile-media udp payload)
-                  (wait now (+ previous period))
-                  (loop now))))))))))
-
-
-(definition (send-test panel setup-pulse wait)
-  (declare (proper-tail-calls))
-  (let ((world (current-world))
-        (udp (current-udp))
-        (throttle (new UDP-Throttle))
-        (base-rate 4.))
-    (define (pulse-sent data)
-      )
-    
-    (define (ack-received data)
-      (with-record profile-ack
-        (let ((sent (read-profile-ack-pulse-sent data))
-              (sequence (read-profile-ack-pulse-sequence data))
-              (statistics (get-profile-statistics udp)))
-          (received-ack throttle sent sequence statistics
-            (lambda (adjustment reason)
-              (record-rate adjustment)
-              (display-rate))
-            (lambda (profile)
-              ))))
-      #f)
-    
-    (define (key-callback key)
-      (case key
         ((#\f #\space)
          (cond ((time-frozen? panel)
                 (thaw-events)
@@ -394,10 +541,31 @@
         ((#\v)
          (done-profile title: "Test"))))
     
+    (define (plot-callback surface)
+      (let ((statistics (get-profile-statistics udp)))
+        (let ((lowest-round-trip (get-lowest-round-trip quality))
+              (round-trip-base-deviation (get-round-trip-base-deviation quality))
+              (round-trip-deviation (get-round-trip-deviation-rate quality) @global-average (mean (get-deviation-round-trip quality)))
+              (upload-drop (get-upload-drop statistics))
+              (upload (get-last-upload-rate statistics)))
+          (when (and lowest-round-trip round-trip-base-deviation round-trip-deviation upload-drop)
+            (let ((title (format "RTT: {r precision: 3}s, Base: {r precision: 3}s, Deviation: {r precision: 3}s, Drop: {r precision: 1}%, Upload: {r precision: 1}Mbps" lowest-round-trip round-trip-base-deviation round-trip-deviation upload-drop (bytes->mbps upload))))
+              (draw-text surface 5 3 title {Color Light-Gray}))
+            (let ((deviation-rate (get-round-trip-deviation-rate quality)))
+              (let ((quality-estimate (estimate-quality quality statistics deviation-rate @global-average round-trip-deviation)))
+                (let ((title (format "Quality: {r precision: 1}%" quality-estimate)))
+                  (let ((width (get-width panel))
+                        (extent (get-text-extent surface title)))
+                    (let ((h (- width (get-width extent) 5)))
+                      (draw-text surface (- width (get-width extent) 5) 3 title {Color red: 32 green: 205 blue: 33}))))))))))
+    
     (define (wait now target)
       (sleep (- target now)))
     
-    (setup-pulse pulse-sent ack-received key-callback)
+    (setup-pulse #f ack-received #f key-callback plot-callback)
+    (sleep target-phase)
+    (schedule-noack)
+    (update-base quality (mean (get-deviation-round-trip quality)))
     (let ((start (current-seconds))
           (payload (make-u8vector 1000)))
       (let (loop (previous start))
@@ -416,20 +584,146 @@
                   (loop now))))))))))
 
 
+(definition (send-bbr panel setup-pulse wait noack-waiter)
+  (declare (proper-tail-calls))
+  (let ((world (current-world))
+        (udp (current-udp))
+        (connection-state (new UDP-Connection-State))
+        (rate-sample (new UDP-Rate-Sample))
+        (bbr (new UDP-Congestion))
+        (mutex (make-mutex 'bbr))
+        (limit? #f)
+        (overflow? #f)
+        (show? #f))
+    (define (media-ack-received data)
+      (receive-ack data))
+    
+    (define (key-callback key)
+      (case key
+        ((#\l)
+         (set! limit? (not limit?))
+         (display-on/off world "Limit" limit?))
+        ((#\o)
+         (set! overflow? (not overflow?))
+         (display-on/off world "Overflow" overflow?))
+        ((#\s)
+         (set! show? (not show?))
+         (display-on/off world "Show" show?))
+        ((#\f #\space)
+         (cond ((time-frozen? panel)
+                (thaw-events)
+                (thaw-time panel))
+               (else
+                (freeze-events)
+                (freeze-time panel)))
+         (redraw panel))
+        ((#\c)
+         (sleep .5)
+         (cancel-profile title: "Test"))
+        ((#\d)
+         (sleep .5)
+         (done-profile title: "Test"))))
+    
+    (define (plot-callback surface)
+      (let ((statistics (get-profile-statistics udp)))
+        (let ((lowest-rtt (get-minRTT connection-state))
+              (last-rtt (get-lastRTT connection-state))
+              (delivery-rate (get-delivery-rate rate-sample))
+              (upload-drop (get-upload-drop statistics)))
+          (when (and lowest-rtt upload-drop)
+            (let ((title (format "RTT: {r precision: 3}s, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%" last-rtt (bytes->mbps delivery-rate) upload-drop)))
+              (draw-text surface 5 3 title {Color Light-Gray}))))))
+    
+    (define (init-bbr size)
+      (parameterize ((simulation-evolution (get-profile-evolution udp)))
+        (init bbr connection-state size)))
+    
+    (define (send-packet payload)
+      (mutex-lock! mutex)
+      (parameterize ((simulation-evolution (get-profile-evolution udp)))
+        (let ((data (send-profile-media udp payload)))
+          (with-record profile-media
+            (let ((sent (current-seconds))
+                  (sequence (read-profile-media-sequence data))
+                  (size (u8vector-length data)))
+              (let ((packet-state (update-sent connection-state sent sequence size)))
+                (when limit?
+                  (set-app-limited connection-state (+ (get-delivered connection-state) (get-inflight connection-state))))
+                (packet-sent rate-sample connection-state packet-state)
+                (on-transmit bbr))))))
+      (mutex-unlock! mutex))
+    
+    (define (receive-ack data)
+      (mutex-lock! mutex)
+      (parameterize ((simulation-evolution (get-profile-evolution udp)))
+        (with-record profile-media-ack
+          (let ((sequence (read-profile-media-ack-sequence data)))
+            (let ((packet-state (update-received connection-state sequence)))
+              (when packet-state
+                (set-%p packet-state)
+                (ack-received rate-sample connection-state packet-state)
+                (generate-rate-sample rate-sample connection-state packet-state)
+                (on-ack bbr rate-sample packet-state)
+                (record-event udp-id-rate-sample
+                              -1.
+                              -1.
+                              -1.
+                              (fixnum->flonum sequence)
+                              (bytes->mbps (get-delivery-rate rate-sample))
+                              -1.
+                              -1.
+                              -1.))))))
+      (mutex-unlock! mutex))
+    
+    (set-%c connection-state)
+    (set-%r rate-sample)
+    (set-%b bbr)
+    (setup-pulse #f #f media-ack-received key-callback plot-callback)
+    (let ((payload (make-u8vector 1000)))
+      (let ((size (+ (calculate-profile-media-size payload) udp-code-size)))
+        (define (pace)
+          (let ((wait (cond (limit?
+                             2.0e-3)
+                            (overflow?
+                             3.0e-4)
+                            (else
+                             (/ size (get-pacing-rate bbr))))))
+            (when show?
+              (terminal wait (bytes->mbps (get-pacing-rate bbr)) (bytes->mbps (get-cwnd bbr))))
+            (sleep wait)))
+        
+        (init-bbr size)
+        (let (loop)
+          (when (or overflow? (<= (+ (get-inflight connection-state) size) (get-cwnd bbr)))
+            (send-packet payload))
+          (pace)
+          (loop))))))
+
+
+(definition (setup-noack-waiter)
+  (let ((waiter (make-waiter 'noack)))
+    (values waiter (lambda ()
+                     (done waiter)))))
+
+
 (definition protected (profile-pulse)
-  (profile-run "Pulse" #f))
+  (profile-run "Pulse" #f #f))
 
 
 (definition protected (profile-bandwidth)
-  (profile-run "Bandwidth" send-bandwidth))
+  (profile-run "Bandwidth" #f send-bandwidth))
 
 
 (definition protected (profile-network)
-  (profile-run "Network" send-network))
+  (profile-run "Network" setup-noack-waiter send-network))
 
 
 (definition protected (test-network)
-  (profile-run "Network" send-test title: "Test"))
+  (profile-run "Network" setup-noack-waiter send-test title: "Test"))
+
+
+(definition protected (test-bbr)
+  (profile-run "Network" #f @w setup-noack-waiter send-bbr title: "BBR"))
 
 
 (definition protected (save-profile server-profile client-profile (view-profile?: view-profile? #t))
@@ -464,7 +758,10 @@
     (let ((panel (get-panel running-profile))
           (pulse-thread (get-pulse-thread running-profile))
           (redraw-thread (get-redraw-thread running-profile))
-          (send-thread (get-send-thread running-profile)))
+          (send-thread (get-send-thread running-profile))
+          (user-cleanup (get-user-cleanup running-profile)))
+      (when user-cleanup
+        (user-cleanup))
       (when send-thread
         (exit-thread send-thread)
         (thread-join! send-thread))
