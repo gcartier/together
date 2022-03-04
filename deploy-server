@@ -1,0 +1,20 @@
+#!/bin/sh
+
+if [ -f ".jaz" ]; then
+    . "$(pwd)/.jaz"
+fi
+
+if [ -z "$1" ]; then
+  # echo "No environment parameter"
+  # exit 1
+  if [ -z "$JAZCONF" ]; then
+    ENVIRONMENT="test"
+  else
+    ENVIRONMENT="$JAZCONF"
+  fi
+else
+  ENVIRONMENT="$1"
+  shift
+fi
+
+./jaz deploy "together-server@$ENVIRONMENT" "$@" -debug
