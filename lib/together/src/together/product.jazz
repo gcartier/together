@@ -132,7 +132,7 @@
     gstreamer?: #t
     files: '("README")
     directories: '("devel")
-    metadata: ".together"
+    metadata: '(".together")
     ignored-macosx: '("together-server.app"
                       "together-processor.app"
                       "together-worker.app")))
