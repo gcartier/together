@@ -143,7 +143,7 @@
   (deploy-application descriptor
                       (new-directory install-dir install-name)
                       make: 'together-all
-                      install: 'together))
+                      install: 'together-server))
 
 
 ;;;
