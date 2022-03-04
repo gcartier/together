@@ -78,32 +78,58 @@
 
 (definition install-dir
   (cond-expand
+    (mac
+     {Directory Home "Devel" "together" "install"})
     (windows
-     {Directory Home "together-server" "install"})
+     {Directory Home "together" "install"})
     (else
-     {Directory Home "Devel" "together-server" "install"})))
+     {Directory :root "mnt" "disks" "storage" "devel" "together" "install"})))
 
 
 (definition install-name
-  (cond-expand
-    (mac
-     "together-server.app")
-    (else
-     "together-server")))
+  (cond-expand (devel
+                "togetherserver-devel")
+               (trial
+                "togetherserver-trial")
+               (test
+                "togetherserver-test")
+               (triage
+                "togetherserver-triage")
+               (stable
+                "togetherserver-stable")
+               (stage
+                "togetherserver-stage")
+               (prod
+                "togetherserver-prod")))
 
 
 (definition (install descriptor)
   (initialize-aliases)
   ;; appl
   (install-application descriptor install-dir
+    name: install-name
     scriptable?: #t
     platform?: #t
     opengl?: #t
-    gstreamer?: #t
     files: (cond-expand
-             (windows '("README" "together-worker.exe"))
+             (windows '("README" "together-server.exe" "together-processor.exe" "together-worker.exe"))
+             (linux '("README" "Together-Server" "Together-Processor" "Together-Worker"))
              (else '("README")))
-    directories: '("devel")))
+    directories: '("devel"))
+  ;; apps
+  (cond-expand
+    (mac
+     (let ((app-dir (new-directory install-dir install-name)))
+       (install-directory {Directory Build "together-server.app"} (new-directory app-dir '("Contents" "MacOS" "together-server.app"))
+         feedback: (lambda (action pathname)
+                     (build-feedback "; {a} {a}..." action (get-name pathname))))
+       (install-directory {Directory Build "together-processor.app"} (new-directory app-dir '("Contents" "MacOS" "together-processor.app"))
+         feedback: (lambda (action pathname)
+                     (build-feedback "; {a} {a}..." action (get-name pathname))))
+       (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "MacOS" "together-worker.app"))
+         feedback: (lambda (action pathname)
+                     (build-feedback "; {a} {a}..." action (get-name pathname))))))
+    (else)))
 
 
 ;;;

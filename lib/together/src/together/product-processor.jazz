@@ -72,60 +72,9 @@
 
 
 ;;;
-;;;; Install
-;;;
-
-
-(definition install-dir
-  (cond-expand
-    (windows
-     {Directory Home "together-processor" "install"})
-    (else
-     {Directory Home "Devel" "together-processor" "install"})))
-
-
-(definition install-name
-  (cond-expand
-    (mac
-     "together-processor.app")
-    (else
-     "together-processor")))
-
-
-(definition (install descriptor)
-  (initialize-aliases)
-  ;; appl
-  (install-application descriptor install-dir
-    scriptable?: #t
-    platform?: #t
-    opengl?: #t
-    gstreamer?: #t
-    files: (cond-expand
-             (windows '("README" "together-worker.exe"))
-             (else '("README")))
-    directories: '("devel")))
-
-
-;;;
-;;;; Deploy
-;;;
-
-
-(definition (deploy descriptor)
-  (initialize-aliases)
-  ;; appl
-  (deploy-application descriptor
-                      (new-directory install-dir install-name)
-                      make: 'together-all
-                      install: 'together))
-
-
-;;;
 ;;;; Register
 ;;;
 
 
 (register-product 'together-processor
-  build: build
-  install: install
-  deploy: deploy))
+  build: build))

@@ -130,32 +130,12 @@
     platform?: #t
     opengl?: #t
     gstreamer?: #t
-    files: (cond-expand
-             (windows '("README" @wait "together-server.exe" @wait "together-processor.exe" @wait "together-worker.exe"))
-             (linux '("README" @wait "Together-Server" @wait "Together-Processor" @wait "Together-Worker"))
-             (else '("README")))
+    files: '("README")
     directories: '("devel")
     metadata: ".together"
     ignored-macosx: '("together-server.app"
                       "together-processor.app"
-                      "together-worker.app"))
-  ;; apps
-  (cond-expand
-    (mac
-     (let ((app-dir (new-directory install-dir install-name)))
-       @wait
-       (install-directory {Directory Build "together-server.app"} (new-directory app-dir '("Contents" "MacOS" "together-server.app"))
-         feedback: (lambda (action pathname)
-                     (build-feedback "; {a} {a}..." action (get-name pathname))))
-       @wait
-       (install-directory {Directory Build "together-processor.app"} (new-directory app-dir '("Contents" "MacOS" "together-processor.app"))
-         feedback: (lambda (action pathname)
-                     (build-feedback "; {a} {a}..." action (get-name pathname))))
-       @wait
-       (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "MacOS" "together-worker.app"))
-         feedback: (lambda (action pathname)
-                     (build-feedback "; {a} {a}..." action (get-name pathname))))))
-    (else)))
+                      "together-worker.app")))
 
 
 ;;;
