@@ -115,7 +115,8 @@
              (windows '("README" "together-server.exe" "together-processor.exe" "together-worker.exe"))
              (linux '("README" "Together-Server" "Together-Processor" "Together-Worker"))
              (else '("README")))
-    directories: '("devel"))
+    directories: '("devel")
+    metadata: '(".together-server" ".together-processor" ".together-worker"))
   ;; apps
   (cond-expand
     (mac
