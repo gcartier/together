@@ -134,13 +134,7 @@
 
 
 (set-default-server-host
-  "togethersphere.com"
-  @sydney
-  "sydney.togethersphere.com")
-
-@sydney
-(set-default-server-title
-  "Sydney")
+  "togethersphere.com")
 
 
 ;;;

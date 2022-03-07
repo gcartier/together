@@ -45,7 +45,7 @@
 
 (definition protected (prepare-together)
   (set-window? #t)
-  (set-tier-title (format "Together{? {a}~}" default-server-title))
+  (set-tier-title "Together")
   (set-tier-kind 'client)
   (set-process-kind 'application)
   (set-settings-alias 'Resources)
