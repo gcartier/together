@@ -3268,7 +3268,7 @@
          (set-visible? (child interface 'chat) #t)))))
   
   
-  (method (show-chat self)
+  (method package (show-chat self)
     (let ((together (current-together))
           (interface (current-interface)))
       (let ((circling? (circling? together)))
@@ -4655,7 +4655,10 @@
   
   
   (method package (on-action self evt)
-    (let ((together (current-together)))
+    (let ((together (current-together))
+          (space (current-space)))
+      (when (is? space Void-Space)
+        (show-chat together))
       (let ((tree (get-sender evt)))
         (let ((recipient (get-single-selected-data tree))
               (previous-focus (get-previous-focus tree)))
