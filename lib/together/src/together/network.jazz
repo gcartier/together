@@ -425,8 +425,7 @@
         (throttle (new UDP-Throttle))
         (target-phase 2.)
         (base-rate 16.)
-        (quality (get-quality panel))
-        (noack-delay (* udp-heartbeat-period noack-heartbeats)))
+        (quality (get-quality panel)))
     (define (schedule-noack)
       (in noack-waiter noack-delay
         (lambda (again)
