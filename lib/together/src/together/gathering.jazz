@@ -285,6 +285,7 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
+        (<!>                 name: preprocess-qualities       active?: #t)
         @needs-roaming
         (<!>                 name: toggle-screen-share        active?: #t)
         @needs-roaming
@@ -4252,6 +4253,10 @@
   
   
   (method (on-preprocess-streams self evt)
+    (preprocess-streams self #t))
+  
+  
+  (method (on-preprocess-qualities self evt)
     (preprocess-streams self #t)
     (preprocess-streams self #f))
   

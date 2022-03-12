@@ -1025,6 +1025,7 @@
   (form
     (<install>                                        title: "Share"
       (<World-Action-Item> name: preprocess-streams   title: "Preprocess streams" shortcut: {Shortcut :control :shift #\P} action-handler: {Event-Handler :together on-preprocess-streams} description: "Preprocess streams.")
+      (<World-Action-Item> name: preprocess-qualities title: "Preprocess qualities" shortcut: {Shortcut :control :shift #\O} action-handler: {Event-Handler :together on-preprocess-qualities} description: "Preprocess qualities.")
       (<World-Action-Item> name: toggle-streams       title: "Streams" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
       (<World-Action-Item> name: add-image            title: "Add image" shortcut: {Shortcut :alt :shift #\7} action-handler: {Event-Handler :together on-add-image} description: "Add image.")
       (<World-Action-Item> name: add-video            title: "Add video" shortcut: {Shortcut :alt :shift #\8} action-handler: {Event-Handler :together on-add-video} description: "Add video.")
@@ -1937,7 +1938,8 @@
   (<Role-Trait>              name: admin
     (<install>
       (<together-share!>
-        (<!>                 name: preprocess-streams         visible?: #t))
+        (<!>                 name: preprocess-streams         visible?: #t)
+        (<!>                 name: preprocess-qualities       visible?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               visible?: #t)
         (<!>                 name: toggle-visualizer          visible?: #t)
