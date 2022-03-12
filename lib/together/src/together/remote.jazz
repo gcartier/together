@@ -89,7 +89,9 @@
   (mutex-lock! connected-client-mutex)
   (unwind-protect (let ((client (connect-client)))
                     (proc client)
-                    (in deconnect-waiter deconnect-delay deconnect-client))
+                    (in deconnect-waiter deconnect-delay
+                      (lambda (again)
+                        (deconnect-client))))
     (mutex-unlock! connected-client-mutex)))
 
 
