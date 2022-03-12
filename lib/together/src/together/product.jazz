@@ -130,8 +130,12 @@
     platform?: #t
     opengl?: #t
     gstreamer?: #t
-    files: '("README")
-    directories: '("devel")
+    files: (cond-expand
+             (mac '()) ;; already installed in resources
+             (else '("README")))
+    directories: (cond-expand
+                   (mac '()) ;; already installed in resources
+                   (else '("devel")))
     metadata: '(".together")
     ignored-macosx: '("together-server.app"
                       "together-processor.app"
