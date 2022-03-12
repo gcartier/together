@@ -4656,15 +4656,21 @@
       (<content~>                              layout-type: fill
         (<Tree-Header>                         style: document shown?: #f
           (<content~>
-            (<People-Tree>        name: people portfolio: :images filled-column: person always-select?: #t background: #f action-handler: {Event-Handler :form on-action} selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
+            (<People-Tree>        name: people portfolio: :images filled-column: person always-select?: #t background: #f mouse-up-handler: {Event-Handler :form on-mouse-up} action-handler: {Event-Handler :form on-action} selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click} return-press-handler: {Event-Handler :form on-return-press}
               (<Tree-Node-Column> name: person title: "Person" width: 235 controls?: #f toplevel-controls?: #f display-images?: #f display-levels?: #f)))))))
   
   
-  (method package (on-action self evt)
+  (method package (on-mouse-up self evt)
     (let ((together (current-together))
+          (world (current-world))
           (space (current-space)))
       (when (is? space Void-Space)
-        (show-chat together))
+        (show-chat together)
+        (update-parameter world 'chat))))
+  
+  
+  (method package (on-action self evt)
+    (let ((together (current-together)))
       (let ((tree (get-sender evt)))
         (let ((recipient (get-single-selected-data tree))
               (previous-focus (get-previous-focus tree)))
