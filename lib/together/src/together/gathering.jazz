@@ -285,8 +285,9 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
-        ;; for testing
+        @needs-roaming
         (<!>                 name: toggle-screen-share        active?: #t)
+        @needs-roaming
         (<!>                 name: toggle-view-share          active?: #t)
         (<!>                 name: capture-view               active?: #t))
       (<together-profile!>
