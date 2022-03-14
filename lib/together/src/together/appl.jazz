@@ -395,8 +395,9 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
+  (import world.client.udp)
   (method (on-test self evt)
-    )
+    (set-hack-latency (if hack-latency #f (flonum->timestamp 2.))))
   
   
   ;;;
