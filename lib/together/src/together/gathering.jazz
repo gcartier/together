@@ -1947,6 +1947,10 @@
   
   
   (method (on-video-options self evt)
+    (toggle-video-options self))
+  
+  
+  (method package (toggle-video-options self)
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Video-Options)))
         (if frame
@@ -4557,6 +4561,19 @@
   (method override (mouse-up self evt)
     (let ((together (current-together)))
       (update-message-recipient together (list 'group (get-circle-name together))))))
+
+
+;;;
+;;;; Profile-Label
+;;;
+
+
+(class Profile-Label extends Kind-Label
+  
+  
+  (method override (mouse-up self evt)
+    (let ((together (current-together)))
+      (toggle-video-options together))))
 
 
 ;;;
