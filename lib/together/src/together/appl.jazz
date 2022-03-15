@@ -77,6 +77,7 @@
         (world.parameters)
         (world.rate)
         (world.role)
+        (world.scripts)
         (world.settings)
         (world.space)
         (world.syntax (phase syntax))
@@ -395,9 +396,8 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
-  (import world.client.udp)
   (method (on-test self evt)
-    (set-hack-latency (if hack-latency #f (flonum->timestamp 2.))))
+    (dispatch-to 'world.test-script "test/test"))
   
   
   ;;;
@@ -1079,16 +1079,17 @@
     (<install>                                        title: "Script"
       (<World-Action-Item> name: update-catalogs      title: "Update catalogs" shortcut: {Shortcut :control :alt #\U} action-handler: {Event-Handler :application on-update-catalogs} description: "Update catalogs.")
       (<World-Action-Item> name: edit-definition      title: "Edit definition" shortcut: {Shortcut F12} alternate-shortcut: {Shortcut :alt #\.} action-handler: {Event-Handler :application on-edit-definition} description: "Edit definition.")
-      (<World-Action-Item> name: edit-script1         title: "Edit script #1" shortcut: {Shortcut :control :alt #\1} action-handler: {Event-Handler :together on-edit-script1} description: "Edit test #1.")
-      (<World-Action-Item> name: edit-script2         title: "Edit script #2" shortcut: {Shortcut :control :alt #\2} action-handler: {Event-Handler :together on-edit-script2} description: "Edit test #2.")
-      (<World-Action-Item> name: edit-script3         title: "Edit script #3" shortcut: {Shortcut :control :alt #\3} action-handler: {Event-Handler :together on-edit-script3} description: "Edit test #3.")
-      (<World-Action-Item> name: edit-script4         title: "Edit script #4" shortcut: {Shortcut :control :alt #\4} action-handler: {Event-Handler :together on-edit-script4} description: "Edit test #4.")
-      (<World-Action-Item> name: edit-script5         title: "Edit script #5" shortcut: {Shortcut :control :alt #\5} action-handler: {Event-Handler :together on-edit-script5} description: "Edit test #5.")
-      (<World-Action-Item> name: edit-script6         title: "Edit script #6" shortcut: {Shortcut :control :alt #\6} action-handler: {Event-Handler :together on-edit-script6} description: "Edit test #6.")
-      (<World-Action-Item> name: edit-script7         title: "Edit script #7" shortcut: {Shortcut :control :alt #\7} action-handler: {Event-Handler :together on-edit-script7} description: "Edit test #7.")
-      (<World-Action-Item> name: edit-script8         title: "Edit script #8" shortcut: {Shortcut :control :alt #\8} action-handler: {Event-Handler :together on-edit-script8} description: "Edit test #8.")
-      (<World-Action-Item> name: edit-script9         title: "Edit script #9" shortcut: {Shortcut :control :alt #\9} action-handler: {Event-Handler :together on-edit-script9} description: "Edit test #9.")
-      (<World-Action-Item> name: edit-script0         title: "Edit script #0" shortcut: {Shortcut :control :alt #\0} action-handler: {Event-Handler :together on-edit-script0} description: "Edit test #0."))))
+      (<World-Action-Item> name: edit-script          title: "Edit test" shortcut: {Shortcut :control :alt #\T} action-handler: {Event-Handler :together on-edit-test} description: "Edit test.")
+      (<World-Action-Item> name: edit-script1         title: "Edit test #1" shortcut: {Shortcut :control :alt #\1} action-handler: {Event-Handler :together on-edit-test1} description: "Edit test #1.")
+      (<World-Action-Item> name: edit-script2         title: "Edit test #2" shortcut: {Shortcut :control :alt #\2} action-handler: {Event-Handler :together on-edit-test2} description: "Edit test #2.")
+      (<World-Action-Item> name: edit-script3         title: "Edit test #3" shortcut: {Shortcut :control :alt #\3} action-handler: {Event-Handler :together on-edit-test3} description: "Edit test #3.")
+      (<World-Action-Item> name: edit-script4         title: "Edit test #4" shortcut: {Shortcut :control :alt #\4} action-handler: {Event-Handler :together on-edit-test4} description: "Edit test #4.")
+      (<World-Action-Item> name: edit-script5         title: "Edit test #5" shortcut: {Shortcut :control :alt #\5} action-handler: {Event-Handler :together on-edit-test5} description: "Edit test #5.")
+      (<World-Action-Item> name: edit-script6         title: "Edit test #6" shortcut: {Shortcut :control :alt #\6} action-handler: {Event-Handler :together on-edit-test6} description: "Edit test #6.")
+      (<World-Action-Item> name: edit-script7         title: "Edit test #7" shortcut: {Shortcut :control :alt #\7} action-handler: {Event-Handler :together on-edit-test7} description: "Edit test #7.")
+      (<World-Action-Item> name: edit-script8         title: "Edit test #8" shortcut: {Shortcut :control :alt #\8} action-handler: {Event-Handler :together on-edit-test8} description: "Edit test #8.")
+      (<World-Action-Item> name: edit-script9         title: "Edit test #9" shortcut: {Shortcut :control :alt #\9} action-handler: {Event-Handler :together on-edit-test9} description: "Edit test #9.")
+      (<World-Action-Item> name: edit-script0         title: "Edit test #0" shortcut: {Shortcut :control :alt #\0} action-handler: {Event-Handler :together on-edit-test0} description: "Edit test #0."))))
 
 
 (class Together-Debug-Actions extends World-Actions
@@ -1905,6 +1906,7 @@
       (<together-script!>
         (<!>                 name: update-catalogs            visible?: #t)
         (<!>                 name: edit-definition            visible?: #t)
+        (<!>                 name: edit-script                visible?: #t)
         (<!>                 name: edit-script1               visible?: #t)
         (<!>                 name: edit-script2               visible?: #t)
         (<!>                 name: edit-script3               visible?: #t)

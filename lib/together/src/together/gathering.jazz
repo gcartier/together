@@ -303,6 +303,7 @@
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
+        (<!>                 name: edit-script                active?: #t)
         (<!>                 name: edit-script1               active?: #t)
         (<!>                 name: edit-script2               active?: #t)
         (<!>                 name: edit-script3               active?: #t)
@@ -786,6 +787,7 @@
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
+        (<!>                 name: edit-script                active?: #t)
         (<!>                 name: edit-script1               active?: #t)
         (<!>                 name: edit-script2               active?: #t)
         (<!>                 name: edit-script3               active?: #t)
@@ -1133,6 +1135,7 @@
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
+        (<!>                 name: edit-script                active?: #t)
         (<!>                 name: edit-script1               active?: #t)
         (<!>                 name: edit-script2               active?: #t)
         (<!>                 name: edit-script3               active?: #t)
@@ -4447,44 +4450,56 @@
     (remove-random-stream))
   
   
-  (method (on-edit-script1 self evt)
-    (edit-asset-script (world-setting 'world.test1-script "test/test1")))
+  (method (on-edit-test self evt)
+    (edit-test-script self 'world.test-script "test/test"))
   
   
-  (method (on-edit-script2 self evt)
-    (edit-asset-script (world-setting 'world.test2-script "test/test2")))
+  (method (on-edit-test1 self evt)
+    (edit-test-script self 'world.test1-script "test/test1"))
   
   
-  (method (on-edit-script3 self evt)
-    (edit-asset-script (world-setting 'world.test3-script "test/test3")))
+  (method (on-edit-test2 self evt)
+    (edit-test-script self 'world.test2-script "test/test2"))
   
   
-  (method (on-edit-script4 self evt)
-    (edit-asset-script (world-setting 'world.test4-script "test/test4")))
+  (method (on-edit-test3 self evt)
+    (edit-test-script self 'world.test3-script "test/test3"))
   
   
-  (method (on-edit-script5 self evt)
-    (edit-asset-script (world-setting 'world.test5-script "test/test5")))
+  (method (on-edit-test4 self evt)
+    (edit-test-script self 'world.test4-script "test/test4"))
   
   
-  (method (on-edit-script6 self evt)
-    (edit-asset-script (world-setting 'world.test6-script "test/test6")))
+  (method (on-edit-test5 self evt)
+    (edit-test-script self 'world.test5-script "test/test5"))
   
   
-  (method (on-edit-script7 self evt)
-    (edit-asset-script (world-setting 'world.test7-script "test/test7")))
+  (method (on-edit-test6 self evt)
+    (edit-test-script self 'world.test6-script "test/test6"))
   
   
-  (method (on-edit-script8 self evt)
-    (edit-asset-script (world-setting 'world.test8-script "test/test8")))
+  (method (on-edit-test7 self evt)
+    (edit-test-script self 'world.test7-script "test/test7"))
   
   
-  (method (on-edit-script9 self evt)
-    (edit-asset-script (world-setting 'world.test9-script "test/test9")))
+  (method (on-edit-test8 self evt)
+    (edit-test-script self 'world.test8-script "test/test8"))
   
   
-  (method (on-edit-script0 self evt)
-    (edit-asset-script (world-setting 'world.test0-script "test/test0"))))
+  (method (on-edit-test9 self evt)
+    (edit-test-script self 'world.test9-script "test/test9"))
+  
+  
+  (method (on-edit-test0 self evt)
+    (edit-test-script self 'world.test0-script "test/test0"))
+  
+  
+  (method package (edit-test-script self name default)
+    (let ((world (current-world)))
+      (let ((script (world-setting name default)))
+        (if (not script)
+            (display-message world (format "Setting {a} is undefined" name))
+          (edit-asset-script script))))))
 
 
 ;;;

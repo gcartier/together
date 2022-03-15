@@ -65,6 +65,7 @@
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
+        (<!>                 name: edit-script                active?: #t)
         (<!>                 name: edit-script1               active?: #t)
         (<!>                 name: edit-script2               active?: #t)
         (<!>                 name: edit-script3               active?: #t)
