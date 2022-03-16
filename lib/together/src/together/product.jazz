@@ -136,7 +136,8 @@
     directories: (cond-expand
                    (mac '()) ;; already installed in resources
                    (else '("devel")))
-    metadata: '(".together")
+    metadata: '(".together"
+                ".together-worker")
     ignored-macosx: '("together-server.app"
                       "together-processor.app"
                       "together-worker.app")))
