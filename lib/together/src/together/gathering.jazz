@@ -276,7 +276,8 @@
         (<!>                 name: clear-terminal             active?: #t))
       (<world-debug!>
         (<!>                 name: toggle-profiler            active?: #t)
-        (<!>                 name: explore-interface          active?: #t))
+        (<!>                 name: explore-interface          active?: #t)
+        (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
       (<together-audio!>
