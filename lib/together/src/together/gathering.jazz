@@ -3101,9 +3101,11 @@
               (if (not data)
                   (select-gathering)
                 (bind (kind) data
-                  (if (eq? kind 'player)
-                      (select-row (get-father row))
-                    (select data)))))))
+                  (if (eq? kind 'separator)
+                      (select-gathering)
+                    (if (eq? kind 'player)
+                        (select-row (get-father row))
+                      (select data))))))))
         
         (select-row (get-selected-row tree)))))
   
