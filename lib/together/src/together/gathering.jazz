@@ -3062,7 +3062,10 @@
   (method package (people-selection-change self)
     (when (is? space Gathering-Space)
       (let ((tree (people-tree self)))
-        (let ((data (or (get-single-selected-data tree) (list 'group #f #f 'start))))
+        (define (select-gathering)
+          (select (list 'group #f #f 'start)))
+        
+        (define (select data)
           (bind (kind . rest) data
             (define (select zone group allow-audio-only? player)
               (set! selected-message "")
@@ -3089,7 +3092,20 @@
                (bind (group allow-audio-only? zone) rest
                  (select zone group allow-audio-only? #f)))
               ((zone)
-               (select data #f #f #f))))))))
+               (select data #f #f #f)))))
+        
+        (define (select-row row)
+          (if (not row)
+              (select-gathering)
+            (let ((data (get-user-data row)))
+              (if (not data)
+                  (select-gathering)
+                (bind (kind) data
+                  (if (eq? kind 'player)
+                      (select-row (get-father row))
+                    (select data)))))))
+        
+        (select-row (get-selected-row tree)))))
   
   
   (method package (people-double-click self)
