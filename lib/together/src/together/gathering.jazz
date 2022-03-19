@@ -1821,11 +1821,13 @@
           (me (current-me)))
       (let ((to (child interface '(command-to to)))
             (invite (child interface '(command-to invite))))
+        (define (no-recipient)
+          (set-title to "The gathering")
+          (set-color to {Color red: 32 green: 205 blue: 33})
+          (set-visible? invite #f))
+        
         (if (not message-recipient)
-            (begin
-              (set-title to "The gathering")
-              (set-color to {Color red: 32 green: 205 blue: 33})
-              (set-visible? invite #f))
+            (no-recipient)
           (bind (kind name) message-recipient
             (case kind
               ((player)
@@ -1841,9 +1843,7 @@
                             (set-kind invite (if circle-name 'circle 'group))
                             (set-visible? invite #t))))
                        (else
-                        (set-title to name)
-                        (set-color to {Color White})
-                        (set-visible? invite #f)))))
+                        (no-recipient)))))
               ((group)
                (set-title to name)
                (set-color to group-color)
