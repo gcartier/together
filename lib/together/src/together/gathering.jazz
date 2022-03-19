@@ -1836,10 +1836,10 @@
                               (party (get-party player-info)))
                           (set-title to (if party (format "<{a}>" name) name))
                           (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
-                          (cond ((not circle-name)
-                                 (set-visible? invite (and (not me?) (not party))))
-                                (else
-                                 (set-visible? invite #f)))))
+                          (if (or me? in-group? party)
+                              (set-visible? invite #f)
+                            (set-kind invite (if circle-name 'circle 'group))
+                            (set-visible? invite #t))))
                        (else
                         (set-title to name)
                         (set-color to {Color White})
@@ -1880,7 +1880,7 @@
         (if (not (acquire-microphone-pipeline))
             (display-error world "Unable to acquire microphone")
           (let ((recipient (cadr message-recipient)))
-            (let ((error (client-invite tier recipient)))
+            (let ((error (client-invite tier recipient circle-name)))
               (if error
                   (display-error world error)
                 (chat-show world (format "Invite {a}" recipient)))))))))
@@ -2238,6 +2238,14 @@
               #f))))))
   
   
+  (method (circle-acquire self allow-audio-only?)
+    (acquire-circle self allow-audio-only?))
+  
+  
+  (method (circle-join self name no/streams/exception)
+    (setup-circle self name no/streams/exception))
+  
+  
   (method (acquire-circle self allow-audio-only?)
     (if (auto-live?)
         (cond ((and (auto-audio?) (not (has-microphone?)))
@@ -2399,6 +2407,8 @@
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-group-join-hook tier (~ group-join self))
       (set-group-leave-hook tier (~ group-leave self))
+      (set-circle-acquire-hook tier (~ circle-acquire self))
+      (set-circle-join-hook tier (~ circle-join self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
       (set-profile-changed-hook udp (~ profile-changed self))
@@ -3357,7 +3367,7 @@
                  (if (not (acquire-microphone-pipeline))
                      (show-panel-message (get-character-name tier) 'show "Unable to acquire microphone")
                    (let ((recipient (trim-whitespace (substring content 8 (string-length content)))))
-                     (let ((error (client-invite tier recipient)))
+                     (let ((error (client-invite tier recipient circle-name)))
                        (if error
                            (show-panel-message (get-character-name tier) 'show error)
                          (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
@@ -4888,11 +4898,21 @@
 (class Invite-Tool extends To-Tool
   
   
+  (slot kind initialize #f accessors generate)
+  
+  
   (method override (get-tooltip-text self)
-    `(<span>
-       (<paragraph> "Invite to group")
-       ""
-       (<paragraph> (<text> color: World-Green "Invite person to join an audio group")))))
+    (case kind
+      ((group)
+       `(<span>
+          (<paragraph> "Invite to group")
+          ""
+          (<paragraph> (<text> color: World-Green "Invite person to join an audio group"))))
+      ((circle)
+       `(<span>
+          (<paragraph> "Invite to circle")
+          ""
+          (<paragraph> (<text> color: World-Green "Invite person to join your circle")))))))
 
 
 ;;;
