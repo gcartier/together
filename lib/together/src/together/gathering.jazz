@@ -1655,7 +1655,7 @@
       (together-ready self)
       (when auto-create
         (for-each (lambda (name)
-                    (create-group client name #t #f #t #t))
+                    (create-group client name #t #t #t #t))
                   (listify auto-create)))
       (cond ((get-reconnect-info client)
              =>
