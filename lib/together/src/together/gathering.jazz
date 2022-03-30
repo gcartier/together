@@ -813,6 +813,7 @@
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
+        (<!>                 name: request-captures           active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -938,6 +939,7 @@
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
+        (<!>                 name: request-captures           active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -1171,6 +1173,7 @@
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
+        (<!>                 name: request-captures           active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -4278,6 +4281,18 @@
           (show-admin self)
           (acquire-focus text)
           (insert-string text "request replay all")
+          (console-return text
+            (lambda ()
+              (console-evaluate text)))))))
+  
+  
+  (method (on-request-captures self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'admin)))
+        (let ((text (locate panel '(console text))))
+          (show-admin self)
+          (acquire-focus text)
+          (insert-string text "request retrieve all")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))

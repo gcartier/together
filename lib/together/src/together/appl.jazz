@@ -1111,6 +1111,7 @@
       (<World-Action-Item> name: toggle-visualizer         title: "Visualizer" shortcut: {Shortcut :alt :shift #\V} action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
       (<World-Action-Item> name: request-evolutions        title: "Request evolutions" shortcut: {Shortcut :alt :shift #\E} action-handler: {Event-Handler :together on-request-evolutions} description: "Request evolutions.")
       (<World-Action-Item> name: request-replays           title: "Request replays" shortcut: {Shortcut :alt :shift #\R} action-handler: {Event-Handler :together on-request-replays} description: "Request replays.")
+      (<World-Action-Item> name: request-captures          title: "Request captures" shortcut: {Shortcut :alt :shift #\K} action-handler: {Event-Handler :together on-request-captures} description: "Request captures.")
       (<World-Action-Item> name: add-bookmark              title: "Add bookmark" action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
       (<World-Action-Item> name: test                      title: "Test" action-handler: {Event-Handler :application on-test} shortcut: {Shortcut :control #\T} description: "Test."))))
 
@@ -1948,7 +1949,8 @@
         (<!>                 name: toggle-admin               visible?: #t)
         (<!>                 name: toggle-visualizer          visible?: #t)
         (<!>                 name: request-evolutions         visible?: #t)
-        (<!>                 name: request-replays            visible?: #t)))))
+        (<!>                 name: request-replays            visible?: #t)
+        (<!>                 name: request-captures           visible?: #t)))))
 
 
 ;;;
