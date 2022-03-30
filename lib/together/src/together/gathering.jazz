@@ -811,6 +811,7 @@
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
@@ -935,6 +936,7 @@
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
@@ -1167,6 +1169,7 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
@@ -4254,6 +4257,18 @@
       (if running-profile
           (cancel-profile title: "BBR")
         (test-bbr))))
+  
+  
+  (method (on-request-evolutions self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'admin)))
+        (let ((text (locate panel '(console text))))
+          (show-admin self)
+          (acquire-focus text)
+          (insert-string text "request evolution all")
+          (console-return text
+            (lambda ()
+              (console-evaluate text)))))))
   
   
   (method (on-request-replays self evt)
