@@ -68,6 +68,7 @@
         (world.interface)
         (world.interface.actions)
         (world.interface.bindings)
+        (world.interface.captures)
         (world.interface.chat)
         (world.interface.command)
         (world.interface.dialogs)
@@ -814,6 +815,7 @@
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
+        (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -940,6 +942,7 @@
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
+        (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -1174,6 +1177,7 @@
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
+        (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
@@ -4296,6 +4300,14 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
+  
+  
+  (method (on-show-captures self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (find-type interface Captures-Viewer)))
+        (if panel
+            (close panel)
+          (open-frame (new Captures-Viewer size: {Dimension 366 588} location: 'center))))))
   
   
   (method package (receive-replay self pathnames)
