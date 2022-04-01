@@ -1,0 +1,55 @@
+;;;
+;;;; RNNOISE
+;;;
+
+
+;;;
+;;;; MAC
+;;;
+
+
+  ;;;
+  ;;;; GSTREAMER
+  ;;;
+
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/rnnoise
+
+
+  ;; BUILD
+  ;; - cd rnnoise
+  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - ninja -C build
+
+ 
+  ;; JAZZ
+  ;; - cd to together
+  ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
+  ;; - ./rnnoise.sh
+  ;; - build, test and commit
+
+
+;;;
+;;;; WINDOWS
+;;;
+
+
+  ;; CLONE
+  ;; - cd ~/gstreamer
+  ;; - git clone https://github.com/gcartier/rnnoise
+
+
+  ;; BUILD
+  ;; - start Visual Studio 2019 / x64 Native Tools Command Prompt
+  ;; - cd c:\Home\gstreamer\rnnoise
+  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - ninja -C build
+
+ 
+  ;; JAZZ
+  ;; - cd to together
+  ;; - cd jazz/lib/jazz.stream/foreign/windows/gstreamer
+  ;; - ./rnnoise.sh
+  ;; - build, test and commit
