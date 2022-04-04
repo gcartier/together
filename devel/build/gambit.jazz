@@ -1,0 +1,26 @@
+;;;
+;;;; MAC
+;;;
+
+
+;; CLONE
+;; - cd ~/Devel/gambit/app
+;; - git clone https://github.com/jazzscheme/gambit devel
+
+
+;; BUILD
+;; - cd devel
+;; - export MACOSX_DEPLOYMENT_TARGET=10.12
+;; - ./configure 'CC=/usr/local/bin/gcc-10' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
+;; - make -j8
+;; - sudo make install
+
+
+;;;
+;;;; WINDOWS
+;;;
+
+
+;; MINGW
+;; - need to use the version of MinGW-w64 that is on Zathras
+;;   https://github.com/jazzscheme/mingw64.git
