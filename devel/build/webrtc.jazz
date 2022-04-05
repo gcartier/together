@@ -12,10 +12,12 @@
   ;;;; STATIC
   ;;;
 
+  ;; static build of webrtc
+
 
   ;; DEPOT TOOLS
   ;; - git clone https://chromium.googlesource.com/chromium/tools/depot_tools
-  ;; - add depot_tools to the start of your path
+  ;; - add depot_tools to the start of the path
 
 
   ;; CLONE
@@ -29,15 +31,30 @@
 
   ;; BUILD
   ;; - cd src
-  ;; - add cflags += [ "-Wno-deprecated-declarations" ] to build/config/compiler/BUILD.gn
-  ;; - gn gen out/Release --args='is_debug=false rtc_build_tools=false rtc_include_tests=false rtc_build_examples=false use_custom_libcxx=false'
+  ;; - gn args out/Release (paste the following arguments many of them to reduce build time)
+is_debug = false
+rtc_build_examples = false
+rtc_build_libvpx = false
+rtc_build_opus = false
+rtc_build_tools = false
+rtc_enable_protobuf = false
+rtc_enable_sctp = false
+rtc_include_builtin_audio_codecs = false
+rtc_include_builtin_video_codecs = false
+rtc_include_dav1d_in_internal_decoder_factory = false
+rtc_include_ilbc = false
+rtc_include_opus = false
+rtc_include_pulse_audio = false
+rtc_include_tests = false
+rtc_libvpx_build_vp9 = false
+use_custom_libcxx = false
+treat_warnings_as_errors = false
   ;; - ninja -C out/Release
 
 
   ;;;
   ;;;; DYLIB
   ;;;
-
 
   ;; dylib webrtc wrapper
 
@@ -56,7 +73,6 @@
   ;;;
   ;;;; ELEMENT
   ;;;
-
 
   ;; gstreamer audio processing element
 
@@ -92,10 +108,12 @@
   ;;;; STATIC
   ;;;
 
+  ;; static build of webrtc
+
 
   ;; DEPOT TOOLS
   ;; - git clone https://chromium.googlesource.com/chromium/tools/depot_tools
-  ;; - add depot_tools to the start of your path
+  ;; - add depot_tools to the start of the path
 
 
   ;; CLONE
@@ -113,31 +131,81 @@
   ;;;; WEBRTC
   ;;;
 
-
-  ;; - gn gen --ide=vs2019 out/MSVC --args="is_debug=false rtc_build_tools=false rtc_include_tests=false rtc_build_examples=false use_lld=false is_clang=false"
-  ;; - follow https://docs.microsoft.com/en-us/winrtc/getting-started
-  ;;   - only needed c:\webrtc\src and c:\webrtc\src\third_party\abseil-cpp
-  ;;   - in my exploration I ended removing every extra Preprocessor Definitions
-  ;;     and it seems to be working fine
-  ;;   - needed to also add libcpmt to Ignore Specific Default Libraries
-  ;;   - needed to set C/C++ Code Generation Runtime Library to /MT
+  ;; - had to install the latest windows 10 sdk from
+  ;;   https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
+  ;; - cflags = [ "-Wno-shadow" ] in third_party/pffft/BUILD.gn
+  ;; - had to manually patch errors most of them related to c++20
+  ;; - gn args out\Release (paste the following arguments many of them to reduce build time)
+is_clang = false
+is_debug = false
+rtc_build_examples = false
+rtc_build_libvpx = false
+rtc_build_opus = false
+rtc_build_tools = false
+rtc_enable_protobuf = false
+rtc_enable_sctp = false
+rtc_include_builtin_audio_codecs = false
+rtc_include_builtin_video_codecs = false
+rtc_include_dav1d_in_internal_decoder_factory = false
+rtc_include_ilbc = false
+rtc_include_opus = false
+rtc_include_pulse_audio = false
+rtc_include_tests = false
+rtc_libvpx_build_vp9 = false
+use_lld = false
+treat_warnings_as_errors = false
+  ;; - ninja -C out\Release
 
 
   ;;;
   ;;;; DLL
   ;;;
 
+  ;; dll webrtc wrapper
 
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/webrtc
+
+
+  ;; BUILD
+  ;; - follows https://docs.microsoft.com/en-us/winrtc/getting-started
+  ;;   - only needed c:\webrtc\src and c:\webrtc\src\third_party\abseil-cpp
+  ;;   - in my exploration I ended removing every extra Preprocessor Definitions
+  ;;     and it seems to be working fine
+  ;;   - needed to also add libcpmt to Ignore Specific Default Libraries
+  ;;   - needed to set C/C++ Code Generation Runtime Library to /MT
   ;; - launch Visual Studio 2019
   ;; - open C:\Home\gstreamer\webrtc\webrtc.sln
   ;; - make sure it is in Release configuration
-  ;; - Build Solution
+  ;; - build solution
 
 
   ;;;
   ;;;; ELEMENT
   ;;;
 
+  ;; gstreamer audio processing element
 
-  ;; - cd ~/gstreamer/webrtcaudioprocessing
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/webrtcaudioprocessing
+
+
+  ;; BUILD
+  ;; - cd webrtcaudioprocessing
+  ;; - meson -Dbuildtype=debugoptimized build
   ;; - ninja -C build
+
+
+  ;;;
+  ;;;; JAZZ
+  ;;;
+
+
+  ;; - cd to together
+  ;; - cd jazz/lib/jazz.stream/foreign/windows/gstreamer
+  ;; - ./webrtc.sh
+  ;; - build, test and commit
