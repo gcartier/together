@@ -1,8 +1,152 @@
 ;;;
+;;;; GSTREAMER
+;;;
+
+
+;;;
+;;;; CUSTOM CHANGES
+;;;
+
+
+;; NEW VERSION CHECK HISTORY OF THESE
+;; - gstsystemclock
+;; - gstaudiomixer
+;; - gstaudioaggregator
+;; - gstaggregator
+;; - gstosxaudiosink
+;; - gstaudiosink
+;; - gstbasesink
+
+
+;;;
+;;;; NOTES
+;;;
+
+
+;; GST-BUILD
+;; - install git lfs
+;; - install gstreamer latest packages
+;; - clone https://gitlab.freedesktop.org/gstreamer/cerbero.git
+;;   - ./cerbero-uninstalled bootstrap
+;;   - ./cerbero-uninstalled build webrtc-audio-processing
+;;   - edit build/dist/darwin_x86_64/lib/pkgconfig/webrtc-audio-processing.pc
+;;     and add missing -L -> Libs: -L${libdir} -lwebrtc_audio_processing
+;;   - add (first) /Users/cartier/Devel/gstreamer/cerbero/build/dist/darwin_x86_64/lib/pkgconfig
+;;     to colon separated PKG_CONFIG_PATH
+;; - on windows I need to add gstreamer's bin to path so we have access
+;;   to glib-mkenums
+;; - clone https://gitlab.freedesktop.org/gstreamer/gst-build.git
+;;   - edit meson_options.txt
+;;     - set the following dependencies to disabled
+;;       - python
+;;       - libnice
+;;       - ges
+;;       - rtsp_server
+;;       - tls
+;;       - qt5
+;;       - introspection
+;;   - meson build
+;;   - ./gst-worktree.py add ../gst-build 1.18.2
+;;   NOTE it seems there is a much simpler way than using gst-worktree
+;;        which is to git reset --hard 1.18.2 and then meson will take
+;;        care of putting all subrepositories at 1.18.2 also
+;;   - cd to ../gst-build
+;;   - edit meson_options.txt
+;;   - meson build
+;;   - ninja -C build
+;;
+;;   - refresh the following from jazz.stream.product
+;; cflags and libs obtained from the following calls inside the uninstalled shell
+;; $ pkg-config --cflags gstreamer-1.0 gstreamer-app-1.0 gstreamer-pbutils-1.0
+;; $ pkg-config --libs gstreamer-1.0 gstreamer-app-1.0 gstreamer-pbutils-1.0
+
+
+;; NOTES
+;;   - need the corresponding /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+;;     in the PKG_CONFIG_PATH else a lot of libraries are going to be build from sources and many
+;;     will just not succeed. An indicator of something gone wrong is ninja trying to compile 4K
+;;     files instead of around 2K files
+
+
+;;;
 ;;;; MAC
 ;;;
+
+
+  ;;;
+  ;;;; BUILDING
+  ;;;
+
+
+  ;; DISTRIBUTION
+  ;; - meson -Dprefix=/Users/cartier/Devel/gstreamer/gst-build/distr -Dbuildtype=debugoptimized builddistr
+  ;; - ninja -C builddistr
+  ;; - meson install -C builddistr
+
+
+  ;; TROUBLESHOOTING
+  ;; - when building: ninja -C build and getting the following error
+  ;;   Traceback (most recent call last):
+  ;;     File "/usr/local/Cellar/python@3.9/3.9.2_4/Frameworks/Python.framework/Versions/3.9/lib/python3.9/importlib/metadata.py", line 187, in from_name
+  ;;       raise PackageNotFoundError(name)
+  ;;   importlib.metadata.PackageNotFoundError: meson
+  ;;   => brew reinstall python fixed it
+  ;;   keywords: python meson ninja
+
+ 
+  ;; JAZZ
+  ;; - cd to together
+  ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
+  ;; - ./copy.sh
+  ;; - ./install.sh
+  ;; - ./patch.sh
+  ;; - build, test and commit
+
+
+  ;;;
+  ;;;; DEVELOPMENT
+  ;;;
+
+
+  ;; BUILD SOURCE
+  ;; - cd ~/Devel/gstreamer/gst-build
+  ;; - meson build
+  ;; - ninja -C build
+
+
+  ;; RUN FROM SOURCE
+  ;; - uncomment GST_SOURCE in ~/.profilerc
+  ;; - source ~/.profilerc
+  ;; - cd to together
+  ;; - jazz -c jazz.stream.foreign -f
 
 
 ;;;
 ;;;; WINDOWS
 ;;;
+
+
+  ;;;
+  ;;;; BUILDING
+  ;;;
+
+
+  ;; DISTRIBUTION
+  ;; - on windows, meson --buildtype=debugoptimized and
+  ;;   --buildtype=release both generate correct /MD but
+  ;;   the default --buildtype=debug generates /MDs which
+  ;;   requires a non-standard debug library
+  ;;   *** MSVC ***
+  ;;   - start Visual Studio 2019 / x64 Native Tools Command Prompt
+  ;;   - cd c:\Home\gstreamer\gst-build
+  ;;   - ninja -C build
+
+
+  ;;;
+  ;;;; DEVELOPMENT
+  ;;;
+
+
+  ;; RUN FROM SOURCE
+  ;; - PATH=$SOURCE_PATH
+  ;; - move all libgst*.dll into a separate folder
