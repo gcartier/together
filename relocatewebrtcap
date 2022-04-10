@@ -1,15 +1,17 @@
 #! /bin/sh
 
+if [ -f ".jaz" ]; then
+    . "$(pwd)/.jaz"
+fi
+
 LIBNAME=libgstwebrtcaudioprocessing.dylib
 WEBRTCAUDIOPROCESSING=/Users/cartier/Devel/gstreamer/webrtcaudioprocessing/build/plugin
-DEST=cache/develop/Libraries/gstreamer/lib/gstreamer-1.0
-STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
+DEST=$JAZDEST/Libraries/gstreamer/lib/gstreamer-1.0
 
 relocate() {
-    cache/develop/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    $JAZDEST/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
 }
 
 cp $WEBRTCAUDIOPROCESSING/$LIBNAME $DEST/$LIBNAME
 relocate $DEST $LIBNAME
 install_name_tool -change @rpath/libwebrtc.dylib @rpath/gstreamer/lib/libwebrtc.dylib $DEST/$LIBNAME
-cp $DEST/$LIBNAME $STREAM/gstreamer/lib/gstreamer-1.0/$LIBNAME

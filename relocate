@@ -1,11 +1,15 @@
 #! /bin/sh
 
+if [ -f ".jaz" ]; then
+    . "$(pwd)/.jaz"
+fi
+
 GSTREAMER=/Library/Frameworks/GStreamer.framework/Versions/1.0
 LIB=jazz/lib/jazz.stream/foreign/mac/gstreamer/gstreamer
-DEST=cache/develop/Libraries/gstreamer
+DEST=$JAZDEST/Libraries/gstreamer
 
 relocate() {
-    cache/develop/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
+    $JAZDEST/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
 }
 
 cpplugin() {

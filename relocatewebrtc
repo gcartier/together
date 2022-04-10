@@ -7,7 +7,6 @@ fi
 LIBNAME=libwebrtc.dylib
 WEBRTC=/Users/cartier/Devel/gstreamer/webrtc/build
 DEST=$JAZDEST/Libraries/gstreamer/lib
-STREAM=jazz/lib/jazz.stream/foreign/mac/gstreamer
 
 relocate() {
     $JAZDEST/jazz -run relocate file $1 $2 /Library/Frameworks/GStreamer.framework/Versions/1.0 @rpath/gstreamer
@@ -15,4 +14,3 @@ relocate() {
 
 cp $WEBRTC/$LIBNAME $DEST/$LIBNAME
 relocate $DEST $LIBNAME
-cp $DEST/$LIBNAME $STREAM/gstreamer/lib/$LIBNAME
