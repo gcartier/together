@@ -8,6 +8,10 @@
 ;;;
 
 
+  ;; make sure to have
+  ;; export MACOSX_DEPLOYMENT_TARGET=10.12
+
+
   ;;;
   ;;;; STATIC
   ;;;
@@ -65,7 +69,7 @@ treat_warnings_as_errors = false
 
 
   ;; BUILD
-  ;; - cd webrtcaudioprocessing
+  ;; - cd webrtc
   ;; - meson -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 

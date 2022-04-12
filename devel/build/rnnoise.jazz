@@ -8,6 +8,10 @@
 ;;;
 
 
+  ;; make sure to have
+  ;; export MACOSX_DEPLOYMENT_TARGET=10.12
+
+
   ;;;
   ;;;; GSTREAMER
   ;;;

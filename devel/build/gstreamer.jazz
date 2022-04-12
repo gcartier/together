@@ -73,6 +73,10 @@
 ;;;
 
 
+  ;; make sure to have (I think to be confirmed)
+  ;; export MACOSX_DEPLOYMENT_TARGET=10.12
+
+
   ;;;
   ;;;; BUILDING
   ;;;
@@ -150,3 +154,9 @@
   ;; RUN FROM SOURCE
   ;; - PATH=$SOURCE_PATH
   ;; - move all libgst*.dll into a separate folder
+
+
+  ;; NOTES
+  ;; - when I added a new export to gstapp I had to replace
+  ;;   the .a of the gstreamer distribution with the ninja
+  ;;   generated .lib
