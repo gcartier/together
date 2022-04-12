@@ -62,10 +62,14 @@
 
 
 ;; NOTES
-;;   - need the corresponding /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
-;;     in the PKG_CONFIG_PATH else a lot of libraries are going to be build from sources and many
-;;     will just not succeed. An indicator of something gone wrong is ninja trying to compile 4K
-;;     files instead of around 2K files
+;; - need the corresponding /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+;;   in the PKG_CONFIG_PATH else a lot of libraries are going to be build from sources and many
+;;   will just not succeed. An indicator of something gone wrong is ninja trying to compile 4K
+;;   files instead of around 2K files
+;; - clone https://github.com/gcartier/gst-build and checkout the work branch
+;;   to have the meson_options customizations
+;; - careful as running the gstreamer copy.sh script will end up deleting rnnoise and webrtc files
+;;   - the pragmatic solution at the moment is to simply git checkout those files back
 
 
 ;;;
