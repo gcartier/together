@@ -16,6 +16,7 @@
 ;; - gstosxaudiosink
 ;; - gstaudiosink
 ;; - gstbasesink
+;; - gstclocksync
 ;; - gstappsrc
 
 
@@ -30,8 +31,6 @@
 ;; - clone https://gitlab.freedesktop.org/gstreamer/cerbero.git
 ;;   - ./cerbero-uninstalled bootstrap
 ;;   - ./cerbero-uninstalled build webrtc-audio-processing
-;;   - edit build/dist/darwin_x86_64/lib/pkgconfig/webrtc-audio-processing.pc
-;;     and add missing -L -> Libs: -L${libdir} -lwebrtc_audio_processing
 ;;   - add (first) /Users/cartier/Devel/gstreamer/cerbero/build/dist/darwin_x86_64/lib/pkgconfig
 ;;     to colon separated PKG_CONFIG_PATH
 ;; - on windows I need to add gstreamer's bin to path so we have access
