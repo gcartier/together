@@ -2998,7 +2998,8 @@
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
-                                players)))))
+                                players)
+                      (add-separator title)))))
               
               (define (add-zones father spine zones)
                 (for-each (lambda (partition)
