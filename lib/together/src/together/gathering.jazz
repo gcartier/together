@@ -1351,11 +1351,11 @@
                                (iterate-directory pathname
                                  (lambda (file)
                                    (when (and (file? file)
-                                              (member? (get-extension file) '("jpg" "jpeg" "png") test: extension=?))
+                                              (member? (get-extension file) streaming-image-extensions test: extension=?))
                                      (let ((stream (stream-image-file file)))
                                        (delay-stream stream))))))
                               ((file? pathname)
-                               (when (member? (get-extension pathname) '("jpg" "jpeg" "png") test: extension=?)
+                               (when (member? (get-extension pathname) streaming-image-extensions test: extension=?)
                                  (let ((stream (stream-image-file pathname)))
                                    (delay-stream stream))))))
                       pathnames)))))
