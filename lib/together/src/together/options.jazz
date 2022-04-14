@@ -200,4 +200,57 @@
     ((high)     (update-label "High"     {Color Pastel-Blue}))
     ((standard) (update-label "Standard" {Color Pastel-Green}))
     ((medium)   (update-label "Medium"   {Color Pastel-Yellow}))
-    ((low)      (update-label "Low"      {Color Pastel-Orange})))))
+    ((low)      (update-label "Low"      {Color Pastel-Orange}))))
+
+
+;;;
+;;;; Circle
+;;;
+
+
+(class Circle-Options extends Option-Frame
+  
+  
+  (property circle-name initialize #f accessors generate)
+  
+  
+  (form
+    (<install>
+      (<caption~>           title: "Circle Options")
+      (<content~>                                        layout-type: center
+        (<View>                                          size: {Dimension 390 140}
+          (<Option-Label>   title: "Persistent"          position: {Point 20  22} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0  22} option: persistent)
+          (<Option-Label>   title: "Require camera"      position: {Point 20  68} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0  68} option: require-camera)
+          @w
+          (<Option-Label>   title: "Join by invite only" position: {Point 20 114} size: {Dimension 200 15})
+          @w
+          (<Boolean-Option>                              position: {Point  0 114} option: join-by-invite-only)))))
+  
+  
+  (method override (prepare self rest)
+    (nextmethod self rest)
+    (set! circle-name (getf rest circle-name:)))
+  
+  
+  (method override (read-option self option)
+    (case option
+      ((persistent)
+       (group-property (current-client) circle-name 'persistent?))
+      ((require-camera)
+       (group-property (current-client) circle-name 'require-camera?))
+      @w
+      ((join-by-invite-only)
+       #f)))
+  
+  
+  (method override (write-option self option value title)
+    (case option
+      ((persistent)
+       (change-group-property (current-client) circle-name 'persistent? value))
+      ((require-camera)
+       (change-group-property (current-client) circle-name 'require-camera? value))
+      @w
+      ((join-by-invite-only)
+       )))))

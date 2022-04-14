@@ -1521,7 +1521,8 @@
       (<together-circle!>
         (<!>                 name: circle-mode                active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
-        (<!>                 name: gallery-mode               active?: #t))
+        (<!>                 name: gallery-mode               active?: #t)
+        (<!>                 name: circle-options             active?: #t))
       (<together-view!>
         (<!>                 name: toggle-paused              active?: #t)
         (<!>                 name: seek-backward              active?: #t)
@@ -1977,6 +1978,14 @@
         (if frame
             (close frame)
           (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))
+  
+  
+  (method (on-circle-options self evt)
+    (let ((interface (current-interface)))
+      (let ((frame (find-type interface Circle-Options)))
+        (if frame
+            (close frame)
+          (push-panel (open-frame (new Circle-Options circle-name: circle-name size: {Dimension 466 288} location: 'center)))))))
   
   
   (method (on-toggle-push-to-talk self evt)

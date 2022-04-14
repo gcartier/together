@@ -923,6 +923,7 @@
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
       (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
       (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
@@ -1008,7 +1009,8 @@
       (<World-Action-Item> name: up-press             title: "Increase speed" shortcut: {Shortcut "Up Arrow"} description: "Up.")
       (<World-Action-Item> name: down-press           title: "Decrease speed" shortcut: {Shortcut "Down Arrow"} description: "Down.")
       (<World-Action-Item> name: tab-press            title: "Cycle focus" shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
-      (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image"))))
+      (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image")
+      (<World-Action-Item> name: circle-options       title: "Circle options" action-handler: {Event-Handler :together on-circle-options} shortcut: {Shortcut :alt #\O} description: "Toggle circle options."))))
 
 
 (class Together-Zone-Actions extends World-Actions
@@ -1272,7 +1274,8 @@
         (<!>                 name: up-press                   visible?: #t)
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
-        (<!>                 name: number-press               visible?: #t))
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
@@ -1427,7 +1430,8 @@
         (<!>                 name: up-press                   visible?: #t)
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
-        (<!>                 name: number-press               visible?: #t))
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
@@ -1597,7 +1601,8 @@
         (<!>                 name: up-press                   visible?: #t)
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
-        (<!>                 name: number-press               visible?: #t))
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
@@ -1877,7 +1882,8 @@
         (<!>                 name: up-press                   visible?: #t)
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
-        (<!>                 name: number-press               visible?: #t))
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
