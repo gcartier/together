@@ -2996,7 +2996,7 @@
                     (when player
                       (set-disconnected? player disconnected?)))))
               
-              (define (add-group father info)
+              (define (add-group father info (empty? #f))
                 (bind (group require-camera? zone . players) info
                   (let ((title group))
                     (let ((row (add-row tree
@@ -3008,7 +3008,26 @@
                       (for-each (lambda (info)
                                   (add-player row info group))
                                 players)
-                      (add-separator title)))))
+                      (when (not empty?)
+                        (add-separator title))))))
+              
+              (define (add-voiders voiders)
+                (let ((non-empty '())
+                      (empty '()))
+                  (for-each (lambda (info)
+                              (bind (group require-camera? zone . players) info
+                                (if (not-null? players)
+                                    (set! non-empty (cons info non-empty))
+                                  (set! empty (cons info empty)))))
+                            voiders)
+                  (for-each (lambda (info)
+                              (add-group #f info))
+                            (sort di<? non-empty key: car))
+                  (when (not-null? empty)
+                    (add-separator 'empty)
+                    (for-each (lambda (info)
+                                (add-group #f info #t))
+                              (sort di<? empty key: car)))))
               
               (define (add-zones father spine zones)
                 (for-each (lambda (partition)
@@ -3087,9 +3106,7 @@
                                                           (cons 1 player)))))))
               (when (not-null? voiders)
                 (add-separator 'voiders)
-                (for-each (lambda (info)
-                            (add-group #f info))
-                          (sort di<? voiders key: car)))
+                (add-voiders voiders))
               (when (not-null? zones)
                 (add-separator 'zones)
                 (add-zones #f '() zones))))))))
