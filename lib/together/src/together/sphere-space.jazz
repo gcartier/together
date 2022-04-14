@@ -122,7 +122,7 @@
                                     (add-row tree
                                              father: father
                                              children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                             user-data: (and kind (list kind base location files profiles)))))))
+                                             user-data: (list kind base location files profiles))))))
                             (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
                   (lambda (subdir)
