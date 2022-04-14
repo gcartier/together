@@ -237,9 +237,9 @@
   (method override (read-option self option)
     (case option
       ((persistent)
-       (group-property (current-client) circle-name 'persistent?))
+       (circle-property (current-client) circle-name 'persistent?))
       ((require-camera)
-       (group-property (current-client) circle-name 'require-camera?))
+       (circle-property (current-client) circle-name 'require-camera?))
       @w
       ((join-by-invite-only)
        #f)))
@@ -248,9 +248,9 @@
   (method override (write-option self option value title)
     (case option
       ((persistent)
-       (change-group-property (current-client) circle-name 'persistent? value))
+       (change-circle-property (current-client) circle-name 'persistent? value))
       ((require-camera)
-       (change-group-property (current-client) circle-name 'require-camera? value))
+       (change-circle-property (current-client) circle-name 'require-camera? value))
       @w
       ((join-by-invite-only)
        )))))
