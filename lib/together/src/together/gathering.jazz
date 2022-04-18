@@ -1048,6 +1048,18 @@
     (not (get-fade-thread (current-together))))
   
   
+  (method override (central-menu-show self)
+    (when (fade-mainbar? self)
+      (set-fade mainbar-pane #f)
+      (invalidate-view mainbar)))
+  
+  
+  (method override (central-menu-hide self)
+    (let ((window (current-window)))
+      (when (fade-mainbar? self)
+        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+  
+  
   (method override (draw-message-offset self)
     80)
   
