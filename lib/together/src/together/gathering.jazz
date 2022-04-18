@@ -2030,39 +2030,60 @@
               (update-parameter world 'microphone)))))))
   
   
+  (method (central-button? self evt)
+    (let ((sender (get-sender evt)))
+      (and (is? sender World-Action-Button)
+           (find-ascendant sender World-Central-Menu))))
+  
+  
+  (method (close-non-central-top self)
+    (let ((top (top-panel)))
+      (when (and top (is-not? top World-Central-Menu))
+        (close top))))
+  
+  
   (method (on-audio-options self evt)
-    (toggle-audio-options self))
+    (let ((from-central? (central-button? self evt)))
+      (toggle-audio-options self from-central?)))
   
   
-  (method package (toggle-audio-options self)
+  (method package (toggle-audio-options self (from-central? #f))
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Audio-Options)))
         (if frame
             (close frame)
+          (unless from-central?
+            (close-non-central-top self))
           (push-panel (open-frame (new Audio-Options size: {Dimension 466 288} location: 'center)))))))
   
   
   (method (on-video-options self evt)
-    (toggle-video-options self))
+    (let ((from-central? (central-button? self evt)))
+      (toggle-video-options self from-central?)))
   
   
-  (method package (toggle-video-options self)
+  (method package (toggle-video-options self (from-central? #f))
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Video-Options)))
         (if frame
             (close frame)
+          (unless from-central?
+            (close-non-central-top self))
           (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))
   
   
   (method (on-circle-options self evt)
-    (toggle-circle-options self))
+    (let ((from-central? (central-button? self evt)))
+      (toggle-circle-options self from-central?)))
   
   
-  (method package (toggle-circle-options self)
+  (method package (toggle-circle-options self (from-central? #f))
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Circle-Options)))
         (if frame
             (close frame)
+          (unless from-central?
+            (close-non-central-top self))
           (push-panel (open-frame (new Circle-Options circle-name: circle-name size: {Dimension 466 288} location: 'center)))))))
   
   
