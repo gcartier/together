@@ -2192,7 +2192,9 @@
                                 (with-task-mutex
                                   (lambda ()
                                     (when (fade?)
-                                      (set-fade mainbar-pane (- 1. (* (cast <fl> n) .01)))
+                                      (let ((fading (- 1. (* (cast <fl> n) .01)))
+                                            (fade (or (mainbar-fade (point->point$fl$ (mouse-position window))) 1.)))
+                                        (set-fade mainbar-pane (max fading fade)))
                                       (invalidate-view mainbar))))
                                 (sleep .01)))
                         (set! fade-thread #f)
