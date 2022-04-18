@@ -227,7 +227,7 @@
                                                    (let ((kind (refresh streaming (get-parent file) (get-base file))))
                                                      (if (memq? kind '(audio video image))
                                                          (again)
-                                                       (display-error (current-world) (format "Unable to stream {a}" (filename-name location))))))))))))
+                                                       (display-error (current-world) "Unable to stream"))))))))))
                                    (thread-base-priority-set! stream-thread background-priority)
                                    (thread-start! stream-thread))))))))))))))))))
   
