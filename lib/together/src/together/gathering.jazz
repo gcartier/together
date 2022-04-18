@@ -1338,7 +1338,9 @@
                       (declare (proper-tail-calls))
                       (let (loop)
                         (when power?
-                          (set-power view (microphone-power-level))
+                          (with-task-mutex
+                            (lambda ()
+                              (set-power view (microphone-power-level))))
                           (sleep .04)
                           (loop))))
                     'power)))
@@ -2028,6 +2030,10 @@
   
   
   (method (on-circle-options self evt)
+    (toggle-circle-options self))
+  
+  
+  (method package (toggle-circle-options self)
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Circle-Options)))
         (if frame
@@ -4733,7 +4739,7 @@
   
   (method override (mouse-up self evt)
     (let ((together (current-together)))
-      (update-message-recipient together (list 'group (get-circle-name together))))))
+      (toggle-circle-options together))))
 
 
 ;;;
