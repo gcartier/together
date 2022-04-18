@@ -443,6 +443,7 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (set-visible? root #f)
+      (hide-mainbar self)
       (hide-interface)
       (reset-panel-stack)
       (no-showcase world)
@@ -1185,6 +1186,7 @@
 (class Void-Space extends Sphere-Space
   
   
+  (slot power?         initialize #f getter generate)
   (slot hide-ring      initialize #f getter generate)
   (slot hide-thread    initialize #f getter generate)
   (slot buttons-shown? initialize #t getter generate)
@@ -1308,6 +1310,47 @@
   
   (method override (draw-working-offset self)
     80)
+  
+  
+  ;;;
+  ;;;; Mainbar
+  ;;;
+  
+  
+  (method override (mainbar-show self)
+    (install-power self)
+    (nextmethod self))
+  
+  
+  (method override (mainbar-hide self)
+    (uninstall-power self)
+    (nextmethod self))
+  
+  
+  (method (install-power self)
+    (let ((client (current-client)))
+      (unless power?
+        (install-microphone-power-probe)
+        (let ((view (child mainbar 'microphone-power)))
+          (let ((thread
+                  (new-thread
+                    (lambda ()
+                      (declare (proper-tail-calls))
+                      (let (loop)
+                        (when power?
+                          (set-power view (microphone-power-level))
+                          (sleep .04)
+                          (loop))))
+                    'power)))
+            (set! power? #t)
+            (thread-start! thread))))))
+  
+  
+  (method (uninstall-power self)
+    (let ((client (current-client)))
+      (when power?
+        (uninstall-microphone-power-probe)
+        (set! power? #f))))
   
   
   ;;;
@@ -1961,6 +2004,10 @@
   
   
   (method (on-audio-options self evt)
+    (toggle-audio-options self))
+  
+  
+  (method package (toggle-audio-options self)
     (let ((interface (current-interface)))
       (let ((frame (find-type interface Audio-Options)))
         (if frame
@@ -4700,6 +4747,38 @@
   (method override (mouse-up self evt)
     (let ((together (current-together)))
       (toggle-video-options together))))
+
+
+;;;
+;;;; Microphone-Power
+;;;
+
+
+(class Microphone-Power extends View
+  
+  
+  (property power initialize 0. getter generate)
+  
+  
+  (method public (set-power self p)
+    (set! power p)
+    (invalidate-view self))
+  
+  
+  (method override (draw self surface context)
+    (let ((rect (new Rect 0 3 65 19)))
+      (frame-rect surface rect {Color Dark-Green})
+      (let ((rect (inflate-rect rect -2 -2)))
+        (let ((l (get-left rect))
+              (t (get-top rect))
+              (r (+ (get-left rect) (fxround (* power (cast <fl> (rect-width rect))))))
+              (b (get-bottom rect)))
+          (fill-rect surface (new Rect l t r b) {Color Green})))))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((together (current-together)))
+      (toggle-audio-options together))))
 
 
 ;;;

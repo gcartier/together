@@ -51,6 +51,7 @@
         (world.interface.documents)
         (world.interface.exception)
         (world.interface.frame)
+        (world.interface.mainbar)
         (world.interface.panel)
         (world.interface.text)
         (world.io)

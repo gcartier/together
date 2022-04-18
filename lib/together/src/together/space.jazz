@@ -48,29 +48,4 @@
   
   
   (method protected virtual (draw-working-offset self)
-    #f)
-  
-  
-  ;;;
-  ;;;; Mainbar
-  ;;;
-  
-  
-  (method (show-mainbar self)
-    (let ((window (current-window)))
-      (set-visible? mainbar #t)
-      (set-visible? mainbar-sheet #t)
-      (register-front-sheet window mainbar-sheet)
-      (if (fade-mainbar? self)
-          (fade-mainbar (point->point$fl$ (mouse-position window)) #t)
-        (set-fade mainbar-pane #f)
-        (invalidate-view mainbar))))
-  
-  
-  (method (hide-mainbar self)
-    (let ((window (current-window)))
-      (set-fade mainbar-pane 0.)
-      (invalidate-view mainbar)
-      (set-visible? mainbar #f)
-      (set-visible? mainbar-sheet #f)
-      (unregister-sheet window mainbar-sheet)))))
+    #f)))
