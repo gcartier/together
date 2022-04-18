@@ -1198,10 +1198,9 @@
 (class Void-Space extends Sphere-Space
   
   
-  (slot power?         initialize #f getter generate)
-  (slot hide-ring      initialize #f getter generate)
-  (slot hide-thread    initialize #f getter generate)
-  (slot buttons-shown? initialize #t getter generate)
+  (slot power?      initialize #f getter generate)
+  (slot hide-ring   initialize #f getter generate)
+  (slot hide-thread initialize #f getter generate)
   
   
   (method override (space-setup self)
@@ -1365,6 +1364,21 @@
       (when power?
         (uninstall-microphone-power-probe)
         (set! power? #f))))
+    
+  
+  ;;;
+  ;;;; Central
+  ;;;
+
+  
+  (method override (central-menu-show self)
+    (unless (get-visible? mainbar)
+      (show-mainbar self)))
+  
+  
+  (method override (central-menu-hide self)
+    (when (get-visible? mainbar)
+      (hide-mainbar self)))
   
   
   ;;;
@@ -1511,8 +1525,7 @@
           (window (current-window))
           (interface (current-interface))
           (video (current-video)))
-      ;; YOWNU
-      (unless buttons-shown?
+      (unless (get-visible? mainbar)
         @wait-buggy
         (show-cursor window)
         (show-mainbar self)
@@ -1521,8 +1534,7 @@
                                (get-auto-show/hide? child))
                       (set-visible? child #t)))
                   (get-children interface))
-        (set-video-interface? #t)
-        (set! buttons-shown? #t))
+        (set-video-interface? #t))
       (delay-hide-interface self hide-interface?)))
   
   
@@ -1534,13 +1546,15 @@
           (insert hide-ring hide-time (lambda ()
                                         (with-task-mutex
                                           (lambda ()
-                                            (when (and (is? (current-space) Void-Space)
-                                                       auto-hide?
-                                                       buttons-shown?
-                                                       (not (current-tooltip-context)))
-                                              (let ((window (current-window))
-                                                    (interface (current-interface))
-                                                    (video (current-video)))
+                                            (let ((window (current-window))
+                                                  (interface (current-interface))
+                                                  (world (current-world))
+                                                  (video (current-video)))
+                                              (when (and (is? (current-space) Void-Space)
+                                                         auto-hide?
+                                                         (get-visible? mainbar)
+                                                         (not (current-tooltip-context))
+                                                         (not (get-central-menu world)))
                                                 @wait-buggy
                                                 (hide-cursor window)
                                                 (hide-mainbar self)
@@ -1549,8 +1563,7 @@
                                                                        (get-auto-show/hide? child))
                                                               (set-visible? child #f)))
                                                           (get-children interface))
-                                                (set-video-interface? #f)
-                                                (set! buttons-shown? #f))))))))))))
+                                                (set-video-interface? #f))))))))))))
 
 
 ;;;
