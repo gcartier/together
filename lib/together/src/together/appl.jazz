@@ -1039,8 +1039,8 @@
       (<World-Action-Item> name: add-music            title: "Add music" shortcut: {Shortcut :alt :shift #\9} action-handler: {Event-Handler :together on-add-music} description: "Add music.")
       (<World-Action-Item> name: remove-stream        title: "Remove stream" shortcut: {Shortcut :alt :shift #\0} action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream.")
       (<World-Action-Item> name: toggle-screen-share  title: "Share screen" shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share.")
-      (<World-Action-Item> name: toggle-view-share    title: "Share view" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-view-share} description: "Toggle view share.")
-      (<World-Action-Item> name: capture-view         title: "Capture view" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-view} description: "Capture view to file."))))
+      (<World-Action-Item> name: toggle-view-share    title: "Share together" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-view-share} description: "Toggle together share.")
+      (<World-Action-Item> name: capture-view         title: "Capture together" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-view} description: "Capture together to file."))))
 
 
 @wait
