@@ -3406,10 +3406,10 @@
   
   
   (method (chat-sender self sender (user? #t))
-    (update-message-recipient self (if (not sender)
-                                       #f
-                                     (list 'player sender)))
     (when user?
+      (update-message-recipient self (if (not sender)
+                                         #f
+                                       (list 'player sender)))
       (focus-command-text self)))
   
   
