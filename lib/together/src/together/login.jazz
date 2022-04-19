@@ -110,7 +110,7 @@
   
   
   (method override (showcase-avatar? self)
-    (not (top-frame)))
+    #t)
   
   
   (method override (showcase-avatar-y self avatar)
