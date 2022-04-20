@@ -2972,8 +2972,8 @@
                     (when audio-channel
                       (let ((video-channel (locate-stream-video-channel stream)))
                         (when video-channel
-                          (let ((audio-output (find-output (current-audio) (get-no audio-channel)))
-                                (video-output (find-output (current-video) (get-no video-channel))))
+                          (let ((audio-output (get-output audio-channel))
+                                (video-output (get-output video-channel)))
                             (when (and audio-output video-output)
                               (when (is? video-output Circle-Video-Sink)
                                 (let ((position (matrix-translation (get-matrix (get-pane video-output)))))
@@ -4325,7 +4325,7 @@
                           (channel-output (current-video) stream-no channel root-view: (make-replay-view))
                           (let ((src (new Video-Src))
                                 (sink (new Stream-Frame-Consumer
-                                        consumer: (client-video-consumer client channel-no))))
+                                        consumer: (client-video-consumer client channel))))
                             (let ((pipeline (pipeline (list src sink))))
                               (set-pipeline channel pipeline)))))))))
               
