@@ -128,7 +128,7 @@
     (let ((fullscreen? window-fullscreen?)
           (pos (world-setting 'world.position {Point 150 50}))
           (size (world-setting 'world.size {Dimension 1100 750})))
-      (let ((toplevel (new-opengl-window class: Together-Window fullscreen?: fullscreen? position: pos size: size)))
+      (let ((toplevel (new Together-Window fullscreen?: fullscreen? position: pos size: size)))
         (set-caption-base toplevel "Together")
         toplevel)))
   
