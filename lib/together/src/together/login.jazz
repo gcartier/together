@@ -269,12 +269,13 @@
   (method package (change-key self)
     (let ((configuration (get-configuration zone)))
       (let ((actual-key (get-personal-key configuration)))
-        (set! changing-key? #t)
-        (set-string-content (locate (child root 'new-key) 'text) actual-key)
-        (set-enabled? (child root 'new-enter) (not (whitespace? actual-key)))
-        (update-key-views self)
-        (layout-view root)
-        (acquire-focus (locate (child root 'new-key) 'text)))))
+        (let ((effective-key (if (> (string-length actual-key) 8) (substring actual-key 0 8) actual-key)))
+          (set! changing-key? #t)
+          (set-string-content (locate (child root 'new-key) 'text) effective-key)
+          (set-enabled? (child root 'new-enter) (not (whitespace? effective-key)))
+          (update-key-views self)
+          (layout-view root)
+          (acquire-focus (locate (child root 'new-key) 'text))))))
   
   
   ;; hack around focus-selects-all? not done during window activation
