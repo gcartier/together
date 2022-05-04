@@ -122,7 +122,7 @@
           (<Combo-Option>                                              position: {Point 140 0} size: {Dimension 250 19} option: quality)
           (<Option-Label>                       title: "Camera"        position: {Point 0 51})
           (<Combo-Option>                                              position: {Point 140 50} size: {Dimension 250 19} option: camera)
-          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 101} visible?: #f)
+          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 100} visible?: #f)
           (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)))))
   
   
@@ -219,14 +219,12 @@
       (<caption~>           title: "Circle Options")
       (<content~>                                        layout-type: center
         (<View>                                          size: {Dimension 390 140}
-          (<Option-Label>   title: "Persistent"          position: {Point 20  22} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0  22} option: persistent)
-          (<Option-Label>   title: "Require camera"      position: {Point 20  68} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0  68} option: require-camera)
-          @w
-          (<Option-Label>   title: "Join by invite only" position: {Point 20 114} size: {Dimension 200 15})
-          @w
-          (<Boolean-Option>                              position: {Point  0 114} option: join-by-invite-only)))))
+          (<Option-Label>   title: "Join by invite only" position: {Point 20  0} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0  0} option: join-by-invite-only)
+          (<Option-Label>   title: "Persistent"          position: {Point 20   50} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0   50} option: persistent)
+          (<Option-Label>   title: "Require camera"      position: {Point 20 100} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0 100} option: require-camera)))))
   
   
   (method override (prepare self rest)
@@ -236,21 +234,19 @@
   
   (method override (read-option self option)
     (case option
+      ((join-by-invite-only)
+       (circle-property (current-client) circle-name 'invite-only?))
       ((persistent)
        (circle-property (current-client) circle-name 'persistent?))
       ((require-camera)
-       (circle-property (current-client) circle-name 'require-camera?))
-      @w
-      ((join-by-invite-only)
-       #f)))
+       (circle-property (current-client) circle-name 'require-camera?))))
   
   
   (method override (write-option self option value title)
     (case option
+      ((join-by-invite-only)
+       (change-circle-property (current-client) circle-name 'invite-only? value))
       ((persistent)
        (change-circle-property (current-client) circle-name 'persistent? value))
       ((require-camera)
-       (change-circle-property (current-client) circle-name 'require-camera? value))
-      @w
-      ((join-by-invite-only)
-       )))))
+       (change-circle-property (current-client) circle-name 'require-camera? value))))))
