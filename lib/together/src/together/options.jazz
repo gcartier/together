@@ -123,7 +123,9 @@
           (<Option-Label>                       title: "Camera"        position: {Point 0 51})
           (<Combo-Option>                                              position: {Point 140 50} size: {Dimension 250 19} option: camera)
           (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 100} visible?: #f)
-          (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)))))
+          (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
+          (<Option-Label>   name: scale-label   title: "Scale"         position: {Point 0 101})
+          (<Combo-Option>   name: scale-option                         position: {Point 140 100} size: {Dimension 250 19} option: scale)))))
   
   
   (method override (install self rest)
@@ -134,6 +136,9 @@
        (when (main-screen-retina?)
          (set-visible? (locate self 'retina-label) #t)
          (set-visible? (locate self 'retina-option) #t)))
+      (windows
+       (set-visible? (locate self 'scale-label) #t)
+       (set-visible? (locate self 'scale-option) #t))
       (else)))
   
   
@@ -168,7 +173,15 @@
                (let ((choice (or (assoc identifier choices) (car choices))))
                  (values choices (car choice))))))))
       ((retina)
-       (world-setting 'world.retina? #t))))
+       (world-setting 'world.retina? #t))
+      ((scale)
+       (let ((choices (list (list 1. "100%")
+                            (list 1.25 "125%")
+                            (list 1.5 "150%")
+                            (list 1.75 "175%")
+                            (list 2. "200%")))
+             (choice (world-setting 'world.application-scale 1.)))
+         (values choices choice)))))
   
   
   (method override (write-option self option value title)
@@ -185,6 +198,10 @@
        (update-camera-identifier (current-client) title value))
       ((retina)
        (set-setting options-settings 'world.retina? value)
+       (save-content options-settings)
+       (need-restart))
+      ((scale)
+       (set-setting options-settings 'world.application-scale value)
        (save-content options-settings)
        (need-restart)))))
 
