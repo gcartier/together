@@ -124,8 +124,8 @@
           (<Combo-Option>                                              position: {Point 140 50} size: {Dimension 250 19} option: camera)
           (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 100} visible?: #f)
           (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
-          (<Option-Label>   name: scale-label   title: "Scale"         position: {Point 0 101})
-          (<Combo-Option>   name: scale-option                         position: {Point 140 100} size: {Dimension 250 19} option: scale)))))
+          (<Option-Label>   name: scale-label   title: "Scale"         position: {Point 0 101} visible?: #f)
+          (<Combo-Option>   name: scale-option                         position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)))))
   
   
   (method override (install self rest)
