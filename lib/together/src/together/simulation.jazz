@@ -220,7 +220,7 @@
                     (update-start time-base time nanodts)
                     (let ((sendtime (remote->local time-base nanodts)))
                       (sleep (- sendtime time))
-                      (receive-audio audio output buffer dts pts duration)))
+                      (receive-audio audio output buffer dts pts duration #f)))
                   (loop (+ count 1))))))
           (release output)
           (close reader))))))
