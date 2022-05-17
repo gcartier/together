@@ -154,7 +154,7 @@
                          (terminal 'retain sequence))
                        (visualizer-update-time ring time dts time-base time-latency)
                        (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
-                         (insert ring data)
+                         (insert ring data #f)
                          (table-set! adds sequence time)
                          (when from
                            (let ((to (get-highest ring)))
@@ -302,7 +302,7 @@
                          (terminal 'insert sequence))
                        (visualizer-update-time ring time dts time-base time-latency)
                        (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
-                         (insert ring data)
+                         (insert ring data #f)
                          (table-set! adds sequence time)
                          (when from
                            (let ((to (get-highest ring)))
