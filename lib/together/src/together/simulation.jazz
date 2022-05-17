@@ -692,7 +692,6 @@
                                     (fixnum->flonum kind)
                                     (fixnum->flonum sequence)
                                     (fixnum->flonum frame)
-                                    (fixnum->flonum flags)
                                     (timestamp->flonum dts)
                                     (timestamp->flonum pts))
                       (record-event udp-id-create-info
@@ -702,6 +701,7 @@
                                     (fixnum->flonum sequence)
                                     (fixnum->flonum part)
                                     (fixnum->flonum total)
+                                    (fixnum->flonum flags)
                                     (timestamp->flonum duration))
                       data))))
               
