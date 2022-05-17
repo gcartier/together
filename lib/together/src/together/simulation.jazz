@@ -694,15 +694,14 @@
                                     (fixnum->flonum frame)
                                     (timestamp->flonum dts)
                                     (timestamp->flonum pts))
-                      (record-event udp-id-create-info
-                                    -1.
-                                    (fixnum->flonum sender)
-                                    (fixnum->flonum kind)
-                                    (fixnum->flonum sequence)
+                      (record-event udp-id-extra-info
                                     (fixnum->flonum part)
                                     (fixnum->flonum total)
                                     (fixnum->flonum flags)
-                                    (timestamp->flonum duration))
+                                    (timestamp->flonum duration)
+                                    -1.
+                                    -1.
+                                    -1.)
                       data))))
               
               (let ((insert (new-thread

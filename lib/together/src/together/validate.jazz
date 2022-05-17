@@ -80,17 +80,16 @@
                                               (fixnum->flonum kind)
                                               (fixnum->flonum sequence)
                                               (fixnum->flonum frame)
-                                              (fixnum->flonum flags)
                                               dts
                                               pts))
                               (when record-events?
-                                (record-event udp-id-create-info
-                                              -1.
-                                              (fixnum->flonum origin)
-                                              (fixnum->flonum kind)
-                                              (fixnum->flonum sequence)
+                                (record-event udp-id-extra-info
                                               (fixnum->flonum part)
                                               (fixnum->flonum total)
+                                              (fixnum->flonum flags)
+                                              -1.
+                                              -1.
+                                              -1.
                                               -1.)))
                             data)))))
                 

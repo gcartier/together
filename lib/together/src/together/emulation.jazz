@@ -145,21 +145,22 @@
               ((udp-id-retain-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (flonum->timestamp (evolutionary-udp-insert-packet-base evolution n)))
-                       (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n)))
-                       (dts (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n))))
-                   (let ((data (find-create sequence)))
-                     (when data
-                       (when show-visualize?
-                         (terminal 'retain sequence))
-                       (visualizer-update-time ring time dts time-base time-latency)
-                       (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
-                         (insert ring data #f)
-                         (table-set! adds sequence time)
-                         (when from
-                           (let ((to (get-highest ring)))
-                             (loop (for seq from (+ from 1) below to)
-                                   (table-set! adds seq time))))))))))
+                 (let ((data (find-create sequence)))
+                   (when data
+                     (let ((info (+ n 1)))
+                       (let ((time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n)))
+                             (time-base (flonum->timestamp (evolutionary-data1 evolution info)))
+                             (dts (flonum->timestamp (evolutionary-data2 evolution info))))
+                         (when show-visualize?
+                           (terminal 'retain sequence))
+                         (visualizer-update-time ring time dts time-base time-latency)
+                         (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
+                           (insert ring data #f)
+                           (table-set! adds sequence time)
+                           (when from
+                             (let ((to (get-highest ring)))
+                               (loop (for seq from (+ from 1) below to)
+                                     (table-set! adds seq time)))))))))))
               ;; got
               ((udp-id-got-packet)
                (let ((sequence (evolutionary-udp-sequence evolution n)))
@@ -282,7 +283,7 @@
             
             (ecase id
               ;; create / info
-              ((udp-id-create-packet udp-id-create-info))
+              ((udp-id-create-packet udp-id-extra-info))
               ;; retain / release
               ((udp-id-retain-packet udp-id-release-packet))
               ;; resend / absent
@@ -291,21 +292,22 @@
               ((udp-id-insert-packet)
                (let ((time (evolutionary-udp-time evolution n))
                      (sequence (evolutionary-udp-sequence evolution n)))
-                 (let ((time-base (flonum->timestamp (evolutionary-udp-insert-packet-base evolution n)))
-                       (time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n)))
-                       (dts (flonum->timestamp (evolutionary-udp-insert-packet-dts evolution n))))
-                   (let ((data (find-create sequence)))
-                     (when data
-                       (when show-visualize?
-                         (terminal 'insert sequence))
-                       (visualizer-update-time ring time dts time-base time-latency)
-                       (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
-                         (insert ring data #f)
-                         (table-set! adds sequence time)
-                         (when from
-                           (let ((to (get-highest ring)))
-                             (loop (for seq from (+ from 1) below to)
-                                   (table-set! adds seq time))))))))))
+                 (let ((data (find-create sequence)))
+                   (when data
+                     (let ((info (+ n 1)))
+                       (let ((time-latency (flonum->timestamp+ (evolutionary-udp-insert-packet-effective-latency evolution n)))
+                             (time-base (flonum->timestamp (evolutionary-data1 evolution info)))
+                             (dts (flonum->timestamp (evolutionary-data2 evolution info))))
+                         (when show-visualize?
+                           (terminal 'insert sequence))
+                         (visualizer-update-time ring time dts time-base time-latency)
+                         (let ((from (and (/= (get-count ring) 0) (get-highest ring))))
+                           (insert ring data #f)
+                           (table-set! adds sequence time)
+                           (when from
+                             (let ((to (get-highest ring)))
+                               (loop (for seq from (+ from 1) below to)
+                                     (table-set! adds seq time)))))))))))
               ;; missing
               ((udp-id-missing-packet))
               ;; gap
