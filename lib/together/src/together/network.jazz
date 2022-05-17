@@ -318,7 +318,6 @@
                       adjustment
                       -1.
                       -1.
-                      -1.
                       -1.)))
     
     (define (key-callback key)
@@ -469,7 +468,6 @@
                       -1.
                       -1.
                       adjustment
-                      -1.
                       -1.
                       -1.
                       -1.)))
@@ -669,7 +667,6 @@
                               -1.
                               (fixnum->flonum sequence)
                               (bytes->mbps (get-delivery-rate rate-sample))
-                              -1.
                               -1.
                               -1.))))))
       (mutex-unlock! mutex))

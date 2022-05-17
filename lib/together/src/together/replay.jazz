@@ -541,7 +541,7 @@
                           (when category
                             (sleep .01))
                           (set! category cat)))
-                    (record-event id -1. -1. -1. -1. -1. -1. -1. -1.)
+                    (record-event id -1. -1. -1. -1. -1. -1. -1.)
                     (sleep .01)))
                 (sort < ids))))
   (set-events-lexicon-time (current-seconds)))
