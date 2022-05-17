@@ -281,8 +281,6 @@
               (table-ref creates sequence #f))
             
             (ecase id
-              ;; src / sink / draw
-              ((udp-id-src-media udp-id-sink-media udp-id-draw-video))
               ;; create / info
               ((udp-id-create-packet udp-id-create-info))
               ;; retain / release
