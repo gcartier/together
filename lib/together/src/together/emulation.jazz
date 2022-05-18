@@ -409,12 +409,14 @@
               ((udp-id-state-play)
                (when show-visualize?
                  (terminal 'play))
-               (state-play ring))
+               (when video-output
+                 (state-play ring)))
               ;; freeze
               ((udp-id-state-freeze)
                (when show-visualize?
                  (terminal 'freeze))
-               (state-freeze ring))
+               (when video-output
+                 (state-freeze ring)))
               ;; wait
               ((udp-id-state-wait)
                (when show-visualize?
