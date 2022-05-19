@@ -647,10 +647,11 @@
       (register-site-look 'audio-stream 4 {Color Yellow})
       (register-site-look 'video-stream 4 {Color Yellow})
       ;; message
-      (register-site-look 'message 2 {Color Orange})
-      (register-site-look 'delayed 2 {Color Yellow})
+      (register-site-look 'event 2 chronology-magenta)
+      (register-site-look 'message 1 chronology-purple)
+      (register-site-look 'delayed 1 chronology-purple)
       ;; memory
-      (register-site-look 'memory 1 {Color Red})
+      (register-site-look 'memory 1 {Color red: .912 green: .005 blue: .005})
       ;; other
       (default-site-look 10 {Color Dark-Gray})))
   
