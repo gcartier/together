@@ -49,6 +49,7 @@
         (world.interface.sheet)
         (world.interface.text)
         (world.interface.timeline)
+        (world.interface.widgets)
         (world.manager)
         (world.record (phase syntax))
         (world.settings)
@@ -111,6 +112,7 @@
   (slot server-emulator       initialize #f  getter generate)
   (slot receiver-emulator     initialize #f  getter generate)
   (slot now                   initialize #f  getter generate)
+  (slot widgets               initialize (new Widgets) getter generate)
   (slot last-now              initialize #f  accessors generate)
   (slot selection             initialize #f  accessors generate)
   (slot selection-frame       initialize #f  accessors generate)
@@ -364,22 +366,32 @@
   
   
   (method override (draw self surface context)
-    (if (not origin)
-        (draw-text surface 5 3 "<no stream found>" visualizer-text-color)
-      (draw-text surface 5 3 (format "{a}" (name-ref replay origin)) visualizer-text-color)
-      (if (not stream-label)
-          (draw-text surface 80 3 "<no channel found>" visualizer-text-color)
-        (draw-text surface 80 3 stream-label visualizer-text-color)
-        (draw-text surface 255 3 (ecase media-kind
-                                   ((udp-audio) "audio" @debug (format "audio ({a})" channel-audio))
-                                   ((udp-video) "video" @debug (format "video ({a})" channel-video)))
-          visualizer-text-color)))
-    (when selection-description
-      (draw-text surface 335 3 selection-description visualizer-text-color))
-    (let ((title (format "{r precision: 1}x" visualizer-speed)))
-      (let ((width (get-width self))
-            (extent (get-text-extent surface title)))
-        (draw-text surface (- width (get-width extent) 5) 3 title timeline-text-color))))
+    (let ((left 5)
+          (right (- (get-width self) 5)))
+      (define (left-widget name title)
+        (let ((right (+ left (draw-text surface left 3 title visualizer-text-color))))
+          (add-widget widgets name (new Rect left 0 right 22))
+          (set! left (+ right 20))))
+      
+      (define (right-widget name title)
+        (let ((extent (get-text-extent surface title)))
+          (let ((h (- right (get-width extent))))
+            (let ((width (draw-text surface h 3 title timeline-text-color)))
+              (add-widget widgets name (new Rect (- right width) 0 right 22))))))
+      
+      (reset widgets)
+      (if (not origin)
+          (left-widget 'origin "<no stream found>")
+        (left-widget 'origin (format "{a}" (name-ref replay origin)))
+        (if (not stream-label)
+            (left-widget 'stream "<no channel found>")
+          (left-widget 'stream stream-label)
+          (left-widget 'media-kind (ecase media-kind
+                                     ((udp-audio) "audio" @debug (format "audio ({a})" channel-audio))
+                                     ((udp-video) "video" @debug (format "video ({a})" channel-video))))))
+      (when selection-description
+        (draw-text surface 335 3 selection-description visualizer-text-color))
+      (right-widget 'metadata (format "{r precision: 1}x" visualizer-speed))))
   
   
   (method protected (render-video self)
@@ -512,35 +524,18 @@
   
   
   (method override (mouse-up self evt)
-    (let ((h (get-h evt))
-          (v (get-v evt)))
-      (define (in-origin?)
-        (and (< v 25)
-             (between? h 0 65)))
-      
-      (define (in-stream?)
-        (and (< v 25)
-             (between? h 65 245)))
-      
-      (define (in-media-kind?)
-        (and (< v 25)
-             (between? h 245 320)))
-      
-      (define (in-metadata?)
-        (and (< v 25)
-             (let ((width (get-width self)))
-               (between? h (- width 50) width))))
-      
-      (cond ((in-origin?)
-             (cycle-origins panel (get-shift? evt)))
-            ((in-stream?)
-             (cycle-streams panel (get-shift? evt)))
-            ((in-media-kind?)
-             (cycle-media-kinds panel (get-shift? evt)))
-            ((in-metadata?)
-             (pp (table-values (get-metadatas (get-replay panel)))))
-            (else
-             (nextmethod self evt))))))
+    (let ((widget (find-widget (get-widgets panel) (acquire panel self (get-position evt)))))
+      (case widget
+        ((origin)
+         (cycle-origins panel (get-shift? evt)))
+        ((stream)
+         (cycle-streams panel (get-shift? evt)))
+        ((media-kind)
+         (cycle-media-kinds panel (get-shift? evt)))
+        ((metadata)
+         (pp (table-values (get-metadatas (get-replay panel)))))
+        (else
+         (nextmethod self evt))))))
 
 
 ;;;
