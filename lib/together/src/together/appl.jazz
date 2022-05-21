@@ -160,7 +160,6 @@
     (unless (and local-developer?
                  (world-setting 'world.inhibit-empty-fifos? #f))
       (empty-fifo-directory feedback?: local-developer?))
-    (setup-gstreamer-log)
     (when local-developer?
       (start-debuggers self)))
   

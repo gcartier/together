@@ -245,7 +245,7 @@
 
 (definition public (open-replay dir)
   (let ((client (current-client)))
-    (receive (names metadatas chronologies evolutions channels audios videos logs log-indexes) (collect-replays dir)
+    (receive (names metadatas chronologies evolutions channels audios videos moments) (collect-replays dir)
       (define (determine-tier character-name)
         (or (table-find names character-name test: equal?)
             (car (table-keys names))))
@@ -257,7 +257,7 @@
         (let ((tier (determine-tier character-name)))
           (let ((base-time (determine-base-time))
                 (title (get-name dir)))
-            (new Replay title dir tier names metadatas chronologies evolutions channels audios videos logs log-indexes base-time)))))))
+            (new Replay title dir tier names metadatas chronologies evolutions channels audios videos moments base-time)))))))
 
 
 ;;;
@@ -519,11 +519,13 @@
     (plot-throttle-rate   self surface 500 udp-throttle-gap)
     (plot-throttle-rate   self surface 520 udp-throttle-noack)
     (plot-throttle-rate   self surface 570 udp-throttle-restore)
-    (plot-log-entry       self surface 350 1)     ; G_ERROR
-    (plot-log-entry       self surface 360 2)     ; G_CRITICAL
-    (plot-log-entry       self surface 370 3)     ; G_WARNING
-    (plot-log-entry       self surface 380 4)     ; GST_ERROR
-    (plot-log-entry       self surface 390 5)))   ; GST_WARNING
+    (plot-moment          self surface 350 1)     ; FATAL_ERROR
+    (plot-moment          self surface 360 2)     ; FATAL_CRITICAL
+    (plot-moment          self surface 370 3)     ; FATAL_WARNING
+    (plot-moment          self surface 380 4)     ; ERROR
+    (plot-moment          self surface 390 5)     ; WARNING
+    (plot-moment          self surface 390 6)     ; DEBUG
+    (plot-moment          self surface 390 7)))   ; LOG
 
 
 (definition protected (record-events-lexicon)
