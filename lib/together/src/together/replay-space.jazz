@@ -99,6 +99,7 @@
         (new Together-Visualizer-Panel parent: root name: 'visualizer visible?: replay-visualizer? layouter: (lambda (panel) (together-visualizer-panel-layouter panel)))
         (new Together-Timeline-Panel parent: root name: 'timeline visible?: #t layouter: (lambda (panel) (together-timeline-panel-layouter panel)))
         (new Together-Evolution-Panel parent: root name: 'evolution visible?: #t layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
+        (new Together-Moments-Panel parent: root name: 'moments visible?: #f layouter: (lambda (panel) (together-evolution-panel-layouter panel)))
         (when replay-back?
           (new Push-Button name: 'back parent: root title: "Back" location: '(-10 -10) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-back self)))
         (set! self.root root))))
@@ -110,6 +111,7 @@
       (set-visible? (child root 'visualizer) replay-visualizer?)
       (set-visible? (child root 'timeline) #t)
       (set-visible? (child root 'evolution) #t)
+      (set-visible? (child root 'moments) #f)
       (when replay-back?
         (set-visible? (child root 'back) #t))
       (set-visible? (child mainbar 'profile) #f)

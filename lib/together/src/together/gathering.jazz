@@ -4301,6 +4301,9 @@
           (set-moments panel moments)
           (set-base-time panel base-time))
         
+        (define (setup-moments-panel panel)
+          (set-moments panel moments))
+        
         (if #f @wait (is? space Void-Space)
             (let ((world (current-world))
                   (udp (current-udp)))
@@ -4335,7 +4338,8 @@
                 (let ((root (new Together-Replay-Panel position: {Point 0 0} size: {Dimension 1280 720} in-circle?: #t)))
                   (let ((visualizer (new Together-Visualizer-Panel parent: root name: 'visualizer position: {Point 64  20} size: {Dimension 1152 150}))
                         (timeline   (new Together-Timeline-Panel   parent: root name: 'timeline   position: {Point 64 168} size: {Dimension 1152 220}))
-                        (evolution  (new Together-Evolution-Panel  parent: root name: 'evolution  position: {Point 64 387} size: {Dimension 1152 333})))
+                        (evolution  (new Together-Evolution-Panel  parent: root name: 'evolution  position: {Point 64 387} size: {Dimension 1152 333}))
+                        (moments    (new Together-Moments-Panel    parent: root name: 'moments    position: {Point 64 387} size: {Dimension 1152 333})))
                     ;(set-background root {Color red: 30 green: 30 blue: 30 alpha: .7})
                     ;(set-border-sides (child visualizer 'border) 'bottom)
                     ;(set-border-color timeline #f)
@@ -4344,6 +4348,7 @@
                     (setup-visualizer-panel visualizer)
                     (setup-timeline-panel timeline)
                     (setup-evolution-panel evolution)
+                    (setup-moments-panel moments)
                     (display-evolutions root now)
                     (update-visualizer root)
                     root)))
@@ -4357,6 +4362,7 @@
           (setup-visualizer-panel (child root 'visualizer))
           (setup-timeline-panel (child root 'timeline))
           (setup-evolution-panel (child root 'evolution))
+          (setup-moments-panel (child root 'moments))
           (display-evolutions root now)
           (update-visualizer root))))))
   
