@@ -539,7 +539,8 @@
     (plot-moment          self surface 380 4)     ; ERROR
     (plot-moment          self surface 390 5)     ; WARNING
     (plot-moment          self surface 390 6)     ; INFO
-    (plot-moment          self surface 390 7)))   ; LOG
+    (plot-moment          self surface 390 7)     ; DEBUG
+    (plot-moment          self surface 390 8)))   ; LOG
 
 
 (definition protected (record-events-lexicon)
@@ -1574,7 +1575,7 @@
         (format "{r precision: 6}" time))
       
       (define (present-level level)
-        (let ((levels #("" "fatal_error" "fatal_critical" "fatal_warning" "error" "warning" "info" "log")))
+        (let ((levels #("" "fatal_error" "fatal_critical" "fatal_warning" "error" "warning" "info" "debug" "log")))
           (vector-ref levels level)))
       
       (define (determine-level-color level)
