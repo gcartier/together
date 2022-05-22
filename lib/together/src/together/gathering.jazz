@@ -38,6 +38,7 @@
         (jazz.snapshot)
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
+        (jazz.syntax (phase syntax))
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -87,6 +88,8 @@
         (world.live)
         (world.logging)
         (world.manager)
+        (world.moment)
+        (world.moment.syntax (phase syntax))
         (world.pane)
         (world.player)
         (world.preprocess)
@@ -2333,6 +2336,7 @@
           (let ((no/streams/exception (join-group tier name 'player)))
             (if (string? no/streams/exception)
                 (display-error world no/streams/exception)
+              (camerabug-info 1)
               (setup-circle self name no/streams/exception)))))))
   
   
@@ -2369,6 +2373,7 @@
   
   
   (method (acquire-circle self require-camera?)
+    (camerabug-info 1)
     (if (auto-live?)
         (cond ((and (auto-audio?) (not (has-microphone?)))
                "No microphone found")
@@ -2391,12 +2396,14 @@
           (reset-chronology)
           (bind-camera))
         (when (auto-live?)
+          (camerabug-info 1)
           (require-live-stream tier))
         (start udp)
         (when (auto-live?)
           (when (auto-audio?)
             (play-microphone tier))
           (when (and (auto-video?) require-camera?)
+            (camerabug-info 2)
             (play-camera tier)))
         (clear-message world)
         (camera-copy! preserved-eye (get-eye world))
