@@ -1505,6 +1505,7 @@
 (class Together-Moments-Panel extends World-Panel
   
   
+  (slot names   initialize #f accessors generate)
   (slot moments initialize #f accessors generate)
   (slot now     initialize #f accessors generate)
   
@@ -1518,7 +1519,7 @@
               (<content~>
                 (<Evolution-Tree>      name: moments  portfolio: :images filled-column: message multiple-selection?: #t selection-mode: cell show-unfocused-selection?: #f background: #f selection-handler: {Event-Handler :form on-selection-change} double-click-handler: {Event-Handler :form on-double-click}
                   (<Tree-Node-Column>  name: time     title: "Time" width: 120 controls?: #f display-images?: #f display-levels?: #f)
-                  (<Tree-Label-Column> name: tier     title: "Tier" width: 90)
+                  (<Tree-Label-Column> name: tier     title: "Tier" width: 110)
                   (<Tree-Label-Column> name: domain   title: "Domain" width: 100)
                   (<Tree-Label-Column> name: level    title: "Level" width: 100)
                   (<Tree-Label-Column> name: category title: "Category" width: 100)
@@ -1565,6 +1566,10 @@
             (let ((pair (car sorted-columns)))
               (values (car pair) (cdr pair))))))
       
+      (define (present-tier id)
+        (or (table-ref names id #f)
+            "<unknown>"))
+      
       (define (present-time time)
         (format "{r precision: 6}" time))
       
@@ -1588,10 +1593,10 @@
       (with-update-locked self
         (lambda ()
           (iterate-table moments
-            (lambda (id moments)
+            (lambda (tier moments)
               (iterate-table moments
                 (lambda (id moment)
-                  (let ((tier "Me" @w (present-tier self tier))
+                  (let ((tier (present-tier tier))
                         (time (present-time (get-property moment 'time)))
                         (domain (->string (get-property moment 'domain)))
                         (level (present-level (get-property moment 'level)))
