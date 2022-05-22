@@ -1595,26 +1595,29 @@
         (lambda ()
           (iterate-table moments
             (lambda (tier moments)
-              (iterate-table moments
-                (lambda (id moment)
-                  (let ((tier (present-tier tier))
-                        (time (present-time (get-property moment 'time)))
-                        (domain (->string (get-property moment 'domain)))
-                        (level (present-level (get-property moment 'level)))
-                        (category (->string (get-property moment 'category)))
-                        (function (->string (get-property moment 'function)))
-                        (message (->string (get-property moment 'message)))
-                        (level-color (determine-level-color (get-property moment 'level))))
-                    (add-row tree
-                             state: 'expanded
-                             children: (list (new Tree-Node title: time font: {Font Label-User} color: color)
-                                             (new Tree-Label title: tier font: {Font Label-User} color: {Color World-Orange})
-                                             (new Tree-Label title: domain font: {Font Label-User} color: {Color World-Darker-Green})
-                                             (new Tree-Label title: level font: {Font Label-User} color: {Color World-Blue})
-                                             (new Tree-Label title: category font: {Font Label-User} color: {Color World-Blue})
-                                             (new Tree-Label title: function font: {Font Label-User} color: {Color World-Blue})
-                                             (new Tree-Label title: message font: {Font Label-User} color: data-color))
-                             user-data: user-data))))))))
+              (define (sort-moments)
+                (sort < (table-values moments) key: (lambda (moment) (get-property moment 'time))))
+              
+              (for-each (lambda (moment)
+                          (let ((tier (present-tier tier))
+                                (time (present-time (get-property moment 'time)))
+                                (domain (->string (get-property moment 'domain)))
+                                (level (present-level (get-property moment 'level)))
+                                (category (->string (get-property moment 'category)))
+                                (function (->string (get-property moment 'function)))
+                                (message (->string (get-property moment 'message)))
+                                (level-color (determine-level-color (get-property moment 'level))))
+                            (add-row tree
+                                     state: 'expanded
+                                     children: (list (new Tree-Node title: time font: {Font Label-User} color: color)
+                                                     (new Tree-Label title: tier font: {Font Label-User} color: {Color World-Orange})
+                                                     (new Tree-Label title: domain font: {Font Label-User} color: {Color World-Darker-Green})
+                                                     (new Tree-Label title: level font: {Font Label-User} color: {Color World-Blue})
+                                                     (new Tree-Label title: category font: {Font Label-User} color: {Color World-Blue})
+                                                     (new Tree-Label title: function font: {Font Label-User} color: {Color World-Blue})
+                                                     (new Tree-Label title: message font: {Font Label-User} color: data-color))
+                                     user-data: user-data)))
+                        (sort-moments))))))
       
       
       
