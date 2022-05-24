@@ -1544,16 +1544,13 @@
     )
   
   
-  (method package (clear-moments self)
-    )
-  
-  
   (method package (view-moments-at self (now #f))
     (set! self.now now)
     (let ((world (current-world))
           (tree (locate self 'moments))
           (color {Color World-Red})
           (data-color {Color White})
+          (entries (new-queue))
           (now-row #f)
           (numerical-test
             (lambda (value value/range)
@@ -1573,7 +1570,7 @@
             "<unknown>"))
       
       (define (present-time time)
-        (format "{r precision: 6}" time))
+        (format "{r precision: 6}" (- time base-time)))
       
       (define (present-level level)
         (let ((levels #("" "fatal_error" "fatal_critical" "fatal_warning" "error" "warning" "info" "debug" "log")))
@@ -1591,34 +1588,72 @@
       
       
       
-      (remove-every-row tree)
-      (with-update-locked self
-        (lambda ()
+      
+      (iterate-table moments
+        (lambda (tier moments)
           (iterate-table moments
-            (lambda (tier moments)
-              (define (sort-moments)
-                (sort < (table-values moments) key: (lambda (moment) (get-property moment 'time))))
-              
-              (for-each (lambda (moment)
-                          (let ((tier (present-tier tier))
-                                (time (present-time (get-property moment 'time)))
-                                (domain (->string (get-property moment 'domain)))
-                                (level (present-level (get-property moment 'level)))
-                                (category (->string (get-property moment 'category)))
-                                (function (->string (get-property moment 'function)))
-                                (message (->string (get-property moment 'message)))
-                                (level-color (determine-level-color (get-property moment 'level))))
-                            (add-row tree
-                                     state: 'expanded
-                                     children: (list (new Tree-Node title: time font: {Font Label-User} color: color)
-                                                     (new Tree-Label title: tier font: {Font Label-User} color: {Color World-Orange})
-                                                     (new Tree-Label title: domain font: {Font Label-User} color: {Color World-Darker-Green})
-                                                     (new Tree-Label title: level font: {Font Label-User} color: {Color World-Blue})
-                                                     (new Tree-Label title: category font: {Font Label-User} color: {Color World-Blue})
-                                                     (new Tree-Label title: function font: {Font Label-User} color: {Color World-Blue})
-                                                     (new Tree-Label title: message font: {Font Label-User} color: data-color))
-                                     user-data: user-data)))
-                        (sort-moments))))))
+            (lambda (id moment)
+              (let ((entry (vector (get-property moment 'time)
+                                   tier
+                                   id
+                                   (get-property moment 'domain)
+                                   (get-property moment 'level)
+                                   (get-property moment 'category)
+                                   (get-property moment 'function)
+                                   (get-property moment 'message))))
+                (enqueue entries entry))))))
+      
+      
+      
+      ;; gather neighborhood
+      (let ((entries (queue-list entries)))
+        (define (time-ref entry)
+          (vector-ref entry 0))
+        
+        (define (sort-entries)
+          (sort < entries key: time-ref))
+        
+        (define (find-closest entries)
+          (car (sort < entries key: (lambda (entry)
+                                      (let ((time (time-ref entry)))
+                                        (abs (- time now)))))))
+      
+      
+        
+        (remove-every-row tree)
+        (with-update-locked self
+          (lambda ()
+            (let ((sorted (sort-entries)))
+              (when (not-null? sorted)
+                (let ((closest (find-closest sorted)))
+                  (for-each (lambda (entry)
+                              (bind-vector (time tier id domain level category function message) entry
+                                (let ((tier (present-tier tier))
+                                      (time (present-time time))
+                                      (domain (->string domain))
+                                      (level (present-level level))
+                                      (category (->string category))
+                                      (function (->string function))
+                                      (message (->string message))
+                                      (level-color (determine-level-color level)))
+                                  (let ((row (add-row tree
+                                                      state: 'expanded
+                                                      children: (list (new Tree-Node title: time font: {Font Label-User} color: color)
+                                                                      (new Tree-Label title: tier font: {Font Label-User} color: {Color World-Orange})
+                                                                      (new Tree-Label title: domain font: {Font Label-User} color: {Color World-Darker-Green})
+                                                                      (new Tree-Label title: level font: {Font Label-User} color: {Color World-Blue})
+                                                                      (new Tree-Label title: category font: {Font Label-User} color: {Color World-Blue})
+                                                                      (new Tree-Label title: function font: {Font Label-User} color: {Color World-Blue})
+                                                                      (new Tree-Label title: message font: {Font Label-User} color: data-color))
+                                                      user-data: entry)))
+                                    (when (eq? entry closest)
+                                      (set! now-row row))))))
+                            sorted))))
+            (when now-row
+              (let ((line (row->line tree now-row)))
+                (ensure-row-displayed tree line center?: #t)
+                (let ((data (get-cell-data tree (new Cell line 0))))
+                  (set-color data {Color Light-Gray})))))))
       
       
       
@@ -1854,7 +1889,12 @@
                         (let ((data (get-cell-data tree (new Cell line 0))))
                           (set-color data {Color Light-Gray})))))))
               (layout-scrollee tree)
-              (values (length neighborhood) total left right))))))))
+              (values (length neighborhood) total left right)))))))
+  
+  
+  (method package (clear-moments self)
+    (let ((tree (locate self 'moments)))
+      (remove-every-row tree))))
 
 
 (class Together-Moments-Header extends Tree-Header)
