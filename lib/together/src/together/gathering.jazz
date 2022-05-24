@@ -4310,7 +4310,8 @@
         
         (define (setup-moments-panel panel)
           (set-names panel names)
-          (set-moments panel moments))
+          (set-moments panel moments)
+          (set-base-time panel base-time))
         
         (if #f @wait (is? space Void-Space)
             (let ((world (current-world))

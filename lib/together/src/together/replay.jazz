@@ -1506,9 +1506,10 @@
 (class Together-Moments-Panel extends World-Panel
   
   
-  (slot names   initialize #f accessors generate)
-  (slot moments initialize #f accessors generate)
-  (slot now     initialize #f accessors generate)
+  (slot names     initialize #f accessors generate)
+  (slot moments   initialize #f accessors generate)
+  (slot base-time initialize 0. accessors generate)
+  (slot now       initialize #f accessors generate)
   
   
   (form
