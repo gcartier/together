@@ -691,7 +691,7 @@
                (invalidate-image self)
                (timeline-view/now-update root from to now))))
           ((graph)
-           (set-graph-latency? (not graph-latency?))
+           (set! plot-latency? (not plot-latency?))
            (invalidate-image self)
            (invalidate-view self))
           ((events)
@@ -747,7 +747,7 @@
                         (id (evolutionary-udp-id evolution n)))
                       (ecase id
                         ((udp-id-retain-packet)
-                         (when (and graph-latency?
+                         (when (and plot-latency?
                                     (eqv? (flonum->fixnum (evolutionary-udp-origin evolution n)) origin)
                                     (eqv? (flonum->fixnum (evolutionary-udp-kind evolution n)) udp-audio))
                            (let ((h (when->h self from to span time)))
@@ -920,7 +920,7 @@
             (set! labels (cons (list side vert str) labels)))
           
           ;; latency
-          (unless (or full-mode? visualize? (not graph-latency?) (not evolution))
+          (unless (or full-mode? visualize? (not plot-latency?) (not evolution))
             (let ((visualizer (brother self 'visualizer)))
               (let ((evolution (get-origin-evolution visualizer)))
                 (when evolution

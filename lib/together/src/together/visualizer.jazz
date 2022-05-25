@@ -410,7 +410,7 @@
             (end (evolutionary-time receiver-evolution (last-position receiver-evolution))))
         (set-visualizer-start timeline start)
         (set-visualizer-end timeline end))
-      (when graph-latency?
+      (when (get-plot-latency? timeline)
         (redraw timeline))))
   
   
