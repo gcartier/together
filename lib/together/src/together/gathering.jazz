@@ -2843,9 +2843,6 @@
         (format "{a} {r precision: 1}%" name (* percentage 100.)))
       
       (bind (main . rest) threads
-        (let ((percentage (second main)))
-          (draw (present "main" percentage) {Color World-Orange})
-          (increase! base-v 20))
         (for-each (lambda (thread)
                     (bind (fullname percentage) thread
                       (let ((fullname (or fullname "")))
