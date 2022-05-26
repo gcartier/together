@@ -203,7 +203,7 @@
             (mac
              (with-bin-mutex
                (lambda ()
-                 (let ((threads (collect-process-threads)))
+                 (let ((threads (current-process-threads)))
                    (when threads
                      (receive (main others) (cpu-percentage threads)
                        (let ((total (+ main others)))

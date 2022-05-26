@@ -2770,7 +2770,7 @@
                 (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
               (with-bin-mutex
                 (lambda ()
-                  (let ((threads (collect-process-threads)))
+                  (let ((threads (current-process-threads)))
                     (cond-expand
                       (mac
                        (when threads
