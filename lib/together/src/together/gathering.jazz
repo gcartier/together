@@ -91,6 +91,7 @@
         (world.moment)
         (world.moment.syntax (phase syntax))
         (world.pane)
+        (world.platform)
         (world.player)
         (world.preprocess)
         (world.profile)
@@ -2751,23 +2752,6 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
-        (define (cpu-percentage threads)
-          (cond-expand
-            (mac
-             (bind (main . others) threads
-               (let ((main (second main))
-                     (gstreamer 0.)
-                     (other 0.))
-                 (for-each (lambda (thread)
-                             (bind (fullname percentage) thread
-                               (let ((fullname (or fullname "")))
-                                 (if (find fullname #\:)
-                                     (increase! gstreamer percentage)
-                                   (increase! other percentage)))))
-                           others)
-                 (values main gstreamer other))))
-            (else)))
-        
         (let ((rank 0))
           (define (draw text color)
             (let ((h 20)
@@ -2790,7 +2774,7 @@
                     (cond-expand
                       (mac
                        (when threads
-                         (receive (main gstreamer other) (cpu-percentage threads)
+                         (receive (main gstreamer other) (process-threads-cpu threads)
                            (let ((total (+ main gstreamer other)))
                              (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red})))))
                       (else))
@@ -2827,18 +2811,6 @@
           (draw-text surface h v text color))
         (increase! other-v 20))
       
-      (define (streaming-name fullname)
-        (bind (name pad) (split-string fullname #\:)
-          (let ((split (split-string name #\%)))
-            (if (= (length split) 1)
-                (format :terminal "streaming thread {a} is missing an explicit name{%}" name)
-              (bind (element id) split
-                (let ((bin (id->bin (string->number id))))
-                  (if (not bin)
-                      "unknown"
-                    (let ((bin-name (gst_object_get_name bin)))
-                      (format "<{a}> {a}:{a}" bin-name element pad)))))))))
-      
       (define (present name percentage)
         (format "{a} {r precision: 1}%" name (* percentage 100.)))
       
@@ -2846,9 +2818,9 @@
         (for-each (lambda (thread)
                     (bind (fullname percentage) thread
                       (let ((fullname (or fullname "")))
-                        (let ((gstreamer? (find fullname #\:)))
+                        (let ((gstreamer? (gstreamer-thread? fullname)))
                           (let ((name (cond (gstreamer?
-                                             (streaming-name fullname))
+                                             (gstreamer-streaming-name fullname))
                                             ((empty-string? fullname)
                                              "unknown")
                                             (else
