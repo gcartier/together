@@ -115,17 +115,19 @@
   
   (form
     (<install>
-      (<caption~>                               title: "Video Options")
-      (<content~>                                                      layout-type: center
-        (<View>                                                        size: {Dimension 390 134}
-          (<Option-Label>                       title: "Quality"       position: {Point 0 1})
-          (<Combo-Option>                                              position: {Point 140 0} size: {Dimension 250 19} option: quality)
-          (<Option-Label>                       title: "Camera"        position: {Point 0 51})
-          (<Combo-Option>                                              position: {Point 140 50} size: {Dimension 250 19} option: camera)
-          (<Option-Label>   name: retina-label  title: "Use Retina"    position: {Point 20 100} visible?: #f)
-          (<Boolean-Option> name: retina-option                        position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
-          (<Option-Label>   name: scale-label   title: "Scale"         position: {Point 0 101} visible?: #f)
-          (<Combo-Option>   name: scale-option                         position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)))))
+      (<caption~>                                 title: "Video Options")
+      (<content~>                                                        layout-type: center
+        (<View>                                                          size: {Dimension 390 174}
+          (<Option-Label>                         title: "Quality"       position: {Point 0 1})
+          (<Combo-Option>                                                position: {Point 140 0} size: {Dimension 250 19} option: quality)
+          (<Option-Label>                         title: "Camera"        position: {Point 0 51})
+          (<Combo-Option>                                                position: {Point 140 50} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: retina-label    title: "Use Retina"    position: {Point 20 100} visible?: #f)
+          (<Boolean-Option> name: retina-option                          position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
+          (<Option-Label>   name: scale-label     title: "Scale"         position: {Point 0 101} visible?: #f)
+          (<Combo-Option>   name: scale-option                           position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
+          (<Option-Label>   name: hardware-label  title: "Hardware Decoding (experimental)" position: {Point 20 150} size: {Dimension 300 16} visible?: #f)
+          (<Boolean-Option> name: hardware-option                        position: {Point 0 150} size: {Dimension 250 19} visible?: #f option: hardware)))))
   
   
   (method override (install self rest)
@@ -135,7 +137,9 @@
       (mac
        (when (main-screen-retina?)
          (set-visible? (locate self 'retina-label) #t)
-         (set-visible? (locate self 'retina-option) #t)))
+         (set-visible? (locate self 'retina-option) #t))
+       (set-visible? (locate self 'hardware-label) #t)
+       (set-visible? (locate self 'hardware-option) #t))
       (windows
        (set-visible? (locate self 'scale-label) #t)
        (set-visible? (locate self 'scale-option) #t))
@@ -181,7 +185,9 @@
                             (list 1.75 "175%")
                             (list 2. "200%")))
              (choice (world-setting 'world.application-scale 1.)))
-         (values choices choice)))))
+         (values choices choice)))
+      ((hardware)
+       (world-setting 'world.video-hardware? #f))))
   
   
   (method override (write-option self option value title)
@@ -203,7 +209,11 @@
       ((scale)
        (set-setting options-settings 'world.application-scale value)
        (save-content options-settings)
-       (need-restart)))))
+       (need-restart))
+      ((hardware)
+       (set-video-hardware? value)
+       (set-setting options-settings 'world.video-hardware? value)
+       (save-content options-settings)))))
 
 
 (definition protected (update-profile-label)
