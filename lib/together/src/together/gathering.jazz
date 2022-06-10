@@ -2427,7 +2427,7 @@
             (reorder-outputs video order)))
         (cond ((eq? active-zone 'start)
                (goto-space self 'void)
-               (change-circle-mode self 'gallery 'gallery feedback?: #f)
+               (change-circle-mode self 'circle 'circle feedback?: #f)
                (circle-home))
               (else
                (change-circle-mode self 'avatar 'circle feedback?: #f)))
@@ -2448,7 +2448,7 @@
       (uninstall-vista)
       (install-circle-hooks self)
       (goto-space self 'void)
-      (change-circle-mode self 'gallery 'gallery feedback?: #f)
+      (change-circle-mode self 'circle 'circle feedback?: #f)
       (circle-home)
       (setup-visibility mainbar)
       (set-mode me 'player)))
