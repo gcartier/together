@@ -1034,6 +1034,16 @@
       (<World-Action-Item> name: command-slash        title: "Message slash" shortcut: {Shortcut #\/} action-handler: {Event-Handler :space on-command-slash} description: "Message slash."))))
 
 
+(class Together-Record-Actions extends World-Actions
+  
+  
+  (form
+    (<install>                                        title: "Record"
+      (<World-Action-Item> name: start-recording      title: "Start recording" shortcut: {Shortcut :alt #\8} action-handler: {Event-Handler :together on-start-recording} description: "Start recording.")
+      (<World-Action-Item> name: stop-recording       title: "Stop recording" shortcut: {Shortcut :alt #\9} action-handler: {Event-Handler :together on-stop-recording} description: "Stop recording.")
+      (<World-Action-Item> name: process-recording    title: "Process recording" shortcut: {Shortcut :alt #\0} action-handler: {Event-Handler :together on-process-recording} description: "Process recording."))))
+
+
 (class Together-Share-Actions extends World-Actions
   
   
@@ -1215,6 +1225,7 @@
       (<Together-Circle-Actions>     name: together-circle)
       (<Together-Zone-Actions>       name: together-zone)
       (<Together-View-Actions>       name: together-view)
+      (<Together-Record-Actions>     name: together-record)
       (<Together-Share-Actions>      name: together-share)
       @wait
       (<Together-Navigate-Actions>   name: together-navigate)
@@ -1291,6 +1302,11 @@
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
+      @wait
+      (<together-record!>
+        (<!>                 name: start-recording            visible?: #t)
+        (<!>                 name: stop-recording             visible?: #t)
+        (<!>                 name: process-recording          visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
@@ -1447,6 +1463,11 @@
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
+      @wait
+      (<together-record!>
+        (<!>                 name: start-recording            visible?: #t)
+        (<!>                 name: stop-recording             visible?: #t)
+        (<!>                 name: process-recording          visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
@@ -1618,6 +1639,11 @@
       (<together-zone!>
         (<!>                 name: command-message            visible?: #t)
         (<!>                 name: command-slash              visible?: #t))
+      @wait
+      (<together-record!>
+        (<!>                 name: start-recording            visible?: #t)
+        (<!>                 name: stop-recording             visible?: #t)
+        (<!>                 name: process-recording          visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
@@ -1903,6 +1929,10 @@
         (<!>                 name: toggle-paused              visible?: #t)
         (<!>                 name: seek-backward              visible?: #t)
         (<!>                 name: seek-forward               visible?: #t))
+      (<together-record!>
+        (<!>                 name: start-recording            visible?: #t)
+        (<!>                 name: stop-recording             visible?: #t)
+        (<!>                 name: process-recording          visible?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: add-image                  visible?: #t)

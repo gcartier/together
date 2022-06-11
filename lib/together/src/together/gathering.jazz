@@ -119,6 +119,7 @@
         (together.experiment)
         (together.network)
         (together.options)
+        (together.record)
         (together.replay)
         (together.replay-space)
         (together.script)
@@ -290,6 +291,8 @@
         (<!>                 name: audio-options              active?: #t))
       (<together-video!>
         (<!>                 name: video-options              active?: #t))
+      (<together-record!>
+        (<!>                 name: process-recording          active?: #t))
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: preprocess-qualities       active?: #t)
@@ -474,6 +477,7 @@
                   (find-actions 'world-debug)
                   (find-actions 'together-audio)
                   (find-actions 'together-video)
+                  (find-actions 'together-record)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-debug)
@@ -1041,6 +1045,7 @@
                   (find-actions 'together-video)
                   (find-actions 'together-circle)
                   (find-actions 'together-zone)
+                  (find-actions 'together-record)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-experiment)
@@ -1302,6 +1307,7 @@
                   (find-actions 'together-video)
                   (find-actions 'together-circle)
                   (find-actions 'together-view)
+                  (find-actions 'together-record)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-experiment)
@@ -1603,6 +1609,9 @@
         (<!>                 name: toggle-paused              active?: #t)
         (<!>                 name: seek-backward              active?: #t)
         (<!>                 name: seek-forward               active?: #t))
+      (<together-record!>
+        (<!>                 name: start-recording            active?: #t)
+        (<!>                 name: stop-recording             active?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             active?: #t)
         (<!>                 name: add-image                  active?: #t)
@@ -4457,12 +4466,25 @@
     (goto-space self 'simulate))
   
   
+  (method (on-start-recording self evt)
+    (start-recording))
+  
+  
+  (method (on-stop-recording self evt)
+    (stop-recording))
+  
+  
+  (method (on-process-recording self evt)
+    (process-recording))
+  
+  
   (method (on-preprocess-streams self evt)
     (preprocess-streams self #t))
   
   
   (method (on-preprocess-qualities self evt)
     (preprocess-streams self #t)
+    @w
     (preprocess-streams self #f))
   
   

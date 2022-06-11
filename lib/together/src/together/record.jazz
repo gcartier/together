@@ -1,0 +1,63 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Record
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.record jazz
+
+
+(import (jazz.io)
+        (world)
+        (world.context)
+        (world.recording)
+        (world.streaming))
+
+
+;;;
+;;;; Record
+;;;
+
+
+(definition public (start-recording)
+  (let ((world (current-world)))
+    (unless recording?
+      (recording-start)
+      (if (not recording?)
+          (display-message world "Nothing to record")
+        (display-on/off world "Recording" recording?)))))
+
+
+(definition public (stop-recording)
+  (let ((world (current-world)))
+    (when recording?
+      (recording-stop)
+      (display-on/off world "Recording" recording?))))
+
+
+;;;
+;;;; Assemble
+;;;
+
+
+(definition public (process-recording)
+  (let ((dir {Directory Documents "streams" "convert"})
+        (base "Power"))
+    (let ((audio (new-file dir (add-extension base "streamaudio")))
+          (video (new-file dir (add-extension base "streamvideo2")))
+          (output (new-file dir (add-extension base "mov"))))
+      (mux-streams audio video output)))
+  @w
+  (let ((dir {Directory Documents "streams" "aaa" "recording_2022-03-03_10-36-54"})
+        (base "Live"))
+    (let ((audio (new-file dir (add-extension base "streamaudio")))
+          (video (new-file dir (add-extension base "streamvideo2")))
+          (output (new-file dir (add-extension base "mp4"))))
+      (mux-streams audio video output)))))
