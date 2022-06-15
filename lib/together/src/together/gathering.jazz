@@ -494,10 +494,14 @@
   
   
   (method override (central-menu-show self)
-    (update-center-interface self))
+    )
   
   
   (method override (central-menu-hide self)
+    )
+  
+  
+  (method override (panel-stack-change self)
     (update-center-interface self))
   
   
@@ -582,7 +586,7 @@
               (set-color (child root 'selected-label) (get-selected-color together))
               (set-title (child root 'selected-label) (get-selected-message together)))
             (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
-            (cond ((get-central-menu world)
+            (cond ((top-panel)
                    (enter-visible #f)
                    (join-visible #f)
                    (create-visible #f))
