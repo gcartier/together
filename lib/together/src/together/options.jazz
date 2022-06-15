@@ -48,15 +48,26 @@
     (<install>
       (<caption~>           title: "Audio Options")
       (<content~>                                         layout-type: center
-        (<View>                                           size: {Dimension 390 140}
+        (<View>                                           size: {Dimension 390 170}
           (<Option-Label>   title: "Microphone"           position: {Point 0 1})
           (<Combo-Option>                                 position: {Point 190 0} size: {Dimension 200 19} option: microphone)
           (<Option-Label>   title: "Push to talk"         position: {Point 20 30} size: {Dimension 200 15})
           (<Boolean-Option>                               position: {Point 0 30} option: push-to-talk)
           (<Option-Label>   title: "Aggressive Denoising" position: {Point 20 60} size: {Dimension 200 15})
           (<Boolean-Option>                               position: {Point 0 60} option: aggressive-denoising)
-          (<Option-Label>   title: "Speaker"              position: {Point 0 121} size: {Dimension 200 15})
-          (<Combo-Option>                                 position: {Point 190 120} size: {Dimension 200 19} option: speaker)))))
+          (<Option-Label>   name: directsound-label title: "Use DirectSound (try if microphone not working)"      position: {Point 20 90} size: {Dimension 300 15} visible?: #f)
+          (<Boolean-Option> name: directsound-option                              position: {Point 0 90} visible?: #f option: directsound)
+          (<Option-Label>   title: "Speaker"              position: {Point 0 141} size: {Dimension 200 15})
+          (<Combo-Option>                                 position: {Point 190 140} size: {Dimension 200 19} option: speaker)))))
+  
+  
+  (method override (install self rest)
+    (nextmethod self rest)
+    (cond-expand
+      (windows
+       (set-visible? (locate self 'directsound-label) #t)
+       (set-visible? (locate self 'directsound-option) #t))
+      (else)))
   
   
   (method override (read-option self option)
@@ -78,6 +89,8 @@
        (push-to-talk?))
       ((aggressive-denoising)
        audio-rndenoise?)
+      ((directsound)
+       (world-setting 'world.microphone-directsound? #f))
       ((speaker)
        (let ((providers (speaker-providers)))
          (if (null? providers)
@@ -101,6 +114,10 @@
        (change-push-to-talk value))
       ((aggressive-denoising)
        (change-rndenoise (current-client) value))
+      ((directsound)
+       (set-microphone-directsound? value)
+       (set-setting options-settings 'world.microphone-directsound? value)
+       (save-content options-settings))
       ((speaker)
        (update-speaker-identifier (current-client) title value)))))
 
