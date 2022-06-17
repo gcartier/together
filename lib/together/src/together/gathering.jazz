@@ -2350,7 +2350,6 @@
           (let ((no/streams/exception (join-group tier name 'player)))
             (if (string? no/streams/exception)
                 (display-error world no/streams/exception)
-              (cameraon-debug 1)
               (setup-circle self name no/streams/exception)))))))
   
   
@@ -2387,7 +2386,6 @@
   
   
   (method (acquire-circle self require-camera?)
-    (cameraon-debug 1)
     (if (auto-live?)
         (cond ((and (auto-audio?) (not (has-microphone?)))
                "No microphone found")
@@ -2410,14 +2408,12 @@
           (reset-chronology)
           (bind-camera))
         (when (auto-live?)
-          (cameraon-debug 1)
           (require-live-stream tier))
         (start udp)
         (when (auto-live?)
           (when (auto-audio?)
             (play-microphone tier))
           (when (and (auto-video?) require-camera?)
-            (cameraon-debug 2)
             (play-camera tier)))
         (clear-message world)
         (camera-copy! preserved-eye (get-eye world))
