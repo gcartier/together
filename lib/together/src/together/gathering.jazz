@@ -4483,8 +4483,6 @@
   
   
   (method (on-preprocess-qualities self evt)
-    (preprocess-streams self #t)
-    @w
     (preprocess-streams self #f))
   
   
