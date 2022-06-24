@@ -1746,6 +1746,7 @@
               (set-path (current-zone) zone)))))
       
       (define (check-error err)
+        (client-status client err)
         (when err
           (enter-gathering)
           (display-problem err)))
@@ -2143,16 +2144,21 @@
     (let ((tier (current-client))
           (interface (current-interface))
           (world (current-world)))
+      (define (problem problem)
+        (client-status tier problem)
+        (display-problem unable-to-acquire-microphone))
+      
       (if (not (has-microphone?))
-          (display-problem no-microphone-found)
+          (problem no-microphone-found)
         (if (not (acquire-microphone-pipeline))
-            (display-problem unable-to-acquire-microphone)
+            (problem unable-to-acquire-microphone)
           ;; auto name is just silly code for me to be removed
           (if auto-name?
               (let ((require-camera? #t)
                     (camera? (has-camera?)))
                 (if (and (not camera?) require-camera?)
-                    (display-problem no-camera-found)
+                    (problem no-camera-found)
+                  (client-status tier #f)
                   (let ((name "My circle"))
                     (let ((no/exception (create-group tier name #f require-camera? #f #f)))
                       (if (string? no/exception)
@@ -2179,7 +2185,8 @@
                                  (let ((require-camera? (get-checked? (locate panel '(create require-camera?))))
                                        (camera? (has-camera?)))
                                    (if (and (not camera?) require-camera?)
-                                       (display-problem no-camera-found)
+                                       (problem no-camera-found)
+                                     (client-status tier #f)
                                      (let ((text (locate panel '(create view text))))
                                        (let ((name (trim-whitespace (get-string-content text))))
                                          (let ((no/exception (create-group tier name #f require-camera? #f #f)))
@@ -2328,6 +2335,7 @@
               (view (child create 'view)))
           (let ((require-camera? (get-checked? require-camera)))
             (let ((err (acquire-circle self require-camera?)))
+              (client-status tier err)
               (if err
                   (display-problem err)
                 (let ((text (locate view 'text)))
@@ -2346,6 +2354,7 @@
     (let ((tier (current-client))
           (world (current-world)))
       (let ((err (acquire-circle self require-camera?)))
+        (client-status tier err)
         (if err
             (display-problem err)
           (let ((no/streams/exception (join-group tier name 'player)))
