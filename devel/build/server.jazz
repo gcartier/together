@@ -150,6 +150,11 @@
 ;;     - tcp : 50000-50050,50100-50150,50200-50250,50300-50350,50400-50450,50500-50550,51000-51050
 ;;     - udp : 50000,50100,50200,50300,50400,50500,51000
 
+;; change timezone to montreal
+#//
+sudo timedatectl set-timezone America/New_York
+//#
+
 ;; cd
 ;; mkdir incoming
 ;; chmod 777 incoming
