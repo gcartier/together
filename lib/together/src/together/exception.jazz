@@ -34,6 +34,6 @@
                             "An unexpected problem occurred while executing"
                             (current-process-present)
                             "This will terminate the application immediately"
-                            "A log file has been generated and will be automatically sent to the developers next time you launch Together")
+                            "Launching Together again will send a log file of the problem to the developers")
                     title: "Application Error"
                     type: 'problem))))
