@@ -64,6 +64,7 @@
         (world.configure)
         (world.context)
         (world.evolution)
+        (world.fog)
         (world.gc)
         (world.history)
         (world.interface)
@@ -1869,7 +1870,8 @@
       (unless (get-skybox zone)
         (set-skybox zone (let ((skybox (find-skybox together-skybox)))
                            (prepare skybox)
-                           skybox)))))
+                           skybox))
+        (set-fog-color (get-fog (get-skybox zone))))))
   
   
   (method protected (sleep-process self)

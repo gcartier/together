@@ -45,6 +45,7 @@
         (world.client)
         (world.client.tier)
         (world.context)
+        (world.fog)
         (world.interface)
         (world.interface.avatars)
         (world.interface.dialogs)
@@ -455,7 +456,8 @@
   (method override (prepare-skybox self)
     (set! skybox (let ((skybox (find-skybox "world/nebula")))
                    (prepare skybox)
-                   skybox)))
+                   skybox))
+    (set-fog-color (get-fog skybox)))
   
   
   (method override (camera-update self)
