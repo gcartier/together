@@ -1265,6 +1265,8 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: repeat-previous            visible?: #t))
+      (<world-debug!>
+        (<!>                 name: toggle-info                visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         @bazoo
