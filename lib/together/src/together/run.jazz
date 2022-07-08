@@ -90,7 +90,10 @@
 (definition (setup-options settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; media
+                     '(;; render
+                       world.render-rate           #f
+                       world.render-rate-inactive  #f
+                       ;; media
                        world.video-layout          circle)))
 
 
