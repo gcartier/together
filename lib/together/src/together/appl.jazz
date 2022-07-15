@@ -1878,6 +1878,7 @@
       (<world-debug!>
         (<!>                 name: toggle-info                visible?: #t)
         (<!>                 name: toggle-profiler            visible?: #t)
+        (<!>                 name: toggle-profiler-all        visible?: #t)
         (<!>                 name: reset-profiler             visible?: #t)
         (<!>                 name: toggle-history             visible?: #t)
         (<!>                 name: all-chronology             visible?: #t)
