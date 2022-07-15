@@ -106,6 +106,10 @@
     #f)
   
   
+  (method override (use-worldbox? self)
+    #t)
+  
+  
   (method override (draw-message-offset self)
     120)
   
