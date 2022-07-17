@@ -71,9 +71,7 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; configure
-                       world.start-time 9000
-                       ;; worker
-                       world.worker?    #f)))
+                       world.start-time 9000)))
 
 
 (definition (override-settings settings)
