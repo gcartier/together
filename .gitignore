@@ -10,4 +10,5 @@
 .configuration
 .jaz
 .jazzini
+.worker
 .DS_Store
