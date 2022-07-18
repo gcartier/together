@@ -286,6 +286,7 @@
         (<!>                 name: toggle-profiler            active?: #t)
         (<!>                 name: toggle-profiler-all        active?: #t)
         (<!>                 name: toggle-history             active?: #t)
+        (<!>                 name: toggle-gc-sound            active?: #t)
         (<!>                 name: explore-interface          active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
