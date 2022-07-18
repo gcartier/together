@@ -136,7 +136,7 @@
       (unanimated (get-showcase world))))
   
   
-  (method override (mouse-track self elapse dx dy)
+  (method override (mouse-track self dx dy)
     (let ((world (current-world)))
       (track-avatar (get-showcase world) dx dy))
     #t)

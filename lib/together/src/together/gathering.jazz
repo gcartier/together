@@ -919,6 +919,7 @@
         (<!>                 name: person-motion              active?: #t)
         (<!>                 name: orbit-motion               active?: #t)
         (<!>                 name: free-motion                active?: #t)
+        @needs-a-lot-more-work
         (<!>                 name: toggle-camera-smoothing    active?: #t)
         (<!>                 name: toggle-camera-follow       active?: #t)
         (<!>                 name: toggle-cursor-track        active?: #t))

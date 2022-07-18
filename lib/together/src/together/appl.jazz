@@ -1774,6 +1774,7 @@
         (<!>                 name: person-motion              visible?: #t)
         (<!>                 name: orbit-motion               visible?: #t)
         (<!>                 name: free-motion                visible?: #t)
+        @needs-a-lot-more-work
         (<!>                 name: toggle-camera-smoothing    visible?: #t)
         (<!>                 name: toggle-camera-follow       visible?: #t)
         (<!>                 name: toggle-cursor-track        visible?: #t))
