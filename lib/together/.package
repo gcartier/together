@@ -84,7 +84,7 @@
                              (prefix "Worker")
                              (run together.run-worker)
                              (product together.product-worker)
-                             (build (together-worker executable: "Together-Worker" minimum-heap: 500000 bundle: "together-worker" resources: "resources/together-worker" include-compiler?: #t))
+                             (build (together-worker executable: "Together-Worker" minimum-heap: 200000 bundle: "together-worker" resources: "resources/together-worker" include-compiler?: #t))
                              (update together.boot-worker
                                      together.product-worker
                                      together.run-worker)
