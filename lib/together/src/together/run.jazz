@@ -91,6 +91,9 @@
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
                      '(;; render
+                       world.view-distance         7
+                       world.post-processing?      #t
+                       world.multisampling         2
                        world.render-rate           #f
                        world.render-rate-inactive  #f
                        ;; media
@@ -105,9 +108,6 @@
                        ;; render
                        world.tick-rate-inactive    .75
                        world.message-rate-inactive 5.
-                       world.view-distance         7
-                       world.post-processing?      #t
-                       world.multisampling         2
                        ;; support
                        world.block-pumps?          #t
                        ;; test
