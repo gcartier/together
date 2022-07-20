@@ -992,7 +992,7 @@
       (set-proportion (child interface 'chat) '(400 150))
       (set-proportion (child interface 'command) '(400 19))
       (set-visible? (child interface 'command-to) #f)
-      (set-visible? (child interface 'chat) #t)
+      (set-visible? (child interface 'chat) #f)
       (set-visible? (child mainbar 'profile) #f)
       (layout-interface)))
   
