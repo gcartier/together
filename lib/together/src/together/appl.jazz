@@ -1359,7 +1359,9 @@
         (<!>                 name: move-backward              visible?: #t)
         (<!>                 name: move-left                  visible?: #t)
         (<!>                 name: move-right                 visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-left                visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-right               visible?: #t))
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
@@ -1372,6 +1374,7 @@
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
+        (<!>                 name: action                     visible?: #t)
         @too-much (<!>                 name: toggle-ride                visible?: #t)
         (<!>                 name: toggle-fly                 visible?: #t)
         (<!>                 name: toggle-vehicle             visible?: #t)
@@ -1522,7 +1525,9 @@
         (<!>                 name: move-backward              visible?: #t)
         (<!>                 name: move-left                  visible?: #t)
         (<!>                 name: move-right                 visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-left                visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-right               visible?: #t)
         @wait (<!>                 name: toggle-run                 visible?: #t))
       (<world-camera!>
@@ -1538,6 +1543,7 @@
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
+        (<!>                 name: action                     visible?: #t)
         @wait (<!>                 name: mind-control               visible?: #t)
         @wait (<!>                 name: toggle-aim                 visible?: #t)
         @wait (<!>                 name: toggle-free-aim            visible?: #t)
@@ -1763,7 +1769,9 @@
         (<!>                 name: move-backward              visible?: #t)
         (<!>                 name: move-left                  visible?: #t)
         (<!>                 name: move-right                 visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-left                visible?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-right               visible?: #t)
         (<!>                 name: toggle-run                 visible?: #t))
       (<world-camera!>
@@ -1780,6 +1788,7 @@
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
+        (<!>                 name: action                     visible?: #t)
         (<!>                 name: mind-control               visible?: #t)
         (<!>                 name: toggle-aim                 visible?: #t)
         (<!>                 name: toggle-free-aim            visible?: #t)

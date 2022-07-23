@@ -909,7 +909,9 @@
         (<!>                 name: move-backward              active?: #t)
         (<!>                 name: move-left                  active?: #t)
         (<!>                 name: move-right                 active?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-left                active?: #t)
+        @broken-by-action-on-e
         (<!>                 name: rotate-right               active?: #t)
         (<!>                 name: toggle-run                 active?: #t))
       (<world-camera!>
@@ -926,6 +928,7 @@
         (<!>                 name: toggle-cursor-track        active?: #t))
       (<world-game!>
         (<!>                 name: jump                       active?: #t)
+        (<!>                 name: action                     active?: #t)
         (<!>                 name: mind-control               active?: #t)
         (<!>                 name: toggle-aim                 active?: #t)
         (<!>                 name: toggle-free-aim            active?: #t)
