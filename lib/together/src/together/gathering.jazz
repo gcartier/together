@@ -973,6 +973,9 @@
 (class Zone-Space extends Sphere-Space
   
   
+  (slot was-autotrack-camera? initialize (unspecified) getter generate)
+  
+  
   (method override (space-name self)
     'zone)
   
@@ -1080,6 +1083,20 @@
     (let ((window (current-window)))
       (when (fade-mainbar? self)
         (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+  
+  
+  (method override (panel-stack-change self)
+    (let ((world (current-world)))
+      (cond ((top-panel)
+             (when (unspecified? was-autotrack-camera?)
+               (set! was-autotrack-camera? (get-autotrack-camera?))
+               (when was-autotrack-camera?
+                 (disable-autotrack world))))
+            (else
+             (when (specified? was-autotrack-camera?)
+               (when was-autotrack-camera?
+                 (enable-autotrack world feedback?: #f))
+               (set! was-autotrack-camera? (unspecified)))))))
   
   
   (method override (draw-message-offset self)
