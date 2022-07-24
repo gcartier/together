@@ -1086,17 +1086,34 @@
   
   
   (method override (panel-stack-change self)
+    (cond ((top-panel)
+           (maybe-disable-autotrack self))
+          (else
+           (maybe-reenable-autotrack self))))
+  
+  
+  (method override (application-activate self)
+    (maybe-reenable-autotrack self))
+  
+  
+  (method override (application-deactivate self)
+    (maybe-disable-autotrack self))
+  
+  
+  (method (maybe-disable-autotrack self)
     (let ((world (current-world)))
-      (cond ((top-panel)
-             (when (unspecified? was-autotrack-camera?)
-               (set! was-autotrack-camera? (get-autotrack-camera?))
-               (when was-autotrack-camera?
-                 (disable-autotrack world))))
-            (else
-             (when (specified? was-autotrack-camera?)
-               (when was-autotrack-camera?
-                 (enable-autotrack world feedback?: #f))
-               (set! was-autotrack-camera? (unspecified)))))))
+      (when (unspecified? was-autotrack-camera?)
+        (set! was-autotrack-camera? (get-autotrack-camera?))
+        (when was-autotrack-camera?
+          (disable-autotrack world)))))
+  
+  
+  (method (maybe-reenable-autotrack self)
+    (let ((world (current-world)))
+      (when (specified? was-autotrack-camera?)
+        (when was-autotrack-camera?
+          (enable-autotrack world feedback?: #f))
+        (set! was-autotrack-camera? (unspecified)))))
   
   
   (method override (draw-message-offset self)
