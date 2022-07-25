@@ -235,15 +235,11 @@
       ;; wakeup render
       (let ((task (get-render-task zone)))
         (when task
-          (task-wakeup task
-            (lambda (exit)
-              ))))
+          (task-wakeup task)))
       ;; wakeup tick
       (let ((task (get-tick-task zone)))
         (when task
-          (task-wakeup task
-            (lambda (exit)
-              ))))
+          (task-wakeup task)))
       ;; super mega quicky
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
