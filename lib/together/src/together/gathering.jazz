@@ -2328,6 +2328,8 @@
           (add-snapshot-property 'live.player-mode (get-mode me))
           (preload-animations me)
           (prepare-motion world)
+          (when (world-setting 'world.autotrack-camera? #t)
+            (enable-autotrack world feedback?: #f))
           #f))))
   
   
@@ -2341,6 +2343,8 @@
       (set-mode me 'player)
       (add-snapshot-property 'live.player-mode (get-mode me))
       (prepare-motion world)
+      (when (world-setting 'world.autotrack-camera? #t)
+        (enable-autotrack world feedback?: #f))
       #f))
   
   
@@ -2350,7 +2354,6 @@
           (world (current-world))
           (me (current-me)))
       (reset-selection world)
-      (disable-autotrack world feedback?: #f)
       (save-to-processor client)
       (observe-to-server client)
       (install-vista)
@@ -2358,7 +2361,8 @@
       (set-mode me 'observer)
       (add-snapshot-property 'live.player-mode (get-mode me))
       (restore-active-zone self)
-      (reset-history)))
+      (reset-history)
+      (disable-autotrack world feedback?: #f)))
   
   
   (method (goto-gathering self)
