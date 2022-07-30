@@ -853,9 +853,7 @@
   
   (form
     (<install>
-      @bazoo
       (<World-Action-Button>    name: create-circle       resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-menu create-circle})
-      @bazoo
       (<World-Separator>                                  size: {Dimension 36 0})
       (<World-Action-Button>    name: leave-group         resource: {Icon-Resource "Logogram/Seperated-DIamond-Pointers"} action-handler: {Action together-menu leave-group})
       (<World-Action-Button>    name: leave-circle        resource: {Icon-Resource "Logogram/Circles-Half"} action-handler: {Action together-menu leave-circle})
@@ -969,7 +967,6 @@
   (form
     (<install>                                        title: "Together"
       (<World-Action-Item> name: central-menu         title: "Central menu" action-handler: {Event-Handler :together on-central-menu} description: "Show central menu.")
-      @bazoo
       (<World-Action-Item> name: create-circle        title: "New circle" action-handler: {Event-Handler :together on-create-circle} shortcut: {Shortcut :alt #\N} alternate-shortcut: {Shortcut :alt :shift #\N} description: "Create and join a new circle.")
       (<World-Action-Item> name: leave-group          title: "Leave" action-handler: {Event-Handler :together on-leave-group} shortcut: {Shortcut :alt #\L} description: "Leave group.")
       (<World-Action-Item> name: leave-circle         title: "Leave" action-handler: {Event-Handler :together on-leave-circle} shortcut: {Shortcut :alt :shift #\L} description: "Leave circle.")
@@ -1265,7 +1262,6 @@
         (<!>                 name: toggle-info                visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
-        @bazoo
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1429,7 +1425,6 @@
         (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
-        @bazoo
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1608,7 +1603,6 @@
         (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
-        @bazoo
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1899,7 +1893,6 @@
         (<!>                 name: explore-interface          visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
-        @bazoo
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)

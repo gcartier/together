@@ -45,7 +45,6 @@
         (jazz.view)
         (jazz.window)
         (time)
-        @bazoo
         (gaea.dye)
         (gaea.geometry)
         (world)
@@ -854,7 +853,6 @@
 (define-trait zone-not-circling-bindings Bindings
   (<Trait>                   name: zone
     (<install>
-      @bazoo
       (<together-menu!>
         (<!>                 name: create-circle              active?: #t)))))
 
@@ -871,7 +869,6 @@
         (<!>                 name: video-options              active?: #t)))))
 
 
-@bazoo
 (define-trait zone-circling-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
@@ -1030,7 +1027,7 @@
         (let ((free? (or (not circling?) avatar?)))
           `(,zone-bindings
             ,@(cond (grouped? (list zone-group-bindings))
-                    (circling? (list @bazoo circling-bindings zone-circling-bindings))
+                    (circling? (list circling-bindings zone-circling-bindings))
                     (else (list zone-not-circling-bindings)))
             ,@(if (and circling? (eq? (get-circle-mode together) 'circle)) (list circle-bindings) '())
             ,@(if free? (list zone-free-bindings) '()))))))
@@ -2177,12 +2174,10 @@
       (toggle-radial-menu world)))
   
   
-  @bazoo
   (method (on-create-circle self evt)
     (create-circle self (get-shift? evt)))
   
   
-  @bazoo
   (method (create-circle self auto-name?)
     (let ((tier (current-client))
           (interface (current-interface))
