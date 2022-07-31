@@ -17,6 +17,7 @@
 (import (gaea.geometry)
         (world)
         (world.autoload)
+        (world.circle)
         (world.context)
         (world.foreign)
         (world.interface)
@@ -71,4 +72,12 @@
   (method override (render-outputs self)
     (let ((together (current-together)))
       (when (and (client?) together (circling? together) (not (get-roaming? (current-client))))
-        (nextmethod self))))))
+        (nextmethod self))))
+  
+  
+  (method override (check-element-action self element)
+    (typecase element
+      ((Circle-Stone)
+       (check-circle-stone (current-together) element))
+      (else
+       (nextmethod self element))))))
