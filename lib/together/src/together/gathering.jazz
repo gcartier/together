@@ -2210,7 +2210,7 @@
                                              (let ((position (get-position me))
                                                    (lookat (get-lookat me)))
                                                (let ((class Circle-Stone)
-                                                     (position (vertex+ position (vertex-scalar* (get-sight lookat) 5.)))
+                                                     (position (vertex+ position (vertex-scalar* (get-sight lookat) 3.)))
                                                      (lookat lookat)
                                                      (scale (vertex .35 .35 .35))
                                                      (color (make-dye))
