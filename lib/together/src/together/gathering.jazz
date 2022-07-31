@@ -1806,7 +1806,7 @@
             (auto-join
              (check-error (autojoin-circle self auto-join #f)))
             (auto-enter
-             (check-error (enter-zone self)))
+             (check-error (autoenter-zone self)))
             (else
              (enter-gathering)))))
   
@@ -2298,6 +2298,14 @@
           (when (world-setting 'world.autotrack-camera? #t)
             (enable-autotrack world feedback?: #f))
           #f))))
+  
+  
+  (method package (autoenter-zone self)
+    (let ((zone (current-zone)))
+      (let ((path (get-path zone)))
+        (set! active-zone path)
+        (set! active-data path)
+        (enter-zone self))))
   
   
   (method package (reenter-zone self zone)
