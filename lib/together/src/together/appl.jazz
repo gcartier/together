@@ -984,7 +984,7 @@
       @wait-live-change (<World-Action-Item> name: toggle-echo-cancel    title: "Echo Cancellation" action-handler: {Event-Handler :together on-toggle-echo-cancel} shortcut: {Shortcut :alt :shift #\O} description: "Toggle echo cancellation.")
       @wait-live-change (<World-Action-Item> name: toggle-noise-suppress title: "Noise Suppression" action-handler: {Event-Handler :together on-toggle-noise-suppress} shortcut: {Shortcut :alt :shift #\N} description: "Toggle noise suppression.")
       (<World-Action-Item> name: toggle-rndenoise     title: "Aggressive Denoising" action-handler: {Event-Handler :together on-toggle-rndenoise} shortcut: {Shortcut :alt :shift #\D} description: "Toggle aggressive denoising.")
-      (<World-Action-Item> name: audio-options        title: "Audio options" action-handler: {Event-Handler :together on-audio-options} shortcut: {Shortcut :alt #\A} description: "Toggle audio options."))))
+      (<World-Action-Item> name: audio-options        title: "Audio options" action-handler: {Event-Handler :together on-audio-options} shortcut: {Shortcut :alt :shift #\A} description: "Toggle audio options."))))
 
 
 (class Together-Video-Actions extends World-Actions
@@ -994,7 +994,7 @@
     (<install>                                        title: "Video"
       (<World-Action-Item> name: toggle-camera        title: "Camera" action-handler: {Event-Handler :together on-toggle-camera} shortcut: {Shortcut :alt #\C} description: "Toggle camera.")
       (<World-Action-Item> name: change-quality       title: "Change video quality" shortcut: {Shortcut "Click video quality"})
-      (<World-Action-Item> name: video-options        title: "Video options" action-handler: {Event-Handler :together on-video-options} shortcut: {Shortcut :alt #\V} description: "Toggle video options."))))
+      (<World-Action-Item> name: video-options        title: "Video options" action-handler: {Event-Handler :together on-video-options} shortcut: {Shortcut :alt :shift #\V} description: "Toggle video options."))))
 
 
 (class Together-Circle-Actions extends World-Actions
@@ -1015,7 +1015,7 @@
       (<World-Action-Item> name: down-press           title: "Decrease speed" shortcut: {Shortcut "Down Arrow"} description: "Down.")
       (<World-Action-Item> name: tab-press            title: "Cycle focus" shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
       (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image")
-      (<World-Action-Item> name: circle-options       title: "Circle options" action-handler: {Event-Handler :together on-circle-options} shortcut: {Shortcut :alt #\O} description: "Toggle circle options."))))
+      (<World-Action-Item> name: circle-options       title: "Circle options" action-handler: {Event-Handler :together on-circle-options} shortcut: {Shortcut :alt :shift #\O} description: "Toggle circle options."))))
 
 
 (class Together-Zone-Actions extends World-Actions
@@ -1123,7 +1123,7 @@
       (<World-Action-Item> name: toggle-debug-media        title: "Debug media" shortcut: {Shortcut :control :shift #\M} action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
       (<World-Action-Item> name: toggle-debug-flow         title: "Debug flow" shortcut: {Shortcut :control :shift #\F} action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
       (<World-Action-Item> name: toggle-debug-live         title: "Debug live" shortcut: {Shortcut :control :shift #\L} action-handler: {Event-Handler :together on-toggle-debug-live} description: "Toggle debug live.")
-      (<World-Action-Item> name: toggle-admin              title: "Admin" shortcut: {Shortcut :alt :shift #\A} action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
+      (<World-Action-Item> name: toggle-admin              title: "Admin" shortcut: {Shortcut :alt :shift #\W} action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
       (<World-Action-Item> name: toggle-evolution          title: "Timeline" shortcut: {Shortcut :alt #\T} action-handler: {Event-Handler :together on-toggle-evolution} description: "Toggle timeline.")
       (<World-Action-Item> name: toggle-visualizer         title: "Visualizer" shortcut: {Shortcut :alt :shift #\V} action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
       (<World-Action-Item> name: request-evolutions        title: "Request evolutions" shortcut: {Shortcut :alt :shift #\E} action-handler: {Event-Handler :together on-request-evolutions} description: "Request evolutions.")
