@@ -2254,14 +2254,13 @@
   
   (method package (check-circle-stone self circle-stone)
     (let ((world (current-world)))
-      (if circle-name
-          (display-action world "E : Leave Circle"
-            (lambda ()
-              (leave-circle self)))
-        (display-action world "E : Join Circle"
-          (lambda ()
-            (join-circle self (get-name circle-stone) #f #f))))
-      #t))
+      (cond ((not circle-name)
+             (display-action world "E : Join Circle"
+               (lambda ()
+                 (join-circle self (get-name circle-stone) #f #f)))
+             #t)
+            (else
+             #f))))
   
   
   (method package (enter-zone self)
