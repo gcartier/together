@@ -1253,6 +1253,8 @@
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-camera!>
         (<!>                 name: toggle-cursor-track        visible?: #t))
+      (<world-game!>
+        (<!>                 name: action                     visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
