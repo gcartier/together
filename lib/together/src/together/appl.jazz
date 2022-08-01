@@ -1249,8 +1249,7 @@
         (<!>                 name: move-right                 visible?: #t))
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
-        (<!>                 name: zoom-in/out                visible?: #t)
-        (<!>                 name: toggle-cursor-track        visible?: #t))
+        (<!>                 name: zoom-in/out                visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: action                     visible?: #t)

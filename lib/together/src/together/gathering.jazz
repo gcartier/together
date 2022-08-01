@@ -2313,7 +2313,7 @@
           (add-snapshot-property 'live.player-mode (get-mode me))
           (preload-animations me)
           (prepare-motion world)
-          (when (world-setting 'world.autotrack-camera? #t)
+          (when (user?)
             (enable-autotrack world feedback?: #f))
           #f))))
   
@@ -2336,7 +2336,7 @@
       (set-mode me 'player)
       (add-snapshot-property 'live.player-mode (get-mode me))
       (prepare-motion world)
-      (when (world-setting 'world.autotrack-camera? #t)
+      (when (user?)
         (enable-autotrack world feedback?: #f))
       #f))
   
