@@ -1018,15 +1018,6 @@
       (<World-Action-Item> name: circle-options       title: "Circle options" action-handler: {Event-Handler :together on-circle-options} shortcut: {Shortcut :alt :shift #\O} description: "Toggle circle options."))))
 
 
-(class Together-Zone-Actions extends World-Actions
-  
-  
-  (form
-    (<install>                                        title: "Avatar"
-      (<World-Action-Item> name: command-message      title: "Message" shortcut: {Shortcut Return} action-handler: {Event-Handler :space on-command-message} description: "Message.")
-      (<World-Action-Item> name: command-slash        title: "Message slash" shortcut: {Shortcut #\/} action-handler: {Event-Handler :space on-command-slash} description: "Message slash."))))
-
-
 (class Together-Record-Actions extends World-Actions
   
   
@@ -1216,7 +1207,6 @@
       (<Together-Audio-Actions>      name: together-audio)
       (<Together-Video-Actions>      name: together-video)
       (<Together-Circle-Actions>     name: together-circle)
-      (<Together-Zone-Actions>       name: together-zone)
       (<Together-View-Actions>       name: together-view)
       (<Together-Record-Actions>     name: together-record)
       (<Together-Share-Actions>      name: together-share)
@@ -1238,12 +1228,12 @@
     (<install>
       (<world-main!>
         (<!>                 name: graphics-options           visible?: #t)
-        (<!>                 name: sound-options              visible?: #t)
-        (<!>                 name: interface-options          visible?: #t)
+        @version1 (<!>                 name: sound-options              visible?: #t)
+        @version1 (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
-        (<!>                 name: view-roadmap               visible?: #t)
-        (<!>                 name: view-help                  visible?: #t)
+        @version1 (<!>                 name: view-roadmap               visible?: #t)
+        @version1 (<!>                 name: view-help                  visible?: #t)
         (<!>                 name: open-about                 visible?: #t)
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
@@ -1251,17 +1241,30 @@
         @version0
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
+      (<world-movement!>
+        (<!>                 name: rotate-player              visible?: #t)
+        (<!>                 name: move-forward               visible?: #t)
+        (<!>                 name: move-backward              visible?: #t)
+        (<!>                 name: move-left                  visible?: #t)
+        (<!>                 name: move-right                 visible?: #t))
       (<world-camera!>
+        (<!>                 name: rotate-camera              visible?: #t)
+        (<!>                 name: zoom-in/out                visible?: #t)
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
-        (<!>                 name: action                     visible?: #t))
+        (<!>                 name: jump                       visible?: #t)
+        (<!>                 name: action                     visible?: #t)
+        (<!>                 name: toggle-glow                visible?: #t)
+        (<!>                 name: compass-panel              visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
+        (<!>                 name: command-message            visible?: #t)
+        @version1 (<!>                 name: command-slash              visible?: #t)
         (<!>                 name: repeat-previous            visible?: #t))
       (<world-debug!>
-        (<!>                 name: toggle-info                visible?: #t))
+        @version1 (<!>                 name: toggle-info                visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
@@ -1295,9 +1298,6 @@
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
-      (<together-zone!>
-        (<!>                 name: command-message            visible?: #t)
-        (<!>                 name: command-slash              visible?: #t))
       @wait
       (<together-record!>
         (<!>                 name: start-recording            visible?: #t)
@@ -1322,22 +1322,23 @@
     (<install>
       (<world-main!>
         (<!>                 name: graphics-options           visible?: #t)
-        (<!>                 name: sound-options              visible?: #t)
-        (<!>                 name: interface-options          visible?: #t)
+        @version1 (<!>                 name: sound-options              visible?: #t)
+        @version1 (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: view-news                  visible?: #t)
-        (<!>                 name: view-roadmap               visible?: #t)
-        (<!>                 name: view-help                  visible?: #t)
+        @version1 (<!>                 name: view-roadmap               visible?: #t)
+        @version1 (<!>                 name: view-help                  visible?: #t)
         (<!>                 name: open-about                 visible?: #t)
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-graphics!>
-        (<!>                 name: toggle-occlusion           visible?: #t)
-        (<!>                 name: toggle-wireframe           visible?: #t)
-        (<!>                 name: toggle-x-rays              visible?: #t)
+        @version1 (<!>                 name: toggle-occlusion           visible?: #t)
+        @version1 (<!>                 name: toggle-wireframe           visible?: #t)
+        @version1 (<!>                 name: toggle-x-rays              visible?: #t)
         @too-much (<!>                 name: toggle-draw-me             visible?: #t)
         @too-much (<!>                 name: toggle-blocks              visible?: #t)
         @too-much (<!>                 name: toggle-models              visible?: #t))
+      @version1
       (<world-sound!>
         (<!>                 name: toggle-music               visible?: #t)
         (<!>                 name: change-music               visible?: #t)
@@ -1345,6 +1346,7 @@
         (<!>                 name: toggle-ambience            visible?: #t)
         (<!>                 name: toggle-sound               visible?: #t))
       (<world-interface!>
+        @version0
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-movement!>
@@ -1360,24 +1362,24 @@
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
         (<!>                 name: zoom-in/out                visible?: #t)
-        (<!>                 name: move-up                    visible?: #t)
-        (<!>                 name: move-down                  visible?: #t)
-        (<!>                 name: person-motion              visible?: #t)
-        (<!>                 name: orbit-motion               visible?: #t)
-        (<!>                 name: free-motion                visible?: #t)
+        @version1 (<!>                 name: move-up                    visible?: #t)
+        @version1 (<!>                 name: move-down                  visible?: #t)
+        @version1 (<!>                 name: person-motion              visible?: #t)
+        @version1 (<!>                 name: orbit-motion               visible?: #t)
+        @version1 (<!>                 name: free-motion                visible?: #t)
         (<!>                 name: toggle-cursor-track        visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: action                     visible?: #t)
         @too-much (<!>                 name: toggle-ride                visible?: #t)
-        (<!>                 name: toggle-fly                 visible?: #t)
-        (<!>                 name: toggle-vehicle             visible?: #t)
+        @version1 (<!>                 name: toggle-fly                 visible?: #t)
+        @version1 (<!>                 name: toggle-vehicle             visible?: #t)
         (<!>                 name: toggle-glow                visible?: #t)
         (<!>                 name: compass-panel              visible?: #t)
         @too-much (<!>                 name: combat-panel               visible?: #t)
         @too-much (<!>                 name: character-panel            visible?: #t)
-        (<!>                 name: bag-panel                  visible?: #t)
-        (<!>                 name: belt-panel                 visible?: #t))
+        @version1 (<!>                 name: bag-panel                  visible?: #t)
+        @version1 (<!>                 name: belt-panel                 visible?: #t))
       @too-much
       (<world-spell!>
         (<!>                 name: bullet                     visible?: #t)
@@ -1388,8 +1390,8 @@
         (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
-        @too-much
         (<!>                 name: command-message            visible?: #t)
+        @version1 (<!>                 name: command-slash              visible?: #t)
         (<!>                 name: repeat-previous            visible?: #t))
       (<world-showcase!>
         (<!>                 name: no-showcase                visible?: #t)
@@ -1424,7 +1426,7 @@
         @too-much (<!>                 name: toggle-info                visible?: #t)
         @too-much (<!>                 name: toggle-profiler            visible?: #t)
         @too-much (<!>                 name: toggle-axes                visible?: #t)
-        (<!>                 name: toggle-orientation         visible?: #t))
+        @version1 (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
@@ -1458,9 +1460,6 @@
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
-      (<together-zone!>
-        (<!>                 name: command-message            visible?: #t)
-        (<!>                 name: command-slash              visible?: #t))
       @wait
       (<together-record!>
         (<!>                 name: start-recording            visible?: #t)
@@ -1748,9 +1747,6 @@
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
-      (<together-zone!>
-        (<!>                 name: command-message            visible?: #t)
-        (<!>                 name: command-slash              visible?: #t))
       (<together-view!>
         (<!>                 name: toggle-paused              visible?: #t)
         (<!>                 name: seek-backward              visible?: #t)

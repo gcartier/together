@@ -800,9 +800,6 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
-      (<together-zone!>
-        (<!>                 name: command-message            active?: #t)
-        (<!>                 name: command-slash              active?: #t))
       (<together-share!>
         (<!>                 name: capture-view               active?: #t))
       (<together-script!>
@@ -1057,7 +1054,6 @@
                   (find-actions 'together-audio)
                   (find-actions 'together-video)
                   (find-actions 'together-circle)
-                  (find-actions 'together-zone)
                   (find-actions 'together-record)
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
