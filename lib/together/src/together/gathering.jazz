@@ -2235,6 +2235,7 @@
                              (set-action-handler (locate panel '(create create)) create)
                              (set-escape-press-handler (locate panel '(create view text)) escape)
                              (set-visible? panel #t)
+                             (push-panel panel)
                              panel))))
             (acquire-focus (locate panel '(create view text))))))))
   
