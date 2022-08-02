@@ -1099,7 +1099,7 @@
       (when (unspecified? was-autotrack-camera?)
         (set! was-autotrack-camera? (get-autotrack-camera?))
         (when was-autotrack-camera?
-          (disable-autotrack world)))))
+          (disable-autotrack world feedback?: #f)))))
   
   
   (method (maybe-reenable-autotrack self)
