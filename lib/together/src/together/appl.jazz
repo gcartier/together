@@ -702,6 +702,7 @@
           (,World-Blocks-Bar      blocks        horizontal none #f)
           (,Together-Central-Menu central-menu  central    center #f)
           (,Together-Main-Menu    main-menu     radial     center #f)
+          (,Together-Circle-Menu  circle-menu   radial     center #f)
           (,World-Graphics-Menu   graphics-menu radial     center #f)
           (,World-Showcase-Menu   showcase-menu radial     center #f)
           (,World-Build-Menu      build-menu    radial     center #f)
@@ -908,34 +909,6 @@
 
 
 ;;;
-;;;; Main Menu
-;;;
-
-
-(class Together-Main-Menu extends World-Radial-Menu
-  
-  
-  (form
-    (<install>                  title: "Main"
-      (<World-Action-Button>    name: graphics-options resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action world-main graphics-options})
-      (<World-Action-Button>    name: sound-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main sound-options})
-      (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
-      @wait
-      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
-      (<World-Action-Button>    resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-main open-about})
-      @wait
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
-      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
-      (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
-      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
-      (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
-
-
-;;;
 ;;;; Central Menu
 ;;;
 
@@ -947,13 +920,54 @@
     (<install>
       (<World-Central-Wheel>    name: wheel
         (<World-Central-Button> name: central-menu  resource: {Icon-Resource "Beliefs Symbols/Hinduism"} action-handler: {Action together-menu central-menu})
-        (<World-Central-Button> name: main-menu     resource: {Icon-Resource "Games/Circles"} action-handler: {Action world-main main-menu})
+        (<World-Central-Button> name: main-menu     resource: {Icon-Resource "Logogram/Logogram-Waves-One"} action-handler: {Action world-main main-menu})
+        (<World-Central-Button> name: circle-menu   resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-menu})
         (<World-Central-Button> name: graphics-menu resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action world-graphics graphics-menu})
         (<World-Central-Button> name: showcase-menu resource: {Icon-Resource "Logogram/Flower-Floral"} action-handler: {Action world-showcase showcase-menu})
         (<World-Central-Button> name: build-menu    resource: {Icon-Resource "Logistic Delivery/Open-Warehouse"} action-handler: {Action world-build build-menu})
         @WAIT (<World-Central-Button> name: history-menu  resource: {Icon-Resource "Symbol/Symbol-Seventeen"} action-handler: {Action world-history history-menu})
         (<World-Central-Button> name: script-menu   resource: {Icon-Resource "Chemistry/Science"} action-handler: {Action world-script script-menu})
         (<World-Central-Button> name: debug-menu    resource: {Icon-Resource "Chemistry/Chemistry"} action-handler: {Action world-debug debug-menu})))))
+
+
+;;;
+;;;; Main Menu
+;;;
+
+
+(class Together-Main-Menu extends World-Radial-Menu
+  
+  
+  (form
+    (<install>                  title: "Main"
+      (<World-Action-Button>    name: sound-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main sound-options})
+      (<World-Action-Button>    name: graphics-options resource: {Icon-Resource "Games/Visual"} action-handler: {Action world-main graphics-options})
+      (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
+      @wait
+      (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
+      (<World-Action-Button>    resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-main open-about})
+      @wait
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
+      (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
+      (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
+
+
+;;;
+;;;; Circle Menu
+;;;
+
+
+(class Together-Circle-Menu extends World-Radial-Menu
+  
+  
+  (form
+    (<install>                  title: "Circle"
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options}))))
 
 
 ;;;
@@ -1002,6 +1016,7 @@
   
   (form
     (<install>                                        title: "Circle"
+      (<World-Action-Item> name: circle-menu          title: "Circle menu" action-handler: {Event-Handler :world on-radial-menu radial: circle-menu} description: ("Circle menu."))
       (<World-Action-Item> name: avatar-mode          title: "Avatar" action-handler: {Event-Handler :together on-avatar-mode} shortcut: {Shortcut :alt #\A} description: "Avatar mode.")
       (<World-Action-Item> name: circle-mode          title: "Circle" action-handler: {Event-Handler :together on-circle-mode} shortcut: {Shortcut :alt #\D} description: "Circle mode.")
       (<World-Action-Item> name: focus-mode           title: "Focus" action-handler: {Event-Handler :together on-focus-mode} shortcut: {Shortcut :alt #\F} description: "Focus mode.")
