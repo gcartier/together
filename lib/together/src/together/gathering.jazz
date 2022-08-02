@@ -2114,9 +2114,11 @@
       (let ((frame (find-type interface Audio-Options)))
         (if frame
             (close frame)
-          (unless from-central?
-            (close-non-central-top self))
-          (push-panel (open-frame (new Audio-Options size: {Dimension 466 288} location: 'center)))))))
+          (with-cursor :wait
+            (lambda ()
+              (unless from-central?
+                (close-non-central-top self))
+              (push-panel (open-frame (new Audio-Options size: {Dimension 466 288} location: 'center)))))))))
   
   
   (method (on-video-options self evt)
@@ -2129,9 +2131,11 @@
       (let ((frame (find-type interface Video-Options)))
         (if frame
             (close frame)
-          (unless from-central?
-            (close-non-central-top self))
-          (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))
+          (with-cursor :wait
+            (lambda ()
+              (unless from-central?
+                (close-non-central-top self))
+              (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))))
   
   
   (method (on-circle-options self evt)
@@ -2144,9 +2148,11 @@
       (let ((frame (find-type interface Circle-Options)))
         (if frame
             (close frame)
-          (unless from-central?
-            (close-non-central-top self))
-          (push-panel (open-frame (new Circle-Options circle-name: circle-name size: {Dimension 466 288} location: 'center)))))))
+          (with-cursor :wait
+            (lambda ()
+              (unless from-central?
+                (close-non-central-top self))
+              (push-panel (open-frame (new Circle-Options circle-name: circle-name size: {Dimension 466 288} location: 'center)))))))))
   
   
   (method (on-toggle-push-to-talk self evt)
