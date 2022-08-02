@@ -968,7 +968,8 @@
 (class Zone-Space extends Sphere-Space
   
   
-  (slot was-autotrack-camera? initialize (unspecified) getter generate)
+  (slot was-autotrack-camera?             initialize (unspecified) getter generate)
+  (slot was-application-autotrack-camera? initialize (unspecified) getter generate)
   
   
   (method override (space-name self)
@@ -1086,14 +1087,6 @@
            (maybe-reenable-autotrack self))))
   
   
-  (method override (application-activate self)
-    (maybe-reenable-autotrack self))
-  
-  
-  (method override (application-deactivate self)
-    (maybe-disable-autotrack self))
-  
-  
   (method (maybe-disable-autotrack self)
     (let ((world (current-world)))
       (when (unspecified? was-autotrack-camera?)
@@ -1108,6 +1101,30 @@
         (when was-autotrack-camera?
           (enable-autotrack world feedback?: #f))
         (set! was-autotrack-camera? (unspecified)))))
+  
+  
+  (method override (application-activate self)
+    (maybe-application-reenable-autotrack self))
+  
+  
+  (method override (application-deactivate self)
+    (maybe-application-disable-autotrack self))
+  
+  
+  (method (maybe-application-disable-autotrack self)
+    (let ((world (current-world)))
+      (when (unspecified? was-application-autotrack-camera?)
+        (set! was-application-autotrack-camera? (get-autotrack-camera?))
+        (when was-application-autotrack-camera?
+          (disable-autotrack world feedback?: #f)))))
+  
+  
+  (method (maybe-application-reenable-autotrack self)
+    (let ((world (current-world)))
+      (when (specified? was-application-autotrack-camera?)
+        (when was-application-autotrack-camera?
+          (enable-autotrack world feedback?: #f))
+        (set! was-application-autotrack-camera? (unspecified)))))
   
   
   (method override (draw-message-offset self)
