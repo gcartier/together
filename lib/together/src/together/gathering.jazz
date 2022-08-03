@@ -60,6 +60,7 @@
         (world.client.text)
         (world.client.tier)
         (world.client.udp)
+        (world.colors)
         (world.configure)
         (world.context)
         (world.evolution)
@@ -3061,14 +3062,6 @@
   (method (view-people self)
     (let ((tier (current-tier)))
       (view-hierarchy self (list-hierarchy tier))))
-  
-  
-  (definition gathering-color   {Color red: 32 green: 205 blue: 33})
-  (definition observer-color    {Color red: .942 green: .942 blue: .942})
-  (definition player-color      {Color World-Blue})
-  (definition group-color       {Color red: .938 green: .428 blue: .066})
-  (definition zone-color        {Color red: .547 green: .287 blue: .995})
-  (definition directory-color   {Color red: .804 green: .128 blue: .139})
   
   
   ;; could be done only once on server
