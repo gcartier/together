@@ -2480,7 +2480,7 @@
           (udp (current-udp))
           (world (current-world))
           (video (current-video)))
-      (bind (no require-microphone? require-camera? duration . streams) group-info/exception
+      (bind (no require-microphone? require-camera? duration position . streams) group-info/exception
         (startup-gstreamer)
         (when (eq? active-zone 'start)
           (reset-chronology)
@@ -2582,7 +2582,7 @@
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no require-microphone? require-camera? duration . streams) group-info/exception
+          (bind (no require-microphone? require-camera? duration position . streams) group-info/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier)
