@@ -2231,7 +2231,7 @@
                                            (position (get-position me))
                                            (lookat (get-lookat me)))
                                        (let ((center (vertex+ position (vertex-scalar* (get-sight lookat) 3.))))
-                                         (let ((no/exception (create-group tier name #t require-microphone? require-camera? #f #f #f)))
+                                         (let ((no/exception (create-group tier name #t require-microphone? require-camera? #f #f center)))
                                            (if (string? no/exception)
                                                (display-error world no/exception)
                                              (clear-message world)
@@ -2245,7 +2245,6 @@
                                                (let ((entity (apply new class name: name position: center lookat: lookat scale: scale color: color model: model properties)))
                                                  (add-element universe #f entity name center lookat scale color model script-text properties)
                                                  (bake-entity-lighting zone entity))
-                                               (set-circle-center center)
                                                (when autojoin?
                                                  (join-circle self name require-microphone? require-camera?)))))))))))
                              
@@ -2506,6 +2505,7 @@
         (set! circle-joined (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
+        (set-circle-center position)
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
