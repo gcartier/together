@@ -3834,7 +3834,7 @@
         (let ((info (change-zone client path)))
           (if (string? info)
               (display-error world (format "{a}" info))
-            (uninstall-vista)
+            (uninstall-vista zone)
             (install-vista))))))
   
   

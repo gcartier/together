@@ -212,9 +212,9 @@
           (tick 0.))))))
 
 
-(definition package (uninstall-vista)
+(definition package (uninstall-vista (zone #f))
   (let ((window (current-window))
-        (zone (current-zone)))
+        (zone (or zone (current-zone))))
     (when vista-tick
       (unregister-tick zone vista-tick)
       (maybe-disable-vsync window)
