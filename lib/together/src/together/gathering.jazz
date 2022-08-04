@@ -3291,7 +3291,9 @@
           (bind (kind . rest) data
             (define (select zone group require-microphone? require-camera? position player)
               (set! selected-message "")
-              (unless (equal? zone selected-zone)
+              (set-circle-vista position)
+              (if (equal? zone selected-zone)
+                  (reinstall-vista)
                 (unless zone-loading
                   (load-zone self zone))
                 (set! zone-loading zone)

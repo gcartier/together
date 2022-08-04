@@ -201,9 +201,9 @@
   (let ((window (current-window))
         (zone (current-zone)))
     (unless vista-tick
-      (let ((target (or (get-vista-target zone) (vertex 0. 5. 0.)))
-            (radius (or (get-vista-radius zone) 75.))
-            (elevation (or (get-vista-elevation zone) 20.)))
+      (let ((target (or circle-vista (get-vista-target zone) (vertex 0. 5. 0.)))
+            (radius (if circle-vista 12. (or (get-vista-radius zone) 75.)))
+            (elevation (if circle-vista 5. (or (get-vista-elevation zone) 20.))))
         (let ((tick (path-vista target radius elevation)))
           (set! vista-tick tick)
           (register-tick zone vista-tick)
@@ -219,6 +219,12 @@
       (unregister-tick zone vista-tick)
       (maybe-disable-vsync window)
       (set! vista-tick #f))))
+
+
+(definition package (reinstall-vista)
+  (when (vista-active?)
+    (uninstall-vista)
+    (install-vista)))
 
 
 (definition package (vista-active?)
