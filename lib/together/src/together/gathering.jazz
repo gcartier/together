@@ -3099,10 +3099,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group require-microphone? require-camera? zone . players) groupless
+          (bind (group require-microphone? require-camera? zone position . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name require-microphone? require-camera? zone . players) group
+                      (bind (name require-microphone? require-camera? zone position . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3166,13 +3166,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group require-microphone? require-camera? zone . players) info
+                (bind (group require-microphone? require-camera? zone position . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group require-microphone? require-camera? zone))))
+                                        user-data: (list 'group group require-microphone? require-camera? zone position))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3184,7 +3184,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group require-microphone? require-camera? zone . players) info
+                              (bind (group require-microphone? require-camera? zone position . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3285,11 +3285,11 @@
     (when (is? space Gathering-Space)
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f 'start)))
+          (select (list 'group #f #f #f 'start #f)))
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group require-microphone? require-camera? player)
+            (define (select zone group require-microphone? require-camera? position player)
               (set! selected-message "")
               (unless (equal? zone selected-zone)
                 (unless zone-loading
@@ -3313,10 +3313,10 @@
             
             (case kind
               ((group)
-               (bind (group require-microphone? require-camera? zone) rest
-                 (select zone group require-microphone? require-camera? #f)))
+               (bind (group require-microphone? require-camera? zone position) rest
+                 (select zone group require-microphone? require-camera? position #f)))
               ((zone)
-               (select data #f #f #f #f)))))
+               (select data #f #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
