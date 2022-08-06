@@ -984,7 +984,7 @@
           (world (current-world))
           (video (current-video)))
       
-      (set-unbind-camera? #t)
+      (unbind-camera)
       (person-motion world feedback?: #f)
       (show-mainbar self)
       (show-compass world)
@@ -1294,7 +1294,7 @@
           (world (current-world)))
       (show-mainbar self)
       (free-motion world feedback?: #f)
-      (set-unbind-camera? #f)
+      (bind-camera)
       (set-visible? (child mainbar 'circle-name) #t)
       (set-title (child mainbar 'circle-name) (get-circle-name together))
       (set-visible? (child mainbar 'profile) #t)
@@ -1868,7 +1868,7 @@
         (space-deactivate space)
         (space-uninstall space)
         (uninstall-zone self)
-        (set-unbind-camera? #t)
+        (unbind-camera)
         (set! space (new Space))
         (set-current-space space)
         (set-current-together #f)
@@ -3739,8 +3739,9 @@
         (when preserved-eye?
           (camera-copy! (get-eye world) preserved-eye)
           (set! preserved-eye? #f))
-        (set-unbind-camera? #t)
-        (person-motion world feedback?: #f))))
+        (unbind-camera)
+        (person-motion world feedback?: #f)
+        (focus-world))))
   
   
   (method (on-circle-mode self evt)
@@ -3751,7 +3752,8 @@
           (when from-avatar?
             (camera-copy! preserved-eye (get-eye world))
             (set! preserved-eye? #t)
-            (circle-home))))))
+            (circle-home)
+            (bind-camera))))))
   
   
   (method (on-focus-mode self evt)
@@ -3761,7 +3763,8 @@
           (change-circle-mode self 'focus 'focus)
           (when from-avatar?
             (camera-copy! preserved-eye (get-eye world))
-            (set! preserved-eye? #t))))))
+            (set! preserved-eye? #t)
+            (bind-camera))))))
   
   
   (method (on-gallery-mode self evt)
@@ -3771,7 +3774,8 @@
           (change-circle-mode self 'gallery 'gallery)
           (when from-avatar?
             (camera-copy! preserved-eye (get-eye world))
-            (set! preserved-eye? #t))))))
+            (set! preserved-eye? #t)
+            (bind-camera))))))
   
   
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
@@ -3781,10 +3785,7 @@
       (set! circle-mode mode)
       (goto-layout video layout)
       (when (eq? video-layout 'focus)
-        (goto-focused self)
-        (when (not bound-camera?)
-          (circle-update-camera (video-count))
-          (bind-camera)))
+        (goto-focused self))
       (space-refresh space)
       (show-interface (current-space) #t)
       (update-parameter world 'avatar-mode)
@@ -3897,7 +3898,7 @@
   
   (method (layout-circle self ordered-outputs)
     (let ((count (length ordered-outputs)))
-      (when bound-camera?
+      (when camera-bound?
         (circle-update-camera count))
       (when (and (is? space Void-Space)
                  (eq? video-layout 'focus))

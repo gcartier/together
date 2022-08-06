@@ -175,7 +175,7 @@
           (layout-view root)
           (show root)
           (send-to-back root)
-          (set-unbind-camera? #f)
+          (bind-camera)
           (focus-world)))))
   
   
