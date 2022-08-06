@@ -52,8 +52,7 @@
         (world.task)
         (world.video)
         (world.window)
-        (together.settings)
-        (together.space))
+        (together.settings))
 
 
 ;;;

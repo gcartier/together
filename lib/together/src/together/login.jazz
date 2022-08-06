@@ -63,7 +63,6 @@
         (world.window)
         (together.customize)
         (together.settings)
-        (together.space)
         (together.zone))
 
 

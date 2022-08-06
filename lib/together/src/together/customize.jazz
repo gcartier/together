@@ -59,7 +59,6 @@
         (world.window)
         (together)
         (together.settings)
-        (together.space)
         (together.zone))
 
 

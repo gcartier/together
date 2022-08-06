@@ -28,7 +28,6 @@
         (together.login)
         (together.replay)
         (together.script)
-        (together.space)
         (together.zone))
 
 

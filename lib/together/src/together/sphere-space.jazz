@@ -34,8 +34,7 @@
         (world.task)
         (world.udp)
         (world.video)
-        (together)
-        (together.space))
+        (together))
 
 
 (definition protected preprocess-denoise?

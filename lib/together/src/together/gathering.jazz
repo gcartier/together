@@ -130,7 +130,6 @@
         (together.settings)
         (together.simulate-space)
         (together.simulator)
-        (together.space)
         (together.sphere-space)
         (together.visualizer)
         (together.zone))
