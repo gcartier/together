@@ -1129,6 +1129,11 @@
         (set! was-application-autotrack-camera? (unspecified)))))
   
   
+  (method override (draw-world? self)
+    (let ((together (current-together)))
+      (eq? (get-circle-mode together) 'avatar)))
+  
+  
   (method override (draw-message-offset self)
     80)
   
