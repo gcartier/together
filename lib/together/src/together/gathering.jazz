@@ -2348,6 +2348,7 @@
           (add-snapshot-property 'live.player-mode (get-mode me))
           (preload-animations me)
           (prepare-motion world)
+          (change-circle-mode self 'avatar 'circle feedback?: #f)
           (when (user?)
             (enable-autotrack world feedback?: #f))
           #f))))
