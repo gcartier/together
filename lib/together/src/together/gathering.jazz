@@ -985,7 +985,7 @@
           (video (current-video)))
       
       (set-unbind-camera? #t)
-      (person-motion world @wait-buggy-eye-center?: #f feedback?: #f)
+      (person-motion world feedback?: #f)
       (show-mainbar self)
       (show-compass world)
       (set-visible? (child interface 'people-label) #f)
@@ -3734,7 +3734,7 @@
           (camera-copy! (get-eye world) preserved-eye)
           (set! preserved-eye? #f))
         (set-unbind-camera? #t)
-        (person-motion world @wait-buggy-eye-center?: #f feedback?: #f))))
+        (person-motion world feedback?: #f))))
   
   
   (method (on-circle-mode self evt)
