@@ -2519,7 +2519,7 @@
         (set! circle-joined (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
-        (set-circle-center position)
+        (set-circle-center (or position default-circle-center))
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
