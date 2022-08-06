@@ -59,7 +59,6 @@
         (<Jazz-File>       name: experiment        source: {File :context "src" "together" "experiment.jazz"})
         (<Jazz-File>       name: product-base      source: {File :context "src" "together" "product-base.jazz"})
         (<Jazz-File>       name: gathering         source: {File :context "src" "together" "gathering.jazz"})
-        (<Jazz-File>       name: space             source: {File :context "src" "together" "space.jazz"})
         (<Jazz-File>       name: customize         source: {File :context "src" "together" "customize.jazz"})
         (<Jazz-File>       name: devel-server      source: {File :context "src" "together" "devel-server.jazz"})
         (<Jazz-File>       name: devel-processor   source: {File :context "src" "together" "devel-processor.jazz"})

@@ -359,7 +359,7 @@
         (<!>                 name: video-options              active?: #t)))))
 
 
-(class Gathering-Space extends Together-Space
+(class Gathering-Space extends Space
   
   
   (slot view-focused initialize #f getter generate)

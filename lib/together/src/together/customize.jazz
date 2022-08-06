@@ -73,7 +73,7 @@
         (<!>                 name: toggle-windowed-mode       active?: #t)))))
 
 
-(class Customize-Space extends Together-Space
+(class Customize-Space extends Space
   
   
   (slot zone getter generate)

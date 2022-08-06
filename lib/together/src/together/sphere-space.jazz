@@ -27,6 +27,7 @@
         (world.context)
         (world.preprocess)
         (world.settings)
+        (world.space)
         (world.stream)
         (world.streamer)
         (world.streaming)
@@ -44,7 +45,7 @@
   (world-setting 'together.preprocess-voice? #f))
 
 
-(class Sphere-Space extends Together-Space
+(class Sphere-Space extends Space
   
   
   ;;;

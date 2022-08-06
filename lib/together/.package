@@ -49,7 +49,6 @@
                               together.simulate-space
                               together.simulation
                               together.simulator
-                              together.space
                               together.sphere-space
                               together.validate
                               together.visualizer

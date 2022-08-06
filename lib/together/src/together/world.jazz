@@ -55,18 +55,14 @@
   
   (method override (draw-message-offset self)
     (let ((space (current-space+)))
-      (if (is? space Together-Space)
-          (or (draw-message-offset space)
-              (nextmethod self))
-        (nextmethod self))))
+      (or (and space (draw-message-offset space))
+          (nextmethod self))))
   
   
   (method override (draw-working-offset self)
     (let ((space (current-space+)))
-      (if (is? space Together-Space)
-          (or (draw-working-offset space)
-              (nextmethod self))
-        (nextmethod self))))
+      (or (and space (draw-working-offset space))
+          (nextmethod self))))
   
   
   (method override (render-outputs self)

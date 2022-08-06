@@ -76,7 +76,7 @@
         (<!>                 name: toggle-windowed-mode       active?: #t)))))
 
 
-(class Login-Space extends Together-Space
+(class Login-Space extends Space
   
   
   (slot zone                        getter generate)

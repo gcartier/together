@@ -25,27 +25,4 @@
         (world.window))
 
 
-(class Together-Space extends Space
-  
-  
-  (slot root initialize #f getter generate)
-  
-  
-  (method protected virtual (enter-press self)
-    )
-  
-  
-  (method protected virtual (tab-press self)
-    )
-  
-  
-  (method protected virtual (escape-press self)
-    #f)
-  
-  
-  (method protected virtual (draw-message-offset self)
-    #f)
-  
-  
-  (method protected virtual (draw-working-offset self)
-    #f)))
+(class Together-Space extends Space))
