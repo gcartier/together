@@ -38,6 +38,7 @@
         (world)
         (world.autoload)
         (world.build)
+        (world.camera)
         (world.client)
         (world.context)
         (world.interface)
@@ -96,7 +97,8 @@
         (new Customize-Color name: 'color parent: root location: '(-10 center) size: {Dimension 430 110})
         (set! self.root root))
       (layout-view interface)
-      (layout-view root)))
+      (layout-view root)
+      (unbind-camera)))
   
   
   (method override (space-activate self)
