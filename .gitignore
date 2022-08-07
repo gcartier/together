@@ -9,6 +9,7 @@
 /*.patch
 .configuration
 .jaz
+.jazstabledebug
 .jazzini
 .worker
 .DS_Store
