@@ -701,7 +701,6 @@
         (<!>                 name: sound-options              active?: #t)
         (<!>                 name: interface-options          active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
-        (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
@@ -837,6 +836,13 @@
         (<!>                 name: test                       active?: #t)))))
 
 
+(define-trait zone-admin-bindings Bindings
+  (<Trait>                   name: zone
+    (<install>
+      (<world-main!>
+        (<!>                 name: open-welcome               active?: #t)))))
+
+
 (define-trait zone-group-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
@@ -852,6 +858,8 @@
 (define-trait zone-not-circling-bindings Bindings
   (<Trait>                   name: zone
     (<install>
+      (<world-main!>
+        (<!>                 name: open-welcome               active?: #t))
       (<together-menu!>
         (<!>                 name: create-circle              active?: #t)))))
 
@@ -1026,6 +1034,7 @@
             (avatar? (avatar-mode? together)))
         (let ((free? (or (not circling?) avatar?)))
           `(,zone-bindings
+            ,@(if (admin?) (list zone-admin-bindings) '())
             ,@(cond (grouped? (list zone-group-bindings))
                     (circling? (list circling-bindings zone-circling-bindings))
                     (else (list zone-not-circling-bindings)))
@@ -1181,8 +1190,6 @@
     (<install>
       (<world-main!>
         (<!>                 name: bindings-viewer            active?: #t)
-        @roaming
-        (<!>                 name: open-welcome               active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
@@ -1268,6 +1275,13 @@
         (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
         (<!>                 name: test                       active?: #t)))))
+
+
+(define-trait void-admin-bindings Bindings
+  (<Trait>                   name: void
+    (<install>
+      (<world-main!>
+        (<!>                 name: open-welcome               active?: #t)))))
 
 
 (class Void-Space extends Sphere-Space
@@ -1382,9 +1396,10 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (if (eq? (get-circle-mode together) 'circle)
-          (list void-bindings circling-bindings circle-bindings)
-        (list void-bindings circling-bindings))))
+      `(,void-bindings
+        ,@(if (admin?) (list void-admin-bindings) '())
+        ,circling-bindings
+        ,@(if (eq? (get-circle-mode together) 'circle) (list circle-bindings) '()))))
   
   
   (method override (draw-world? self)
@@ -4219,8 +4234,6 @@
       (typecase space
         ((Gathering-Space))
         ((Sphere-Space)
-         (exit-zone self)
-         @roaming
          (if circle-name
              (goto-gathering self)
            (exit-zone self)))
