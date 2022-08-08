@@ -9,6 +9,7 @@
 /*.patch
 .configuration
 .jaz
+.jazstable
 .jazstabledebug
 .jazzini
 .worker
