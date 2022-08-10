@@ -73,13 +73,14 @@
   (method override (autotrack-inhibit? self)
     (let ((together (current-together)))
       (or (nextmethod self)
-          (and (circling? together)
+          (and together
+               (circling? together)
                (not (avatar-mode? together))))))
   
   
   (method override (effective-independent-camera? self)
     (let ((together (current-together)))
-      (if (circling? together)
+      (if (and together (circling? together))
           #f
         (nextmethod self))))
   
