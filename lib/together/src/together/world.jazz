@@ -77,6 +77,13 @@
                (not (avatar-mode? together))))))
   
   
+  (method override (effective-independent-camera? self)
+    (let ((together (current-together)))
+      (if (circling? together)
+          #f
+        (nextmethod self))))
+  
+  
   (method override (check-element-action self element)
     (typecase element
       ((Circle-Stone)
