@@ -701,6 +701,7 @@
         (<!>                 name: sound-options              active?: #t)
         (<!>                 name: interface-options          active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
+        (<!>                 name: unstuck-character          active?: #t)
         (<!>                 name: quit-world                 active?: #t))
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
