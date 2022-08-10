@@ -70,6 +70,13 @@
         (nextmethod self))))
   
   
+  (method override (autotrack-inhibit? self)
+    (let ((together (current-together)))
+      (or (nextmethod self)
+          (and (circling? together)
+               (not (avatar-mode? together))))))
+  
+  
   (method override (check-element-action self element)
     (typecase element
       ((Circle-Stone)

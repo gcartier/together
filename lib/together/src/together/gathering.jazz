@@ -3731,6 +3731,7 @@
           (camera-copy! (get-eye world) preserved-eye)
           (set! preserved-eye? #f))
         (unbind-camera)
+        (maybe-enable-autotrack world)
         (person-motion world feedback?: #f)
         (focus-world))))
   
@@ -3744,7 +3745,8 @@
             (camera-copy! preserved-eye (get-eye world))
             (set! preserved-eye? #t)
             (circle-home)
-            (bind-camera))))))
+            (bind-camera)
+            (disable-autotrack world))))))
   
   
   (method (on-focus-mode self evt)
@@ -3755,7 +3757,8 @@
           (when from-avatar?
             (camera-copy! preserved-eye (get-eye world))
             (set! preserved-eye? #t)
-            (bind-camera))))))
+            (bind-camera)
+            (disable-autotrack world))))))
   
   
   (method (on-gallery-mode self evt)
@@ -3766,7 +3769,8 @@
           (when from-avatar?
             (camera-copy! preserved-eye (get-eye world))
             (set! preserved-eye? #t)
-            (bind-camera))))))
+            (bind-camera)
+            (disable-autotrack world))))))
   
   
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
