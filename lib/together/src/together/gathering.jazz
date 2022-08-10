@@ -929,7 +929,7 @@
         @needs-a-lot-more-work
         (<!>                 name: toggle-camera-smoothing    active?: #t)
         (<!>                 name: toggle-camera-follow       active?: #t)
-        (<!>                 name: toggle-cursor-track        active?: #t))
+        (<!>                 name: toggle-autotrack-mode      active?: #t))
       (<world-game!>
         (<!>                 name: jump                       active?: #t)
         (<!>                 name: action                     active?: #t)
@@ -977,10 +977,6 @@
 (class Zone-Space extends Sphere-Space
   
   
-  (slot was-autotrack-camera?             initialize (unspecified) getter generate)
-  (slot was-application-autotrack-camera? initialize (unspecified) getter generate)
-  
-  
   (method override (space-name self)
     'zone)
   
@@ -1024,7 +1020,8 @@
       (hide-history world)
       (hide-compass world)
       (hide-interface)
-      (reset-panel-stack)))
+      (reset-panel-stack)
+      (disable-autotrack-mode world feedback?: #f)))
 
   
   (method override (space-bindings self)
@@ -1091,50 +1088,24 @@
   
   
   (method override (panel-stack-change self)
-    (cond ((top-panel)
-           (maybe-disable-autotrack self))
-          (else
-           (maybe-reenable-autotrack self))))
-  
-  
-  (method (maybe-disable-autotrack self)
     (let ((world (current-world)))
-      (when (unspecified? was-autotrack-camera?)
-        (set! was-autotrack-camera? (get-autotrack-camera?))
-        (when was-autotrack-camera?
-          (disable-autotrack world feedback?: #f)))))
-  
-  
-  (method (maybe-reenable-autotrack self)
-    (let ((world (current-world)))
-      (when (specified? was-autotrack-camera?)
-        (when was-autotrack-camera?
-          (enable-autotrack world feedback?: #f))
-        (set! was-autotrack-camera? (unspecified)))))
+      (when (get-autotrack-mode?)
+        (cond ((top-panel)
+               (disable-autotrack world))
+              (else
+               (maybe-enable-autotrack world))))))
   
   
   (method override (application-activate self)
-    (maybe-application-reenable-autotrack self))
+    (let ((world (current-world)))
+      (when (get-autotrack-mode?)
+        (maybe-enable-autotrack world))))
   
   
   (method override (application-deactivate self)
-    (maybe-application-disable-autotrack self))
-  
-  
-  (method (maybe-application-disable-autotrack self)
     (let ((world (current-world)))
-      (when (unspecified? was-application-autotrack-camera?)
-        (set! was-application-autotrack-camera? (get-autotrack-camera?))
-        (when was-application-autotrack-camera?
-          (disable-autotrack world feedback?: #f)))))
-  
-  
-  (method (maybe-application-reenable-autotrack self)
-    (let ((world (current-world)))
-      (when (specified? was-application-autotrack-camera?)
-        (when was-application-autotrack-camera?
-          (enable-autotrack world feedback?: #f))
-        (set! was-application-autotrack-camera? (unspecified)))))
+      (when (get-autotrack-mode?)
+        (disable-autotrack world))))
   
   
   (method override (draw-world? self)
@@ -2369,7 +2340,7 @@
                 (teleport zone position sight))))
           (change-circle-mode self 'avatar 'circle feedback?: #f)
           (when (user?)
-            (enable-autotrack world feedback?: #f))
+            (enable-autotrack-mode world feedback?: #f))
           #f))))
   
   
@@ -2392,7 +2363,7 @@
       (add-snapshot-property 'live.player-mode (get-mode me))
       (prepare-motion world)
       (when (user?)
-        (enable-autotrack world feedback?: #f))
+        (enable-autotrack-mode world feedback?: #f))
       #f))
   
   
@@ -2410,7 +2381,7 @@
       (add-snapshot-property 'live.player-mode (get-mode me))
       (restore-active-zone self)
       (reset-history)
-      (disable-autotrack world feedback?: #f)))
+      (disable-autotrack-mode world feedback?: #f)))
   
   
   (method (goto-gathering self)

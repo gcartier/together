@@ -1381,7 +1381,7 @@
         @version1 (<!>                 name: person-motion              visible?: #t)
         @version1 (<!>                 name: orbit-motion               visible?: #t)
         @version1 (<!>                 name: free-motion                visible?: #t)
-        (<!>                 name: toggle-cursor-track        visible?: #t))
+        (<!>                 name: toggle-autotrack-mode      visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: action                     visible?: #t)
@@ -1612,7 +1612,7 @@
         @needs-a-lot-more-work
         (<!>                 name: toggle-camera-smoothing    visible?: #t)
         (<!>                 name: toggle-camera-follow       visible?: #t)
-        (<!>                 name: toggle-cursor-track        visible?: #t))
+        (<!>                 name: toggle-autotrack-mode      visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: action                     visible?: #t)
