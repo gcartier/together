@@ -67,6 +67,7 @@
         (world.fog)
         (world.gc)
         (world.history)
+        (world.id)
         (world.interface)
         (world.interface.actions)
         (world.interface.bindings)
@@ -2227,9 +2228,10 @@
                                            (define (block-center pos)
                                              (- (round (+ pos .5)) .5))
                                            
-                                           (let ((position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
+                                           (let ((id (make-unique-id))
+                                                 (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
                                              (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position))))
-                                               (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f position)))
+                                               (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f (list id position))))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
                                                    (clear-message world)
@@ -2241,7 +2243,7 @@
                                                          (script-text #f)
                                                          (properties '()))
                                                      (add-block-at-position universe fire-position 51 0)
-                                                     (let ((entity (apply new class name: name position: position lookat: lookat scale: scale color: color model: model properties)))
+                                                     (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
                                                        (add-element universe #f entity name position lookat scale color model script-text properties)
                                                        (bake-entity-lighting zone entity))
                                                      (join-circle self name require-microphone? require-camera?))))))))))))
@@ -2272,12 +2274,12 @@
     (leave-circle self))
   
   
-  (method package (check-circle-stone self circle-stone)
+  (method package (check-circle-stone self stone)
     (let ((world (current-world)))
       (cond ((not circle-name)
              (display-action world "E : Join Circle"
                (lambda ()
-                 (join-circle self (get-name circle-stone) #f #f)))
+                 (join-circle self (get-name stone) #f #f)))
              #t)
             (else
              #f))))
@@ -2485,7 +2487,7 @@
           (udp (current-udp))
           (world (current-world))
           (video (current-video)))
-      (bind (no require-microphone? require-camera? duration position . streams) group-info/exception
+      (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
         (startup-gstreamer)
         (when (eq? active-zone 'start)
           (reset-chronology)
@@ -2511,7 +2513,7 @@
         (set! circle-joined (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
-        (set-circle-center (or position default-circle-center))
+        (set-circle-center (if stone (second stone) default-circle-center))
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
@@ -2561,7 +2563,16 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (leave-group tier circle-name 'observer)
+      (let ((removed? (leave-group tier circle-name 'observer)))
+        (when removed?
+          ;; without this the circle stone reappears shortly
+          ;; before being actually removed by the server call
+          (let ((stone (find-circle-stone tier circle-name)))
+            (when stone
+              (bind (id) stone
+                (let ((entity (find-entity id)))
+                  (when entity
+                    (entity-removed entity))))))))
       @wait-buggy
       (show-cursor window)
       (when (eq? active-zone 'start)
@@ -2588,7 +2599,7 @@
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no require-microphone? require-camera? duration position . streams) group-info/exception
+          (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier)
@@ -3097,10 +3108,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group require-microphone? require-camera? zone position . players) groupless
+          (bind (group require-microphone? require-camera? zone stone . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name require-microphone? require-camera? zone position . players) group
+                      (bind (name require-microphone? require-camera? zone stone . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3164,13 +3175,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group require-microphone? require-camera? zone position . players) info
+                (bind (group require-microphone? require-camera? zone stone . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group require-microphone? require-camera? zone position))))
+                                        user-data: (list 'group group require-microphone? require-camera? zone stone))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3182,7 +3193,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group require-microphone? require-camera? zone position . players) info
+                              (bind (group require-microphone? require-camera? zone stone . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3287,10 +3298,10 @@
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group require-microphone? require-camera? position player)
+            (define (select zone group require-microphone? require-camera? stone player)
               (let ((group (and (eq? zone 'start) group)))
                 (set! selected-message "")
-                (set-circle-vista position)
+                (set-circle-vista (and stone (second stone)))
                 (if (equal? zone selected-zone)
                     (reinstall-vista)
                   (unless zone-loading
@@ -3314,8 +3325,8 @@
             
             (case kind
               ((group)
-               (bind (group require-microphone? require-camera? zone position) rest
-                 (select zone group require-microphone? require-camera? position #f)))
+               (bind (group require-microphone? require-camera? zone stone) rest
+                 (select zone group require-microphone? require-camera? stone #f)))
               ((zone)
                (select data #f #f #f #f #f)))))
         
