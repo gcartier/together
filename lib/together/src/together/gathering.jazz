@@ -2514,6 +2514,11 @@
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
         (set-circle-center (if stone (second stone) default-circle-center))
+        (when stone
+          (bind (id) stone
+            (let ((entity (find-entity id)))
+              (when entity
+                (set-visible? entity #f)))))
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
@@ -2564,15 +2569,13 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (let ((removed? (leave-group tier circle-name 'observer)))
-        (when removed?
-          ;; without this the circle stone reappears shortly
-          ;; before being actually removed by the server call
+        (unless removed?
           (let ((stone (find-circle-stone tier circle-name)))
             (when stone
               (bind (id) stone
                 (let ((entity (find-entity id)))
                   (when entity
-                    (entity-removed entity))))))))
+                    (set-visible? entity #t))))))))
       @wait-buggy
       (show-cursor window)
       (when (eq? active-zone 'start)
