@@ -828,6 +828,7 @@
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
