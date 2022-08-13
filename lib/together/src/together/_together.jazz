@@ -124,7 +124,9 @@
                     (cond-expand
                       (windows (list 'Build))
                       (mac (get-list (get-parent {Directory Build})))
-                      (else (list 'Build)))))
+                      (else (if (and (not kernel-source-access?) (serving?))
+                                (get-list (get-parent (get-parent {Directory Build})))
+                              (list 'Build))))))
   (register-resources-alias 'Together 'together))
 
 
