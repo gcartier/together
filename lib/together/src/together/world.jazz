@@ -72,7 +72,8 @@
   
   (method override (is-circling? self)
     (let ((together (current-together)))
-      (circling? together)))
+      (and together
+           (circling? together))))
   
   
   (method override (autotrack-inhibit? self)
