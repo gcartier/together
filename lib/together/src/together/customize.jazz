@@ -92,7 +92,7 @@
     (nextmethod self)
     (let ((interface (current-interface)))
       (let ((root (new Together-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
-        (new Label-View name: 'welcome parent: root title: "Together" location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
+        (new Label-View name: 'welcome parent: root title: (format "{a}{a}" tier-title environment-title-suffix) location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
         (new Push-Button name: 'done parent: root title: "Done" location: '(center -30) size: {Dimension 160 26} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-done self))
         (new Customize-Color name: 'color parent: root location: '(-10 center) size: {Dimension 430 110})
         (set! self.root root))
