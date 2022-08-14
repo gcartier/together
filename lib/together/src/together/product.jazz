@@ -132,6 +132,7 @@
     gstreamer?: #t
     files: (cond-expand
              (mac '()) ;; already installed in resources
+             (windows '("README" "Together-Worker.exe"))
              (else '("README")))
     directories: (cond-expand
                    (mac '()) ;; already installed in resources
