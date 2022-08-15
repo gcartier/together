@@ -2245,10 +2245,10 @@
                                                          (model "warcraft/world/doodad/meetingstone01")
                                                          (script-text #f)
                                                          (properties '()))
-                                                     (add-block-at-position universe fire-position 51 0)
                                                      (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
                                                        (add-element universe #f entity name position lookat scale color model script-text properties)
                                                        (bake-entity-lighting zone entity))
+                                                     (add-block-at-position universe fire-position 51 0)
                                                      (unless persistent?
                                                        (join-circle self name require-microphone? require-camera?)))))))))))))
                                
