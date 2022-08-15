@@ -2194,10 +2194,11 @@
   
   
   (method (on-create-circle self evt)
-    (create-circle self))
+    (let ((persistent? (and (admin?) (get-shift? evt))))
+      (create-circle self persistent?)))
   
   
-  (method (create-circle self)
+  (method (create-circle self persistent?)
     (let ((tier (current-client))
           (interface (current-interface))
           (universe (current-universe))
@@ -2208,13 +2209,14 @@
         (client-status tier problem)
         (display-problem unable-to-acquire-microphone))
       
-      (let ((require-microphone? #f))
+      (let ((require-microphone? (not persistent?))
+            (panel-class (if persistent? Create-Persistent-Circle-Panel Create-Circle-Panel)))
         (if (and require-microphone? (not (has-microphone?)))
             (problem no-microphone-found)
           (if (and require-microphone? (not (acquire-microphone-pipeline)))
               (problem unable-to-acquire-microphone)
-            (let ((panel (or (find-type interface Create-Circle-Panel)
-                             (let ((panel (new Create-Circle-Panel parent: interface location: 'center size: {Dimension 402 167})))
+            (let ((panel (or (find-type interface panel-class)
+                             (let ((panel (new panel-class parent: interface location: 'center size: {Dimension 402 167})))
                                (define (create evt)
                                  (let ((require-camera? (get-checked? (locate panel '(create require-camera?)))))
                                    (if (and require-camera? (not (has-camera?)))
@@ -2230,8 +2232,9 @@
                                            
                                            (let ((id (make-unique-id))
                                                  (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
-                                             (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position))))
-                                               (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f (list id position))))
+                                             (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position)))
+                                                   (broadcast-hierarchy? persistent?))
+                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position))))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
                                                    (clear-message world)
@@ -2246,7 +2249,8 @@
                                                      (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
                                                        (add-element universe #f entity name position lookat scale color model script-text properties)
                                                        (bake-entity-lighting zone entity))
-                                                     (join-circle self name require-microphone? require-camera?))))))))))))
+                                                     (unless persistent?
+                                                       (join-circle self name require-microphone? require-camera?)))))))))))))
                                
                                (define (escape evt)
                                  (close panel))
@@ -4998,6 +5002,17 @@
   
   (method override (escape-close? self)
     #t))
+
+
+(class Create-Persistent-Circle-Panel extends Create-Circle-Panel
+  
+  
+  (form
+    (<install>
+      (<!>       name: content
+        (<!>     name: create
+          (<!>   name: label    title: "New persistent circle name")
+          (<!>   name: create   title: "Create"))))))
 
 
 ;;;
