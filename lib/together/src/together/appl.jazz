@@ -622,6 +622,7 @@
       (register-site-look 'video 8 chronology-green) ;; SERVER
       ;; receiver
       (register-site-look 'udp-heartbeat 7 chronology-cyan)
+      (register-site-look 'udp-droppable 6 chronology-blue)
       (register-site-look 'udp-receive 6 chronology-blue)  ;; SERVER
       (register-site-look 'udp-process 5 chronology-purple)
       (register-site-look 'video-output 4 chronology-magenta)
