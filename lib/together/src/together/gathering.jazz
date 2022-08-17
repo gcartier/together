@@ -540,11 +540,9 @@
       (when (and (eq? (active-focus) (current-interface))
                  (selected-loaded? together))
         (let ((zone (get-active-zone together))
-              (group (get-active-group together))
-              (require-microphone? (get-active-require-microphone? together))
-              (require-camera? (get-active-require-camera? together)))
+              (group (get-active-group together)))
           (cond (group
-                 (join-circle together group require-microphone? require-camera?))
+                 (join-circle together group))
                 (zone
                  (enter-zone together)))))))
   
@@ -624,7 +622,7 @@
     (let ((together (current-together)))
       (if (circling? together)
           (enter-circle together)
-        (join-circle together (get-active-group together) (get-active-require-microphone? together) (get-active-require-camera? together)))))
+        (join-circle together (get-active-group together)))))
   
   
   (method (on-create&join self evt)
@@ -1699,39 +1697,33 @@
 (class Together extends Object
   
   
-  (slot spaces                       initialize #f getter generate)
-  (slot space                        initialize #f getter generate)
-  (slot configuration                initialize #f getter generate)
-  (slot active-zone                  initialize #f getter generate)
-  (slot active-group                 initialize #f getter generate)
-  (slot active-require-microphone?   initialize #f getter generate)
-  (slot active-require-camera?       initialize #f getter generate)
-  (slot active-data                  initialize #f getter generate)
-  (slot selected-zone                initialize #f getter generate)
-  (slot selected-group               initialize #f getter generate)
-  (slot selected-require-microphone? initialize #f getter generate)
-  (slot selected-require-camera?     initialize #f getter generate)
-  (slot selected-data                initialize #f getter generate)
-  (slot selected-message             initialize #f getter generate)
-  (slot selected-color               initialize #f getter generate)
-  (slot zone-loading                 initialize #f getter generate)
-  (slot in-group?                    initialize #f getter generate)
-  (slot circle-name                  initialize #f getter generate)
-  (slot circle-no                    initialize #f getter generate)
-  (slot circle-require-microphone?   initialize #f getter generate)
-  (slot circle-require-camera?       initialize #f getter generate)
-  (slot circle-started               initialize #f getter generate)
-  (slot circle-joined                initialize #f getter generate)
-  (slot circle-mode                  initialize #f getter generate)
-  (slot preserved-eye                initialize #f getter generate)
-  (slot preserved-eye?               initialize #f getter generate)
-  (slot message-recipient            initialize #f getter generate)
-  (slot draw-hook                    initialize #f getter generate)
-  (slot sleep-disconnected           initialize #f getter generate)
-  (slot chat-wide?                   initialize #f getter generate)
-  (slot previous-command             initialize #f getter generate)
-  (slot fade-thread                  initialize #f getter generate)
-  (slot fade-no                      initialize 0  getter generate)
+  (slot spaces             initialize #f getter generate)
+  (slot space              initialize #f getter generate)
+  (slot configuration      initialize #f getter generate)
+  (slot active-zone        initialize #f getter generate)
+  (slot active-group       initialize #f getter generate)
+  (slot active-data        initialize #f getter generate)
+  (slot selected-zone      initialize #f getter generate)
+  (slot selected-group     initialize #f getter generate)
+  (slot selected-data      initialize #f getter generate)
+  (slot selected-message   initialize #f getter generate)
+  (slot selected-color     initialize #f getter generate)
+  (slot zone-loading       initialize #f getter generate)
+  (slot in-group?          initialize #f getter generate)
+  (slot circle-name        initialize #f getter generate)
+  (slot circle-no          initialize #f getter generate)
+  (slot circle-started     initialize #f getter generate)
+  (slot circle-joined      initialize #f getter generate)
+  (slot circle-mode        initialize #f getter generate)
+  (slot preserved-eye      initialize #f getter generate)
+  (slot preserved-eye?     initialize #f getter generate)
+  (slot message-recipient  initialize #f getter generate)
+  (slot draw-hook          initialize #f getter generate)
+  (slot sleep-disconnected initialize #f getter generate)
+  (slot chat-wide?         initialize #f getter generate)
+  (slot previous-command   initialize #f getter generate)
+  (slot fade-thread        initialize #f getter generate)
+  (slot fade-no            initialize 0  getter generate)
   
   (cond-expand
     (windows
@@ -1817,7 +1809,7 @@
                (bind (mode zone group require-microphone? require-camera?) reconnect-info
                  (handle-reconnection mode zone group require-microphone? require-camera?))))
             (auto-join
-             (check-error (autojoin-circle self auto-join #f #f)))
+             (check-error (autojoin-circle self auto-join)))
             (auto-enter
              (check-error (autoenter-zone self)))
             (else
@@ -2250,7 +2242,7 @@
                                                        (bake-entity-lighting zone entity))
                                                      (add-block-at-position universe fire-position 51 0)
                                                      (unless persistent?
-                                                       (join-circle self name require-microphone? require-camera?)))))))))))))
+                                                       (join-circle self name)))))))))))))
                                
                                (define (escape evt)
                                  (close panel))
@@ -2283,7 +2275,7 @@
       (cond ((not circle-name)
              (display-action world "E : Join Circle"
                (lambda ()
-                 (join-circle self (get-name stone) #f #f)))
+                 (join-circle self (get-name stone))))
              #t)
             (else
              #f))))
@@ -2412,7 +2404,7 @@
               (view (child create 'view)))
           (let ((require-microphone? #t)
                 (require-camera? (get-checked? require-camera)))
-            (let ((err (acquire-circle self require-microphone? require-camera?)))
+            (let ((err (acquire-microphone/camera self require-microphone? require-camera?)))
               (client-status tier err)
               (if err
                   (display-problem err)
@@ -2425,13 +2417,13 @@
                         (set-string-content text "")
                         (content-changed view)
                         (set-checked? require-camera #t)
-                        (join-circle self name require-microphone? require-camera?))))))))))))
+                        (join-circle self name))))))))))))
   
   
-  (method package (join-circle self name require-microphone? require-camera?)
+  (method package (join-circle self name)
     (let ((tier (current-client))
           (world (current-world)))
-      (let ((err (acquire-circle self require-microphone? require-camera?)))
+      (let ((err (acquire-circle self name)))
         (client-status tier err)
         (if err
             (display-problem err)
@@ -2441,9 +2433,9 @@
               (setup-circle self name group-info/exception)))))))
   
   
-  (method (autojoin-circle self name require-microphone? require-camera?)
+  (method (autojoin-circle self name)
     (let ((tier (current-client)))
-      (let ((err (acquire-circle self require-microphone? require-camera?)))
+      (let ((err (acquire-circle self name)))
         (if err
             err
           (let ((group-info/exception (join-group tier name 'player)))
@@ -2455,7 +2447,7 @@
   
   (method (rejoin-circle self name require-microphone? require-camera?)
     (let ((tier (current-client)))
-      (let ((err (acquire-circle self require-microphone? require-camera?)))
+      (let ((err (acquire-microphone/camera self require-microphone? require-camera?)))
         (if err
             err
           (let ((group-info/exception (rejoin-group tier name)))
@@ -2466,14 +2458,25 @@
   
   
   (method (circle-acquire self require-microphone? require-camera?)
-    (acquire-circle self require-microphone? require-camera?))
+    (acquire-microphone/camera self require-microphone? require-camera?))
   
   
   (method (circle-join self name group-info/exception)
     (setup-circle self name group-info/exception))
   
   
-  (method (acquire-circle self require-microphone? require-camera?)
+  (method (acquire-circle self name)
+    (let ((tier (current-client)))
+      (if (auto-live?)
+          (let ((requirements/err (group-requirements tier name)))
+            (if (string? requirements/err)
+                requirements/err
+              (bind (require-microphone? require-camera?) requirements/err
+                (acquire-microphone/camera self require-microphone? require-camera?))))
+        #f)))
+  
+  
+  (method (acquire-microphone/camera self require-microphone? require-camera?)
     (if (auto-live?)
         (cond ((and (auto-audio?) require-microphone? (not (has-microphone?)))
                no-microphone-found)
@@ -2511,8 +2514,6 @@
           (else))
         (set! circle-name name)
         (set! circle-no no)
-        (set! circle-require-microphone? require-microphone?)
-        (set! circle-require-camera? require-camera?)
         (set! circle-started (- (current-seconds) duration))
         (set! circle-joined (current-seconds))
         (add-snapshot-property 'live.circle-name circle-name)
@@ -2764,8 +2765,6 @@
                 (selected-error info)
               (set! active-zone selected-zone)
               (set! active-group selected-group)
-              (set! active-require-microphone? selected-require-microphone?)
-              (set! active-require-camera? selected-require-camera?)
               (set! active-data selected-data))))
         (when (is? space Gathering-Space)
           (update-center-interface space)))))
@@ -3305,7 +3304,7 @@
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group require-microphone? require-camera? stone player)
+            (define (select zone group stone player)
               (let ((group (and (eq? zone 'start) group)))
                 (set! selected-message "")
                 (set-circle-vista (and stone (second stone)))
@@ -3319,23 +3318,19 @@
                     (set! selected-message (format "{a} is loading..." (last zone)))))
                 (set! selected-zone zone)
                 (set! selected-group group)
-                (set! selected-require-microphone? require-microphone?)
-                (set! selected-require-camera? require-camera?)
                 (set! selected-data data)
                 (when (selected-loaded? self)
                   (set! active-zone zone)
                   (set! active-group group)
-                  (set! active-require-microphone? require-microphone?)
-                  (set! active-require-camera? require-camera?)
                   (set! active-data data))
                 (update-center-interface space)))
             
             (case kind
               ((group)
                (bind (group require-microphone? require-camera? zone stone) rest
-                 (select zone group require-microphone? require-camera? stone #f)))
+                 (select zone group stone #f)))
               ((zone)
-               (select data #f #f #f #f #f)))))
+               (select data #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
@@ -3371,7 +3366,7 @@
                      (when (eq? kind 'group)
                        (if (circling? self)
                            (enter-circle self)
-                         (join-circle self active-group active-require-microphone? active-require-camera?))))
+                         (join-circle self active-group))))
                     ((and active-zone (neq? active-zone 'start))
                      (when (eq? kind 'zone)
                        (enter-zone self))))))))))
