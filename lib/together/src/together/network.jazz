@@ -227,10 +227,10 @@
                                         (set! running-profile #f)
                                         (save-profile server-profile client-profile view-profile?: #f)))))))
                          'send))))
-            (thread-base-priority-set! pulse-thread udp-priority)
+            (thread-base-priority-set! pulse-thread profile-priority)
             (thread-base-priority-set! redraw-thread background-priority)
             (when send-thread
-              (thread-base-priority-set! send-thread udp-priority))
+              (thread-base-priority-set! send-thread profile-priority))
             (when send-thread
               (thread-start! send-thread))
             (thread-start! pulse-thread)
