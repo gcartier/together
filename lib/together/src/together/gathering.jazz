@@ -314,6 +314,7 @@
         (<!>                 name: test-bbr                   active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: toggle-stress              active?: #t)
         (<!>                 name: test                       active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
@@ -829,6 +830,7 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: toggle-stress              active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
@@ -1241,6 +1243,7 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: toggle-stress              active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
@@ -4223,6 +4226,14 @@
               (layout-view interface)
               (invalidate-interface))))
       (bell)))
+  
+  
+  (method (on-toggle-stress self evt)
+    (let ((world (current-world)))
+      (if (not stressable?)
+          (display-error world "Not stressable")
+        (set-stress? (not stress?))
+        (display-on/off world "Stress" stress?))))
   
   
   (method (on-goto-gathering self evt)
