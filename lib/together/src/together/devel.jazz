@@ -118,7 +118,6 @@
         (world.id)
         (world.index)
         (world.info)
-        (world.instantiate)
         (world.interface)
         (world.interface.bars)
         (world.interface.color)
