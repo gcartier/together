@@ -170,6 +170,7 @@
         (world.ring)
         (world.scripts)
         (world.script.asset)
+        (world.section)
         (world.sector)
         (world.settings)
         (world.shader)

@@ -16,7 +16,11 @@
 
 (import (jazz.presence)
         (world)
+        (world.chunk)
         (world.context)
         (world.processor.tier)
+        (world.region)
+        (world.section)
         (world.settings)
-        (world.task)))
+        (world.task)
+        (world.zone)))
