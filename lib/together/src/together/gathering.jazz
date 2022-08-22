@@ -92,6 +92,7 @@
         (world.manager)
         (world.moment)
         (world.moment.syntax (phase syntax))
+        (world.motion)
         (world.pane)
         (world.platform)
         (world.player)
@@ -1722,8 +1723,9 @@
   (slot circle-started     initialize #f getter generate)
   (slot circle-joined      initialize #f getter generate)
   (slot circle-mode        initialize #f getter generate)
-  (slot preserved-eye      initialize #f getter generate)
   (slot preserved-eye?     initialize #f getter generate)
+  (slot preserved-eye      initialize #f getter generate)
+  (slot preserved-distance initialize #f getter generate)
   (slot message-recipient  initialize #f getter generate)
   (slot draw-hook          initialize #f getter generate)
   (slot sleep-disconnected initialize #f getter generate)
@@ -2598,14 +2600,14 @@
         (circle-uninstall-camera)
         (restore-fov)
         (install-vista))
-      (when preserved-eye?
-        (camera-copy! (get-eye world) preserved-eye))
+      (restore-eye self)
       (set! circle-name #f)
       (set! circle-no #f)
       (set! circle-mode 'avatar)
       (unbind-camera)
       (maybe-enable-autotrack world)
       (person-motion world eye-center?: #f feedback?: #f)
+      (restore-distance self)
       (clear-snapshot-property 'live.circle-name)
       (cond ((eq? active-zone 'start)
              (goto-space self 'gathering)
@@ -3752,16 +3754,36 @@
   ;;;
   
   
+  (method (preserve-camera self)
+    (let ((world (current-world))
+          (motion (current-motion)))
+      (camera-copy! preserved-eye (get-eye world))
+      (set! preserved-distance (and (is? motion Target-Motion) (get-desired-distance motion)))
+      (set! preserved-eye? #t)))
+  
+  
+  (method (restore-eye self)
+    (let ((world (current-world)))
+      (when preserved-eye?
+        (camera-copy! (get-eye world) preserved-eye)
+        (set! preserved-eye? #f))))
+  
+  
+  (method (restore-distance self)
+    (when preserved-distance
+      (setup-motion (current-motion) preserved-distance)
+      (set! preserved-distance #f)))
+  
+  
   (method (on-avatar-mode self evt)
     (let ((world (current-world)))
       (unless (eq? circle-mode 'avatar)
         (change-circle-mode self 'avatar 'circle)
-        (when preserved-eye?
-          (camera-copy! (get-eye world) preserved-eye)
-          (set! preserved-eye? #f))
+        (restore-eye self)
         (unbind-camera)
         (maybe-enable-autotrack world)
         (person-motion world eye-center?: #f feedback?: #f)
+        (restore-distance self)
         (focus-world))))
   
   
@@ -3771,8 +3793,7 @@
         (let ((from-avatar? (eq? circle-mode 'avatar)))
           (change-circle-mode self 'circle 'circle)
           (when from-avatar?
-            (camera-copy! preserved-eye (get-eye world))
-            (set! preserved-eye? #t)
+            (preserve-camera self)
             (circle-home)
             (bind-camera)
             (disable-autotrack world))))))
@@ -3784,8 +3805,7 @@
         (let ((from-avatar? (eq? circle-mode 'avatar)))
           (change-circle-mode self 'focus 'focus)
           (when from-avatar?
-            (camera-copy! preserved-eye (get-eye world))
-            (set! preserved-eye? #t)
+            (preserve-camera self)
             (bind-camera)
             (disable-autotrack world))))))
   
@@ -3796,8 +3816,7 @@
         (let ((from-avatar? (eq? circle-mode 'avatar)))
           (change-circle-mode self 'gallery 'gallery)
           (when from-avatar?
-            (camera-copy! preserved-eye (get-eye world))
-            (set! preserved-eye? #t)
+            (preserve-camera self)
             (bind-camera)
             (disable-autotrack world))))))
   
