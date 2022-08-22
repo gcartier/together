@@ -2605,7 +2605,7 @@
       (set! circle-mode 'avatar)
       (unbind-camera)
       (maybe-enable-autotrack world)
-      (person-motion world feedback?: #f)
+      (person-motion world eye-center?: #f feedback?: #f)
       (clear-snapshot-property 'live.circle-name)
       (cond ((eq? active-zone 'start)
              (goto-space self 'gathering)
@@ -3761,7 +3761,7 @@
           (set! preserved-eye? #f))
         (unbind-camera)
         (maybe-enable-autotrack world)
-        (person-motion world feedback?: #f)
+        (person-motion world eye-center?: #f feedback?: #f)
         (focus-world))))
   
   
