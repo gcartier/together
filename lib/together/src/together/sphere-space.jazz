@@ -91,6 +91,18 @@
     )
   
   
+  ;; quicky
+  (hub chat-message)
+  (method (on-command-message self evt)
+    (chat-message (together:current-together)))
+  
+  
+  ;; quicky
+  (hub chat-slash)
+  (method (on-command-slash self evt)
+    (chat-slash (together:current-together)))
+  
+  
   ;;;
   ;;;; Streams
   ;;;

@@ -548,6 +548,18 @@
                  (enter-zone together)))))))
   
   
+  ;; quicky
+  (hub chat-message)
+  (method (on-command-message self evt)
+    (chat-message (together:current-together)))
+  
+  
+  ;; quicky
+  (hub chat-slash)
+  (method (on-command-slash self evt)
+    (chat-slash (together:current-together)))
+  
+  
   (method (circle-create-enabled? self)
     (let ((together (current-together)))
       (let ((circle-view (child root '(circle-create view))))
@@ -1130,14 +1142,6 @@
       (unless (get-fade-thread (current-together))
         (unless (get-central-menu world)
           (fade-mainbar (new Point$fl$ x y))))))
-  
-  
-  (method (on-command-message self evt)
-    (chat-message (together:current-together)))
-  
-  
-  (method (on-command-slash self evt)
-    (chat-slash (together:current-together)))
   
   
   (method override (toggle-chat self)
