@@ -23,6 +23,7 @@
         (world.interface)
         (world.interface.sheet)
         (world.sound)
+        (world.support)
         (together)
         (together.gathering)
         (together.login)
@@ -81,7 +82,8 @@
       (or (nextmethod self)
           (and together
                (circling? together)
-               (not (avatar-mode? together))))))
+               (or (not (avatar-mode? together))
+                   (not (get-autotrack-mode?)))))))
   
   
   (method override (effective-independent-camera? self)
