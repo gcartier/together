@@ -2888,39 +2888,38 @@
               (draw-text surface h v text color))
             (increase! rank))
           
-          (when (is? space Void-Space)
-            (when show-debug?
-              (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-              (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
-              (unless (eq? show-media 'energy)
-                (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
-                (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
-                (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
-                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
-              (with-bin-mutex
-                (lambda ()
-                  (let ((threads (current-process-threads)))
-                    (cond-expand
-                      (mac
-                       (when threads
-                         (receive (main gstreamer other) (process-threads-cpu threads)
-                           (let ((total (+ main gstreamer other)))
-                             (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red})))))
-                      (else))
-                    (case show-media
-                      ((energy)
-                       (cond-expand
-                         (mac
-                          (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                          (draw-energy self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28))))
-                         (else)))
-                      ((audio video)
-                       (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                       (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))))
-              @wait
-              (let ((leaks (leaks)))
-                (when (not-null? leaks)
-                  (draw (format "Leaks: {a}" (length leaks)) {Color World-Red}))))))))))
+          (when show-debug?
+            (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
+            (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
+            (unless (eq? show-media 'energy)
+              (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
+              (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
+              (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
+              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
+            (with-bin-mutex
+              (lambda ()
+                (let ((threads (current-process-threads)))
+                  (cond-expand
+                    (mac
+                     (when threads
+                       (receive (main gstreamer other) (process-threads-cpu threads)
+                         (let ((total (+ main gstreamer other)))
+                           (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red})))))
+                    (else))
+                  (case show-media
+                    ((energy)
+                     (cond-expand
+                       (mac
+                        (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                        (draw-energy self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28))))
+                       (else)))
+                    ((audio video)
+                     (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                     (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))))
+            @wait
+            (let ((leaks (leaks)))
+              (when (not-null? leaks)
+                (draw (format "Leaks: {a}" (length leaks)) {Color World-Red})))))))))
   
   
   (method protected (draw-energy self surface direction threads start-h start-v)
@@ -4111,72 +4110,65 @@
   
   
   (method (on-toggle-debug self evt)
-    (when (is? space Void-Space)
-      (set-show-debug? (not show-debug?))
-      (invalidate-interface)))
+    (set-show-debug? (not show-debug?))
+    (invalidate-interface))
   
   
   (method (on-toggle-debug-energy self evt)
-    (when (is? space Void-Space)
-      (cond ((eq? show-media 'energy)
-             (set-show-media #f))
-            (else
-             (set-show-debug? #t)
-             (set-show-media 'energy)))
-      (invalidate-interface)))
+    (cond ((eq? show-media 'energy)
+           (set-show-media #f))
+          (else
+           (set-show-debug? #t)
+           (set-show-media 'energy)))
+    (invalidate-interface))
   
   
   (method (on-toggle-debug-audio self evt)
-    (when (is? space Void-Space)
-      (cond ((eq? show-media 'audio)
-             (set-show-media #f))
-            (else
-             (set-show-debug? #t)
-             (set-show-media 'audio)))
-      (invalidate-interface)))
+    (cond ((eq? show-media 'audio)
+           (set-show-media #f))
+          (else
+           (set-show-debug? #t)
+           (set-show-media 'audio)))
+    (invalidate-interface))
   
   
   (method (on-toggle-debug-video self evt)
-    (when (is? space Void-Space)
-      (cond ((eq? show-media 'video)
-             (set-show-media #f))
-            (else
-             (set-show-debug? #t)
-             (set-show-media 'video)))
-      (invalidate-interface)))
+    (cond ((eq? show-media 'video)
+           (set-show-media #f))
+          (else
+           (set-show-debug? #t)
+           (set-show-media 'video)))
+    (invalidate-interface))
   
   
   (method (on-toggle-debug-media self evt)
-    (when (is? space Void-Space)
-      (let ((video (current-video)))
-        (set-debug-stream (if (eq? debug-stream 'media)
-                              #f
-                            'media))
-        (invalidate-outputs video)
-        (when debug-stream
-          (show-interface (current-space) #t)))))
+    (let ((video (current-video)))
+      (set-debug-stream (if (eq? debug-stream 'media)
+                            #f
+                          'media))
+      (invalidate-outputs video)
+      (when debug-stream
+        (show-interface (current-space) #t))))
   
   
   (method (on-toggle-debug-flow self evt)
-    (when (is? space Void-Space)
-      (let ((video (current-video)))
-        (set-debug-stream (if (eq? debug-stream 'flow)
-                              #f
-                            'flow))
-        (invalidate-outputs video)
-        (when debug-stream
-          (show-interface (current-space) #t)))))
+    (let ((video (current-video)))
+      (set-debug-stream (if (eq? debug-stream 'flow)
+                            #f
+                          'flow))
+      (invalidate-outputs video)
+      (when debug-stream
+        (show-interface (current-space) #t))))
   
   
   (method (on-toggle-debug-live self evt)
-    (when (is? space Void-Space)
-      (let ((video (current-video)))
-        (set-debug-stream (if (eq? debug-stream 'live)
-                              #f
-                            'live))
-        (invalidate-outputs video)
-        (when debug-stream
-          (show-interface (current-space) #t)))))
+    (let ((video (current-video)))
+      (set-debug-stream (if (eq? debug-stream 'live)
+                            #f
+                          'live))
+      (invalidate-outputs video)
+      (when debug-stream
+        (show-interface (current-space) #t))))
   
   
   (method (on-toggle-admin self evt)
