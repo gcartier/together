@@ -135,17 +135,28 @@
   
   (define (determine-worlds)
     (and (exists? {Directory Application})
-         (let ((parent (get-parent {Directory Application})))
-           (and (and parent (exists? parent) (not (meta-root? parent)))
-                (let ((parent (get-parent parent)))
-                  (and (and parent (exists? parent) (not (meta-root? parent)))
-                       (let ((worlds (new-directory parent "worlds")))
-                         (if (exists? worlds)
-                             worlds
-                           (let ((worlds (new-directory parent "Worlds")))
-                             (if (exists? worlds)
-                                 worlds
-                               #f))))))))))
+         (let ((dir (up-two-levels {Directory Application})))
+           (and dir
+                (or (find-worlds dir)
+                    (let ((dir (and (not kernel-source-access?) (serving?) (up-two-levels dir))))
+                      (and dir
+                           (find-worlds dir))))))))
+  
+  (define (up-two-levels dir)
+    (let ((parent (get-parent dir)))
+      (and (and parent (exists? parent) (not (meta-root? parent)))
+           (let ((parent (get-parent parent)))
+             (and (and parent (exists? parent) (not (meta-root? parent)))
+                  parent)))))
+  
+  (define (find-worlds dir)
+    (let ((worlds (new-directory dir "worlds")))
+      (if (exists? worlds)
+          worlds
+        (let ((worlds (new-directory dir "Worlds")))
+          (if (exists? worlds)
+              worlds
+            #f)))))
   
   (let ((world (determine-world)))
     (cond ((not world)
