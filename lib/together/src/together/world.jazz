@@ -82,8 +82,7 @@
       (or (nextmethod self)
           (and together
                (circling? together)
-               (or (not (avatar-mode? together))
-                   (not (get-autotrack-mode?)))))))
+               (not (avatar-mode? together))))))
   
   
   (method override (effective-independent-camera? self)
