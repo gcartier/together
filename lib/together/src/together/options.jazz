@@ -135,19 +135,21 @@
   
   (form
     (<install>
-      (<caption~>                                 title: "Video Options")
-      (<content~>                                                        layout-type: center
-        (<View>                                                          size: {Dimension 390 174}
-          (<Option-Label>                         title: "Quality"       position: {Point 0 1})
-          (<Combo-Option>                                                position: {Point 140 0} size: {Dimension 250 19} option: quality)
-          (<Option-Label>                         title: "Camera"        position: {Point 0 51})
-          (<Combo-Option>                                                position: {Point 140 50} size: {Dimension 250 19} option: camera)
-          (<Option-Label>   name: retina-label    title: "Retina"        position: {Point 20 100} visible?: #f)
-          (<Boolean-Option> name: retina-option                          position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
-          (<Option-Label>   name: scale-label     title: "Scale"         position: {Point 0 101} visible?: #f)
-          (<Combo-Option>   name: scale-option                           position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
-          (<Option-Label>   name: hardware-label  title: "Hardware Acceleration (experimental)" position: {Point 20 150} size: {Dimension 300 16} visible?: #f)
-          (<Boolean-Option> name: hardware-option                        position: {Point 0 150} size: {Dimension 250 19} visible?: #f option: hardware)))))
+      (<caption~>                                      title: "Video Options")
+      (<content~>                                                             layout-type: center
+        (<View>                                                               size: {Dimension 390 184}
+          (<Option-Label>                              title: "Quality"       position: {Point 0 1})
+          (<Combo-Option>                                                     position: {Point 140 0} size: {Dimension 250 19} option: quality)
+          (<Option-Label>                              title: "Camera"        position: {Point 0 51})
+          (<Combo-Option>                                                     position: {Point 140 50} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: retina-label         title: "Retina"        position: {Point 20 100} visible?: #f)
+          (<Boolean-Option> name: retina-option                               position: {Point 0 100} size: {Dimension 250 19} visible?: #f option: retina)
+          (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 101} visible?: #f)
+          (<Combo-Option>   name: scale-option                                position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
+          (<Option-Label>   name: multisampling-label  title: "Multisampling" position: {Point 20 160})
+          (<Boolean-Option> name: multisampling-option                        position: {Point 0 160} size: {Dimension 250 19} option: multisampling)
+          (<Option-Label>   name: hardware-label       title: "Hardware Acceleration (experimental)" position: {Point 20 200} size: {Dimension 300 16} visible?: #f)
+          (<Boolean-Option> name: hardware-option                             position: {Point 0 200} size: {Dimension 250 19} visible?: #f option: hardware)))))
   
   
   (method override (install self rest)
@@ -198,6 +200,8 @@
                  (values choices (car choice))))))))
       ((retina)
        (world-setting 'world.application-retina? #f))
+      ((multisampling)
+       (world-setting 'world.multisampling? #t))
       ((scale)
        (let ((choices (list (list 1. "100%")
                             (list 1.25 "125%")
@@ -224,6 +228,10 @@
        (update-camera-identifier (current-client) title value))
       ((retina)
        (set-setting options-settings 'world.application-retina? value)
+       (save-content options-settings)
+       (need-restart))
+      ((multisampling)
+       (set-setting options-settings 'world.multisampling? value)
        (save-content options-settings)
        (need-restart))
       ((scale)
