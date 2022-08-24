@@ -2348,8 +2348,7 @@
               (let ((position (vertex+ circle-vista (vertex 3. 0. 0.))))
                 (teleport zone position sight))))
           (change-circle-mode self 'avatar 'circle feedback?: #f)
-          (when (user?)
-            (enable-autotrack-mode world feedback?: #f))
+          (delay-enable-autotrack self)
           #f))))
   
   
@@ -2371,9 +2370,18 @@
       (set-mode me 'player)
       (add-snapshot-property 'live.player-mode (get-mode me))
       (prepare-motion world)
-      (when (user?)
-        (enable-autotrack-mode world feedback?: #f))
+      (delay-enable-autotrack self)
       #f))
+  
+  
+  (method (delay-enable-autotrack self)
+    (let ((world (current-world)))
+      (when (user?)
+        (delay-event
+          (lambda ()
+            (with-task-mutex
+              (lambda ()
+                (enable-autotrack-mode world feedback?: #f))))))))
   
   
   (method package (exit-zone self)
