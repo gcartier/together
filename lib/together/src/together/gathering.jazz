@@ -913,7 +913,7 @@
         (<!>                 name: toggle-draw-me             active?: #t)
         (<!>                 name: toggle-blocks              active?: #t)
         (<!>                 name: toggle-models              active?: #t)
-        (<!>                 name: toggle-post-processing     active?: #t))
+        (<!>                 name: toggle-multisampling       active?: #t))
       (<world-sound!>
         (<!>                 name: toggle-music               active?: #t)
         (<!>                 name: change-music               active?: #t)

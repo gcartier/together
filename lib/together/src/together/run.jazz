@@ -92,7 +92,7 @@
                        (set-setting settings property value))
                      '(;; render
                        world.view-distance         7
-                       world.post-processing?      #t
+                       world.multisampling?        #t
                        world.multisampling         2
                        world.render-rate           #f
                        world.render-rate-inactive  #f

@@ -1584,7 +1584,7 @@
         (<!>                 name: toggle-draw-me             visible?: #t)
         (<!>                 name: toggle-blocks              visible?: #t)
         (<!>                 name: toggle-models              visible?: #t)
-        (<!>                 name: toggle-post-processing     visible?: #t))
+        (<!>                 name: toggle-multisampling       visible?: #t))
       (<world-sound!>
         (<!>                 name: toggle-music               visible?: #t)
         (<!>                 name: change-music               visible?: #t)
