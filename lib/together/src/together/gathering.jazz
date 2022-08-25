@@ -315,6 +315,7 @@
         (<!>                 name: test-bbr                   active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
+        (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-stress              active?: #t)
         (<!>                 name: test                       active?: #t))
       (<together-script!>
