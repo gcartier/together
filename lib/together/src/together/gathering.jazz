@@ -290,6 +290,7 @@
         (<!>                 name: toggle-history             active?: #t)
         (<!>                 name: toggle-gc-sound            active?: #t)
         (<!>                 name: explore-interface          active?: #t)
+        (<!>                 name: toggle-debug-sections      active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
