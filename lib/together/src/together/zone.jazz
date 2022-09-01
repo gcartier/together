@@ -254,7 +254,7 @@
                           (up (get-world-up world)))
                       (let ((right (cross-product sight up)))
                         (let ((lookat (lookat sight up right)))
-                          (free-motion world feedback?: #f)
+                          (vista-motion world target)
                           (set-lookat eye (rotate-lookat-vertical& lookat (- vert-angle)))
                           (set-position eye pos)
                           (derive-target eye)
