@@ -198,9 +198,10 @@
 
 (definition package (install-vista)
   (let ((window (current-window))
-        (zone (current-zone)))
+        (zone (current-zone))
+        (me (current-me)))
     (unless vista-tick
-      (let ((target (or circle-vista (get-vista-target zone) (vertex 0. 5. 0.)))
+      (let ((target (or circle-vista (get-vista-target zone) (get-position me)))
             (radius (if circle-vista 14. (or (get-vista-radius zone) 75.)))
             (elevation (if circle-vista 5. (or (get-vista-elevation zone) 20.))))
         (let ((tick (path-vista target radius elevation)))
