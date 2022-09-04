@@ -103,6 +103,7 @@
         (world.ring)
         (world.screenshot)
         (world.script.asset)
+        (world.section)
         (world.settings)
         (world.skybox)
         (world.sound)
@@ -2511,6 +2512,7 @@
   (method (setup-circle self name group-info/exception)
     (let ((tier (current-client))
           (udp (current-udp))
+          (universe (current-universe))
           (world (current-world))
           (video (current-video)))
       (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
@@ -2539,10 +2541,13 @@
         (streams-add tier no require-microphone? require-camera? streams)
         (set-circle-center (if stone (second stone) default-circle-center))
         (when stone
-          (bind (id) stone
-            (let ((entity (find-entity id)))
-              (when entity
-                (set-visible? entity #f)))))
+          (bind (id position) stone
+            (let ((section-index (position->section-index position)))
+              (let ((section (index-section-if universe section-index)))
+                (when section
+                  (let ((entity (find-entity-by-id section id)))
+                    (when entity
+                      (set-visible? entity #f))))))))
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
@@ -2582,6 +2587,7 @@
   (method (leave-circle self)
     (let ((tier (current-client))
           (window (current-window))
+          (universe (current-universe))
           (world (current-world))
           (zone (current-zone)))
       @admin-request
@@ -2596,10 +2602,13 @@
         (unless removed?
           (let ((stone (find-circle-stone tier circle-name)))
             (when stone
-              (bind (id) stone
-                (let ((entity (find-entity id)))
-                  (when entity
-                    (set-visible? entity #t))))))))
+              (bind (id position) stone
+                (let ((section-index (position->section-index position)))
+                  (let ((section (index-section-if universe section-index)))
+                    (when section
+                      (let ((entity (find-entity-by-id section id)))
+                        (when entity
+                          (set-visible? entity #t)))))))))))
       @wait-buggy
       (show-cursor window)
       (when (eq? active-zone 'start)
