@@ -190,6 +190,7 @@
         (world.target)
         (world.task)
         (world.texture)
+        (world.tier)
         (world.timeline)
         (world.triangle)
         (world.udp)
