@@ -96,5 +96,7 @@
     (typecase element
       ((Circle-Stone)
        (check-circle-stone (current-together) element))
+      ((Player)
+       (check-invite-player (current-together) element))
       (else
        (nextmethod self element))))))

@@ -2032,17 +2032,21 @@
   
   
   (method (on-invite self evt)
+    (let ((recipient (cadr message-recipient)))
+      (invite-to-group self recipient circle-name)))
+  
+  
+  (method (invite-to-group self recipient circle-name)
     (let ((tier (current-client))
           (world (current-world)))
       (if (not (has-microphone?))
           (display-problem no-microphone-found)
         (if (not (acquire-microphone-pipeline))
             (display-problem unable-to-acquire-microphone)
-          (let ((recipient (cadr message-recipient)))
-            (let ((error (client-invite tier recipient circle-name)))
-              (if error
-                  (display-error world error)
-                (chat-show world (format "Invite {a}" recipient)))))))))
+          (let ((error (client-invite tier recipient circle-name)))
+            (if error
+                (display-error world error)
+              (chat-show world (format "Invite {a}" recipient))))))))
   
   
   (method (on-leave self evt)
@@ -2289,6 +2293,17 @@
                (lambda ()
                  (join-circle self (get-name stone))))
              #t)
+            (else
+             #f))))
+  
+  
+  (method package (check-invite-player self player)
+    (let ((world (current-world)))
+      (cond ((not in-group?)
+             (display-action world "E : Invite to join an audio group"
+               (lambda ()
+                 (let ((recipient (get-name player)))
+                   (invite-to-group self recipient #f)))))
             (else
              #f))))
   
