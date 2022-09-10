@@ -2298,14 +2298,23 @@
   
   
   (method package (check-invite-player self player)
-    (let ((world (current-world)))
-      (cond ((not in-group?)
-             (display-action world "E : Invite to join an audio group"
-               (lambda ()
-                 (let ((recipient (get-name player)))
-                   (invite-to-group self recipient #f)))))
-            (else
-             #f))))
+    (let ((client (current-client))
+          (world (current-world)))
+      (let ((character-name (get-character-name client))
+            (invite-name (get-name player)))
+        (let ((player-info (registered-player-info character-name)))
+          (let ((party (and player-info (get-party player-info))))
+            (let ((in-party? (and party (member? invite-name party))))
+              (cond ((not in-party?)
+                     (let ((invite (cond (in-group? "your audio group")
+                                         (circle-name "your circle")
+                                         (else "an audio group"))))
+                       (display-action world (format "E : Invite {a} to join {a}" invite-name invite)
+                         (lambda ()
+                           (let ((recipient invite-name))
+                             (invite-to-group self recipient circle-name))))))
+                    (else
+                     #f))))))))
   
   
   (method package (enter-zone self)
