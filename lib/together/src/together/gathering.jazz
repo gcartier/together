@@ -4903,7 +4903,7 @@
 ;;;
 
 
-(definition player-infos
+(definition package player-infos
   (make-table test: equal?))
 
 (definition package (register-player-info name mode party asleep? disconnected? roaming? mobile?)
