@@ -1980,14 +1980,14 @@
           (bind (kind name) message-recipient
             (case kind
               ((player)
-               (let ((player-info (registered-player-info name)))
+               (let ((player-info (find-player-info name)))
                  (cond (player-info
                         (let ((me? (equal? (get-name player-info) (get-name me)))
                               (mode (get-mode player-info))
-                              (party (get-party player-info)))
-                          (set-title to (if party (format "<{a}>" name) name))
+                              (group (get-group player-info)))
+                          (set-title to (if (and group (group? group)) (format "<{a}>" name) name))
                           (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
-                          (if (or me? in-group? party)
+                          (if (or me? in-group? group)
                               (set-visible? invite #f)
                             (set-kind invite (if circle-name 'circle 'group))
                             (set-visible? invite #t))))
@@ -2290,11 +2290,13 @@
   (method package (check-invite-player self player)
     (let ((client (current-client))
           (world (current-world)))
-      (let ((character-name (get-character-name client))
+      (let ((player-name (get-character-name client))
             (invite-name (get-name player)))
-        (let ((player-info (registered-player-info character-name)))
-          (let ((party (and player-info (get-party player-info))))
-            (let ((in-party? (and party (member? invite-name party))))
+        (let ((player-info (find-player-info player-name))
+              (invite-info (find-player-info invite-name)))
+          (let ((player-group (and player-info (get-group player-info)))
+                (invite-group (and invite-info (get-group invite-info))))
+            (let ((in-party? (and player-group invite-group (eq? player-group invite-group))))
               (cond ((not in-party?)
                      (let ((invite (cond (in-group? "your audio group")
                                          (circle-name "your circle")
@@ -3131,8 +3133,32 @@
       (view-hierarchy self (list-hierarchy tier))))
   
   
-  ;; could be done only once on server
-  (method package (unify-hierarchy self hierarchy available-zones)
+  (method (register-infos self hierarchy)
+    (define (register-players players group-info)
+      (for-each (lambda (player)
+                  (register-player player group-info))
+                players))
+    
+    (define (register-player player group-info)
+      (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
+        (let ((player-info (register-player-info name zone mode group-info asleep? disconnected? roaming? mobile?)))
+          (when group-info
+            (add-member group-info player-info)))))
+    
+    (empty-group-infos)
+    (empty-player-infos)
+    (bind (groupless . groups) hierarchy
+      (bind (group require-microphone? require-camera? zone stone . players) groupless
+        (register-players players #f))
+      (for-each (lambda (group)
+                  (bind (name/no require-microphone? require-camera? zone stone . players) group
+                    (let ((group-info (register-group-info name/no)))
+                      (bind (name/no require-microphone? require-camera? zone stone . players) group
+                        (register-players players group-info)))))
+                groups)))
+  
+  
+  (method (unify-hierarchy self hierarchy available-zones)
     (let ((client (current-client)))
       (bind (groupless . groups) hierarchy
         (let ((observers '())
@@ -3192,15 +3218,15 @@
     (let ((tier (current-tier))
           (me (current-me)))
       (let ((tree (people-tree self))
-            (separator? #f))
-        (receive (observers voiders zones party) (unify-hierarchy self hierarchy (cache-available-zones))
-          (empty-player-infos)
+            (separator? #f)
+            (available-zones (cache-available-zones)))
+        (register-infos self hierarchy)
+        (receive (observers voiders zones party) (unify-hierarchy self hierarchy available-zones)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
                 (bind (player id no asleep? disconnected? roaming? zone mode mobile?) info
-                  (register-player-info player zone mode (and party (map car party)) asleep? disconnected? roaming? mobile?)
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
@@ -4889,21 +4915,68 @@
 
 
 ;;;
-;;;; Player-Info
+;;;; Infos
 ;;;
+
+
+(definition package group-infos
+  (make-table test: equal?))
+
+(definition package (register-group-info name/no)
+  (let ((group-info (new Group-Info name/no)))
+    (table-set! group-infos name/no group-info)
+    group-info))
+
+(definition package (find-group-info name/no)
+  (table-ref group-infos name/no #f))
+
+(definition package (empty-group-infos)
+  (empty-table group-infos))
 
 
 (definition package player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name zone mode party asleep? disconnected? roaming? mobile?)
-  (table-set! player-infos name (new Player-Info name zone mode party asleep? disconnected? roaming? mobile?)))
+(definition package (register-player-info name zone mode group asleep? disconnected? roaming? mobile?)
+  (let ((player-info (new Player-Info name zone mode group asleep? disconnected? roaming? mobile?)))
+    (table-set! player-infos name player-info)
+    player-info))
 
-(definition package (registered-player-info name)
+(definition package (find-player-info name)
   (table-ref player-infos name #f))
 
 (definition package (empty-player-infos)
   (empty-table player-infos))
+
+
+(class Group-Info extends Object
+  
+  
+  (slot name/no                getter generate)
+  (slot members initialize '() getter generate)
+  
+  
+  (method override (initialize self name/no)
+    (nextmethod self)
+    (set! self.name/no name/no))
+  
+  
+  (method override (print self output readably)
+    (print-unreadable self output
+      (lambda (output)
+        (format output "{a}" name/no))))
+  
+  
+  (method protected (add-member self player-info)
+    (set! members (append! members (list player-info))))
+  
+  
+  (method public (group? self)
+    (integer? name/no))
+  
+  
+  (method public (circle? self)
+    (string? name/no)))
 
 
 (class Player-Info extends Object
@@ -4912,19 +4985,19 @@
   (slot name          getter generate)
   (slot zone          getter generate)
   (slot mode          getter generate)
-  (slot party         getter generate)
+  (slot group         getter generate)
   (slot asleep?       getter generate)
   (slot disconnected? getter generate)
   (slot roaming?      getter generate)
   (slot mobile?       getter generate)
   
   
-  (method override (initialize self name zone mode party asleep? disconnected? roaming? mobile?)
+  (method override (initialize self name zone mode group asleep? disconnected? roaming? mobile?)
     (nextmethod self)
     (set! self.name name)
     (set! self.zone zone)
     (set! self.mode mode)
-    (set! self.party party)
+    (set! self.group group)
     (set! self.asleep? asleep?)
     (set! self.disconnected? disconnected?)
     (set! self.roaming? roaming?)
