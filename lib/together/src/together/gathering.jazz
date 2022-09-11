@@ -865,6 +865,8 @@
 (define-trait zone-group-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
+      (<world-main!>
+        (<!>                 name: open-welcome               active?: #t))
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
       (<together-audio!>
