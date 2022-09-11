@@ -3200,7 +3200,7 @@
             (lambda ()
               (define (add-player father info group)
                 (bind (player id no asleep? disconnected? roaming? zone mode mobile?) info
-                  (register-player-info player mode (and party (map car party)) asleep? disconnected? roaming? mobile?)
+                  (register-player-info player zone mode (and party (map car party)) asleep? disconnected? roaming? mobile?)
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
@@ -4896,8 +4896,8 @@
 (definition package player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name mode party asleep? disconnected? roaming? mobile?)
-  (table-set! player-infos name (new Player-Info name mode party asleep? disconnected? roaming? mobile?)))
+(definition package (register-player-info name zone mode party asleep? disconnected? roaming? mobile?)
+  (table-set! player-infos name (new Player-Info name zone mode party asleep? disconnected? roaming? mobile?)))
 
 (definition package (registered-player-info name)
   (table-ref player-infos name #f))
@@ -4910,6 +4910,7 @@
   
   
   (slot name          getter generate)
+  (slot zone          getter generate)
   (slot mode          getter generate)
   (slot party         getter generate)
   (slot asleep?       getter generate)
@@ -4918,9 +4919,10 @@
   (slot mobile?       getter generate)
   
   
-  (method override (initialize self name mode party asleep? disconnected? roaming? mobile?)
+  (method override (initialize self name zone mode party asleep? disconnected? roaming? mobile?)
     (nextmethod self)
     (set! self.name name)
+    (set! self.zone zone)
     (set! self.mode mode)
     (set! self.party party)
     (set! self.asleep? asleep?)
