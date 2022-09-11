@@ -884,18 +884,6 @@
 
 
 (define-trait zone-circling-bindings Bindings
-  (<Trait>                   name: gathering
-    (<install>
-      (<together-menu!>
-        (<!>                 name: leave-circle               active?: #t))
-      (<together-audio!>
-        (<!>                 name: toggle-microphone          active?: #t)
-        (<!>                 name: audio-options              active?: #t))
-      (<together-video!>
-        (<!>                 name: video-options              active?: #t)))))
-
-
-(define-trait zone-circling-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
       (<together-circle!>
