@@ -3678,9 +3678,10 @@
                    (show-panel-message (get-character-name tier) 'show "Left group")))
                (values #f #f #f #f))
               ((equal? (trim-trailing-whitespace content) "/clear")
-               (let ((panel (child interface 'chat)))
-                 (clear panel)
-                 (values #f #f #f #f)))
+               (post-chat
+                 (lambda (panel)
+                   (clear panel)))
+               (values #f #f #f #f))
               (else
                (selected-recipient content))))
       
@@ -3704,18 +3705,31 @@
                (values 'group name message #f))))))
       
       (define (show-panel-say recipient message)
-        (let ((panel (child interface 'chat))
-              (sender #f))
-          (show-say panel recipient message sender)))
+        (let ((sender #f))
+          (post-chat
+            (lambda (panel)
+              (show-say panel recipient message sender)))))
       
       (define (show-panel-whisper recipient message)
-        (let ((panel (child interface 'chat))
-              (sender recipient))
-          (show-whisper panel recipient message sender)))
+        (let ((sender recipient))
+          (post-chat
+            (lambda (panel)
+              (show-whisper panel recipient message sender)))))
       
       (define (show-panel-message sender kind message)
+        (post-chat
+          (lambda (panel)
+            (show-message panel sender kind message))))
+      
+      ;; using a post is a quick fix to displayed scrolling
+      ;; somehow now always working when done directly
+      (define (post-chat proc)
         (let ((panel (child interface 'chat)))
-          (show-message panel sender kind message)))
+          (post-event
+            (lambda ()
+              (with-task-mutex
+                (lambda ()
+                  (proc panel)))))))
       
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
