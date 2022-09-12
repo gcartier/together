@@ -344,10 +344,7 @@
       (<together-audio!>
         (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
-        (<!>                 name: talk                       active?: #t)
-        (<!>                 name: audio-options              active?: #t))
-      (<together-video!>
-        (<!>                 name: video-options              active?: #t)))))
+        (<!>                 name: talk                       active?: #t)))))
 
 
 (define-trait gathering-circle-bindings Bindings
@@ -358,10 +355,7 @@
       (<together-audio!>
         (<!>                 name: toggle-microphone          active?: #t)
         (<!>                 name: toggle-push-to-talk        active?: #t)
-        (<!>                 name: talk                       active?: #t)
-        (<!>                 name: audio-options              active?: #t))
-      (<together-video!>
-        (<!>                 name: video-options              active?: #t)))))
+        (<!>                 name: talk                       active?: #t)))))
 
 
 (class Gathering-Space extends Space
@@ -817,6 +811,10 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
+      (<together-audio!>
+        (<!>                 name: audio-options              active?: #t))
+      (<together-video!>
+        (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: capture-view               active?: #t))
       (<together-script!>
@@ -870,10 +868,7 @@
       (<together-menu!>
         (<!>                 name: leave-group                active?: #t))
       (<together-audio!>
-        (<!>                 name: toggle-microphone          active?: #t)
-        (<!>                 name: audio-options              active?: #t))
-      (<together-video!>
-        (<!>                 name: video-options              active?: #t)))))
+        (<!>                 name: toggle-microphone          active?: #t)))))
 
 
 (define-trait zone-not-circling-bindings Bindings
