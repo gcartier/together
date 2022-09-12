@@ -1400,7 +1400,7 @@
         @too-much (<!>                 name: combat-panel               visible?: #t)
         @too-much (<!>                 name: character-panel            visible?: #t)
         @version1 (<!>                 name: bag-panel                  visible?: #t)
-        @version1 (<!>                 name: belt-panel                 visible?: #t))
+        (<!>                 name: belt-panel                 visible?: #t))
       @too-much
       (<world-spell!>
         (<!>                 name: bullet                     visible?: #t)
