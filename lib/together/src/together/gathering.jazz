@@ -2599,6 +2599,7 @@
   (method (leave-circle self)
     (let ((tier (current-client))
           (window (current-window))
+          (interface (current-interface))
           (universe (current-universe))
           (world (current-world))
           (zone (current-zone)))
@@ -2644,7 +2645,10 @@
             (else
              (space-refresh (current-space))))
       (setup-visibility mainbar)
-      (refresh-central-menu world)))
+      (refresh-central-menu world)
+      (let ((frame (find-type interface Circle-Options)))
+        (when frame
+          (close frame)))))
   
   
   (method (rejoin-group self group-no)
