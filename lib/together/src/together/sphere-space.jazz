@@ -68,7 +68,8 @@
       (toggle-visible? (child interface 'people))
       (set-visible? (child interface 'streams-label) #f)
       (set-visible? (child interface 'streams) #f)
-      (update-parameter world 'people)))
+      (update-parameter world 'people)
+      (update-parameter world 'streams)))
   
   
   (method (on-toggle-streams self evt)
@@ -80,6 +81,7 @@
       (toggle-visible? (child interface 'streams))
       (when (get-visible? (child interface 'streams))
         (view-streams self))
+      (update-parameter world 'people)
       (update-parameter world 'streams)))
   
   
