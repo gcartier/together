@@ -2582,7 +2582,8 @@
         (start-captures)
         @version0
         (effective-base-profile-update)
-        (setup-visibility mainbar))))
+        (setup-visibility mainbar)
+        (refresh-central-menu world))))
   
   
   (method package (enter-circle self)
@@ -2647,7 +2648,8 @@
              (reset-evolution))
             (else
              (space-refresh (current-space))))
-      (setup-visibility mainbar)))
+      (setup-visibility mainbar)
+      (refresh-central-menu world)))
   
   
   (method (rejoin-group self group-no)
@@ -3964,17 +3966,21 @@
   
   
   (method (group-join self)
-    (let ((space (current-space)))
+    (let ((world (current-world))
+          (space (current-space)))
       (set! in-group? #t)
       (space-refresh space)
-      (setup-visibility mainbar)))
+      (setup-visibility mainbar)
+      (refresh-central-menu world)))
   
   
   (method (group-leave self)
-    (let ((space (current-space)))
+    (let ((world (current-world))
+          (space (current-space)))
       (set! in-group? #f)
       (space-refresh space)
-      (setup-visibility mainbar)))
+      (setup-visibility mainbar)
+      (refresh-central-menu world)))
   
   
   ;;;
