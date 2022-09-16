@@ -945,7 +945,7 @@
     (<install>                  title: "Main"
       (<World-Action-Button>    name: sound-options resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main sound-options})
       (<World-Action-Button>    name: graphics-options resource: {Icon-Resource "Games/Visual"} action-handler: {Action world-main graphics-options})
-      (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-main interface-options})
+      (<World-Action-Button>    name: interface-options resource: {Icon-Resource "Symbol/Circles-Symbol-Two"} action-handler: {Action world-main interface-options})
       (<World-Action-Button>    resource: {Icon-Resource "Network/Bluetooth"} action-handler: {Action world-main view-news})
       @wait
       (<World-Action-Button>    resource: {Icon-Resource "Sacred Geometry/Hexahedron"} action-handler: {Action world-main view-roadmap})
@@ -955,6 +955,7 @@
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
       (<World-Action-Button>    resource: {Icon-Resource "Beliefs Symbols/Bahae"} action-handler: {Action world-main unstuck-character})
+      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-people toggle-invite})
       (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
 
 
@@ -1061,7 +1062,7 @@
       (<World-Action-Item> name: remove-stream        title: "Remove stream" shortcut: {Shortcut :alt :shift #\0} action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream.")
       (<World-Action-Item> name: toggle-screen-share  title: "Share screen" shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share.")
       (<World-Action-Item> name: toggle-view-share    title: "Share together" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-view-share} description: "Toggle together share.")
-      (<World-Action-Item> name: capture-view         title: "Capture together" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-view} description: "Capture together to file."))))
+      (<World-Action-Item> name: capture-view         title: "Capture together" shortcut: {Shortcut :alt :shift #\O} action-handler: {Event-Handler :together on-capture-view} description: "Capture together to file."))))
 
 
 @wait
@@ -1277,7 +1278,8 @@
         (<!>                 name: toggle-glow                visible?: #t)
         (<!>                 name: compass-panel              visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1408,7 +1410,8 @@
         (<!>                 name: sprint                     visible?: #t)
         (<!>                 name: warp                       visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1647,6 +1650,7 @@
         (<!>                 name: dash                       visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t)
         (<!>                 name: who-panel                  visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)

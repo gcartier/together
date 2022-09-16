@@ -79,6 +79,7 @@
         (world.interface.evolution)
         (world.interface.exception)
         (world.interface.frame)
+        (world.interface.invitations)
         (world.interface.mainbar)
         (world.interface.panel)
         (world.interface.script)
@@ -260,6 +261,8 @@
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
         (<!>                 name: toggle-windowed-mode       active?: #t))
+      (<world-people!>
+        (<!>                 name: toggle-invite              active?: #t))
       (<world-chat!>
         (<!>                 name: command-message            active?: #t)
         (<!>                 name: command-slash              active?: #t)
@@ -476,6 +479,7 @@
     (append (list (find-actions 'together-menu)
                   (find-actions 'world-main)
                   (find-actions 'world-interface)
+                  (find-actions 'world-people)
                   (find-actions 'world-chat)
                   (find-actions 'world-script)
                   (find-actions 'world-debug)
@@ -718,6 +722,7 @@
         (<!>                 name: toggle-user                active?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              active?: #t)
+        (<!>                 name: toggle-invite              active?: #t)
         (<!>                 name: who-panel                  active?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
@@ -1162,7 +1167,8 @@
         (<!>                 name: toggle-windowed-mode       active?: #t)
         (<!>                 name: toggle-user                active?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              active?: #t))
+        (<!>                 name: toggle-people              active?: #t)
+        (<!>                 name: toggle-invite              active?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
         (<!>                 name: command-message            active?: #t)
@@ -2013,6 +2019,21 @@
   (method (on-central-menu self evt)
     (let ((world (current-world)))
       (toggle-radial-menu world)))
+  
+  
+  (method (on-toggle-invite self evt)
+    (let ((interface (current-interface)))
+      (let ((frame (find-component interface 'invitations)))
+        (if frame
+            (if (get-visible? frame)
+                (begin
+                  (set-visible? frame #f)
+                  (pop-panel frame))
+              (update-invitations frame)
+              (set-visible? frame #t)
+              (push-panel frame))
+          (push-panel (open-frame (new World-Invitations name: 'invitations size: {Dimension 550 300} location: 'center)))))
+      (focus-world)))
   
   
   (method (on-invite self evt)

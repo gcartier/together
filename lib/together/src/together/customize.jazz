@@ -190,7 +190,7 @@
   
   (method override (escape-press self)
     (select-avatar self)
-    (goto-space zone 'login)
+    (goto-space zone 'key)
     #t)
   
   
@@ -222,7 +222,7 @@
           (set-character-avatar (get-configuration zone) avatar)
           (set-character-dye (get-configuration zone) dye)
           (save-configuration zone)
-          (goto-space zone 'login))))))
+          (goto-space zone 'key))))))
 
 
 ;;;
