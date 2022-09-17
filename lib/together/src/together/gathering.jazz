@@ -510,7 +510,8 @@
   
   
   (method override (panel-stack-change self)
-    (update-center-interface self))
+    (unless shutdown?
+      (update-center-interface self)))
   
   
   (method override (zone-change self zone)
