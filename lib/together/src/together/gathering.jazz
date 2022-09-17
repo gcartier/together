@@ -2033,7 +2033,7 @@
               (update-invitations frame)
               (set-visible? frame #t)
               (push-panel frame))
-          (push-panel (open-frame (new World-Invitations name: 'invitations size: {Dimension 550 300} location: 'center)))))
+          (push-panel (open-frame (new World-Invitations name: 'invitations size: {Dimension 600 300} location: 'center)))))
       (focus-world)))
   
   
