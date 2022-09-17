@@ -2667,6 +2667,7 @@
              (space-refresh (current-space))))
       (setup-visibility mainbar)
       (refresh-central-menu world)
+      (hide-streams self)
       (let ((frame (find-type interface Circle-Options)))
         (when frame
           (close frame)))))
@@ -2684,6 +2685,16 @@
               (streams-add tier no require-microphone? require-camera? streams)
               (play-microphone tier)
               #f))))))
+  
+  
+  (method (hide-streams self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (when (get-visible? (child interface 'streams))
+        (set-visible? (child interface 'streams-label) #f)
+        (set-visible? (child interface 'streams) #f)
+        (update-parameter world 'people)
+        (update-parameter world 'streams))))
   
   
   (method (goto-space self what)
