@@ -953,9 +953,9 @@
       @wait
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Two-Circles-Symbol-Two"} action-handler: {Action world-main bindings-viewer})
+      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-people toggle-invite})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
       (<World-Action-Button>    resource: {Icon-Resource "Beliefs Symbols/Bahae"} action-handler: {Action world-main unstuck-character})
-      (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-people toggle-invite})
       (<World-Action-Button>    resource: {Icon-Resource "Created/RedX"} action-handler: {Action world-main quit-world}))))
 
 
