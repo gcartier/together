@@ -722,13 +722,16 @@
     (let ((admin (if (admin?)
                      `(,admin-bindings)
                    '()))
+          (verified (if (verified?)
+                        `(,verified-bindings)
+                      '()))
           (platform (cond-expand
                       (windows `(,windows-bindings))
                       (else '()))))
       (case current-role
-        ((user) `(,user-bindings ,@admin ,@platform))
-        ((builder) `(,builder-bindings ,@admin ,@platform))
-        ((developer) `(,developer-bindings ,@admin ,@platform))
+        ((user) `(,user-bindings ,@admin ,@verified ,@platform))
+        ((builder) `(,builder-bindings ,@admin ,@verified ,@platform))
+        ((developer) `(,developer-bindings ,@admin ,@verified ,@platform))
         (else (nextmethod self)))))
   
   
@@ -1278,8 +1281,7 @@
         (<!>                 name: toggle-glow                visible?: #t)
         (<!>                 name: compass-panel              visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t)
-        (<!>                 name: toggle-invite              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1410,8 +1412,7 @@
         (<!>                 name: sprint                     visible?: #t)
         (<!>                 name: warp                       visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t)
-        (<!>                 name: toggle-invite              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1650,7 +1651,6 @@
         (<!>                 name: dash                       visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
-        (<!>                 name: toggle-invite              visible?: #t)
         (<!>                 name: who-panel                  visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
@@ -1850,6 +1850,18 @@
         (<!>                 name: request-replays            visible?: #t)
         (<!>                 name: request-captures           visible?: #t)
         (<!>                 name: show-captures              visible?: #t)))))
+
+
+;;;
+;;;; Verified
+;;;
+
+
+(define-trait verified-bindings Bindings
+  (<Role-Trait>              name: verified
+    (<install>
+      (<world-people!>
+        (<!>                 name: toggle-invite              visible?: #t)))))
 
 
 ;;;
