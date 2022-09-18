@@ -293,6 +293,10 @@
 ;;;
 
 
+(definition from-invitation-success?
+  #f)
+
+
 (define-trait key-bindings Bindings
   (<Trait>                   name: login
     (<install>
@@ -311,7 +315,8 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface)))
+    (let ((interface (current-interface))
+          (world (current-world)))
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
@@ -330,6 +335,12 @@
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
             (new Push-Button name: 'use-invitation parent: root title: "Use Invitation" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-use-invitation self))
             (set! self.root root)
+            (when from-invitation-success?
+              (end-change-key self)
+              (delay-event
+                (lambda ()
+                  (display-message world "Success!" duration: 5)))
+              (set! from-invitation-success? #f))
             (update-key-views self)
             (add-exception-view))
           (when (not key)
@@ -552,6 +563,9 @@
 (class Invitation-Space extends Login-Space
   
   
+  (slot working-offset initialize 190)
+  
+  
   (method override (space-name self)
     'invitation)
   
@@ -562,7 +576,7 @@
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
-              (key (get-personal-key configuration)))
+              (warn-key? (get-personal-key configuration)))
           (let ((root (new Invite-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
             (new Label-View name: 'welcome parent: root title: (format "{a}{a}" tier-title environment-title-suffix) location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
@@ -573,12 +587,13 @@
             (new Kind-Label name: 'name-label parent: root title: "Your name as it will be displayed" location: '(center (center 30)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 antialias: default} justification: 'tail)
             (new Invite-View name: 'name parent: root location: '(center (center 60)) size: {Dimension 450 24})
             (new Key-Invalid name: 'name-invalid parent: root location: '(center (center 82)) size: {Dimension 410 16} font: {Font Label-User point-size: 12.5 antialias: default})
-            (new Label-View name: 'warn-key parent: root title: "Warning your current personal key will be lost" location: '(center -90) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 antialias: default} color: {Color Red} visible?: key)
+            (new Label-View name: 'warn-key parent: root title: "Warning your current personal key will be lost" location: '(center -90) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 antialias: default} color: {Color Red} visible?: warn-key?)
             (new Push-Button name: 'next parent: root title: "Next" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-next self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
             (new Push-Button name: 'use-key parent: root title: "Use Personal Key" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-use-key self))
             (set! self.root root)
             (add-exception-view))
+          (set! working-offset (if warn-key? 215 190))
           (delay-event
             (lambda ()
               (acquire-focus (locate (child root 'word) 'text))))
@@ -618,7 +633,7 @@
   
   (method override (draw-working-offset self)
     (let ((window (current-window)))
-      (- (get-height window) 190)))
+      (- (get-height window) working-offset)))
   
   
   (method override (showcase-avatars? self)
@@ -659,6 +674,7 @@
                     (report-exception err #f)
                   (update-configuration-key self key)
                   (save-configuration zone)
+                  (set! from-invitation-success? #t)
                   (goto-space zone 'key))))))
         color: {Color World-Blue})))
   
