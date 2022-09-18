@@ -328,8 +328,7 @@
             (new Push-Button name: 'enter parent: root title: "Enter" location: '(center (center -90)) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter-press self))
             (new Push-Button name: 'customize parent: root title: "Change Avatar" location: '(center -30) size: {Dimension 180 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-customize self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
-            (new Push-Button name: 'use-invitation parent: root title: "Use Invitation" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-use-invitation self) visible?: (not key))
-            (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self) visible?: key)
+            (new Push-Button name: 'use-invitation parent: root title: "Use Invitation" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-use-invitation self))
             (set! self.root root)
             (update-key-views self)
             (add-exception-view))
@@ -496,57 +495,6 @@
       (focus-world)))
   
   
-  (method (on-about self evt)
-    (let ((configuration (get-configuration zone)))
-      (let ((new? (or (not (get-personal-key configuration)) changing?)))
-        (define (closer frame)
-          (let ((customize (find-component root 'customize)))
-            (cond (new?
-                   (set-visible? (child root 'new-label) #t)
-                   (set-visible? (child root 'new-key) #t)
-                   (set-visible? (child root 'new-invalid) #t)
-                   (set-visible? (child root 'new-enter) #t)
-                   (when customize
-                     (set-visible? customize #t))
-                   (when view-focused
-                     (inhibit-focus-selects-all view-focused
-                       (lambda ()
-                         (acquire-focus view-focused)))))
-                  (else
-                   (set-visible? (child root 'key) #t)
-                   (set-visible? (child root 'enter) #t)
-                   (when customize
-                     (set-visible? customize #t))))))
-        
-        (let ((frame (top-frame)))
-          (if (is? frame World-Document)
-              (begin
-                (close frame)
-                (closer frame))
-            (show-about self closer: closer))))))
-  
-  
-  (method (show-about self (title: title #f) (closable?: closable? #t) (closer: closer #f))
-    (let ((world (current-world)))
-      (let ((configuration (get-configuration zone)))
-        (let ((new? (or (not (get-personal-key configuration)) changing?)))
-          (let ((customize (find-component root 'customize)))
-            (cond (new?
-                   (set! view-focused (active-focus))
-                   (set-visible? (child root 'new-label) #f)
-                   (set-visible? (child root 'new-key) #f)
-                   (set-visible? (child root 'new-invalid) #f)
-                   (set-visible? (child root 'new-enter) #f)
-                   (when customize
-                     (set-visible? customize #f)))
-                  (else
-                   (set-visible? (child root 'key) #f)
-                   (set-visible? (child root 'enter) #f)
-                   (when customize
-                     (set-visible? customize #f)))))
-          (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250})))))
-  
-  
   (method (extract-new-key self)
     (let ((view (child root 'new-key)))
       (let ((text (locate view 'text)))
@@ -613,7 +561,8 @@
     (let ((interface (current-interface)))
       (let ((configuration (get-configuration zone)))
         (let ((version (process-version (current-process)))
-              (date (build-short-date)))
+              (date (build-short-date))
+              (key (get-personal-key configuration)))
           (let ((root (new Invite-Root parent: interface location: 'fill size: (get-size interface) layout-type: 'justify)))
             (new Label-View name: 'welcome parent: root title: (format "{a}{a}" tier-title environment-title-suffix) location: '(center 30) size: {Dimension 400 80} auto-size?: #t font: {Font font-name: tahoma point-size: 60 shadow: thin})
             (new Version-Label name: 'version parent: root title: (format "v{a}{a}" (present version) environment-suffix) location: '(30 -90) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
@@ -624,6 +573,7 @@
             (new Kind-Label name: 'name-label parent: root title: "Your name as it will be displayed" location: '(center (center 30)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 antialias: default} justification: 'tail)
             (new Invite-View name: 'name parent: root location: '(center (center 60)) size: {Dimension 450 24})
             (new Key-Invalid name: 'name-invalid parent: root location: '(center (center 82)) size: {Dimension 410 16} font: {Font Label-User point-size: 12.5 antialias: default})
+            (new Label-View name: 'warn-key parent: root title: "Warning your current personal key will be lost" location: '(center -90) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 18.5 antialias: default} color: {Color Red} visible?: key)
             (new Push-Button name: 'next parent: root title: "Next" enabled?: #f location: '(center -30) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-next self))
             (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
             (new Push-Button name: 'use-key parent: root title: "Use Personal Key" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-use-key self))
