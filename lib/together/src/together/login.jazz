@@ -654,7 +654,7 @@
                   (name (extract-name self)))
               (bind (key err) (request-key self invitation-word name)
                 (let ((elapsed (- (current-seconds) start)))
-                  (sleep (- 3 elapsed)))
+                  (sleep (- 2.5 elapsed)))
                 (if err
                     (report-exception err #f)
                   (update-configuration-key self key)
