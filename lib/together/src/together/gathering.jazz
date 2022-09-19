@@ -19,6 +19,7 @@
         (jazz.catalog)
         (jazz.component)
         (jazz.console)
+        (jazz.document)
         (jazz.editor)
         (jazz.event)
         (jazz.exemplar)
@@ -390,6 +391,7 @@
           (new Push-Button name: 'circle-join parent: root title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
+          (make-unverified-view self root)
           (set-action-handler (child root '(circle-create create)) (~ on-create&join self))
           (set! self.root root)))))
   
@@ -493,6 +495,17 @@
             (nextmethod self)))
   
   
+  (method package (make-unverified-view self root)
+    (let ((file (world-file '("devel" "together" "Unverified.ftx") 'Resources)))
+      (let ((scroller (new Scroller-View parent: root name: 'unverified location: 'center size: {Dimension 400 300} style: 'document hscroll?: #t vscroll?: #t visible?: #f)))
+        (let ((content (get-content scroller)))
+          (set-layout-type content 'fill)
+          (let ((text (new World-Formatted-Text-View parent: content background: #f selectable?: #f editable?: #f)))
+            (set-moniker (get-document-controller text) file)
+            (set-client scroller text)
+            scroller)))))
+
+  
   (method override (application-activate self)
     (install-vista))
   
@@ -576,6 +589,9 @@
             (active-group (get-active-group together))
             (circling? (circling? together)))
         (let ((loaded? (selected-loaded? together)))
+          (define (unverified-visible flag)
+            (set-visible? (child root 'unverified) flag))
+          
           (define (enter-visible flag)
             (set-visible? (child root 'zone) flag)
             (set-visible? (child root 'zone-enter) flag)
@@ -606,22 +622,31 @@
               (set-title (child root 'selected-label) (get-selected-message together)))
             (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
             (cond ((top-panel)
+                   (unverified-visible #f)
+                   (enter-visible #f)
+                   (join-visible #f)
+                   (create-visible #f))
+                  ((not (verified?))
+                   (unverified-visible #t)
                    (enter-visible #f)
                    (join-visible #f)
                    (create-visible #f))
                   (active-group
                    (set-title (child root 'circle) active-group)
+                   (unverified-visible #f)
                    (enter-visible #f)
                    (join-visible #t)
                    (create-visible #f)
                    (layout-view root))
                   ((eq? active-zone 'start)
+                   (unverified-visible #f)
                    (enter-visible #f)
                    (join-visible #f)
                    (create-visible #t)
                    (layout-view root))
                   (else
                    (set-title (child root 'zone) (last active-zone))
+                   (unverified-visible #f)
                    (enter-visible #t)
                    (join-visible #f)
                    (create-visible #f)
@@ -1880,7 +1905,8 @@
       (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self)))
+        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
+        (new Verify-Tool name: 'verify parent: to position: {Point 202 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -1970,11 +1996,13 @@
     (let ((interface (current-interface))
           (me (current-me)))
       (let ((to (child interface '(command-to to)))
-            (invite (child interface '(command-to invite))))
+            (invite (child interface '(command-to invite)))
+            (verify (child interface '(command-to verify))))
         (define (no-recipient)
           (set-title to "The gathering")
           (set-color to {Color red: 32 green: 205 blue: 33})
-          (set-visible? invite #f))
+          (set-visible? invite #f)
+          (set-visible? verify #f))
         
         (if (not message-recipient)
             (no-recipient)
@@ -1985,13 +2013,16 @@
                  (cond (player-info
                         (let ((me? (equal? (get-name player-info) (get-name me)))
                               (mode (get-mode player-info))
-                              (group (get-group player-info)))
+                              (group (get-group player-info))
+                              (verified? (get-verified? player-info)))
                           (set-title to (if (and group (group? group)) (format "<{a}>" name) name))
                           (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
                           (if (or me? in-group? group)
                               (set-visible? invite #f)
                             (set-kind invite (if circle-name 'circle 'group))
-                            (set-visible? invite #t))))
+                            (set-visible? invite #t))
+                          (when (and (not verified?) (or in-group? circle-name))
+                            (set-visible? verify #t))))
                        (else
                         (no-recipient)))))
               ((group)
@@ -2055,14 +2086,47 @@
               (chat-show world (format "Invite {a}" recipient))))))))
   
   
-  (method (on-leave self evt)
-    (let ((tier (current-client))
-          (world (current-world)))
-      (let ((error (client-leave tier)))
-        (if error
-            (display-error world error)
-          (chat-show world "Left group")))))
+  (method (on-verify self evt)
+    (let ((recipient (cadr message-recipient)))
+      (verify-identity self recipient)))
   
+  
+  (method (verify-identity self recipient)
+    (let ((client (current-client)))
+      (define (layout box)
+        (let ((border (child box 'border))
+              (yes (child box 'yes))
+              (no (child box 'no)))
+          (define (set-v view v)
+            (let ((pos (get-position view)))
+              (set-position view (new Point (get-h pos) v))))
+          
+          (set-v border 3)
+          (set-v yes 65)
+          (set-v no 65)))
+      
+      (let ((recipient (cadr message-recipient)))
+        (open-message `(<span>
+                         (<paragraph> justification: center
+                           (<text> ,(format "Verify that you know {a}?" recipient)))
+                         (<paragraph> (<text> font: Spacer-Small " "))
+                         (<paragraph> justification: center
+                           (<text> color: {Color red: .938 green: .428 blue: .066} "A verified person gets full access to Together")))
+                      caption: "Verification"
+                      layouter: layout
+                      type: 'question
+                      yes: "Yes"
+                      no: "No"
+                      execute: (lambda (evt)
+                                 (let ((dialog (find-ascendant (get-sender evt) World-Dialog))
+                                       (button (get-property evt button:)))
+                                   (close dialog)
+                                   (case button
+                                     ((yes)
+                                      (let ((err (client-verify client (get-character-name client) recipient)))
+                                        (when (string? err)
+                                          (display-error (current-world) err)))))))))))
+
   
   (method (on-message self evt)
     (chat-message self))
@@ -3173,8 +3237,8 @@
                 players))
     
     (define (register-player player group-info)
-      (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
-        (let ((player-info (register-player-info name zone mode group-info asleep? disconnected? roaming? mobile?)))
+      (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
+        (let ((player-info (register-player-info name zone mode group-info verified? asleep? disconnected? roaming? mobile?)))
           (when group-info
             (add-member group-info player-info)))))
     
@@ -3208,7 +3272,7 @@
             (for-each add-player players))
           
           (define (add-player player)
-            (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
+            (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
               (if (eq? zone 'start)
                   (set! observers (cons player observers))
                 (add zone (cons 'player player)))))
@@ -3234,7 +3298,7 @@
                                  (add zone (cons 'group group)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
-                                             (bind (name id no asleep? disconnected? roaming? zone mode mobile?) player
+                                             (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
                                                (when (or (eq? mode 'observer)
                                                          (not (equal? zone group-zone)))
                                                  (add-player player))))
@@ -3259,11 +3323,12 @@
           (with-update-locked tree
             (lambda ()
               (define (add-player father info group)
-                (bind (player id no asleep? disconnected? roaming? zone mode mobile?) info
+                (bind (player id no verified? asleep? disconnected? roaming? zone mode mobile?) info
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
+                                         ((not verified?) (format "{a} (unverified)" player-title))
                                          (mobile? (format "{a} (mobile)" player-title))
                                          (else player-title)))
                             (font (if (and roaming? group)
@@ -3271,6 +3336,8 @@
                                     {Font Label-User}))
                             (color (cond ((or disconnected? asleep?)
                                           {Color Medium-Gray})
+                                         ((not verified?)
+                                          unverified-color)
                                          ((eq? mode 'player)
                                           player-color)
                                          (else
@@ -4988,8 +5055,8 @@
 (definition package player-infos
   (make-table test: equal?))
 
-(definition package (register-player-info name zone mode group asleep? disconnected? roaming? mobile?)
-  (let ((player-info (new Player-Info name zone mode group asleep? disconnected? roaming? mobile?)))
+(definition package (register-player-info name zone mode group verified? asleep? disconnected? roaming? mobile?)
+  (let ((player-info (new Player-Info name zone mode group verified? asleep? disconnected? roaming? mobile?)))
     (table-set! player-infos name player-info)
     player-info))
 
@@ -5037,18 +5104,20 @@
   (slot zone          getter generate)
   (slot mode          getter generate)
   (slot group         getter generate)
+  (slot verified?     getter generate)
   (slot asleep?       getter generate)
   (slot disconnected? getter generate)
   (slot roaming?      getter generate)
   (slot mobile?       getter generate)
   
   
-  (method override (initialize self name zone mode group asleep? disconnected? roaming? mobile?)
+  (method override (initialize self name zone mode group verified? asleep? disconnected? roaming? mobile?)
     (nextmethod self)
     (set! self.name name)
     (set! self.zone zone)
     (set! self.mode mode)
     (set! self.group group)
+    (set! self.verified? verified?)
     (set! self.asleep? asleep?)
     (set! self.disconnected? disconnected?)
     (set! self.roaming? roaming?)
@@ -5435,18 +5504,18 @@
 
 
 ;;;
-;;;; Leave-Tool
+;;;; Verify-Tool
 ;;;
 
 
-(class Leave-Tool extends To-Tool
+(class Verify-Tool extends To-Tool
   
   
   (method override (get-tooltip-text self)
     `(<span>
-       (<paragraph> "Leave group")
+       (<paragraph> "Verify")
        ""
-       (<paragraph> (<text> color: World-Green "Leave your current group")))))
+       (<paragraph> (<text> color: World-Green "Verify that you know this person")))))
 
 
 ;;;

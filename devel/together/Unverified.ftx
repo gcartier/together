@@ -1,0 +1,50 @@
+{Formatted-Text
+ formats:
+ ({Format Base}
+  {Format Base left-margin: 16 bulleted?: #t}
+  {Format Base left-margin: 48 bulleted?: #t}
+  {Format Base left-margin: 0 bulleted?: #f}
+  {Format Heading1}
+  {Format Heading2}
+  {Format Heading2 left-margin: 16 bulleted?: #t}
+  {Format Heading2 left-margin: 48 bulleted?: #t}
+  {Format Heading1 justification: center}
+  {Format Heading2 left-margin: 32}
+  {Format Heading2 left-margin: 64}
+  {Format Heading2 left-margin: 80 bulleted?: #t}
+  {Format Heading2 left-margin: 0})
+
+ styles:
+ ({Text-Style Base}
+  {Text-Style Base font: {Font font-name: vera-serif point-size: 18 shadow: thin} color: {Color World-Ochre}}
+  {Text-Style Heading2}
+  {Text-Style Base font: {Font Text bold?: #t}}
+  {Text-Style Base font: {Font Text bold?: #t italic?: #t}}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #t}}
+  {Text-Style Base font: {Font Text italic?: #t}}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f}}
+  {Text-Style Base font: {Font Text italic?: #f}}
+  {Text-Style Base frame: {Color Dark-Red}}
+  {Text-Style Base frame: #f}
+  {Text-Style Base color: {Color Dark-Red} frame: #f}
+  {Text-Style Base color: #f frame: #f}
+  {Text-Style Base color: #f highlight: {Color Dark-Red} frame: #f}
+  {Text-Style Base color: #f highlight: #f frame: #f}
+  {Text-Style Base color: {Color Red} highlight: #f frame: #f}
+  {Text-Style Base color: {Color Dark-Red} highlight: #f frame: #f}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f} color: {Color Dark-Blue}}
+  {Text-Style Base color: #f}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f} color: #f}
+  {Text-Style Base color: {Color World-Green}}
+  {Text-Style Base color: {Color World-Blue}}
+  {Text-Style Base color: {Color World-Red}}
+  {Text-Style Base font: {Font font-name: vera-serif point-size: 18 shadow: thin} color: {Color World-Green}}
+  {Text-Style Base font: {Font font-name: vera-serif point-size: 18 shadow: thin} color: {Color Gray}}
+  {Text-Style Base font: {Font font-name: vera-serif point-size: 18 shadow: thin} color: {Color World-Blue}})
+
+ paragraphs:
+ ((5 ("Welcome to Together, an exploration in conscious community" 1))
+  (5)
+  (5 ("Right now you can chat with anyone here and you can be invited to a circle" 24))
+  (5)
+  (5 ("As soon as someone verifies that they know you by inviting you to a circle, you will have full access to Together" 24)))}
