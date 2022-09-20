@@ -1256,6 +1256,7 @@
         @version1 (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
+        @wait-having-news!
         (<!>                 name: view-news                  visible?: #t)
         @version1 (<!>                 name: view-roadmap               visible?: #t)
         @version1 (<!>                 name: view-help                  visible?: #t)
@@ -1350,6 +1351,7 @@
         @version1 (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
+        @wait-having-news!
         (<!>                 name: view-news                  visible?: #t)
         @version1 (<!>                 name: view-roadmap               visible?: #t)
         @version1 (<!>                 name: view-help                  visible?: #t)
@@ -1571,6 +1573,7 @@
         (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
+        @wait-having-news!
         (<!>                 name: view-news                  visible?: #t)
         (<!>                 name: view-roadmap               visible?: #t)
         (<!>                 name: view-help                  visible?: #t)
