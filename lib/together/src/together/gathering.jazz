@@ -1993,7 +1993,8 @@
   
   
   (method package (update-recipient-interface self)
-    (let ((interface (current-interface))
+    (let ((client (current-client))
+          (interface (current-interface))
           (me (current-me)))
       (let ((to (child interface '(command-to to)))
             (invite (child interface '(command-to invite)))
@@ -2010,21 +2011,27 @@
           (bind (kind name) message-recipient
             (case kind
               ((player)
-               (let ((player-info (find-player-info name)))
+               (let ((user-info (find-player-info (get-character-name client)))
+                     (player-info (find-player-info name)))
                  (cond (player-info
-                        (let ((me? (equal? (get-name player-info) (get-name me)))
-                              (mode (get-mode player-info))
-                              (group (get-group player-info))
-                              (verified? (get-verified? player-info)))
-                          (set-title to (if (and group (group? group)) (format "<{a}>" name) name))
-                          (set-color to (if (eq? mode 'player) {Color World-Blue} {Color White}))
-                          (if (or (not user-verified?) me? in-group? group)
-                              (set-visible? invite #f)
-                            (set-kind invite (if circle-name 'circle 'group))
-                            (set-visible? invite #t))
-                          (if (and user-verified? (not verified?) (or in-group? circle-name))
-                              (set-visible? verify #t)
-                            (set-visible? verify #f))))
+                        (let ((player-me? (equal? (get-name player-info) (get-name me)))
+                              (player-mode (get-mode player-info))
+                              (player-group (get-group player-info))
+                              (player-verified? (get-verified? player-info)))
+                          (let ((same-group? (and player-group (equal? player-group (get-group user-info)))))
+                            ;; to
+                            (set-title to (if (and player-group (group? player-group)) (format "<{a}>" name) name))
+                            (set-color to (if (eq? player-mode 'player) {Color World-Blue} {Color White}))
+                            ;; invite
+                            (if (and user-verified? (not player-me?) (not player-group))
+                                (begin
+                                  (set-kind invite (if circle-name 'circle 'group))
+                                  (set-visible? invite #t))
+                              (set-visible? invite #f))
+                            ;; verify
+                            (if (and user-verified? (not player-verified?) (or in-group? circle-name) same-group?)
+                                (set-visible? verify #t)
+                              (set-visible? verify #f)))))
                        (else
                         (no-recipient)))))
               ((group)
