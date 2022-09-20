@@ -688,7 +688,7 @@
   (method (extract-name self)
     (let ((view (child root 'name)))
       (let ((text (locate view 'text)))
-        (trim-whitespace (get-string-content text)))))
+        (trim-inner-whitespace (trim-whitespace (get-string-content text))))))
   
   
   (method (request-key self invitation-word name)
@@ -839,16 +839,20 @@
             (else
              #f)))
     
-    (define (view-content view)
+    (define (word-content view)
       (let ((text (locate view 'text)))
-        (trim-whitespace (get-string-content text))))
+        (trim-whitespace (get-string-content (locate view 'text)))))
+    
+    (define (name-content view)
+      (let ((text (locate view 'text)))
+        (trim-inner-whitespace (trim-whitespace (get-string-content (locate view 'text))))))
     
     (let ((space (current-space)))
       (let ((root (get-root space)))
         (let ((word-view (child root 'word))
               (name-view (child root 'name)))
-          (let ((word-invalid (word-invalid (view-content word-view)))
-                (name-invalid (name-invalid (view-content name-view))))
+          (let ((word-invalid (word-invalid (word-content word-view)))
+                (name-invalid (name-invalid (name-content name-view))))
             (set-enabled? (child root 'next) (and (not word-invalid) (not name-invalid)))
             (when (eq? self name-view)
               (set-title (child root 'name-invalid) (or name-invalid ""))))))))
