@@ -51,7 +51,7 @@
         (<View>             name: container               size: {Dimension 390 170}
           (<Option-Label>   title: "Microphone"           position: {Point 0 1})
           (<Combo-Option>                                 position: {Point 190 0} size: {Dimension 200 19} option: microphone)
-          (<Option-Label>   title: "Push to talk"         position: {Point 20 30} size: {Dimension 200 15})
+          (<Option-Label>   title: "Push to talk (Space)" position: {Point 20 30} size: {Dimension 200 15})
           (<Boolean-Option>                               position: {Point 0 30} option: push-to-talk)
           (<Option-Label>   title: "Aggressive Denoising" position: {Point 20 60} size: {Dimension 200 15})
           (<Boolean-Option>                               position: {Point 0 60} option: aggressive-denoising)
