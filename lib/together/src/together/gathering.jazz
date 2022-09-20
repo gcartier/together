@@ -1109,6 +1109,12 @@
     (not (get-fade-thread (current-together))))
   
   
+  (method override (maybe-fade-mainbar self)
+    (let ((window (current-window)))
+      (when (fade-mainbar? self)
+        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+  
+  
   (method override (central-menu-show self)
     (when (fade-mainbar? self)
       (set-fade mainbar-pane #f)
@@ -1116,9 +1122,7 @@
   
   
   (method override (central-menu-hide self)
-    (let ((window (current-window)))
-      (when (fade-mainbar? self)
-        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+    (maybe-fade-mainbar self))
   
   
   (method override (panel-stack-change self)
