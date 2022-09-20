@@ -2801,6 +2801,7 @@
           (udp (current-udp))
           (audio (current-audio))
           (video (current-video)))
+      (set-user-verified-hook tier (~ user-verified self))
       (set-server-entered-hook tier (~ server-entered self))
       (set-server-exited-hook tier (~ server-exited self))
       (set-server-disconnected-hook tier (~ server-disconnected self))
@@ -2859,6 +2860,13 @@
   ;;;
   ;;;; Server
   ;;;
+  
+  
+  (method (user-verified self)
+    (let ((world (current-world))
+          (space (current-space)))
+      (space-refresh space)
+      (refresh-central-menu world)))
   
   
   (method (server-entered self character-name)
