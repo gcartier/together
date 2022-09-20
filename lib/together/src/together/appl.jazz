@@ -722,17 +722,16 @@
     (let ((admin (if (admin?)
                      `(,admin-bindings)
                    '()))
-          (verified (if (verified?)
-                        `(,verified-bindings)
-                      '()))
           (platform (cond-expand
                       (windows `(,windows-bindings))
                       (else '()))))
-      (case current-role
-        ((user) `(,user-bindings ,@admin ,@verified ,@platform))
-        ((builder) `(,builder-bindings ,@admin ,@verified ,@platform))
-        ((developer) `(,developer-bindings ,@admin ,@verified ,@platform))
-        (else (nextmethod self)))))
+      (if (unverified?)
+          `(,unverified-bindings ,@platform)
+        (case current-role
+          ((user) `(,user-bindings ,@admin ,@platform))
+          ((builder) `(,builder-bindings ,@admin ,@platform))
+          ((developer) `(,developer-bindings ,@admin ,@platform))
+          (else (nextmethod self))))))
   
   
   (method override (role-traits self)
@@ -1243,6 +1242,60 @@
 
 
 ;;;
+;;;; Unverified
+;;;
+
+
+(define-trait unverified-bindings Bindings
+  (<Role-Trait>        name: user
+    (<install>
+      (<world-main!>
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: bindings-viewer            visible?: #t)
+        @wait-having-news!
+        (<!>                 name: view-news                  visible?: #t)
+        (<!>                 name: open-about                 visible?: #t)
+        (<!>                 name: open-welcome               visible?: #t)
+        (<!>                 name: quit-world                 visible?: #t))
+      (<world-interface!>
+        (<!>                 name: toggle-windowed-mode       visible?: #t))
+      (<world-people!>
+        (<!>                 name: toggle-people              visible?: #t))
+      (<world-chat!>
+        (<!>                 name: toggle-chat                visible?: #t)
+        (<!>                 name: command-message            visible?: #t)
+        (<!>                 name: repeat-previous            visible?: #t))
+      (<together-menu!>
+        (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: leave-group                visible?: #t)
+        (<!>                 name: leave-circle               visible?: #t)
+        (<!>                 name: goto-login                 visible?: #t))
+      (<together-audio!>
+        (<!>                 name: toggle-microphone          visible?: #t)
+        (<!>                 name: toggle-push-to-talk        visible?: #t)
+        (<!>                 name: talk                       visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
+        (<!>                 name: toggle-camera              visible?: #t)
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
+      (<together-circle!>
+        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
+        (<!>                 name: bring-to-front             visible?: #t)
+        (<!>                 name: backspace-press            visible?: #t)
+        (<!>                 name: enter-press                visible?: #t)
+        (<!>                 name: left-press                 visible?: #t)
+        (<!>                 name: right-press                visible?: #t)
+        (<!>                 name: up-press                   visible?: #t)
+        (<!>                 name: down-press                 visible?: #t)
+        (<!>                 name: tab-press                  visible?: #t)
+        (<!>                 name: number-press               visible?: #t)))))
+
+
+;;;
 ;;;; User
 ;;;
 
@@ -1282,7 +1335,8 @@
         (<!>                 name: toggle-glow                visible?: #t)
         (<!>                 name: compass-panel              visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1414,7 +1468,8 @@
         (<!>                 name: sprint                     visible?: #t)
         (<!>                 name: warp                       visible?: #t))
       (<world-people!>
-        (<!>                 name: toggle-people              visible?: #t))
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
@@ -1654,6 +1709,7 @@
         (<!>                 name: dash                       visible?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t)
         (<!>                 name: who-panel                  visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
@@ -1853,18 +1909,6 @@
         (<!>                 name: request-replays            visible?: #t)
         (<!>                 name: request-captures           visible?: #t)
         (<!>                 name: show-captures              visible?: #t)))))
-
-
-;;;
-;;;; Verified
-;;;
-
-
-(define-trait verified-bindings Bindings
-  (<Role-Trait>              name: verified
-    (<install>
-      (<world-people!>
-        (<!>                 name: toggle-invite              visible?: #t)))))
 
 
 ;;;
