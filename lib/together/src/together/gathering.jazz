@@ -887,6 +887,7 @@
         (<!>                 name: test                       active?: #t)))))
 
 
+@roaming
 (define-trait zone-admin-bindings Bindings
   (<Trait>                   name: zone
     (<install>
@@ -1074,7 +1075,7 @@
             (avatar? (avatar-mode? together)))
         (let ((free? (or (not circling?) avatar?)))
           `(,zone-bindings
-            ,@(if (admin?) (list zone-admin-bindings) '())
+            @roaming ,@(if (admin?) (list zone-admin-bindings) '())
             ,@(cond (grouped? (list zone-group-bindings))
                     (circling? (list circling-bindings zone-circling-bindings))
                     (else (list zone-not-circling-bindings)))
@@ -1289,6 +1290,7 @@
         (<!>                 name: test                       active?: #t)))))
 
 
+@roaming
 (define-trait void-admin-bindings Bindings
   (<Trait>                   name: void
     (<install>
@@ -1413,7 +1415,7 @@
   (method override (space-bindings self)
     (let ((together (current-together)))
       `(,void-bindings
-        ,@(if (admin?) (list void-admin-bindings) '())
+        @roaming ,@(if (admin?) (list void-admin-bindings) '())
         ,circling-bindings
         ,@(if (eq? (get-circle-mode together) 'circle) (list circle-bindings) '()))))
   
@@ -4454,6 +4456,8 @@
       (typecase space
         ((Gathering-Space))
         ((Sphere-Space)
+         (exit-zone self)
+         @roaming
          (if circle-name
              (goto-gathering self)
            (exit-zone self)))
