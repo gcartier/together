@@ -428,7 +428,7 @@
       (set-proportion (child interface 'chat) (chat-proportion together))
       (set-visible? (child interface 'command-to) #t)
       (set-location (child interface 'command-to) (command-to-location together))
-      (set-size (child interface 'command-to) {Dimension 226 40})
+      (set-size (child interface 'command-to) {Dimension 226 32})
       (set-position (child interface '(command-to invite)) {Point 200 9})
       (set-position (child interface '(command-to verify)) {Point 200 9})
       (set-visible? (child interface 'command) #t)
@@ -1037,8 +1037,8 @@
       (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
       (set-proportion (child interface 'chat) '(400 150))
       (set-proportion (child interface 'command) '(400 19))
-      (set-location (child interface 'command-to) '(10 -174))
-      (set-size (child interface 'command-to) {Dimension 406 40})
+      (set-location (child interface 'command-to) '(10 -182))
+      (set-size (child interface 'command-to) {Dimension 406 32})
       (set-visible? (child interface 'command-to) #f)
       (set-position (child interface '(command-to invite)) {Point 380 9})
       (set-position (child interface '(command-to verify)) {Point 380 9})
@@ -1334,7 +1334,7 @@
       (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-location (child interface 'command-to) (command-to-location together))
-      (set-size (child interface 'command-to) {Dimension 226 40})
+      (set-size (child interface 'command-to) {Dimension 226 32})
       (set-visible? (child interface 'command-to) #f)
       (set-position (child interface '(command-to invite)) {Point 200 9})
       (set-position (child interface '(command-to verify)) {Point 200 9})
@@ -1919,9 +1919,9 @@
         (set-location chat '(-10 100))
         (set-proportion chat '(220 (bounds -354)))
         (set-visible? chat #f))
-      (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
-        (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
+      (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 32} visible?: #f)))
+        (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 29} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(head tail))
+        (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 29} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(head tail))
         (new Invite-Tool name: 'invite parent: to position: {Point 200 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
         (new Verify-Tool name: 'verify parent: to position: {Point 200 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self)))
       (let ((command (child interface 'command)))
@@ -3902,14 +3902,14 @@
   
   (method protected (command-to-size self)
     (if chat-wide?
-        {Dimension 426 40}
-      {Dimension 226 40}))
+        {Dimension 426 32}
+      {Dimension 226 32}))
   
   
   (method protected (command-to-location self)
     (if (is? space Gathering-Space)
-        '(-4 -158)
-      '(-4 -212)))
+        '(-4 -166)
+      '(-4 -220)))
   
   
   (method protected (command-size self)
