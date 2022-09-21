@@ -415,6 +415,7 @@
           (set-visible? (child root 'circle-join) (not admin-visible?))))
       (set-visible? (child root 'circle-create) #t)
       (set-visible? (child mainbar 'profile) #t)
+      (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #t)
       (set-visible? (child interface 'people) #t)
       (set-visible? (child interface 'streams-label) #f)
@@ -427,6 +428,9 @@
       (set-proportion (child interface 'chat) (chat-proportion together))
       (set-visible? (child interface 'command-to) #t)
       (set-location (child interface 'command-to) (command-to-location together))
+      (set-size (child interface 'command-to) {Dimension 226 40})
+      (set-position (child interface '(command-to invite)) {Point 200 9})
+      (set-position (child interface '(command-to verify)) {Point 200 9})
       (set-visible? (child interface 'command) #t)
       (set-proportion (child interface 'command) #f)
       (set-size (child interface 'command) (command-size together))
@@ -1025,6 +1029,7 @@
       (person-motion world feedback?: #f)
       (show-mainbar self)
       (show-compass world)
+      (set-proportion (child interface 'people) '(220 (bounds -324)))
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'chat-label) #f)
@@ -1032,7 +1037,11 @@
       (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
       (set-proportion (child interface 'chat) '(400 150))
       (set-proportion (child interface 'command) '(400 19))
+      (set-location (child interface 'command-to) '(10 -174))
+      (set-size (child interface 'command-to) {Dimension 406 40})
       (set-visible? (child interface 'command-to) #f)
+      (set-position (child interface '(command-to invite)) {Point 380 9})
+      (set-position (child interface '(command-to verify)) {Point 380 9})
       (set-visible? (child interface 'chat) #f)
       (set-visible? (child mainbar 'profile) #f)
       (layout-interface)))
@@ -1176,8 +1185,8 @@
              (set-visible? (child interface 'command) #f))
             (else
              (set-visible? (child interface 'chat) #t)
-             (set-visible? (child interface 'command-to) #f)
-             (set-visible? (child interface 'command) #f)))
+             (set-visible? (child interface 'command-to) #t)
+             (set-visible? (child interface 'command) #t)))
       (update-parameter world 'chat))))
 
 
@@ -1314,6 +1323,7 @@
       (set-visible? (child mainbar 'circle-name) #t)
       (set-title (child mainbar 'circle-name) (get-circle-name together))
       (set-visible? (child mainbar 'profile) #t)
+      (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-layouter (child interface 'chat) #f)
@@ -1324,7 +1334,10 @@
       (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-location (child interface 'command-to) (command-to-location together))
+      (set-size (child interface 'command-to) {Dimension 226 40})
       (set-visible? (child interface 'command-to) #f)
+      (set-position (child interface '(command-to invite)) {Point 200 9})
+      (set-position (child interface '(command-to verify)) {Point 200 9})
       (update-message-recipient together (list 'group (get-circle-name together)))
       (layout-view interface)
       (layout-view root)
@@ -1909,8 +1922,8 @@
       (let ((to (new View name: 'command-to parent: interface size: {Dimension 226 40} visible?: #f)))
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 0} size: {Dimension 22 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 0} size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: 'head)
-        (new Invite-Tool name: 'invite parent: to position: {Point 202 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
-        (new Verify-Tool name: 'verify parent: to position: {Point 202 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self)))
+        (new Invite-Tool name: 'invite parent: to position: {Point 200 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
+        (new Verify-Tool name: 'verify parent: to position: {Point 200 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -3720,7 +3733,7 @@
                 (set-caret text (text-ending text)))))))))
   
   
-  (method (show-chat/command self)
+  (method package (show-chat self)
     (let ((interface (current-interface))
           (space (current-space)))
       (typecase space
@@ -3730,28 +3743,15 @@
          (set-visible? (child interface 'command-to) #t)
          (set-visible? (child interface 'command) #t))
         ((Zone-Space)
-         (set-visible? (child interface 'chat) #t)))))
+         (set-visible? (child interface 'chat) #t)
+         (set-visible? (child interface 'command-to) #t)
+         (set-visible? (child interface 'command) #t)))))
   
   
-  (method package (show-chat self)
-    (let ((together (current-together))
-          (interface (current-interface)))
-      (let ((circling? (circling? together)))
-        (when circling?
-          (set-visible? (child interface 'chat-label) #t))
-        (set-visible? (child interface 'chat) #t)
-        (when circling?
-          (set-visible? (child interface 'command-to) #t))
-        (set-visible? (child interface 'command) #t))))
-  
-  
-  (method (show-command self)
-    (let ((together (current-together))
-          (interface (current-interface)))
-      (let ((circling? (circling? together)))
-        (when circling?
-          (set-visible? (child interface 'command-to) #t))
-        (set-visible? (child interface 'command) #t))))
+  (method package (show-command self)
+    (let ((interface (current-interface)))
+      (set-visible? (child interface 'command-to) #t)
+      (set-visible? (child interface 'command) #t)))
   
   
   (method (command-return self command)
@@ -3854,20 +3854,16 @@
       
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
-          (if (and (is? space Zone-Space) (empty-string? content))
-              (hide-command world)
-            (unless (whitespace? content)
-              (set! previous-command content)
-              (receive (kind recipient message cont) (parse-content content)
-                (when kind
-                  (let ((error (client-message tier kind recipient message)))
-                    (if error
-                        (show-panel-message (get-character-name tier) 'show error)
-                      (when cont
-                        (cont)))))
-                (set-string-content text "")
-                (when (is? space Zone-Space)
-                  (hide-command world)))))))))
+          (unless (whitespace? content)
+            (set! previous-command content)
+            (receive (kind recipient message cont) (parse-content content)
+              (when kind
+                (let ((error (client-message tier kind recipient message)))
+                  (if error
+                      (show-panel-message (get-character-name tier) 'show error)
+                    (when cont
+                      (cont)))))
+              (set-string-content text "")))))))
   
   
   (method (command-escape self command)
@@ -5341,7 +5337,7 @@
     (let ((together (current-together))
           (world (current-world))
           (space (current-space)))
-      (when (is? space Void-Space)
+      (when (or (is? space Void-Space) (is? space Zone-Space))
         (show-chat together)
         (update-parameter world 'chat))))
   
