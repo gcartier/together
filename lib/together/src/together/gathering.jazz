@@ -2216,7 +2216,7 @@
   (method (close-non-central-top self)
     (let ((top (top-panel)))
       (when (and top (is-not? top World-Central-Menu))
-        (close top))))
+        (user-close top))))
   
   
   (method (on-audio-options self evt)
