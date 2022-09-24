@@ -75,9 +75,7 @@
 (class Login-Space extends Space
   
   
-  (slot zone                       getter generate)
-  (slot changing?    initialize #f getter generate)
-  (slot changing     initialize #f getter generate)
+  (slot zone getter generate)
   
   
   (method override (initialize self zone)
@@ -306,6 +304,10 @@
 
 
 (class Key-Space extends Login-Space
+  
+  
+  (slot changing? initialize #f getter generate)
+  (slot changing  initialize #f getter generate)
   
   
   (method override (space-name self)
