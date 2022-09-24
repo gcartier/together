@@ -76,7 +76,6 @@
   
   
   (slot zone                       getter generate)
-  (slot view-focused initialize #f getter generate)
   (slot changing?    initialize #f getter generate)
   (slot changing     initialize #f getter generate)
   
