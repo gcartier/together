@@ -1959,7 +1959,7 @@
   (method (prepare-skybox self)
     (let ((zone (current-zone)))
       (unless (get-skybox zone)
-        (set-skybox zone (let ((skybox (find-skybox together-skybox)))
+        (set-skybox zone (let ((skybox (find-skybox (cache-together-skybox))))
                            (prepare skybox)
                            skybox))
         (set-fog-color (get-fog (get-skybox zone))))))
@@ -5164,6 +5164,7 @@
   
   
   (method override (mouse-up self evt)
+    (clear-together-skybox)
     (open-login-zone)))
 
 

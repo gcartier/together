@@ -185,15 +185,31 @@
 ;;;
 
 
-(definition protected together-skybox
+(definition protected (determine-together-skybox)
   (and (client?)
        (or (world-setting 'together.skybox (get-skybox (active-graphic-profile)))
-           (if (world-setting 'together.first-use? #t)
-               (begin
-                 (set-setting options-settings 'together.first-use? #f)
-                 (save-content options-settings)
-                 "world/nebula")
-             (random-element '("world/calm_sea" "world/dark_sea" "world/nebula"))))))
+           (cond ((world-setting 'together.first-use? #t)
+                  (set-setting options-settings 'together.first-use? #f)
+                  (save-content options-settings)
+                  "world/nebula")
+                 ((unverified?)
+                  "world/nebula")
+                 (else
+                  (random-element '("world/calm_sea" "world/dark_sea" "world/nebula")))))))
+
+
+(definition protected together-skybox
+  #f)
+
+(definition protected (cache-together-skybox)
+  (or together-skybox
+      (let ((skybox (determine-together-skybox)))
+        (set! together-skybox skybox)
+        skybox)))
+
+(definition protected (clear-together-skybox)
+  (set! together-skybox #f))
+
 
 (definition protected together-skybox?
   (and (client?)
