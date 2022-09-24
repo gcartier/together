@@ -507,6 +507,11 @@
       (focus-world)))
   
   
+  (method package (reset-changing self)
+    (set! changing? #f)
+    (set! changing #f))
+  
+  
   (method (extract-new-key self)
     (let ((view (child root 'new-key)))
       (let ((text (locate view 'text)))
@@ -676,7 +681,8 @@
                   (update-configuration-key self key)
                   (save-configuration zone)
                   (set! from-invitation-success? #t)
-                  (goto-space zone 'key))))))
+                  (goto-space zone 'key)
+                  (reset-changing (current-space)))))))
         color: {Color World-Blue})))
   
   
