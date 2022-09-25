@@ -4869,7 +4869,7 @@
                              (close-send-stream udp stream)
                              (display-error world "Unable to share view"))
                          (receive (caps resolution) info
-                           (media-init client (list (list (get-no channel) caps resolution)))
+                           (media-init client (get-no stream) (list (list (get-no channel) caps resolution)))
                            (set-send-state channel 'on)
                            (set-caps channel caps)
                            (set-resolution channel resolution))
@@ -4900,7 +4900,7 @@
                              (close-send-stream udp stream)
                              (display-error world "Unable to share screen"))
                          (receive (caps resolution) info
-                           (media-init client (list (list (get-no channel) caps resolution)))
+                           (media-init client (get-no stream) (list (list (get-no channel) caps resolution)))
                            (set-send-state channel 'on)
                            (set-caps channel caps)
                            (set-resolution channel resolution))
