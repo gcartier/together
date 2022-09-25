@@ -2033,24 +2033,25 @@
                (let ((user-info (find-player-info (get-character-name client)))
                      (player-info (find-player-info name)))
                  (cond (player-info
-                        (let ((player-me? (equal? (get-name player-info) (get-name me)))
-                              (player-mode (get-mode player-info))
-                              (player-group (get-group player-info))
-                              (player-verified? (get-verified? player-info)))
-                          (let ((same-group? (and player-group (equal? player-group (get-group user-info)))))
-                            ;; to
-                            (set-title to (if (and player-group (group? player-group)) (format "<{a}>" name) name))
-                            (set-color to (if (eq? player-mode 'player) {Color World-Blue} {Color White}))
-                            ;; invite
-                            (if (and user-verified? (not player-me?) (not player-group))
-                                (begin
-                                  (set-kind invite (if circle-name 'circle 'group))
-                                  (set-visible? invite #t))
-                              (set-visible? invite #f))
-                            ;; verify
-                            (if (and user-verified? (not player-verified?) (or in-group? circle-name) same-group?)
-                                (set-visible? verify #t)
-                              (set-visible? verify #f)))))
+                        (let ((user-group (get-group user-info)))
+                          (let ((player-me? (equal? (get-name player-info) (get-name me)))
+                                (player-mode (get-mode player-info))
+                                (player-group (get-group player-info))
+                                (player-verified? (get-verified? player-info)))
+                            (let ((in-party? (and user-group player-group (eq? user-group player-group))))
+                              ;; to
+                              (set-title to (if (and player-group (group? player-group)) (format "<{a}>" name) name))
+                              (set-color to (if (eq? player-mode 'player) {Color World-Blue} {Color White}))
+                              ;; invite
+                              (if (and user-verified? (not player-me?) (not in-party?))
+                                  (begin
+                                    (set-kind invite (if circle-name 'circle 'group))
+                                    (set-visible? invite #t))
+                                (set-visible? invite #f))
+                              ;; verify
+                              (if (and user-verified? (not player-verified?) (or in-group? circle-name) in-party?)
+                                  (set-visible? verify #t)
+                                (set-visible? verify #f))))))
                        (else
                         (no-recipient)))))
               ((group)
