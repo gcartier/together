@@ -2737,17 +2737,18 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (let ((removed? (leave-group tier circle-name 'observer)))
-        (unless removed?
-          (let ((stone (find-circle-stone tier circle-name)))
-            (when stone
-              (bind (id position) stone
-                (let ((section-index (position->section-index position)))
-                  (let ((section (index-section-if universe section-index)))
-                    (when section
-                      (let ((entity (find-entity-by-id section id)))
-                        (when entity
-                          (set-visible? entity #t)))))))))))
+      (let ((mode (if (void? zone) 'observer 'player)))
+        (let ((removed? (leave-group tier circle-name mode)))
+          (unless removed?
+            (let ((stone (find-circle-stone tier circle-name)))
+              (when stone
+                (bind (id position) stone
+                  (let ((section-index (position->section-index position)))
+                    (let ((section (index-section-if universe section-index)))
+                      (when section
+                        (let ((entity (find-entity-by-id section id)))
+                          (when entity
+                            (set-visible? entity #t))))))))))))
       @wait-buggy
       (show-cursor window)
       (when (eq? active-zone 'start)
