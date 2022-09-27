@@ -562,7 +562,9 @@
         (let ((zone (get-active-zone together))
               (group (get-active-group together)))
           (cond (group
-                 (join-circle together group))
+                 (with-cursor :wait
+                   (lambda ()
+                     (join-circle together group))))
                 (zone
                  (enter-zone together)))))))
   
@@ -664,14 +666,18 @@
   
   (method (on-join self evt)
     (let ((together (current-together)))
-      (if (circling? together)
-          (enter-circle together)
-        (join-circle together (get-active-group together)))))
+      (with-cursor :wait
+        (lambda ()
+          (if (circling? together)
+              (enter-circle together)
+            (join-circle together (get-active-group together)))))))
   
   
   (method (on-create&join self evt)
     (let ((together (current-together)))
-      (create&join-circle together)))
+      (with-cursor :wait
+        (lambda ()
+          (create&join-circle together)))))
   
   
   (method (on-quit self evt)
@@ -2198,14 +2204,16 @@
       (if (and (not circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
-        (let ((microphone-on? (microphone-on? client)))
-          (if (and (not microphone-on?) (not (has-microphone?)))
-              (display-problem no-microphone-found)
-            (if (and (not microphone-on?) (not (acquire-microphone-pipeline)))
-                (display-problem unable-to-acquire-microphone)
-              (require-live-stream client)
-              (toggle-microphone client)
-              (update-parameter world 'microphone)))))))
+        (with-cursor :wait
+          (lambda ()
+            (let ((microphone-on? (microphone-on? client)))
+              (if (and (not microphone-on?) (not (has-microphone?)))
+                  (display-problem no-microphone-found)
+                (if (and (not microphone-on?) (not (acquire-microphone-pipeline)))
+                    (display-problem unable-to-acquire-microphone)
+                  (require-live-stream client)
+                  (toggle-microphone client)
+                  (update-parameter world 'microphone)))))))))
   
   
   (method (central-button? self evt)
@@ -2282,14 +2290,16 @@
       (if (and (not circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
-        (if (not (has-camera?))
-            (display-problem no-camera-found)
-          (require-live-stream client)
-          (toggle-camera client)
-          (update-layouts video)
-          (update-parameter world 'camera)
-          @version0
-          (effective-base-profile-update)))))
+        (with-cursor :wait
+          (lambda ()
+            (if (not (has-camera?))
+                (display-problem no-camera-found)
+              (require-live-stream client)
+              (toggle-camera client)
+              (update-layouts video)
+              (update-parameter world 'camera)
+              @version0
+              (effective-base-profile-update)))))))
   
   
   (method (escape-press self)
@@ -2310,7 +2320,7 @@
           (zone (current-zone))
           (me (current-me)))
       (define (problem problem)
-        (set-cursor :arrow)
+        (update-cursor)
         (client-status tier problem)
         (display-problem unable-to-acquire-microphone))
       
@@ -2321,7 +2331,7 @@
             (problem no-microphone-found)
           (if (and require-microphone? (not (acquire-microphone-pipeline)))
               (problem unable-to-acquire-microphone)
-            (set-cursor :arrow)
+            (update-cursor)
             (let ((panel (or (find-type interface panel-class)
                              (let ((panel (new panel-class parent: interface location: 'center size: {Dimension 402 167})))
                                (define (create evt)
@@ -2390,7 +2400,9 @@
       (cond ((not circle-name)
              (display-action world "E : Join Circle"
                (lambda ()
-                 (join-circle self (get-name stone))))
+                 (with-cursor :wait
+                   (lambda ()
+                     (join-circle self (get-name stone))))))
              #t)
             (else
              #f))))
@@ -3572,9 +3584,11 @@
             (let ((kind (car data)))
               (cond (active-group
                      (when (eq? kind 'group)
-                       (if (circling? self)
-                           (enter-circle self)
-                         (join-circle self active-group))))
+                       (with-cursor :wait
+                         (lambda ()
+                           (if (circling? self)
+                               (enter-circle self)
+                             (join-circle self active-group))))))
                     ((and active-zone (neq? active-zone 'start))
                      (when (eq? kind 'zone)
                        (enter-zone self))))))))))
@@ -4849,7 +4863,9 @@
   
   
   (method (on-toggle-view-share self evt)
-    (toggle-view-share self))
+    (with-cursor :wait
+      (lambda ()
+        (toggle-view-share self))))
   
   
   (method (toggle-view-share self)
@@ -4880,7 +4896,9 @@
   
   
   (method (on-toggle-screen-share self evt)
-    (toggle-screen-share self))
+    (with-cursor :wait
+      (lambda ()
+        (toggle-screen-share self))))
   
   
   (method (toggle-screen-share self)
