@@ -27,6 +27,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.presence)
+        (jazz.presence.transmission)
         (jazz.process)
         (jazz.resource)
         (jazz.snapshot)
@@ -274,7 +275,9 @@
                   (when (is? tier Client-Tier)
                     (upload-assets tier 'world)
                     (upload-assets tier 'zone))))
-            (let ((title (if (string? obj) obj "Unable to connect to server")))
+            (let ((title (cond ((is? obj Invalid-Code) "Together needs to be relaunched")
+                               ((string? obj) obj)
+                               (else "Unable to connect to server"))))
               (report-exception title obj)
               (check-invalid-key-exception self title)))))))
   
