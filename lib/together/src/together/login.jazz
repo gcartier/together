@@ -68,6 +68,12 @@
         (together.zone))
 
 
+(definition (present-problem obj)
+  (cond ((is? obj Invalid-Code) "Together needs to be restarted")
+        ((string? obj) obj)
+        (else "Unable to connect to server")))
+
+
 ;;;
 ;;;; Login
 ;;;
@@ -275,9 +281,7 @@
                   (when (is? tier Client-Tier)
                     (upload-assets tier 'world)
                     (upload-assets tier 'zone))))
-            (let ((title (cond ((is? obj Invalid-Code) "Together needs to be relaunched")
-                               ((string? obj) obj)
-                               (else "Unable to connect to server"))))
+            (let ((title (present-problem obj)))
               (report-exception title obj)
               (check-invalid-key-exception self title)))))))
   
@@ -669,23 +673,30 @@
   
   (method (submit-invitation self)
     (let ((world (current-world)))
+      (define (problem? obj)
+        (or (connection-exception? obj)
+            (string? obj)))
+      
       (working world
         (lambda ()
           (let ((start (current-seconds)))
             (working-progress world "Preparing your personal key" #f)
             (clear-exception)
-            (let ((invitation-word (extract-word self))
-                  (name (extract-name self)))
-              (bind (key err) (request-key self invitation-word name)
-                (let ((elapsed (- (current-seconds) start)))
-                  (sleep (- 2.5 elapsed)))
-                (if err
-                    (report-exception err #f)
-                  (update-configuration-key self key)
-                  (save-configuration zone)
-                  (set! from-invitation-success? #t)
-                  (goto-space zone 'key)
-                  (reset-changing (current-space)))))))
+            (catch (problem? obj
+                     (let ((title (present-problem obj)))
+                       (report-exception title obj)))
+              (let ((invitation-word (extract-word self))
+                    (name (extract-name self)))
+                (bind (key err) (request-key self invitation-word name)
+                  (let ((elapsed (- (current-seconds) start)))
+                    (sleep (- 2.5 elapsed)))
+                  (if err
+                      (report-exception err #f)
+                    (update-configuration-key self key)
+                    (save-configuration zone)
+                    (set! from-invitation-success? #t)
+                    (goto-space zone 'key)
+                    (reset-changing (current-space))))))))
         color: {Color World-Blue})))
   
   
