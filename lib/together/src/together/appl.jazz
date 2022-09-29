@@ -241,6 +241,7 @@
         (when task
           (task-wakeup task)))
       ;; super mega quicky
+      @version1
       (when edited-entity
         (let ((edited-path (get-path (get-asset edited-entity))))
           (let ((script (find-asset world edited-path)))
