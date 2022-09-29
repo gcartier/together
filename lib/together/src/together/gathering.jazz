@@ -2305,7 +2305,7 @@
   (method (escape-press self)
     (let ((world (current-world)))
       (toggle-radial-menu world)
-      (tutorial-menu-done world)))
+      (done-menu world)))
   
   
   (method (on-create-circle self evt)
