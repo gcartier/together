@@ -618,13 +618,13 @@
       (register-site-look 'self 10 chronology-purple)
       (register-site-look 'screen 10 chronology-magenta)
       ;; origin
-      @for-debugging-clarity (register-site-look 'udp-release 10 chronology-orange)
+      @for-debugging-clarity (register-site-look 'release 10 chronology-orange)
       (register-site-look 'audio 9 chronology-yellow)
       (register-site-look 'video 8 chronology-green) ;; SERVER
       ;; receiver
-      (register-site-look 'udp-heartbeat 7 chronology-cyan)
-      (register-site-look 'udp-droppable 6 chronology-blue)
-      (register-site-look 'udp-receive 6 chronology-blue)  ;; SERVER
+      (register-site-look 'heartbeat 7 chronology-cyan)
+      (register-site-look 'droppable 6 chronology-blue)
+      (register-site-look 'receive 6 chronology-blue)  ;; SERVER
       (register-site-look 'udp-process 5 chronology-purple)
       (register-site-look 'video-output 4 chronology-magenta)
       ;; internal
