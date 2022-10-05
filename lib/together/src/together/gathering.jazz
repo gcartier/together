@@ -221,6 +221,9 @@
         (set! *available-zones* (filter-zones zones))
         zones)))
 
+(definition protected (set-available-zones zones)
+  (set! *available-zones* zones))
+
 
 ;; quicky
 (cond-expand
@@ -2845,6 +2848,7 @@
       (set-processor-exited-hook tier (~ processor-exited self))
       (set-zone-loaded-hook tier (~ zone-loaded self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
+      (set-zones-update-hook tier (~ zones-update self))
       (set-group-join-hook tier (~ group-join self))
       (set-group-leave-hook tier (~ group-leave self))
       (set-circle-acquire-hook tier (~ circle-acquire self))
@@ -2879,6 +2883,7 @@
       (set-processor-exited-hook tier #f)
       (set-zone-loaded-hook tier #f)
       (set-hierarchy-update-hook tier #f)
+      (set-zones-update-hook tier #f)
       (set-stream-addable-hook tier #f)
       (set-render-hook video #f)
       (set-layout-circle-hook #f)
@@ -2990,6 +2995,11 @@
         (people-selection-change self)
         (update-recipient-interface self)
         (refresh-compass world))))
+  
+  
+  (method (zones-update self hierarchy zones)
+    (set-available-zones zones)
+    (hierarchy-update self hierarchy))
   
   
   ;; this rare case can happen if the server had just sent
