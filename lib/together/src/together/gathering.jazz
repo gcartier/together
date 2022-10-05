@@ -2313,11 +2313,10 @@
   
   
   (method (on-create-circle self evt)
-    (let ((persistent? (and (admin?) (get-shift? evt))))
-      (create-circle self persistent?)))
+    (create-circle self))
   
   
-  (method (create-circle self persistent?)
+  (method (create-circle self)
     (let ((tier (current-client))
           (interface (current-interface))
           (universe (current-universe))
@@ -2330,8 +2329,9 @@
         (display-problem unable-to-acquire-microphone))
       
       (set-cursor :wait)
-      (let ((require-microphone? (not persistent?))
-            (panel-class (if persistent? Create-Persistent-Circle-Panel Create-Circle-Panel)))
+      (let ((persistent? #f)
+            (require-microphone? #t)
+            (panel-class Create-Circle-Panel))
         (if (and require-microphone? (not (has-microphone?)))
             (problem no-microphone-found)
           (if (and require-microphone? (not (acquire-microphone-pipeline)))
@@ -2371,8 +2371,7 @@
                                                        (add-element universe #f entity name position lookat scale color model script-text properties)
                                                        (bake-entity-lighting zone entity))
                                                      (add-block-at-position universe fire-position 51 0)
-                                                     (unless persistent?
-                                                       (join-circle self name)))))))))))))
+                                                     (join-circle self name))))))))))))
                                
                                (define (escape evt)
                                  (close panel))
@@ -5186,17 +5185,6 @@
   
   (method override (escape-close? self)
     #t))
-
-
-(class Create-Persistent-Circle-Panel extends Create-Circle-Panel
-  
-  
-  (form
-    (<install>
-      (<!>       name: content
-        (<!>     name: create
-          (<!>   name: label    title: "New persistent circle name")
-          (<!>   name: create   title: "Create"))))))
 
 
 ;;;
