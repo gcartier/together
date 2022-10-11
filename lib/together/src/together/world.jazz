@@ -18,6 +18,7 @@
         (world)
         (world.autoload)
         (world.circle)
+        (world.client.tier)
         (world.context)
         (world.foreign)
         (world.interface)
