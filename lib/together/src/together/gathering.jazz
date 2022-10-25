@@ -3365,7 +3365,7 @@
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
-                                         (mobile? (format "{a} (mobile)" player-title))
+                                         (mobile? (format "{a} (web)" player-title))
                                          (else player-title)))
                             (font (if (and roaming? group)
                                       {Font Label-Italic}
