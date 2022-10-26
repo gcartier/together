@@ -1,0 +1,90 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Zoom
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.zoom jazz
+
+
+(class Invalid-Link extends Exception
+  
+  
+  (slot reason getter generate)
+  
+  
+  (method override (initialize self rs)
+    (nextmethod self)
+    (set! reason rs))
+  
+  
+  (method override (print self printer readably)
+    (print-unreadable self printer
+      (lambda (printer)
+        (format printer "{s}" reason))))
+  
+  
+  (method override (present-exception self)
+    reason))
+
+
+(definition public (throw-invalid-link reason)
+  (throw (new Invalid-Link reason)))
+
+
+(definition zoom-executable
+  (cond-expand
+    (mac "/Applications/zoom.us.app/Contents/MacOS/zoom.us")
+    (windows "C:/Users/gucar/AppData/Roaming/Zoom/bin/Zoom.exe")
+    (else)))
+
+
+(definition protected (parse-link link)
+  (define (trim link)
+    (let ((targ "#success"))
+      (let ((pos (search link targ)))
+        (if (not pos)
+            link
+          (substring link 0 pos)))))
+  
+  (let ((targ "https://"))
+    (let ((str (trim link)))
+      (let ((pos (search str targ)))
+        (if (not pos)
+            (throw-invalid-link "Zoom link must contain https://")
+          (let ((str (substring str (+ pos (string-length targ)) (string-length str))))
+            (let ((targ "/j/"))
+              (let ((pos (search str targ)))
+                (if (not pos)
+                    (throw-invalid-link "Zoom link must contain /j/")
+                  (let ((server (substring str 0 pos))
+                        (str (substring str (+ pos (string-length targ)) (string-length str))))
+                    (let ((targ "?pwd="))
+                      (let ((pos (search str targ)))
+                        (if (not pos)
+                            (values server str #f)
+                          (values server (substring str 0 pos) (substring str (+ pos (string-length targ)) (string-length str))))))))))))))))
+
+
+(definition public (launch-zoom-link link)
+  (receive (server confno pwd) (parse-link link)
+    (launch-zoom server confno pwd)))
+
+
+(definition public (launch-zoom server confno pwd)
+  (cond-expand
+    (mac
+     (shell-command (if (not pwd)
+                        (tie "open \"zoommtg://zoom.us/join?confno={confno}\"")
+                      (tie "open \"zoommtg://zoom.us/join?confno={confno}&pwd={pwd}\""))))
+    (windows
+     (let ((path zoom-executable)
+           (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
+       (open-process (list path: path arguments: (list arg))))))))

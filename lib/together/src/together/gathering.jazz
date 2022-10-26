@@ -724,7 +724,7 @@
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (join-zoom-circle together (get-selected-link together))))))
+          (join-zoom-circle together (get-active-group together))))))
   
   
   (method (on-edit-zoom self evt)
@@ -1825,7 +1825,6 @@
   (slot selected-group      initialize #f getter generate)
   (slot selected-data       initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
-  (slot selected-link       initialize #f getter generate)
   (slot selected-message    initialize #f getter generate)
   (slot selected-color      initialize #f getter generate)
   (slot zone-loading        initialize #f getter generate)
@@ -2679,13 +2678,15 @@
               (setup-circle self name group-info/exception)))))))
   
   
-  (method package (join-zoom-circle self link)
-    (let ((world (current-world)))
-      (if (empty-string? link)
-          (display-message world "No Zoom link")
-        (catch (Invalid-Link exc
-                 (display-message world "Invalid Zoom link"))
-          (launch-zoom-link link)))))
+  (method package (join-zoom-circle self name)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((link (circle-property tier name 'link)))
+        (if (empty-string? link)
+            (display-message world "No Zoom link")
+          (catch (Invalid-Link exc
+                   (display-message world "Invalid Zoom link"))
+            (launch-zoom-link link))))))
   
   
   (method package (edit-zoom self name)
@@ -3667,7 +3668,6 @@
                 (set! selected-group group)
                 (set! selected-data data)
                 (set! selected-zoom? zoom?)
-                (set! selected-link link)
                 (when (selected-loaded? self)
                   (set! active-zone zone)
                   (set! active-group group)
