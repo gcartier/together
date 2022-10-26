@@ -52,7 +52,8 @@
         (world.task)
         (world.video)
         (world.window)
-        (together.settings))
+        (together.settings)
+        (together.zoom))
 
 
 ;;;
@@ -63,8 +64,15 @@
 (class Together-Root extends Layout-View
   
   
+  (property stops initialize #f accessors generate)
+  
+  
   (method override (get-transparent? self)
-    #t))
+    #t)
+  
+  
+  (method override (get-tab-stops self)
+    stops))
 
 
 ;;;
@@ -101,6 +109,7 @@
   
   (property action-view  initialize #f accessors generate)
   (property invalid-view initialize #f accessors generate)
+  (property brother-view initialize #f accessors generate)
   (property option-view  initialize #f accessors generate)
   (property name-label   initialize #f accessors generate)
   (property max-length   initialize #f accessors generate)
@@ -120,13 +129,16 @@
   (method (content-changed self)
     (let ((space (current-space)))
       (let ((invalid (name-invalid self)))
-        (set-enabled? (brother self action-view) (not invalid))
-        (set-title (brother self invalid-view) (or invalid ""))
-        (when option-view
-          (set-visible? (brother self option-view) (not invalid))))))
+        (let ((action-invalid (or invalid (and brother-view (name-invalid (brother self brother-view))))))
+          (when action-view
+            (set-enabled? (brother self action-view) (not action-invalid)))
+          (when invalid-view
+            (set-title (brother self invalid-view) (or invalid "")))
+          (when option-view
+            (set-visible? (brother self option-view) (not action-invalid)))))))
   
   
-  (method package (name-invalid self)
+  (method protected virtual (name-invalid self)
     (let ((text (locate self 'text)))
       (let ((name (trim-whitespace (get-string-content text))))
         (cond ((empty-string? name)
@@ -182,6 +194,26 @@
   
   (method override (text-color self)
     {Color World-Red}))
+
+
+;;;
+;;;; Link-View
+;;;
+
+
+(class Link-View extends Name-View
+  
+  
+  (method override (name-invalid self)
+    (let ((text (locate self 'text)))
+      (let ((link (trim-whitespace (get-string-content text))))
+        (cond ((empty-string? link)
+               #f)
+              (else
+               (catch (Invalid-Link exc
+                        (exception-reason exc))
+                 (parse-link link)
+                 #f)))))))
 
 
 ;;;

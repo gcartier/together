@@ -138,7 +138,8 @@
         (together.simulator)
         (together.sphere-space)
         (together.visualizer)
-        (together.zone))
+        (together.zone)
+        (together.zoom))
 
 
 (definition auto-hide?
@@ -393,10 +394,15 @@
           (new Push-Button name: 'zone-enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter self))
           (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'circle-join parent: root title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
+          (new Kind-Label name: 'zoom-circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
+          (new Push-Button name: 'zoom-launch parent: root title: "Join on Zoom" location: '(center center) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))
+          (new Push-Button name: 'zoom-edit parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
+          (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
           (make-unverified-view self root)
           (set-action-handler (child root '(circle-create create)) (~ on-create&join self))
+          (set-action-handler (child root '(zoom-create create)) (~ on-create-zoom self))
           (set! self.root root)))))
   
   
@@ -418,6 +424,7 @@
           (set-visible? (child root 'circle) (not admin-visible?))
           (set-visible? (child root 'circle-join) (not admin-visible?))))
       (set-visible? (child root 'circle-create) #t)
+      (set-visible? (child root 'zoom-create) #f)
       (set-visible? (child mainbar 'profile) #t)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #t)
@@ -595,7 +602,8 @@
     (let ((together (current-together))
           (interface (current-interface))
           (world (current-world)))
-      (let ((active-zone (get-active-zone together))
+      (let ((selected-zoom? (get-selected-zoom? together))
+            (active-zone (get-active-zone together))
             (active-group (get-active-group together))
             (circling? (circling? together)))
         (let ((loaded? (selected-loaded? together)))
@@ -612,6 +620,11 @@
             (set-visible? (child root 'circle-join) flag)
             (set-enabled? (child root 'circle-join) loaded?))
           
+          (define (launch-visible flag)
+            (set-visible? (child root 'zoom-circle) flag)
+            (set-visible? (child root 'zoom-launch) flag)
+            (set-visible? (child root 'zoom-edit) flag))
+          
           (define (create-visible flag)
             (let ((create (child root 'circle-create)))
               (set-visible? create flag)
@@ -625,6 +638,13 @@
                   (set-enabled? (child create 'create) enabled?)
                   (set-visible? (child create 'require-camera?) (and flag enabled?))))))
           
+          (define (zoom-visible flag)
+            (let ((create (child root 'zoom-create)))
+              (set-visible? create flag)
+              (set-stops root (and flag (list
+                                        (locate (child create 'view) 'text)
+                                        (locate (child create 'link-view) 'text))))))
+          
           (when (not (and (admin?) (get-visible? (child interface 'admin))))
             (if loaded?
                 (set-title (child root 'selected-label) "")
@@ -635,31 +655,54 @@
                    (unverified-visible #f)
                    (enter-visible #f)
                    (join-visible #f)
-                   (create-visible #f))
+                   (launch-visible #f)
+                   (create-visible #f)
+                   (zoom-visible #f))
                   ((unverified?)
                    (unverified-visible #t)
                    (enter-visible #f)
                    (join-visible #f)
-                   (create-visible #f))
+                   (launch-visible #f)
+                   (create-visible #f)
+                   (zoom-visible #f))
                   (active-group
-                   (set-title (child root 'circle) active-group)
                    (unverified-visible #f)
                    (enter-visible #f)
-                   (join-visible #t)
+                   (cond ((not selected-zoom?)
+                          (set-title (child root 'circle) active-group)
+                          (join-visible #t)
+                          (launch-visible #f))
+                         (else
+                          (set-title (child root 'zoom-circle) active-group)
+                          (join-visible #f)
+                          (launch-visible #t)))
                    (create-visible #f)
+                   (zoom-visible #f)
+                   (layout-view root))
+                  (selected-zoom?
+                   (unverified-visible #f)
+                   (enter-visible #f)
+                   (join-visible #f)
+                   (launch-visible #f)
+                   (create-visible #f)
+                   (zoom-visible #t)
                    (layout-view root))
                   ((eq? active-zone 'start)
                    (unverified-visible #f)
                    (enter-visible #f)
                    (join-visible #f)
+                   (launch-visible #f)
                    (create-visible #t)
+                   (zoom-visible #f)
                    (layout-view root))
                   (else
                    (set-title (child root 'zone) (last active-zone))
                    (unverified-visible #f)
                    (enter-visible #t)
                    (join-visible #f)
+                   (launch-visible #f)
                    (create-visible #f)
+                   (zoom-visible #f)
                    (layout-view root))))))))
   
   
@@ -677,11 +720,30 @@
             (join-circle together (get-active-group together)))))))
   
   
+  (method (on-join-zoom self evt)
+    (let ((together (current-together)))
+      (with-cursor :wait
+        (lambda ()
+          (join-zoom-circle together (get-selected-link together))))))
+  
+  
+  (method (on-edit-zoom self evt)
+    (let ((together (current-together)))
+      (edit-zoom together (get-active-group together))))
+  
+  
   (method (on-create&join self evt)
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
           (create&join-circle together)))))
+  
+  
+  (method (on-create-zoom self evt)
+    (let ((together (current-together)))
+      (with-cursor :wait
+        (lambda ()
+          (create-zoom-circle together)))))
   
   
   (method (on-quit self evt)
@@ -1753,34 +1815,37 @@
 (class Together extends Object
   
   
-  (slot spaces             initialize #f getter generate)
-  (slot space              initialize #f getter generate)
-  (slot configuration      initialize #f getter generate)
-  (slot active-zone        initialize #f getter generate)
-  (slot active-group       initialize #f getter generate)
-  (slot active-data        initialize #f getter generate)
-  (slot selected-zone      initialize #f getter generate)
-  (slot selected-group     initialize #f getter generate)
-  (slot selected-data      initialize #f getter generate)
-  (slot selected-message   initialize #f getter generate)
-  (slot selected-color     initialize #f getter generate)
-  (slot zone-loading       initialize #f getter generate)
-  (slot in-group?          initialize #f getter generate)
-  (slot circle-name        initialize #f getter generate)
-  (slot circle-no          initialize #f getter generate)
-  (slot circle-started     initialize #f getter generate)
-  (slot circle-joined      initialize #f getter generate)
-  (slot circle-mode        initialize #f getter generate)
-  (slot preserved-eye?     initialize #f getter generate)
-  (slot preserved-eye      initialize #f getter generate)
-  (slot preserved-distance initialize #f getter generate)
-  (slot message-recipient  initialize #f getter generate)
-  (slot draw-hook          initialize #f getter generate)
-  (slot sleep-disconnected initialize #f getter generate)
-  (slot chat-wide?         initialize #f getter generate)
-  (slot previous-command   initialize #f getter generate)
-  (slot fade-thread        initialize #f getter generate)
-  (slot fade-no            initialize 0  getter generate)
+  (slot spaces              initialize #f getter generate)
+  (slot space               initialize #f getter generate)
+  (slot configuration       initialize #f getter generate)
+  (slot active-zone         initialize #f getter generate)
+  (slot active-group        initialize #f getter generate)
+  (slot active-data         initialize #f getter generate)
+  (slot selected-zone       initialize #f getter generate)
+  (slot selected-group      initialize #f getter generate)
+  (slot selected-data       initialize #f getter generate)
+  (slot selected-zoom?      initialize #f getter generate)
+  (slot selected-link       initialize #f getter generate)
+  (slot selected-message    initialize #f getter generate)
+  (slot selected-color      initialize #f getter generate)
+  (slot zone-loading        initialize #f getter generate)
+  (slot in-group?           initialize #f getter generate)
+  (slot circle-name         initialize #f getter generate)
+  (slot circle-no           initialize #f getter generate)
+  (slot circle-started      initialize #f getter generate)
+  (slot circle-joined       initialize #f getter generate)
+  (slot circle-mode         initialize #f getter generate)
+  (slot created-zoom-circle initialize #f getter generate)
+  (slot preserved-eye?      initialize #f getter generate)
+  (slot preserved-eye       initialize #f getter generate)
+  (slot preserved-distance  initialize #f getter generate)
+  (slot message-recipient   initialize #f getter generate)
+  (slot draw-hook           initialize #f getter generate)
+  (slot sleep-disconnected  initialize #f getter generate)
+  (slot chat-wide?          initialize #f getter generate)
+  (slot previous-command    initialize #f getter generate)
+  (slot fade-thread         initialize #f getter generate)
+  (slot fade-no             initialize 0  getter generate)
   
   (cond-expand
     (windows
@@ -1858,7 +1923,7 @@
       (together-ready self)
       (when auto-create
         (for-each (lambda (name)
-                    (create-group client name #t #t #t #t #t #f))
+                    (create-group client name #t #t #t #t #t #f #f #f))
                   (listify auto-create)))
       (cond ((get-reconnect-info client)
              =>
@@ -2003,7 +2068,7 @@
   
   (method package (update-message-recipient self recipient)
     (define (effective-recipient)
-      (if (not recipient)
+      (if (or (not recipient) (eq? recipient 'zoom))
           #f
         (bind (kind name) recipient
           (case kind
@@ -2356,7 +2421,7 @@
                                                  (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
                                              (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position)))
                                                    (broadcast-hierarchy? persistent?))
-                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position))))
+                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f)))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
                                                    (clear-message world)
@@ -2571,7 +2636,7 @@
                   (display-problem err)
                 (let ((text (locate view 'text)))
                   (let ((name (trim-whitespace (get-string-content text))))
-                    (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f #f)))
+                    (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f #f #f #f)))
                       (if (string? no/exception)
                           (display-error world no/exception)
                         (clear-message world)
@@ -2579,6 +2644,26 @@
                         (content-changed view)
                         (set-checked? require-camera #t)
                         (join-circle self name))))))))))))
+  
+  
+  (method package (create-zoom-circle self)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((create (child (get-root space) 'zoom-create)))
+        (let ((view (child create 'view))
+              (link-view (child create 'link-view)))
+          (let ((text (locate view 'text))
+                (link-text (locate link-view 'text)))
+            (let ((name (trim-whitespace (get-string-content text)))
+                  (link (trim-whitespace (get-string-content link-text))))
+              (let ((no/exception (create-group tier name #f #f #f #t #f #f #t link)))
+                (if (string? no/exception)
+                    (display-error world no/exception)
+                  (clear-message world)
+                  (set-string-content text "")
+                  (set-string-content link-text "")
+                  (content-changed view)
+                  (set! created-zoom-circle name)))))))))
   
   
   (method package (join-circle self name)
@@ -2592,6 +2677,25 @@
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
               (setup-circle self name group-info/exception)))))))
+  
+  
+  (method package (join-zoom-circle self link)
+    (let ((world (current-world)))
+      (if (empty-string? link)
+          (display-message world "No Zoom link")
+        (catch (Invalid-Link exc
+                 (display-message world "Invalid Zoom link"))
+          (launch-zoom-link link)))))
+  
+  
+  (method package (edit-zoom self name)
+    (let ((interface (current-interface)))
+      (let ((frame (find-type interface Zoom-Circle-Options)))
+        (if frame
+            (close frame)
+          (with-cursor :wait
+            (lambda ()
+              (push-panel (open-frame (new Zoom-Circle-Options circle-name: name size: {Dimension 466 268} location: 'center)))))))))
   
   
   (method (autojoin-circle self name)
@@ -2977,6 +3081,7 @@
         (define (same-entity? x y)
           (define (entity info)
             (if (or (not info)
+                    (eq? info 'zoom)
                     (eq? (car info) 'zone))
                 info
               (bind (kind name) info
@@ -2991,9 +3096,24 @@
           use: 'data
           test: same-entity?
           selection-position?: #f)
+        (select-zoom-circle self)
         (people-selection-change self)
         (update-recipient-interface self)
         (refresh-compass world))))
+  
+  
+  (method (select-zoom-circle self)
+    (when created-zoom-circle
+      (let ((tree (people-tree self)))
+        (let ((row (user-data-row tree created-zoom-circle test: (lambda (name data)
+                                                                   (and (pair? data)
+                                                                        (eq? (car data) 'group)
+                                                                        (equal? (cadr data) name))))))
+          (when row
+            (let ((line (row->line tree row)))
+              (when line
+                (set-selection tree (list line)))))))
+      (set! created-zoom-circle #f)))
   
   
   (method (zones-update self hierarchy zones)
@@ -3297,6 +3417,7 @@
       (bind (groupless . groups) hierarchy
         (let ((observers '())
               (voiders '())
+              (zoomers '())
               (zones (make-table test: equal?))
               (circlers #f)
               (party #f)
@@ -3319,10 +3440,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group require-microphone? require-camera? zone stone . players) groupless
+          (bind (group require-microphone? require-camera? zone stone zoom? link . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name require-microphone? require-camera? zone stone . players) group
+                      (bind (name require-microphone? require-camera? zone stone zoom? link . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3331,7 +3452,9 @@
                                (when (member? character-name players key: car)
                                  (set! circlers players))
                                (if (eq? zone 'start)
-                                   (set! voiders (cons group voiders))
+                                   (if zoom?
+                                       (set! zoomers (cons group zoomers))
+                                     (set! voiders (cons group voiders)))
                                  (add zone (cons 'group group)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
@@ -3345,7 +3468,7 @@
               (clear-snapshot-property 'live.circle-members)
             (add-snapshot-property 'live.circle-members (map car circlers)))
           (add-snapshot-property 'live.player-party (and party (map car party)))
-          (values observers voiders (table->list zones) party)))))
+          (values observers voiders zoomers (table->list zones) party)))))
   
   
   (method (view-hierarchy self hierarchy)
@@ -3354,7 +3477,7 @@
       (let ((tree (people-tree self))
             (separator? #f)
             (available-zones (cache-available-zones)))
-        (receive (observers voiders zones party) (unify-hierarchy self hierarchy available-zones)
+        (receive (observers voiders zoomers zones party) (unify-hierarchy self hierarchy available-zones)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
@@ -3388,13 +3511,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group require-microphone? require-camera? zone stone . players) info
+                (bind (group require-microphone? require-camera? zone stone zoom? link . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group require-microphone? require-camera? zone stone))))
+                                        user-data: (list 'group group require-microphone? require-camera? zone stone zoom? link))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3406,7 +3529,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group require-microphone? require-camera? zone stone . players) info
+                              (bind (group require-microphone? require-camera? zone stone zoom? link . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3419,6 +3542,11 @@
                     (for-each (lambda (info)
                                 (add-group #f info #t))
                               (sort di<? empty key: car)))))
+              
+              (define (add-zoomers father zoomers)
+                (for-each (lambda (info)
+                            (add-group father info))
+                          (sort di<? zoomers key: car)))
               
               (define (add-zones father spine zones)
                 (for-each (lambda (partition)
@@ -3500,18 +3628,30 @@
                 (add-voiders voiders))
               (when (not-null? zones)
                 (add-separator 'zones)
-                (add-zones #f '() zones))))))))
+                (add-zones #f '() zones))
+              (add-separator 'zoom)
+              (let ((row (add-row tree
+                                  state: 'expanded
+                                  children: (list (new Tree-Node
+                                                    title: "Out there"
+                                                    font: {Font Label-User}
+                                                    color: gathering-color))
+                                  user-data: 'zoom)))
+                (add-zoomers row zoomers))))))))
   
   
   (method package (people-selection-change self)
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f 'start #f)))
+          (select (list 'group #f #f #f 'start #f #f #f)))
+        
+        (define (select-zoom)
+          (select (list 'group #f #f #f 'start #f #t #f)))
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group stone player)
+            (define (select zone group stone zoom? link player)
               (let ((group (and (eq? zone 'start) group)))
                 (set! selected-message "")
                 (set-circle-vista (and stone (second stone)))
@@ -3526,6 +3666,8 @@
                 (set! selected-zone zone)
                 (set! selected-group group)
                 (set! selected-data data)
+                (set! selected-zoom? zoom?)
+                (set! selected-link link)
                 (when (selected-loaded? self)
                   (set! active-zone zone)
                   (set! active-group group)
@@ -3534,10 +3676,10 @@
             
             (case kind
               ((group)
-               (bind (group require-microphone? require-camera? zone stone) rest
-                 (select zone group stone #f)))
+               (bind (group require-microphone? require-camera? zone stone zoom? link) rest
+                 (select zone group stone zoom? link #f)))
               ((zone)
-               (select data #f #f #f)))))
+               (select data #f #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
@@ -3545,12 +3687,14 @@
             (let ((data (get-user-data row)))
               (if (not data)
                   (select-gathering)
-                (bind (kind) data
-                  (if (eq? kind 'separator)
-                      (select-gathering)
-                    (if (eq? kind 'player)
-                        (select-row (get-father row))
-                      (select data))))))))
+                (if (eq? data 'zoom)
+                    (select-zoom)
+                  (bind (kind) data
+                    (if (eq? kind 'separator)
+                        (select-gathering)
+                      (if (eq? kind 'player)
+                          (select-row (get-father row))
+                        (select data)))))))))
         
         (select-row (get-selected-row tree)))))
   
@@ -5185,6 +5329,82 @@
   
   (method override (escape-close? self)
     #t))
+
+
+;;;
+;;;; Create-Zoom
+;;;
+
+
+(class Create-Zoom-View extends Layout-View
+  
+  
+  (form
+    (<install>                               layout-type: justify
+      (<Kind-Label>    name: label           title: "New circle name" location: (center 0) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
+      (<Zoom-Name>     name: view            location: (center 30) size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: invalid brother-view: link-view name-label: "Circle name" max-length: 40)
+      (<Name-Invalid>  name: invalid         location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Kind-Label>    name: link-label      title: "Zoom link" location: (center 75) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
+      (<Zoom-Link>     name: link-view       location: (center 105) size: {Dimension 400 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: link-invalid brother-view: view name-label: "Zoom link")
+      (<Name-Invalid>  name: link-invalid    location: (center 131) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Push-Button>   name: create          title: "Create" enabled?: #f location: (center 165) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default}))))
+
+
+;;;
+;;;; Zoom-View
+;;;
+
+
+(class Zoom-Actions extends Actions
+  
+  
+  (form
+    (<install>
+      (<Action-Item> name: navigate-previous visible?: #t action-handler: {Event-Handler :focus on-navigate-previous} shortcut: {Shortcut Tab})
+      (<Action-Item> name: navigate-next     visible?: #t action-handler: {Event-Handler :focus on-navigate-next} shortcut: {Shortcut :shift Tab}))))
+
+
+(definition zoom-actions
+  #f)
+
+(definition (cache-zoom-actions)
+  (or zoom-actions
+      (let ((actions (new Zoom-Actions)))
+        (set! zoom-actions actions)
+        actions)))
+
+
+(class Zoom-Text extends Name-Text
+  
+  
+  (method override (focus-actions self)
+    (cons (cache-zoom-actions)
+          (nextmethod self)))
+  
+  
+  (method (on-navigate-previous self evt)
+    (navigate-view self #t))
+  
+  (method (on-navigate-next self evt)
+    (navigate-view self #f)))
+
+
+(class Zoom-Name extends Name-View
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((text) Zoom-Text)
+      (else (nextmethod self form)))))
+
+
+(class Zoom-Link extends Link-View
+  
+  
+  (method override (form-model self form)
+    (case (get-name form)
+      ((text) Zoom-Text)
+      (else (nextmethod self form)))))
 
 
 ;;;

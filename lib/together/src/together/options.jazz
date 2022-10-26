@@ -15,13 +15,17 @@
 
 
 (import (jazz.component)
+        (jazz.event)
         (jazz.graphic)
+        (jazz.handler)
         (jazz.markup)
         (jazz.screen)
         (jazz.settings)
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
+        (jazz.text)
         (jazz.tree)
+        (jazz.ui)
         (jazz.view)
         (world)
         (world.audio)
@@ -31,9 +35,12 @@
         (world.interface.frame)
         (world.interface.mainbar)
         (world.interface.options)
+        (world.interface.text)
         (world.profile)
         (world.settings)
-        (world.video))
+        (world.task)
+        (world.video)
+        (together.zone))
 
 
 ;;;
@@ -306,4 +313,58 @@
       ((persistent)
        (change-circle-property (current-client) circle-name 'persistent? value))
       ((require-camera)
-       (change-circle-property (current-client) circle-name 'require-camera? value))))))
+       (change-circle-property (current-client) circle-name 'require-camera? value)))))
+
+
+;;;
+;;;; Zoom
+;;;
+
+
+(class Zoom-Circle-Options extends Option-Frame
+  
+  
+  (property circle-name initialize #f accessors generate)
+  
+  
+  (form
+    (<install>
+      (<caption~>           title: "Zoom Circle Options")
+      (<content~>                                        layout-type: center
+        (<View>                                          size: {Dimension 390 145}
+          (<Option-Label>   title: "Persistent"          position: {Point  20   0} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point   0   0} option: join-by-invite-only)
+          (<Option-Label>   title: "Zoom Link"           position: {Point   0  50} size: {Dimension 100 15})
+          (<Link-View>                                   position: {Point  85  45} size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} invalid-view: link-invalid)
+          (<Name-Invalid>   name: link-invalid           position: {Point  85  71} size: {Dimension 300 16} font: {Font Label-User point-size: 12.5 antialias: default})
+          (<Push-Button>    title: "Delete Circle"       position: {Point 122 120} size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: {Event-Handler :form on-delete-zoom})))))
+  
+  
+  (method override (prepare self rest)
+    (nextmethod self rest)
+    (set! circle-name (getf rest circle-name:)))
+  
+  
+  (method override (read-option self option)
+    (case option
+      ((persistent)
+       (circle-property (current-client) circle-name 'persistent?))))
+  
+  
+  (method override (write-option self option value title)
+    (case option
+      ((persistent)
+       (change-circle-property (current-client) circle-name 'persistent? value))))
+  
+  
+  (method (on-delete-zoom self evt)
+    (delay-event
+      (lambda ()
+        (with-task-mutex
+          (lambda ()
+            (let ((client (current-client))
+                  (world (current-world)))
+              (let ((error (delete-group client circle-name)))
+                (if error
+                    (display-error world error)
+                  (close self)))))))))))
