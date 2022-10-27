@@ -39,13 +39,6 @@
   (throw (new Invalid-Link reason)))
 
 
-(definition zoom-executable
-  (cond-expand
-    (mac "/Applications/zoom.us.app/Contents/MacOS/zoom.us")
-    (windows "C:/Users/gucar/AppData/Roaming/Zoom/bin/Zoom.exe")
-    (else)))
-
-
 (definition protected (parse-link link)
   (define (trim link)
     (let ((targ "#success"))
@@ -85,6 +78,7 @@
                         (tie "open \"zoommtg://zoom.us/join?confno={confno}\"")
                       (tie "open \"zoommtg://zoom.us/join?confno={confno}&pwd={pwd}\""))))
     (windows
-     (let ((path zoom-executable)
+     (let ((path "C:/Users/gucar/AppData/Roaming/Zoom/bin/Zoom.exe")
            (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
-       (open-process (list path: path arguments: (list arg))))))))
+       (open-process (list path: path arguments: (list arg)))))
+    (else))))
