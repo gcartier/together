@@ -17,6 +17,7 @@
 (import (jazz.action)
         (jazz.application)
         (jazz.catalog)
+        (jazz.clipboard)
         (jazz.component)
         (jazz.console)
         (jazz.document)
@@ -397,6 +398,7 @@
           (new Kind-Label name: 'zoom-circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
           (new Push-Button name: 'zoom-launch parent: root title: "Join on Zoom" location: '(center center) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))
           (new Push-Button name: 'zoom-edit parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
+          (new Push-Button name: 'zoom-copy parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
           (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
@@ -600,9 +602,11 @@
   
   (method package (update-center-interface self)
     (let ((together (current-together))
+          (client (current-client))
           (interface (current-interface))
           (world (current-world)))
-      (let ((selected-zoom? (get-selected-zoom? together))
+      (let ((selected-owner (get-selected-owner together))
+            (selected-zoom? (get-selected-zoom? together))
             (active-zone (get-active-zone together))
             (active-group (get-active-group together))
             (circling? (circling? together)))
@@ -623,7 +627,9 @@
           (define (launch-visible flag)
             (set-visible? (child root 'zoom-circle) flag)
             (set-visible? (child root 'zoom-launch) flag)
-            (set-visible? (child root 'zoom-edit) flag))
+            (let ((owner? (personal-key? client selected-owner)))
+              (set-visible? (child root 'zoom-edit) (and flag owner?))
+              (set-visible? (child root 'zoom-copy) (and flag (not owner?)))))
           
           (define (create-visible flag)
             (let ((create (child root 'circle-create)))
@@ -730,6 +736,11 @@
   (method (on-edit-zoom self evt)
     (let ((together (current-together)))
       (edit-zoom together (get-active-group together))))
+  
+  
+  (method (on-copy-zoom self evt)
+    (let ((together (current-together)))
+      (copy-zoom together (get-active-group together))))
   
   
   (method (on-create&join self evt)
@@ -1824,6 +1835,7 @@
   (slot selected-zone       initialize #f getter generate)
   (slot selected-group      initialize #f getter generate)
   (slot selected-data       initialize #f getter generate)
+  (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
   (slot selected-message    initialize #f getter generate)
   (slot selected-color      initialize #f getter generate)
@@ -2699,6 +2711,16 @@
               (push-panel (open-frame (new Zoom-Circle-Options circle-name: name size: {Dimension 466 268} location: 'center)))))))))
   
   
+  (method package (copy-zoom self name)
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((link (circle-property tier name 'link)))
+        (if (empty-string? link)
+            (display-message world "No Zoom link")
+          (set-clipboard-text link)
+          (display-message world "Link copied to clipboard")))))
+  
+  
   (method (autojoin-circle self name)
     (let ((tier (current-client)))
       (let ((err (acquire-circle self name)))
@@ -3441,10 +3463,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group require-microphone? require-camera? zone stone zoom? link . players) groupless
+          (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name require-microphone? require-camera? zone stone zoom? link . players) group
+                      (bind (name owner require-microphone? require-camera? zone stone zoom? link . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3512,13 +3534,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group require-microphone? require-camera? zone stone zoom? link . players) info
+                (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group require-microphone? require-camera? zone stone zoom? link))))
+                                        user-data: (list 'group group owner require-microphone? require-camera? zone stone zoom? link))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3530,7 +3552,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group require-microphone? require-camera? zone stone zoom? link . players) info
+                              (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3645,14 +3667,14 @@
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f 'start #f #f #f)))
+          (select (list 'group #f #f #f #f 'start #f #f #f)))
         
         (define (select-zoom)
-          (select (list 'group #f #f #f 'start #f #t #f)))
+          (select (list 'group #f #f #f #f 'start #f #t #f)))
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group stone zoom? link player)
+            (define (select zone group owner stone zoom? link player)
               (let ((group (and (eq? zone 'start) group)))
                 (set! selected-message "")
                 (set-circle-vista (and stone (second stone)))
@@ -3667,6 +3689,7 @@
                 (set! selected-zone zone)
                 (set! selected-group group)
                 (set! selected-data data)
+                (set! selected-owner owner)
                 (set! selected-zoom? zoom?)
                 (when (selected-loaded? self)
                   (set! active-zone zone)
@@ -3676,10 +3699,10 @@
             
             (case kind
               ((group)
-               (bind (group require-microphone? require-camera? zone stone zoom? link) rest
-                 (select zone group stone zoom? link #f)))
+               (bind (group owner require-microphone? require-camera? zone stone zoom? link) rest
+                 (select zone group owner stone zoom? link #f)))
               ((zone)
-               (select data #f #f #f #f #f)))))
+               (select data #f #f #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
