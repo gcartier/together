@@ -3463,10 +3463,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) groupless
+          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name owner require-microphone? require-camera? zone stone zoom? link . players) group
+                      (bind (name owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3534,13 +3534,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) info
+                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group owner require-microphone? require-camera? zone stone zoom? link))))
+                                        user-data: (list 'group group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3552,7 +3552,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group owner require-microphone? require-camera? zone stone zoom? link . players) info
+                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3667,10 +3667,10 @@
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f #f 'start #f #f #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #f #f)))
         
         (define (select-zoom)
-          (select (list 'group #f #f #f #f 'start #f #t #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #t #f)))
         
         (define (select data)
           (bind (kind . rest) data
@@ -3699,7 +3699,7 @@
             
             (case kind
               ((group)
-               (bind (group owner require-microphone? require-camera? zone stone zoom? link) rest
+               (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link) rest
                  (select zone group owner stone zoom? link #f)))
               ((zone)
                (select data #f #f #f #f #f #f)))))
