@@ -14,6 +14,9 @@
 (module together.zoom jazz
 
 
+(import (jazz.io))
+
+
 (class Invalid-Link extends Exception
   
   
@@ -78,7 +81,8 @@
                         (tie "open \"zoommtg://zoom.us/join?confno={confno}\"")
                       (tie "open \"zoommtg://zoom.us/join?confno={confno}&pwd={pwd}\""))))
     (windows
-     (let ((path "C:/Users/gucar/AppData/Roaming/Zoom/bin/Zoom.exe")
-           (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
-       (open-process (list path: path arguments: (list arg)))))
+     (let ((roaming (normalize-filename-separators (get-special-folder CSIDL_APPDATA))))
+       (let ((path (string-append roaming "/Zoom/bin/Zoom.exe"))
+             (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
+         (open-process (list path: path arguments: (list arg))))))
     (else))))
