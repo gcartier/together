@@ -17,6 +17,11 @@
 (import (jazz.io))
 
 
+;;;
+;;;; Parse
+;;;
+
+
 (class Invalid-Link extends Exception
   
   
@@ -38,7 +43,7 @@
     reason))
 
 
-(definition public (throw-invalid-link reason)
+(definition (throw-invalid-link reason)
   (throw (new Invalid-Link reason)))
 
 
@@ -69,6 +74,26 @@
                           (values server (substring str 0 pos) (substring str (+ pos (string-length targ)) (string-length str))))))))))))))))
 
 
+;;;
+;;;; Launch
+;;;
+
+
+(class Zoom-Not-Found extends Exception)
+
+
+(definition public (throw-zoom-not-found)
+  (throw (new Zoom-Not-Found)))
+
+
+(definition (require-zoom-path)
+  (let ((roaming (normalize-filename-separators (get-special-folder CSIDL_APPDATA))))
+    (let ((path (string-append roaming "/Zoom/bin/Zoom.exe")))
+      (if (file-exists? path)
+          path
+        (throw-zoom-not-found)))))
+
+
 (definition public (launch-zoom-link link)
   (receive (server confno pwd) (parse-link link)
     (launch-zoom server confno pwd)))
@@ -81,8 +106,7 @@
                         (tie "open \"zoommtg://zoom.us/join?confno={confno}\"")
                       (tie "open \"zoommtg://zoom.us/join?confno={confno}&pwd={pwd}\""))))
     (windows
-     (let ((roaming (normalize-filename-separators (get-special-folder CSIDL_APPDATA))))
-       (let ((path (string-append roaming "/Zoom/bin/Zoom.exe"))
-             (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
-         (open-process (list path: path arguments: (list arg))))))
+     (let ((path (require-zoom-path))
+           (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
+       (open-process (list path: path arguments: (list arg)))))
     (else))))

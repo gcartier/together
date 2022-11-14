@@ -2696,9 +2696,11 @@
       (let ((link (circle-property tier name 'link)))
         (if (empty-string? link)
             (display-message world "No Zoom link")
-          (catch (Invalid-Link exc
-                   (display-message world "Invalid Zoom link"))
-            (launch-zoom-link link))))))
+          (catch (Zoom-Not-Found exc
+                   (display-message world "Unable to launch Zoom"))
+            (catch (Invalid-Link exc
+                     (display-message world "Invalid Zoom link"))
+              (launch-zoom-link link)))))))
   
   
   (method package (edit-zoom self name)
