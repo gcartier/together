@@ -86,14 +86,6 @@
   (throw (new Zoom-Not-Found)))
 
 
-(definition (require-zoom-path)
-  (let ((roaming (normalize-filename-separators (get-special-folder CSIDL_APPDATA))))
-    (let ((path (string-append roaming "/Zoom/bin/Zoom.exe")))
-      (if (file-exists? path)
-          path
-        (throw-zoom-not-found)))))
-
-
 (definition public (launch-zoom-link link)
   (receive (server confno pwd) (parse-link link)
     (launch-zoom server confno pwd)))
@@ -106,7 +98,15 @@
                         (tie "open \"zoommtg://zoom.us/join?confno={confno}\"")
                       (tie "open \"zoommtg://zoom.us/join?confno={confno}&pwd={pwd}\""))))
     (windows
-     (let ((path (require-zoom-path))
-           (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
-       (open-process (list path: path arguments: (list arg)))))
+     (let ()
+       (define (require-zoom-path)
+         (let ((roaming (normalize-filename-separators (get-special-folder CSIDL_APPDATA))))
+           (let ((path (string-append roaming "/Zoom/bin/Zoom.exe")))
+             (if (file-exists? path)
+                 path
+               (throw-zoom-not-found)))))
+       
+       (let ((path (require-zoom-path))
+             (arg (tie "--url=zoommtg://{server}.zoom.us/join?action=join&confno={confno}&pwd={pwd}")))
+         (open-process (list path: path arguments: (list arg))))))
     (else))))
