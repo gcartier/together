@@ -65,6 +65,7 @@
         (world.colors)
         (world.configure)
         (world.context)
+        (world.debugging)
         (world.evolution)
         (world.fog)
         (world.gc)
@@ -1963,7 +1964,8 @@
         (install-zone self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
-        (refresh-hierarchy self))))
+        (refresh-hierarchy self)
+        (start-debugging))))
   
   
   (method (together-destroy self)
