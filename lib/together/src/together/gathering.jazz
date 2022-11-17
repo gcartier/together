@@ -1980,8 +1980,9 @@
           (close-send-streams udp-client)
           (close-receive-streams udp-client))
         (uninstall-hooks self)
-        (space-deactivate space)
-        (space-uninstall space)
+        (when space
+          (space-deactivate space)
+          (space-uninstall space))
         (uninstall-zone self)
         (unbind-camera)
         (set! space (new Space))
