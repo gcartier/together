@@ -224,7 +224,7 @@
         (set! *available-zones* (filter-zones zones))
         zones)))
 
-(definition protected (set-available-zones zones)
+(definition protected (register-available-zones zones)
   (set! *available-zones* zones))
 
 
@@ -1956,7 +1956,8 @@
   
   (method (together-ready self)
     (when (window?)
-      (let ((world (current-world)))
+      (let ((world (current-world))
+            (client (current-client)))
         (setup-configuration self)
         (start-gc-monitor)
         (setup-log-listener)
@@ -1964,7 +1965,10 @@
         (install-zone self)
         (install-hooks self)
         (set-escape-hook world (~ escape-press self))
-        (refresh-hierarchy self)
+        (bind (hierarchy zones) (ready-to-server client)
+          (register-available-zones zones)
+          (register-hierarchy hierarchy)
+          (hierarchy-update self hierarchy))
         (start-debugging))))
   
   
@@ -3145,7 +3149,7 @@
   
   
   (method (zones-update self hierarchy zones)
-    (set-available-zones zones)
+    (register-available-zones zones)
     (hierarchy-update self hierarchy))
   
   
@@ -3437,7 +3441,7 @@
     (let ((tier (current-tier)))
       (let ((hierarchy (list-hierarchy tier)))
         (register-hierarchy hierarchy)
-        (view-hierarchy self hierarchy))))
+        (hierarchy-update self hierarchy))))
   
   
   (method (unify-hierarchy self hierarchy available-zones)
