@@ -227,40 +227,43 @@
   (import (world.interface.script))
   (import (world.scriptum))
   (method override (activate self)
-    (let ((interface (current-interface))
-          (space (current-space))
-          (world (current-world))
-          (zone (current-zone)))
-      (application-activate space)
-      ;; wakeup render
-      (let ((task (get-render-task zone)))
-        (when task
-          (task-wakeup task)))
-      ;; wakeup tick
-      (let ((task (get-tick-task zone)))
-        (when task
-          (task-wakeup task)))
-      ;; super mega quicky
-      @version1
-      (when edited-entity
-        (let ((edited-path (get-path (get-asset edited-entity))))
-          (let ((script (find-asset world edited-path)))
-            (when script
-              (let ((content (load-text script)))
-                (when (not (equal? (digest-string content 'SHA-1)
-                                   (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
-                  (let ((panel (child interface 'script)))
-                    (let ((manager (locate panel 'manager)))
-                      (let ((text (locate manager '(script text))))
-                        (require-cataloguer)
-                        (let ((entity (register-asset-script script)))
-                          (set-edited-entity entity)
-                          (set-edited manager entity)
-                          (set-string-content text content)
-                          (set-text (get-script entity) content)
-                          @a-bit-too-much-especially-when-errors
-                          (execute-script world edited-path))))))))))))
-    (nextmethod self))
+    (let ((interface (current-interface+))
+          (space (current-space+))
+          (world (current-world+))
+          (zone (current-zone+)))
+      ;; be robust to an early crash that will call
+      ;; message box which will in turn call activate
+      (when (and interface space world zone)
+        (application-activate space)
+        ;; wakeup render
+        (let ((task (get-render-task zone)))
+          (when task
+            (task-wakeup task)))
+        ;; wakeup tick
+        (let ((task (get-tick-task zone)))
+          (when task
+            (task-wakeup task)))
+        ;; super mega quicky
+        @version1
+        (when edited-entity
+          (let ((edited-path (get-path (get-asset edited-entity))))
+            (let ((script (find-asset world edited-path)))
+              (when script
+                (let ((content (load-text script)))
+                  (when (not (equal? (digest-string content 'SHA-1)
+                                     (digest-string (get-text (get-script edited-entity)) 'SHA-1)))
+                    (let ((panel (child interface 'script)))
+                      (let ((manager (locate panel 'manager)))
+                        (let ((text (locate manager '(script text))))
+                          (require-cataloguer)
+                          (let ((entity (register-asset-script script)))
+                            (set-edited-entity entity)
+                            (set-edited manager entity)
+                            (set-string-content text content)
+                            (set-text (get-script entity) content)
+                            @a-bit-too-much-especially-when-errors
+                            (execute-script world edited-path))))))))))))
+      (nextmethod self)))
   
   
   (method override (deactivate self)
