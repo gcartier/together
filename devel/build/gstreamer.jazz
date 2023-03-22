@@ -80,6 +80,18 @@
   ;; make sure to have (I think to be confirmed)
   ;; export MACOSX_DEPLOYMENT_TARGET=10.12
 
+  ;; need to brew install pkgconfig and
+  ;; export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+  ;; for the build to use the libraries in the installed gstreamer
+
+  ;; also need to brew install glib for glib-mkenums even
+  ;; though it is not the glib that will end up being used
+
+  ;; starting with version 1.20 i also had to fucking do a replace
+  ;; in all the pc files located in /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+  ;; search for /non_existent_on_purpose/please_use_framework_pkg-config/or_pass_--define-prefix_to_your_pkg-config
+  ;; replace with /Library/Frameworks/GStreamer.framework/Versions/1.0
+
 
   ;;;
   ;;;; BUILDING
@@ -87,7 +99,7 @@
 
 
   ;; DISTRIBUTION
-  ;; - meson -Dprefix=/Users/cartier/Devel/gstreamer/gst-build/distr -Dbuildtype=debugoptimized builddistr
+  ;; - meson setup -Dprefix=/Users/cartier/Devel/gstreamer/gstreamer/distr -Dbuildtype=debugoptimized builddistr
   ;; - ninja -C builddistr
   ;; - meson install -C builddistr
 
