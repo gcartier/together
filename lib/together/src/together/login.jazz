@@ -400,7 +400,10 @@
   (method override (application-deactivate self)
     (let ((world (current-world)))
       (uninstall-vista)
-      (unanimated (get-showcase world))))
+      ;; quick hack around quit
+      (let ((showcase (get-showcase world)))
+        (when showcase
+          (unanimated showcase)))))
   
   
   (method override (showcase-avatar? self)
