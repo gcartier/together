@@ -1935,7 +1935,7 @@
       (together-ready self)
       (when auto-create
         (for-each (lambda (name)
-                    (create-group client name #t #t #t #t #t #f #f #f))
+                    (create-group client name #t #t #t #t #t #f #f #f #f))
                   (listify auto-create)))
       (cond ((get-reconnect-info client)
              =>
@@ -2439,7 +2439,7 @@
                                                  (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
                                              (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position)))
                                                    (broadcast-hierarchy? persistent?))
-                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f)))
+                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f #f)))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
                                                    (clear-message world)
@@ -2654,7 +2654,7 @@
                   (display-problem err)
                 (let ((text (locate view 'text)))
                   (let ((name (trim-whitespace (get-string-content text))))
-                    (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f #f #f #f)))
+                    (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f #f #f #f #f)))
                       (if (string? no/exception)
                           (display-error world no/exception)
                         (clear-message world)
@@ -2674,7 +2674,7 @@
                 (link-text (locate link-view 'text)))
             (let ((name (trim-whitespace (get-string-content text)))
                   (link (trim-whitespace (get-string-content link-text))))
-              (let ((no/exception (create-group tier name #f #f #f #t #f #f #t link)))
+              (let ((no/exception (create-group tier name #f #f #f #t #f #f #t link #f)))
                 (if (string? no/exception)
                     (display-error world no/exception)
                   (clear-message world)
@@ -3472,10 +3472,10 @@
                         (unless (eq? zone 'start)
                           (table-set! zones (cdr zone) '()))))
                     available-zones)
-          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) groupless
+          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) group
+                      (bind (name owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3543,13 +3543,13 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-group father info (empty? #f))
-                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) info
+                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link))))
+                                        user-data: (list 'group group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3561,7 +3561,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link . players) info
+                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3676,14 +3676,14 @@
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f #f #f #f 'start #f #f #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f)))
         
         (define (select-zoom)
-          (select (list 'group #f #f #f #f #f #f 'start #f #t #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f)))
         
         (define (select data)
           (bind (kind . rest) data
-            (define (select zone group owner stone zoom? link player)
+            (define (select zone group owner stone zoom? link description player)
               (let ((group (and (eq? zone 'start) group)))
                 (set! selected-message "")
                 (set-circle-vista (and stone (second stone)))
@@ -3708,10 +3708,10 @@
             
             (case kind
               ((group)
-               (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link) rest
-                 (select zone group owner stone zoom? link #f)))
+               (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
+                 (select zone group owner stone zoom? link description #f)))
               ((zone)
-               (select data #f #f #f #f #f #f)))))
+               (select data #f #f #f #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
