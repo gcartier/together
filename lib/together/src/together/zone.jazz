@@ -30,6 +30,7 @@
         (jazz.ui)
         (jazz.view)
         (jazz.window)
+        (gaea.engine.opengl)
         (gaea.geometry)
         (gaea.window)
         (world)
