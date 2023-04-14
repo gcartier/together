@@ -2329,7 +2329,7 @@
             (lambda ()
               (unless from-central?
                 (close-non-central-top self))
-              (push-panel (open-frame (new Audio-Options size: {Dimension 466 288} location: 'center)))))))))
+              (push-panel (open-frame (new Audio-Options size: {Dimension 466 308} location: 'center)))))))))
   
   
   (method (on-video-options self evt)
