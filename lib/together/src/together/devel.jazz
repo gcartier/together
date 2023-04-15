@@ -173,7 +173,6 @@
         (world.section)
         (world.sector)
         (world.settings)
-        (world.shader)
         (world.shaders)
         (world.simulate)
         (world.skybox)
