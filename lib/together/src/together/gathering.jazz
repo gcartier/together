@@ -2329,7 +2329,10 @@
             (lambda ()
               (unless from-central?
                 (close-non-central-top self))
-              (push-panel (open-frame (new Audio-Options size: {Dimension 466 308} location: 'center)))))))))
+              (let ((size (cond-expand
+                            (windows {Dimension 466 328})
+                            (else {Dimension 466 308}))))
+                (push-panel (open-frame (new Audio-Options size: size location: 'center))))))))))
   
   
   (method (on-video-options self evt)
