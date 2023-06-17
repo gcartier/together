@@ -306,13 +306,15 @@
     (<install>
       (<caption~>           title: "Circle Options")
       (<content~>                                        layout-type: center
-        (<View>                                          size: {Dimension 390 140}
-          (<Option-Label>   title: "Join by invite only" position: {Point 20  0} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0  0} option: join-by-invite-only)
-          (<Option-Label>   title: "Persistent"          position: {Point 20   50} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0   50} option: persistent)
-          (<Option-Label>   title: "Require camera"      position: {Point 20 100} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0 100} option: require-camera)))))
+        (<View>                                          size: {Dimension 390 160}
+          (<Option-Label>   title: "Layout"              position: {Point   0 1})
+          (<Combo-Option>                                position: {Point 140 0} size: {Dimension 250 19} option: layout)
+          (<Option-Label>   title: "Join by invite only" position: {Point 20  60} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0  60} option: join-by-invite-only)
+          (<Option-Label>   title: "Persistent"          position: {Point 20 100} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0 100} option: persistent)
+          (<Option-Label>   title: "Require camera"      position: {Point 20 140} size: {Dimension 200 15})
+          (<Boolean-Option>                              position: {Point  0 140} option: require-camera)))))
   
   
   (method override (prepare self rest)
@@ -322,6 +324,13 @@
   
   (method override (read-option self option)
     (case option
+      ((layout)
+       (let ((layout-list '(round hybrid stage)))
+         (let ((choices (map (lambda (layout)
+                               (list layout (capitalize (symbol->string layout))))
+                             layout-list))
+               (choice (circle-shape (current-client) circle-name)))
+           (values choices choice))))
       ((join-by-invite-only)
        (circle-property (current-client) circle-name 'invite-only?))
       ((persistent)
@@ -332,6 +341,9 @@
   
   (method override (write-option self option value title)
     (case option
+      ((layout)
+       (set-current-circle-shape value)
+       (change-circle-shape (current-client) circle-name value))
       ((join-by-invite-only)
        (change-circle-property (current-client) circle-name 'invite-only? value))
       ((persistent)

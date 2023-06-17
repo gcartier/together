@@ -1163,7 +1163,7 @@
             ,@(cond (grouped? (list zone-group-bindings))
                     (circling? (list circling-bindings zone-circling-bindings))
                     (else (list zone-not-circling-bindings)))
-            ,@(if (and circling? (eq? (get-circle-mode together) 'circle)) (list circle-bindings) '())
+            ,@(if (and circling? (eq? (get-circle-mode together) 'presence)) (list circle-bindings) '())
             ,@(if free? (list zone-free-bindings) '()))))))
   
   
@@ -1240,9 +1240,16 @@
         (disable-autotrack world))))
   
   
+  (method override (draw-compass? self)
+    (let ((together (current-together)))
+      (not (circling? together))))
+  
+  
   (method override (draw-world? self)
     (let ((together (current-together)))
-      (eq? (get-circle-mode together) 'avatar)))
+      (let ((mode (get-circle-mode together)))
+        (or (eq? mode 'avatar)
+            (eq? mode 'presence)))))
   
   
   (method override (draw-message-offset self)
@@ -1501,7 +1508,7 @@
       `(,void-bindings
         @roaming ,@(if (admin?) (list void-admin-bindings) '())
         ,circling-bindings
-        ,@(if (eq? (get-circle-mode together) 'circle) (list circle-bindings) '()))))
+        ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '()))))
   
   
   (method override (draw-world? self)
@@ -1782,7 +1789,7 @@
         (<!>                 name: change-quality             active?: #t)
         (<!>                 name: video-options              active?: #t))
       (<together-circle!>
-        (<!>                 name: circle-mode                active?: #t)
+        (<!>                 name: presence-mode              active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
         (<!>                 name: gallery-mode               active?: #t)
         (<!>                 name: circle-options             active?: #t))
@@ -2817,6 +2824,8 @@
         (set! circle-no no)
         (set! circle-started (- (current-seconds) duration))
         (set! circle-joined (current-seconds))
+        (set-visible? (child mainbar 'circle-name) #t)
+        (set-title (child mainbar 'circle-name) circle-name)
         (add-snapshot-property 'live.circle-name circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
         (set-circle-center (if stone (second stone) default-circle-center))
@@ -2837,7 +2846,7 @@
         (set! preserved-eye? #f)
         (cond ((eq? active-zone 'start)
                (goto-space self 'void)
-               (change-circle-mode self 'circle 'circle feedback?: #f)
+               (change-circle-mode self 'presence 'circle feedback?: #f)
                (circle-home))
               (else
                (change-circle-mode self 'avatar 'circle feedback?: #f)))
@@ -2859,7 +2868,7 @@
       (uninstall-vista)
       (install-circle-hooks self)
       (goto-space self 'void)
-      (change-circle-mode self 'circle 'circle feedback?: #f)
+      (change-circle-mode self 'presence 'circle feedback?: #f)
       (circle-home)
       (setup-visibility mainbar)
       (set-mode me 'player)))
@@ -4156,11 +4165,23 @@
         (focus-world))))
   
   
-  (method (on-circle-mode self evt)
+  ;; for testing camera positioning
+  (method protected (free-mode self)
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'circle)
+      (unless (eq? circle-mode 'avatar)
+        (change-circle-mode self 'avatar 'circle feedback?: #f)
+        (unbind-camera)
+        (maybe-enable-autotrack world)
+        (free-motion world feedback?: #f)
+        (focus-world)
+        (display-message world "Free"))))
+  
+  
+  (method (on-presence-mode self evt)
+    (let ((world (current-world)))
+      (unless (eq? circle-mode 'presence)
         (let ((from-avatar? (eq? circle-mode 'avatar)))
-          (change-circle-mode self 'circle 'circle)
+          (change-circle-mode self 'presence 'circle)
           (when from-avatar?
             (preserve-camera self)
             (circle-home)
@@ -4201,7 +4222,7 @@
       (space-refresh space)
       (show-interface (current-space) #t)
       (update-parameter world 'avatar-mode)
-      (update-parameter world 'circle-mode)
+      (update-parameter world 'presence-mode)
       (update-parameter world 'focus-mode)
       (update-parameter world 'gallery-mode)
       (when feedback?
@@ -4219,8 +4240,8 @@
     (and circle-name (eq? circle-mode 'avatar)))
   
   
-  (method package (circle-mode? self)
-    (and circle-name (eq? circle-mode 'circle)))
+  (method package (presence-mode? self)
+    (and circle-name (eq? circle-mode 'presence)))
   
   
   (method package (focus-mode? self)
@@ -4232,7 +4253,7 @@
   
   
   (method package (circling-mode? self)
-    (or (circle-mode? self)
+    (or (presence-mode? self)
         (avatar-mode? self)))
   
   
@@ -4376,7 +4397,7 @@
              (begin
                (seek-backward focus)
                #t)
-           (and (circle-mode? self)
+           (and (presence-mode? self)
                 (world-focus? focus)
                 (begin
                   (circle-left)
@@ -4386,74 +4407,74 @@
              (begin
                (seek-forward focus)
                #t)
-           (and (circle-mode? self)
+           (and (presence-mode? self)
                 (world-focus? focus)
                 (begin
                   (circle-right)
                   #t))))
         (({Shortcut Up})
-         (and (circle-mode? self)
+         (and (presence-mode? self)
               (world/circle-focus? focus)
               (begin
                 (circle-up)
                 #t)))
         (({Shortcut Down})
-         (and (circle-mode? self)
+         (and (presence-mode? self)
               (world/circle-focus? focus)
               (begin
                 (circle-down)
                 #t)))
         (({Shortcut Return})
-         (and (circle-mode? self)
+         (and (presence-mode? self)
               (world/circle-focus? focus)
               (begin
                 (circle-return)
                 #t)))
         (({Shortcut Backspace})
-         (and (circle-mode? self)
+         (and (presence-mode? self)
               (world/circle-focus? focus)
               (begin
                 (circle-backspace)
                 #t)))
         (({Shortcut #\1})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (begin
                 (focus-no 1)
                 #t)))
         (({Shortcut #\2})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (begin
                 (focus-no 2)
                 #t)))
         (({Shortcut #\3})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (begin
                 (focus-no 3)
                 #t)))
         (({Shortcut #\4})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (begin
                 (focus-no 4)
                 #t)))
         (({Shortcut #\5})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (begin
                 (focus-no 5)
                 #t)))
         (({Shortcut Tab})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (world/circle-focus? focus)
               (begin
                 (cycle-focus #f)
                 #t)))
         (({Shortcut :shift Tab})
-         (and (or (circle-mode? self)
+         (and (or (presence-mode? self)
                   (focus-mode? self))
               (world/circle-focus? focus)
               (begin

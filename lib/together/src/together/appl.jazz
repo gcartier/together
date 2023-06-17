@@ -838,12 +838,12 @@
              (avatar-mode? together))))))
 
 
-(define-parameter circle-mode
+(define-parameter presence-mode
   (new World-Parameter
     (lambda ()
       (let ((together (current-together)))
         (and together
-             (circle-mode? together))))))
+             (presence-mode? together))))))
 
 
 (define-parameter focus-mode
@@ -880,8 +880,8 @@
       (<World-Parameter-Button> name: toggle-microphone   resource: {Icon-Resource "Logogram/Tornado"} action-handler: {Action together-audio toggle-microphone} parameter: microphone)
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-video toggle-camera} parameter: camera)
       (<World-Separator>)
-      (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Shapes"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
-      (<World-Parameter-Button> name: circle-mode         resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle circle-mode} parameter: circle-mode)
+      (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Sunset"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
+      (<World-Parameter-Button> name: presence-mode       resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle presence-mode} parameter: presence-mode)
       (<World-Parameter-Button> name: focus-mode          resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-circle focus-mode} parameter: focus-mode)
       (<World-Parameter-Button> name: gallery-mode        resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-circle gallery-mode} parameter: gallery-mode)
       (<World-Separator>)
@@ -1040,7 +1040,7 @@
     (<install>                                        title: "Circle"
       (<World-Action-Item> name: circle-menu          title: "Circle menu" action-handler: {Event-Handler :world on-radial-menu radial: circle-menu} description: ("Circle menu."))
       (<World-Action-Item> name: avatar-mode          title: "Avatar" action-handler: {Event-Handler :together on-avatar-mode} shortcut: {Shortcut :alt #\A} description: "Avatar mode.")
-      (<World-Action-Item> name: circle-mode          title: "Circle" action-handler: {Event-Handler :together on-circle-mode} shortcut: {Shortcut :alt #\D} description: "Circle mode.")
+      (<World-Action-Item> name: presence-mode        title: "Presence" action-handler: {Event-Handler :together on-presence-mode} shortcut: {Shortcut :alt #\D} description: "Presence mode.")
       (<World-Action-Item> name: focus-mode           title: "Focus" action-handler: {Event-Handler :together on-focus-mode} shortcut: {Shortcut :alt #\F} description: "Focus mode.")
       (<World-Action-Item> name: gallery-mode         title: "Gallery" action-handler: {Event-Handler :together on-gallery-mode} shortcut: {Shortcut :alt #\G} description: "Gallery mode.")
       (<World-Action-Item> name: bring-to-front       title: "Bring to front" shortcut: {Shortcut "Click image"})
@@ -1296,7 +1296,7 @@
         (<!>                 name: change-quality             visible?: #t)
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
-        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
@@ -1379,7 +1379,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
-        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
@@ -1544,7 +1544,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
-        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
@@ -1834,7 +1834,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
-        (<!>                 name: circle-mode                visible?: #t)
+        (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
         (<!>                 name: bring-to-front             visible?: #t)
