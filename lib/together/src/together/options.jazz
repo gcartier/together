@@ -325,7 +325,7 @@
   (method override (read-option self option)
     (case option
       ((layout)
-       (let ((layout-list '(round hybrid stage)))
+       (let ((layout-list '(round hybrid theater)))
          (let ((choices (map (lambda (layout)
                                (list layout (capitalize (symbol->string layout))))
                              layout-list))
