@@ -2696,7 +2696,8 @@
   
   (method package (join-circle self name)
     (let ((tier (current-client))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (let ((err (acquire-circle self name)))
         (client-status tier err)
         (if err
@@ -2704,7 +2705,11 @@
           (let ((group-info/exception (join-group tier name 'player)))
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
-              (setup-circle self name group-info/exception)))))))
+              (if (eq? zone 'start)
+                  (setup-circle self name group-info/exception)
+                (enter-zone self)
+                (setup-circle self name group-info/exception)
+                (presence-mode self))))))))
   
   
   (method package (join-zoom-circle self name)
@@ -3696,27 +3701,26 @@
         (define (select data)
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
-              (let ((group (and (eq? zone 'start) group)))
-                (set! selected-message "")
-                (set-circle-vista (and stone (second stone)))
-                (if (equal? zone selected-zone)
-                    (reinstall-vista)
-                  (unless zone-loading
-                    (load-zone self zone))
-                  (set! zone-loading zone)
-                  (unless (eq? zone 'start)
-                    (set! selected-color {Color World-Orange})
-                    (set! selected-message (format "{a} is loading..." (last zone)))))
-                (set! selected-zone zone)
-                (set! selected-group group)
-                (set! selected-data data)
-                (set! selected-owner owner)
-                (set! selected-zoom? zoom?)
-                (when (selected-loaded? self)
-                  (set! active-zone zone)
-                  (set! active-group group)
-                  (set! active-data data))
-                (update-center-interface space)))
+              (set! selected-message "")
+              (set-circle-vista (and stone (second stone)))
+              (if (equal? zone selected-zone)
+                  (reinstall-vista)
+                (unless zone-loading
+                  (load-zone self zone))
+                (set! zone-loading zone)
+                (unless (eq? zone 'start)
+                  (set! selected-color {Color World-Orange})
+                  (set! selected-message (format "{a} is loading..." (last zone)))))
+              (set! selected-zone zone)
+              (set! selected-group group)
+              (set! selected-data data)
+              (set! selected-owner owner)
+              (set! selected-zoom? zoom?)
+              (when (selected-loaded? self)
+                (set! active-zone zone)
+                (set! active-group group)
+                (set! active-data data))
+              (update-center-interface space))
             
             (case kind
               ((group)
@@ -4154,15 +4158,19 @@
   
   
   (method (on-avatar-mode self evt)
-    (let ((world (current-world)))
-      (unless (eq? circle-mode 'avatar)
-        (change-circle-mode self 'avatar 'circle)
-        (restore-eye self)
-        (unbind-camera)
-        (maybe-enable-autotrack world)
-        (person-motion world eye-center?: #f feedback?: #f)
-        (restore-distance self)
-        (focus-world))))
+    (avatar-mode self))
+  
+  
+  (method (on-presence-mode self evt)
+    (presence-mode self))
+  
+  
+  (method (on-focus-mode self evt)
+    (focus-mode self))
+  
+  
+  (method (on-gallery-mode self evt)
+    (gallery-mode self))
   
   
   ;; for testing camera positioning
@@ -4177,11 +4185,23 @@
         (display-message world "Free"))))
   
   
-  (method (on-presence-mode self evt)
+  (method (avatar-mode self (feedback?: feedback? #t))
+    (let ((world (current-world)))
+      (unless (eq? circle-mode 'avatar)
+        (change-circle-mode self 'avatar 'circle feedback?: feedback?)
+        (restore-eye self)
+        (unbind-camera)
+        (maybe-enable-autotrack world)
+        (person-motion world eye-center?: #f feedback?: #f)
+        (restore-distance self)
+        (focus-world))))
+  
+  
+  (method (presence-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? circle-mode 'presence)
         (let ((from-avatar? (eq? circle-mode 'avatar)))
-          (change-circle-mode self 'presence 'circle)
+          (change-circle-mode self 'presence 'circle feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (circle-home)
@@ -4189,22 +4209,22 @@
             (disable-autotrack world))))))
   
   
-  (method (on-focus-mode self evt)
+  (method (focus-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? circle-mode 'focus)
         (let ((from-avatar? (eq? circle-mode 'avatar)))
-          (change-circle-mode self 'focus 'focus)
+          (change-circle-mode self 'focus 'focus feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (bind-camera)
             (disable-autotrack world))))))
   
   
-  (method (on-gallery-mode self evt)
+  (method (gallery-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? circle-mode 'gallery)
         (let ((from-avatar? (eq? circle-mode 'avatar)))
-          (change-circle-mode self 'gallery 'gallery)
+          (change-circle-mode self 'gallery 'gallery feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (bind-camera)
