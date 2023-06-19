@@ -1240,6 +1240,12 @@
         (disable-autotrack world))))
   
   
+  (method override (show-me? self)
+    (let ((together (current-together)))
+      (or (not (circling? together))
+          (eq? (get-circle-mode together) 'avatar))))
+  
+  
   (method override (draw-compass? self)
     (let ((together (current-together)))
       (not (circling? together))))
@@ -2923,6 +2929,7 @@
       (maybe-enable-autotrack world)
       (person-motion world eye-center?: #f feedback?: #f)
       (restore-distance self)
+      (set-draw-players? world #t)
       (clear-snapshot-property 'live.circle-name)
       (cond ((eq? active-zone 'start)
              (goto-space self 'gathering)
@@ -4241,6 +4248,7 @@
       (goto-layout video layout)
       (when (eq? video-layout 'focus)
         (goto-focused self))
+      (set-draw-players? world (eq? mode 'avatar))
       (space-refresh space)
       (show-interface (current-space) #t)
       (update-parameter world 'avatar-mode)
