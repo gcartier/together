@@ -4185,13 +4185,9 @@
   ;; for testing camera positioning
   (method protected (free-mode self)
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'avatar)
-        (change-circle-mode self 'avatar 'circle feedback?: #f)
-        (unbind-camera)
-        (maybe-enable-autotrack world)
-        (free-motion world feedback?: #f)
-        (focus-world)
-        (display-message world "Free"))))
+      (unbind-camera)
+      (free-motion world feedback?: #f)
+      (display-message world "Free")))
   
   
   (method (avatar-mode self (feedback?: feedback? #t))
