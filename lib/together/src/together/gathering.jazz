@@ -1109,7 +1109,6 @@
     (let ((interface (current-interface))
           (world (current-world))
           (video (current-video)))
-      
       (unbind-camera)
       (person-motion world feedback?: #f)
       (show-mainbar self)
