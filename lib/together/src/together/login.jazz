@@ -195,8 +195,7 @@
   (method override (prepare-skybox self)
     (set! skybox (let ((skybox (find-skybox "world/nebula")))
                    (prepare skybox)
-                   skybox))
-    (set-fog-color (get-fog skybox)))
+                   skybox)))
   
   
   (method override (camera-update self)

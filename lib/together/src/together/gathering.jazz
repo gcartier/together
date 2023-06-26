@@ -2066,8 +2066,7 @@
       (unless (get-skybox zone)
         (set-skybox zone (let ((skybox (find-skybox (cache-together-skybox))))
                            (prepare skybox)
-                           skybox))
-        (set-fog-color (get-fog (get-skybox zone))))))
+                           skybox)))))
   
   
   (method protected (sleep-process self)
