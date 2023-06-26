@@ -150,10 +150,6 @@
     #f)
   
   
-  (method override (use-worldbox? self)
-    #t)
-  
-  
   (method override (showcase-avatar? self)
     #t)
   
