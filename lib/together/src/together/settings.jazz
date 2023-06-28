@@ -118,7 +118,7 @@
                 (shift-down?))
             (open-login-zone)
           (let ((auto-enter (world-setting 'together.auto-enter #f)))
-            (open-client-enter file auto-enter: (and auto-enter (split auto-enter "/")))))))))
+            (open-client-enter file auto-enter: (and auto-enter (if (eq? auto-enter 'start) auto-enter (split auto-enter "/"))))))))))
 
 
 (welcome-zone-open-set! open-login/client-enter)

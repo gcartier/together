@@ -49,6 +49,7 @@
         (time)
         (gaea.dye)
         (gaea.geometry)
+        (gaea.math)
         (world)
         (world.asset)
         (world.audio)
@@ -237,22 +238,6 @@
 
 
 ;;;
-;;;; Void-Zone
-;;;
-
-
-(class Void-Zone extends Zone
-  
-  
-  (form
-    (<install> draw-grid?: #f))
-  
-  
-  (method override (void? self)
-    #t))
-
-
-;;;
 ;;;; Gathering-Space
 ;;;
 
@@ -400,6 +385,7 @@
           (new Push-Button name: 'zoom-launch parent: root title: "Join on Zoom" location: '(center center) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))
           (new Push-Button name: 'zoom-edit parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
           (new Push-Button name: 'zoom-copy parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
+          (new Push-Button name: 'enter-world parent: root title: "Enter World" location: '(center -30) size: {Dimension 160 30} font: {Font font-name: tahoma point-size: 14.5 shadow: thin} action-handler: (~ on-enter self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
           (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
@@ -428,6 +414,7 @@
           (set-visible? (child root 'circle-join) (not admin-visible?))))
       (set-visible? (child root 'circle-create) #t)
       (set-visible? (child root 'zoom-create) #f)
+      (set-visible? (child root 'enter-world) #t)
       (set-visible? (child mainbar 'profile) #t)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #t)
@@ -620,6 +607,9 @@
             (set-visible? (child root 'zone-enter) flag)
             (set-enabled? (child root 'zone-enter) loaded?))
           
+          (define (start-visible flag)
+            (set-visible? (child root 'enter-world) flag))
+          
           (define (join-visible flag)
             (set-visible? (child root 'circle) flag)
             (set-visible? (child root 'circle-join) flag)
@@ -661,6 +651,7 @@
             (cond ((top-panel)
                    (unverified-visible #f)
                    (enter-visible #f)
+                   (start-visible #f)
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #f)
@@ -668,6 +659,7 @@
                   ((unverified?)
                    (unverified-visible #t)
                    (enter-visible #f)
+                   (start-visible #f)
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #f)
@@ -675,6 +667,7 @@
                   (active-group
                    (unverified-visible #f)
                    (enter-visible #f)
+                   (start-visible #f)
                    (cond ((not selected-zoom?)
                           (set-title (child root 'circle) active-group)
                           (join-visible #t)
@@ -689,6 +682,7 @@
                   (selected-zoom?
                    (unverified-visible #f)
                    (enter-visible #f)
+                   (start-visible #f)
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #f)
@@ -697,6 +691,7 @@
                   ((eq? active-zone 'start)
                    (unverified-visible #f)
                    (enter-visible #f)
+                   (start-visible #t)
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #t)
@@ -706,6 +701,7 @@
                    (set-title (child root 'zone) (last active-zone))
                    (unverified-visible #f)
                    (enter-visible #t)
+                   (start-visible #f)
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #f)
@@ -990,7 +986,7 @@
         (<!>                 name: toggle-microphone          active?: #t)))))
 
 
-(define-trait zone-not-circling-bindings Bindings
+(define-trait zone-not-grouped-bindings Bindings
   (<Trait>                   name: zone
     (<install>
       (<world-main!>
@@ -1153,17 +1149,12 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped? together))
-            (circling? (circling? together))
-            (avatar? (avatar-mode? together)))
-        (let ((free? (or (not circling?) avatar?)))
-          `(,zone-bindings
-            @roaming ,@(if (admin?) (list zone-admin-bindings) '())
-            ,@(cond (grouped? (list zone-group-bindings))
-                    (circling? (list circling-bindings zone-circling-bindings))
-                    (else (list zone-not-circling-bindings)))
-            ,@(if (and circling? (eq? (get-circle-mode together) 'presence)) (list circle-bindings) '())
-            ,@(if free? (list zone-free-bindings) '()))))))
+      (let ((grouped? (grouped? together)))
+        `(,zone-bindings
+           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
+           ,@(cond (grouped? (list zone-group-bindings))
+                   (else (list zone-not-grouped-bindings)))
+           ,zone-free-bindings))))
   
   
   (method override (space-actions self)
@@ -1239,24 +1230,6 @@
         (disable-autotrack world))))
   
   
-  (method override (show-me? self)
-    (let ((together (current-together)))
-      (or (not (circling? together))
-          (eq? (get-circle-mode together) 'avatar))))
-  
-  
-  (method override (draw-compass? self)
-    (let ((together (current-together)))
-      (not (circling? together))))
-  
-  
-  (method override (draw-world? self)
-    (let ((together (current-together)))
-      (let ((mode (get-circle-mode together)))
-        (or (eq? mode 'avatar)
-            (eq? mode 'presence)))))
-  
-  
   (method override (draw-message-offset self)
     80)
   
@@ -1288,12 +1261,202 @@
 
 
 ;;;
-;;;; Void-Space
+;;;; Circle-Space
 ;;;
 
 
-(define-trait void-bindings Bindings
-  (<Trait>                   name: void
+(class Circle-Space extends Sphere-Space
+  
+  
+  (method override (space-name self)
+    'circle)
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface))
+          (world (current-world))
+          (video (current-video)))
+      (unbind-camera)
+      (person-motion world feedback?: #f)
+      (show-mainbar self)
+      (show-compass world)
+      (set-proportion (child interface 'people) '(220 (bounds -324)))
+      (set-visible? (child interface 'people-label) #f)
+      (set-visible? (child interface 'people) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter panel)))
+      (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
+      (set-proportion (child interface 'chat) '(400 150))
+      (set-proportion (child interface 'command) '(400 19))
+      (set-location (child interface 'command-to) '(10 -182))
+      (set-size (child interface 'command-to) {Dimension 406 32})
+      (set-visible? (child interface 'command-to) #f)
+      (set-position (child interface '(command-to invite)) {Point 380 9})
+      (set-position (child interface '(command-to verify)) {Point 380 9})
+      (set-visible? (child interface 'chat) #f)
+      (set-visible? (child mainbar 'profile) #f)
+      (update-message-recipient together (list 'group (get-circle-name together)))
+      (layout-interface)
+      (no-showcase world)))
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
+  
+  
+  (method override (space-uninstall self)
+    (nextmethod self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (close-main-menu world)
+      (hide-mainbar self)
+      (hide-history world)
+      (hide-compass world)
+      (hide-interface)
+      (reset-panel-stack)
+      (disable-autotrack-mode world feedback?: #f)))
+
+  
+  (method override (space-bindings self)
+    (let ((together (current-together)))
+      (let ((grouped? (grouped? together))
+            (avatar? (avatar-mode? together)))
+        `(,zone-bindings
+           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
+           ,circling-bindings
+           ,zone-circling-bindings
+           ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())
+           ,@(if avatar? (list zone-free-bindings) '())))))
+  
+  
+  (method override (space-actions self)
+    (append (list (find-actions 'world-main)
+                  (find-actions 'world-graphics)
+                  (find-actions 'world-sound)
+                  (find-actions 'world-interface)
+                  (find-actions 'world-zone)
+                  (find-actions 'world-movement)
+                  (find-actions 'world-camera)
+                  (find-actions 'world-game)
+                  (find-actions 'world-spell)
+                  (find-actions 'world-people)
+                  (find-actions 'world-chat)
+                  (find-actions 'world-showcase)
+                  (find-actions 'world-build)
+                  (find-actions 'world-target)
+                  (find-actions 'world-history)
+                  (find-actions 'world-tile)
+                  (find-actions 'world-script)
+                  (find-actions 'world-debug)
+                  (find-actions 'together-menu)
+                  (find-actions 'together-audio)
+                  (find-actions 'together-video)
+                  (find-actions 'together-circle)
+                  (find-actions 'together-view)
+                  (find-actions 'together-record)
+                  (find-actions 'together-share)
+                  (find-actions 'together-profile)
+                  (find-actions 'together-experiment)
+                  (find-actions 'together-script)
+                  (find-actions 'together-debug))
+            (nextmethod self)))
+  
+  
+  (method override (draw-message-offset self)
+    80)
+  
+  
+  (method override (draw-working-offset self)
+    80)
+  
+  
+  (method override (toggle-chat self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (cond ((get-visible? (child interface 'chat))
+             (set-visible? (child interface 'chat) #f)
+             (set-visible? (child interface 'command-to) #f)
+             (set-visible? (child interface 'command) #f))
+            (else
+             (set-visible? (child interface 'chat) #t)
+             (set-visible? (child interface 'command-to) #t)
+             (set-visible? (child interface 'command) #t)))
+      (update-parameter world 'chat))))
+
+
+;;;
+;;;; Avatar-Space
+;;;
+
+
+(class Avatar-Space extends Circle-Space
+  
+  
+  (method override (space-name self)
+    'avatar)
+  
+  
+  (method override (panel-stack-change self)
+    (let ((world (current-world)))
+      (when (get-autotrack-mode?)
+        (cond ((top-panel)
+               (disable-autotrack world))
+              (else
+               (maybe-enable-autotrack world))))))
+  
+  
+  (method override (application-activate self)
+    (let ((world (current-world)))
+      (when (get-autotrack-mode?)
+        (maybe-enable-autotrack world))))
+  
+  
+  (method override (application-deactivate self)
+    (let ((world (current-world)))
+      (when (get-autotrack-mode?)
+        (disable-autotrack world))))
+  
+  
+  (method override (fade-mainbar? self)
+    (not (get-fade-thread (current-together))))
+  
+  
+  (method override (maybe-fade-mainbar self)
+    (let ((window (current-window)))
+      (when (fade-mainbar? self)
+        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+  
+  
+  (method override (central-menu-show self)
+    (when (fade-mainbar? self)
+      (set-fade mainbar-pane #f)
+      (invalidate-view mainbar)))
+  
+  
+  (method override (central-menu-hide self)
+    (maybe-fade-mainbar self))
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (let ((world (current-world)))
+      (unless (get-fade-thread (current-together))
+        (unless (get-central-menu world)
+          (fade-mainbar (new Point$fl$ x y)))))))
+
+
+;;;
+;;;; Presence-Space
+;;;
+
+
+(define-trait presence-bindings Bindings
+  (<Trait>                   name: presence
     (<install>
       (<world-main!>
         (<!>                 name: bindings-viewer            active?: #t)
@@ -1386,20 +1549,16 @@
         (<!>                 name: test                       active?: #t)))))
 
 
-@roaming
-(define-trait void-admin-bindings Bindings
-  (<Trait>                   name: void
-    (<install>
-      (<world-main!>
-        (<!>                 name: open-welcome               active?: #t)))))
-
-
-(class Void-Space extends Sphere-Space
+(class Presence-Space extends Circle-Space
   
   
   (slot power?      initialize #f getter generate)
   (slot hide-ring   initialize #f getter generate)
   (slot hide-thread initialize #f getter generate)
+  
+  
+  (method override (space-name self)
+    'presence)
   
   
   (method override (space-setup self)
@@ -1436,10 +1595,8 @@
       (set-visible? (child interface 'command-to) #f)
       (set-position (child interface '(command-to invite)) {Point 200 9})
       (set-position (child interface '(command-to verify)) {Point 200 9})
-      (update-message-recipient together (list 'group (get-circle-name together)))
       (layout-view interface)
       (layout-view root)
-      (no-showcase world)
       (when auto-hide?
         (install-hider self)
         (delay-hide-interface self #t))
@@ -1508,24 +1665,19 @@
             (nextmethod self)))
   
   
-  (method override (space-bindings self)
-    (let ((together (current-together)))
-      `(,void-bindings
-        @roaming ,@(if (admin?) (list void-admin-bindings) '())
-        ,circling-bindings
-        ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '()))))
-  
-  
-  (method override (draw-world? self)
+  (method override (show-me? self)
     #f)
   
   
-  (method override (draw-message-offset self)
-    80)
+  (method override (draw-compass? self)
+    #f)
   
   
-  (method override (draw-working-offset self)
-    80)
+  (method override (draw-world? self)
+    (let ((together (current-together)))
+      (let ((mode (get-circle-mode together)))
+        (or (eq? mode 'avatar)
+            (eq? mode 'presence)))))
   
   
   ;;;
@@ -1755,7 +1907,7 @@
                                                   (interface (current-interface))
                                                   (world (current-world))
                                                   (video (current-video)))
-                                              (when (and (is? (current-space) Void-Space)
+                                              (when (and (is? (current-space) Presence-Space)
                                                          auto-hide?
                                                          (get-visible? mainbar)
                                                          (not (current-tooltip-context))
@@ -1891,8 +2043,9 @@
     (or (table-ref spaces what #f)
         (let ((space (case what
                        ((gathering) (new Gathering-Space))
-                       ((void) (new Void-Space))
                        ((zone) (new Zone-Space))
+                       ((avatar) (new Avatar-Space))
+                       ((presence) (new Presence-Space))
                        ((script) (new Script-Space))
                        ((replay) (new Replay-Space))
                        ((simulate) (new Simulate-Space)))))
@@ -2449,26 +2602,13 @@
                                            (define (block-center pos)
                                              (- (round (+ pos .5)) .5))
                                            
-                                           (let ((id (make-unique-id))
-                                                 (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
-                                             (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position)))
-                                                   (broadcast-hierarchy? persistent?))
-                                               (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f #f)))
+                                           (let ((position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
+                                             (let ((broadcast-hierarchy? persistent?))
+                                               (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
-                                                   (clear-message world)
                                                    (close panel)
-                                                   (let ((class Circle-Stone)
-                                                         (scale (vertex .4 .4 .4))
-                                                         (color (make-dye))
-                                                         (model "warcraft/world/doodad/meetingstone01")
-                                                         (script-text #f)
-                                                         (properties '()))
-                                                     (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
-                                                       (add-element universe #f entity name position lookat scale color model script-text properties)
-                                                       (bake-entity-lighting zone entity))
-                                                     (add-block-at-position universe fire-position 51 0)
-                                                     (join-circle self name))))))))))))
+                                                   (join-circle self name)))))))))))
                                
                                (define (escape evt)
                                  (close panel))
@@ -2481,6 +2621,30 @@
                                (push-panel panel)
                                panel))))
               (acquire-focus (locate panel '(create view text)))))))))
+  
+  
+  (method (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)
+    (let ((tier (current-client))
+          (universe (current-universe))
+          (world (current-world))
+          (zone (current-zone)))
+      (let ((id (make-unique-id)))
+        (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f #f)))
+          (if (string? no/exception)
+              no/exception
+            (clear-message world)
+            (let ((class Circle-Stone)
+                  (scale (vertex .4 .4 .4))
+                  (color (make-dye))
+                  (model "warcraft/world/doodad/meetingstone01")
+                  (script-text #f)
+                  (properties '()))
+              (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
+                (add-element universe #f entity name position lookat scale color model script-text properties)
+                (bake-entity-lighting zone entity))
+              (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position))))
+                (add-block-at-position universe fire-position 51 0))
+              #f))))))
   
   
   (method (on-leave-group self evt)
@@ -2553,7 +2717,8 @@
           (let ((no fade-no))
             (define (fade?)
               (and (= no fade-no)
-                   (is? (current-space) Zone-Space)
+                   (or (is? (current-space) Zone-Space)
+                       (is? (current-space) Circle-Space))
                    (not (get-central-menu world))))
             
             (let ((thread
@@ -2588,7 +2753,6 @@
             (let ((sight (vertex -1. 0. 0.)))
               (let ((position (vertex+ circle-vista (vertex 3. 0. 0.))))
                 (teleport zone position sight))))
-          (change-circle-mode self 'avatar 'circle feedback?: #f)
           (delay-enable-autotrack self)
           #f))))
   
@@ -2656,26 +2820,45 @@
   
   (method package (create&join-circle self)
     (let ((tier (current-client))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (let ((create (child (get-root space) 'circle-create)))
         (let ((require-camera (child create 'require-camera?))
               (view (child create 'view)))
-          (let ((require-microphone? #t)
-                (require-camera? (get-checked? require-camera)))
+          (let ((persistent? #f)
+                (require-microphone? #t)
+                (require-camera? (get-checked? require-camera))
+                (broadcast-hierarchy? #f))
             (let ((err (acquire-microphone/camera self require-microphone? require-camera?)))
               (client-status tier err)
               (if err
                   (display-problem err)
                 (let ((text (locate view 'text)))
                   (let ((name (trim-whitespace (get-string-content text))))
-                    (let ((no/exception (create-group tier name #f require-microphone? require-camera? #f #f #f #f #f #f)))
-                      (if (string? no/exception)
-                          (display-error world no/exception)
-                        (clear-message world)
-                        (set-string-content text "")
-                        (content-changed view)
-                        (set-checked? require-camera #t)
-                        (join-circle self name))))))))))))
+                    (define (random-ring inner outer)
+                      (let ((width (+ (- outer inner) 1)))
+                        (let ((d (random-integer-between (- width) (- width 1))))
+                          (if (>= d 0)
+                              (+ d inner)
+                            (- d inner -1)))))
+                    
+                    (let ((x (random-ring 10 25))
+                          (y 4.)
+                          (z (random-ring 10 25)))
+                      (let ((position (vertex x y z))
+                            (lookat (horizon-lookat (random-horizon))))
+                        (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
+                          (if (string? no/exception)
+                              (display-error world no/exception)
+                            (clear-message world)
+                            (set-string-content text "")
+                            (content-changed view)
+                            (set-checked? require-camera #t)
+                            (enter-zone self)
+                            (let ((sight (vertex -1. 0. 0.)))
+                              (let ((position (vertex+ position (vertex 3. 0. 0.))))
+                                (teleport zone position sight)))
+                            (join-circle self name))))))))))))))
   
   
   (method package (create-zoom-circle self)
@@ -2710,8 +2893,7 @@
           (let ((group-info/exception (join-group tier name 'player)))
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
-              (if (or (eq? zone 'start)
-                      (eq? (get-mode me) 'player))
+              (if (eq? (get-mode me) 'player)
                   (setup-circle self name group-info/exception)
                 (enter-zone self)
                 (setup-circle self name group-info/exception)
@@ -2780,7 +2962,9 @@
   
   
   (method (circle-join self name group-info/exception)
-    (setup-circle self name group-info/exception))
+    (enter-zone self)
+    (setup-circle self name group-info/exception)
+    (presence-mode self))
   
   
   (method (acquire-circle self name)
@@ -2815,9 +2999,6 @@
           (video (current-video)))
       (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
         (startup-gstreamer)
-        (when (eq? active-zone 'start)
-          (reset-chronology)
-          (bind-camera))
         (when (auto-live?)
           (require-live-stream tier))
         (start udp)
@@ -2855,12 +3036,7 @@
                          (append! (map third streams) (list (get-stream-no self-output))))))
             (reorder-outputs video order)))
         (set! preserved-eye? #f)
-        (cond ((eq? active-zone 'start)
-               (goto-space self 'void)
-               (change-circle-mode self 'presence 'circle feedback?: #f)
-               (circle-home))
-              (else
-               (change-circle-mode self 'avatar 'circle feedback?: #f)))
+        (change-circle-mode self 'avatar 'circle feedback?: #f)
         (space-refresh space)
         @admin-request
         (start-captures)
@@ -2878,7 +3054,6 @@
       (bind-camera)
       (uninstall-vista)
       (install-circle-hooks self)
-      (goto-space self 'void)
       (change-circle-mode self 'presence 'circle feedback?: #f)
       (circle-home)
       (setup-visibility mainbar)
@@ -2900,25 +3075,21 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (let ((mode (if (void? zone) 'observer 'player)))
-        (let ((removed? (leave-group tier circle-name mode)))
-          (unless removed?
-            (let ((stone (find-circle-stone tier circle-name)))
-              (when stone
-                (bind (id position) stone
-                  (let ((section-index (position->section-index position)))
-                    (let ((section (index-section-if universe section-index)))
-                      (when section
-                        (let ((entity (find-entity-by-id section id)))
-                          (when entity
-                            (set-visible? entity #t))))))))))))
+      (let ((removed? (leave-group tier circle-name)))
+        (unless removed?
+          (let ((stone (find-circle-stone tier circle-name)))
+            (when stone
+              (bind (id position) stone
+                (let ((section-index (position->section-index position)))
+                  (let ((section (index-section-if universe section-index)))
+                    (when section
+                      (let ((entity (find-entity-by-id section id)))
+                        (when entity
+                          (set-visible? entity #t)))))))))))
       @wait-buggy
       (show-cursor window)
-      (when (eq? active-zone 'start)
-        (uninstall-push-to-talk)
-        (circle-uninstall-camera)
-        (restore-fov)
-        (install-vista))
+      (uninstall-push-to-talk)
+      (restore-fov)
       (restore-eye self)
       (set! circle-name #f)
       (set! circle-no #f)
@@ -2929,12 +3100,7 @@
       (restore-distance self)
       (set-draw-players? world #t)
       (clear-snapshot-property 'live.circle-name)
-      (cond ((eq? active-zone 'start)
-             (goto-space self 'gathering)
-             (restore-active-zone self)
-             (reset-evolution))
-            (else
-             (space-refresh (current-space))))
+      (goto-space self 'zone)
       (setup-visibility mainbar)
       (refresh-central-menu world)
       (hide-streams self)
@@ -3471,9 +3637,9 @@
   (method (unify-hierarchy self hierarchy available-zones)
     (let ((client (current-client)))
       (bind (groupless . groups) hierarchy
-        (let ((observers '())
-              (voiders '())
-              (zoomers '())
+        (let ((starters '())
+              (start-circles '())
+              (zoom-circles '())
               (zones (make-table test: equal?))
               (circlers #f)
               (party #f)
@@ -3488,7 +3654,7 @@
           (define (add-player player)
             (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
               (if (eq? zone 'start)
-                  (set! observers (cons player observers))
+                  (set! starters (cons player starters))
                 (add zone (cons 'player player)))))
           
           (for-each (lambda (info)
@@ -3509,8 +3675,8 @@
                                  (set! circlers players))
                                (if (eq? zone 'start)
                                    (if zoom?
-                                       (set! zoomers (cons group zoomers))
-                                     (set! voiders (cons group voiders)))
+                                       (set! zoom-circles (cons group zoom-circles))
+                                     (set! start-circles (cons group start-circles)))
                                  (add zone (cons 'group group)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
@@ -3524,7 +3690,7 @@
               (clear-snapshot-property 'live.circle-members)
             (add-snapshot-property 'live.circle-members (map car circlers)))
           (add-snapshot-property 'live.player-party (and party (map car party)))
-          (values observers voiders zoomers (table->list zones) party)))))
+          (values starters start-circles zoom-circles (table->list zones) party)))))
   
   
   (method (view-hierarchy self hierarchy)
@@ -3533,10 +3699,26 @@
       (let ((tree (people-tree self))
             (separator? #f)
             (available-zones (cache-available-zones)))
-        (receive (observers voiders zoomers zones party) (unify-hierarchy self hierarchy available-zones)
+        (receive (starters start-circles zoom-circles zones party) (unify-hierarchy self hierarchy available-zones)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
+              (define (add-gathering)
+                (let ((row (add-row tree
+                                    state: 'expanded
+                                    children: (list (new Tree-Node
+                                                      title: "The gathering"
+                                                      font: {Font Label-User}
+                                                      color: gathering-color)))))
+                  (added #f)
+                  (for-each (lambda (info)
+                              (add-player row info #f))
+                            (let ((me (get-name me)))
+                              (sort di<? starters key: (lambda (player)
+                                                         (if (equal? player me)
+                                                             (cons 0 player)
+                                                           (cons 1 player))))))))
+              
               (define (add-player father info group)
                 (bind (player id no verified? asleep? disconnected? roaming? zone mode mobile?) info
                   (let ((group? (and party (memq? info party))))
@@ -3581,7 +3763,7 @@
                       (when (not empty?)
                         (add-separator title))))))
               
-              (define (add-voiders voiders)
+              (define (add-start-circles circles)
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
@@ -3589,7 +3771,7 @@
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
-                            voiders)
+                            circles)
                   (for-each (lambda (info)
                               (add-group #f info))
                             (sort di<? non-empty key: car))
@@ -3599,10 +3781,10 @@
                                 (add-group #f info #t))
                               (sort di<? empty key: car)))))
               
-              (define (add-zoomers father zoomers)
+              (define (add-zoom-circles father circles)
                 (for-each (lambda (info)
                             (add-group father info))
-                          (sort di<? zoomers key: car)))
+                          (sort di<? circles key: car)))
               
               (define (add-zones father spine zones)
                 (for-each (lambda (partition)
@@ -3665,23 +3847,10 @@
                 (when (not father)
                   (set! separator? #f)))
               
-              (let ((row (add-row tree
-                                  state: 'expanded
-                                  children: (list (new Tree-Node
-                                                    title: "The gathering"
-                                                    font: {Font Label-User}
-                                                    color: gathering-color)))))
-                (added #f)
-                (for-each (lambda (info)
-                            (add-player row info #f))
-                          (let ((me (get-name me)))
-                            (sort di<? observers key: (lambda (player)
-                                                        (if (equal? player me)
-                                                            (cons 0 player)
-                                                          (cons 1 player)))))))
-              (when (not-null? voiders)
-                (add-separator 'voiders)
-                (add-voiders voiders))
+              (add-gathering)
+              (when (not-null? start-circles)
+                (add-separator 'start-circles)
+                (add-start-circles start-circles))
               (when (not-null? zones)
                 (add-separator 'zones)
                 (add-zones #f '() zones))
@@ -3693,7 +3862,7 @@
                                                     font: {Font Label-User}
                                                     color: gathering-color))
                                   user-data: 'zoom)))
-                (add-zoomers row zoomers))))))))
+                (add-zoom-circles row zoom-circles))))))))
   
   
   (method package (people-selection-change self)
@@ -3940,12 +4109,16 @@
     (let ((interface (current-interface))
           (space (current-space)))
       (typecase space
-        ((Void-Space)
-         (set-visible? (child interface 'chat-label) #t)
+        ((Zone-Space)
          (set-visible? (child interface 'chat) #t)
          (set-visible? (child interface 'command-to) #t)
          (set-visible? (child interface 'command) #t))
-        ((Zone-Space)
+        ((Avatar-Space)
+         (set-visible? (child interface 'chat) #t)
+         (set-visible? (child interface 'command-to) #t)
+         (set-visible? (child interface 'command) #t))
+        ((Presence-Space)
+         (set-visible? (child interface 'chat-label) #t)
          (set-visible? (child interface 'chat) #t)
          (set-visible? (child interface 'command-to) #t)
          (set-visible? (child interface 'command) #t)))))
@@ -4010,7 +4183,7 @@
                (selected-recipient content))))
       
       (define (group-recipient)
-        (if (is? space Void-Space)
+        (if (is? space Circle-Space)
             circle-name
           #f))
       
@@ -4072,7 +4245,7 @@
   (method (command-escape self command)
     (let ((world (current-world))
           (space (current-space)))
-      (when (is? space Zone-Space)
+      (when (or (is? space Zone-Space) (is? space Circle-Space))
         (hide-command world))))
   
   
@@ -4235,15 +4408,19 @@
   
   
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
-    (let ((space (current-space))
-          (world (current-world))
+    (let ((world (current-world))
           (video (current-video)))
       (set! circle-mode mode)
+      (unless (if (eq? mode 'avatar)
+                  (is? (current-space) Avatar-Space)
+                (is? (current-space) Presence-Space))
+        (let ((new-space (if (eq? mode 'avatar) 'avatar 'presence)))
+          (goto-space self new-space)))
       (goto-layout video layout)
       (when (eq? video-layout 'focus)
         (goto-focused self))
       (set-draw-players? world (eq? mode 'avatar))
-      (space-refresh space)
+      (space-refresh (current-space))
       (show-interface (current-space) #t)
       (update-parameter world 'avatar-mode)
       (update-parameter world 'presence-mode)
@@ -4346,14 +4523,14 @@
   (method (stream-add self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (is? space Void-Space)
+        (unless (is? space Circle-Space)
           (display-message world (format "{a} joined" (get-sender stream)))))))
   
   
   (method (stream-remove self stream)
     (let ((world (current-world)))
       (when (eq? (get-source-kind stream) 'live)
-        (unless (is? space Void-Space)
+        (unless (is? space Circle-Space)
           (display-message world (format "{a} left" (get-sender stream)))))))
   
   
@@ -4361,7 +4538,7 @@
     (let ((count (length ordered-outputs)))
       (when camera-bound?
         (circle-update-camera count))
-      (when (and (is? space Void-Space)
+      (when (and (is? space Circle-Space)
                  (eq? video-layout 'focus))
         (goto-focused self)
         (show-interface (current-space) #t))
@@ -4694,7 +4871,7 @@
   (method (on-goto-script self evt)
     (typecase space
       ((Script-Space))
-      ((Void-Space)
+      ((Circle-Space)
        (bell))
       (else
        (goto-script/last self))))
@@ -4754,7 +4931,7 @@
   (method (on-goto-replay self evt)
     (typecase space
       ((Replay-Space))
-      ((Void-Space)
+      ((Circle-Space)
        (view-last-replay self))
       (else
        (goto-replay/last self))))
@@ -4849,7 +5026,7 @@
           (set-moments panel moments)
           (set-base-time panel base-time))
         
-        (if #f @wait (is? space Void-Space)
+        (if #f @wait (is? space Circle-Space)
             (let ((world (current-world))
                   (udp (current-udp)))
               (define (stream-replay name)
@@ -5014,7 +5191,7 @@
   (method (on-goto-simulate self evt)
     (typecase space
       ((Simulate-Space))
-      ((Void-Space)
+      ((Circle-Space)
        (bell))
       (else
        (goto-simulate self))))
@@ -5164,7 +5341,7 @@
   
   (method (on-toggle-hide self evt)
     (let ((space (current-space)))
-      (when (is? space Void-Space)
+      (when (is? space Circle-Space)
         (toggle-hide space))))
   
   
@@ -5403,7 +5580,7 @@
           (<!>                   name: view            location: (center 40))
           (<!>                   name: invalid         location: (center 66))
           (<!>                   name: create          location: (center 99))
-          (<!>                   name: require-camera? location: (center 142) checked?: #f)
+          (<!>                   name: require-camera? location: (center 142) checked?: #t)
           (<Create-Circle-Close> name: close           location: (-6 6) size: {Dimension 8 8})))))
   
   
@@ -5539,9 +5716,8 @@
     (let ((together (current-together))
           (world (current-world))
           (space (current-space)))
-      (when (or (is? space Void-Space) (is? space Zone-Space))
-        (show-chat together)
-        (update-parameter world 'chat))))
+      (show-chat together)
+      (update-parameter world 'chat)))
   
   
   (method package (on-action self evt)
