@@ -2857,7 +2857,8 @@
                             (let ((sight (vertex -1. 0. 0.)))
                               (let ((position (vertex+ position (vertex 3. 0. 0.))))
                                 (teleport zone position sight)))
-                            (join-circle self name))))))))))))))
+                            (join-circle self name)
+                            (presence-mode self feedback?: #f))))))))))))))
   
   
   (method package (create-zoom-circle self)
@@ -2896,7 +2897,7 @@
                   (setup-circle self name group-info/exception)
                 (enter-zone self)
                 (setup-circle self name group-info/exception)
-                (presence-mode self))))))))
+                (presence-mode self feedback?: #f))))))))
   
   
   (method package (join-zoom-circle self name)
