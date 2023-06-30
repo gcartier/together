@@ -1795,20 +1795,21 @@
   
   (method override (mouse-moved self x y)
     (nextmethod self x y)
-    (unless (script-visible? self)
-      (cond-expand
-        (windows
-         (let ((together (current-together)))
-           (let ((point (new Point$fl$ x y)))
-             ;; quick hack around windows sending
-             ;; mouse-moved every second even with
-             ;; the mouse not moving at all
-             (when (or (not (get-hide-last-mouse together))
-                       (nu/=? (get-hide-last-mouse together) point))
-               (show-interface self #t)
-               (set-hide-last-mouse together point)))))
-        (else
-         (show-interface self #t)))))
+    (when application-active?
+      (unless (script-visible? self)
+        (cond-expand
+          (windows
+           (let ((together (current-together)))
+             (let ((point (new Point$fl$ x y)))
+               ;; quick hack around windows sending
+               ;; mouse-moved every second even with
+               ;; the mouse not moving at all
+               (when (or (not (get-hide-last-mouse together))
+                         (nu/=? (get-hide-last-mouse together) point))
+                 (show-interface self #t)
+                 (set-hide-last-mouse together point)))))
+          (else
+           (show-interface self #t))))))
   
   
   (method override (mouse-down self h v)
@@ -1837,8 +1838,9 @@
   
   
   (method (mouse-activity self (hide-interface? #t))
-    (unless (script-visible? self)
-      (show-interface self hide-interface?)))
+    (when application-active?
+      (unless (script-visible? self)
+        (show-interface self hide-interface?))))
   
   
   (method (script-visible? self)
