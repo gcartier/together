@@ -1374,6 +1374,13 @@
     80)
   
   
+  (method protected virtual (toggle-hide self)
+    (let ((world (current-world)))
+      (set! auto-hide? (not auto-hide?))
+      (set-video-interface? (not auto-hide?))
+      (display-on/off world "Show names" (not auto-hide?))))
+  
+  
   (method override (toggle-chat self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -1742,7 +1749,7 @@
   ;;;
   
   
-  (method package (toggle-hide self)
+  (method override (toggle-hide self)
     (let ((world (current-world)))
       (set! auto-hide? (not auto-hide?))
       (if auto-hide?
