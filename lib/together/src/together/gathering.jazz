@@ -1319,18 +1319,6 @@
       (hide-interface)
       (reset-panel-stack)
       (disable-autotrack-mode world feedback?: #f)))
-
-  
-  (method override (space-bindings self)
-    (let ((together (current-together)))
-      (let ((grouped? (grouped? together))
-            (avatar? (avatar-mode? together)))
-        `(,zone-bindings
-           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
-           ,circling-bindings
-           ,zone-circling-bindings
-           ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())
-           ,@(if avatar? (list zone-free-bindings) '())))))
   
   
   (method override (space-actions self)
@@ -1405,6 +1393,18 @@
   
   (method override (space-name self)
     'avatar)
+
+  
+  (method override (space-bindings self)
+    (let ((together (current-together)))
+      (let ((grouped? (grouped? together))
+            (avatar? (avatar-mode? together)))
+        `(,zone-bindings
+          @roaming ,@(if (admin?) (list zone-admin-bindings) '())
+          ,circling-bindings
+          ,zone-circling-bindings
+          ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())
+          ,zone-free-bindings))))
   
   
   (method override (panel-stack-change self)
@@ -1669,6 +1669,17 @@
                   (find-actions 'together-script)
                   (find-actions 'together-debug))
             (nextmethod self)))
+
+  
+  (method override (space-bindings self)
+    (let ((together (current-together)))
+      (let ((grouped? (grouped? together))
+            (avatar? (avatar-mode? together)))
+        `(,presence-bindings
+          @roaming ,@(if (admin?) (list zone-admin-bindings) '())
+          ,circling-bindings
+          ,zone-circling-bindings
+          ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())))))
   
   
   (method override (show-me? self)
