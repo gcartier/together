@@ -1403,7 +1403,7 @@
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
-          ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())
+          ,@(if (eq? circle-mode 'presence) (list circle-bindings) '())
           ,zone-free-bindings))))
   
   
@@ -1679,7 +1679,7 @@
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
-          ,@(if (eq? (get-circle-mode together) 'presence) (list circle-bindings) '())))))
+          ,@(if (eq? circle-mode 'presence) (list circle-bindings) '())))))
   
   
   (method override (show-me? self)
@@ -1691,10 +1691,8 @@
   
   
   (method override (draw-world? self)
-    (let ((together (current-together)))
-      (let ((mode (get-circle-mode together)))
-        (or (eq? mode 'avatar)
-            (eq? mode 'presence)))))
+    (or (eq? circle-mode 'avatar)
+        (eq? circle-mode 'presence)))
   
   
   ;;;
@@ -2029,7 +2027,6 @@
   (slot circle-no           initialize #f getter generate)
   (slot circle-started      initialize #f getter generate)
   (slot circle-joined       initialize #f getter generate)
-  (slot circle-mode         initialize #f getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
@@ -3113,7 +3110,7 @@
       (restore-eye self)
       (set! circle-name #f)
       (set! circle-no #f)
-      (set! circle-mode 'avatar)
+      (set-circle-mode 'avatar)
       (unbind-camera)
       (maybe-enable-autotrack world)
       (person-motion world feedback?: #f)
@@ -4430,7 +4427,7 @@
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
     (let ((world (current-world))
           (video (current-video)))
-      (set! circle-mode mode)
+      (set-circle-mode mode)
       (unless (if (eq? mode 'avatar)
                   (is? (current-space) Avatar-Space)
                 (is? (current-space) Presence-Space))
