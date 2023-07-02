@@ -342,7 +342,7 @@
   (method override (write-option self option value title)
     (case option
       ((layout)
-       (set-current-circle-shape value)
+       (set-current-circle-shape circle-name value)
        (change-circle-shape (current-client) circle-name value))
       ((join-by-invite-only)
        (change-circle-property (current-client) circle-name 'invite-only? value))
