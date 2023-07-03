@@ -3019,7 +3019,7 @@
           (universe (current-universe))
           (world (current-world))
           (video (current-video)))
-      (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
+      (bind (no require-microphone? require-camera? duration stone shape . streams) group-info/exception
         (startup-gstreamer)
         (when (auto-live?)
           (require-live-stream tier))
@@ -3051,6 +3051,7 @@
                   (let ((entity (find-entity-by-id section id)))
                     (when entity
                       (set-visible? entity #f))))))))
+        (current-circle-shape-set! shape)
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
           (let ((order (if (not self-output)
@@ -3136,7 +3137,7 @@
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no require-microphone? require-camera? duration stone . streams) group-info/exception
+          (bind (no require-microphone? require-camera? duration stone shape . streams) group-info/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier)
