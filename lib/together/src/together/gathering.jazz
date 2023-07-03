@@ -2767,10 +2767,6 @@
           (add-snapshot-property 'live.player-mode (get-mode me))
           (preload-animations me)
           (prepare-motion world)
-          (when circle-vista
-            (let ((sight (vertex -1. 0. 0.)))
-              (let ((position (vertex+ circle-vista (vertex 3. 0. 0.))))
-                (teleport zone position sight))))
           (delay-enable-autotrack self)
           #f))))
   
@@ -2795,6 +2791,13 @@
       (prepare-motion world)
       (delay-enable-autotrack self)
       #f))
+  
+  
+  (method (teleport-circle self position)
+    (let ((zone (current-zone)))
+      (let ((sight (vertex -1. 0. 0.)))
+        (let ((position (vertex+ position (vertex 3. 0. 0.))))
+          (teleport zone position sight)))))
   
   
   (method (delay-enable-autotrack self)
@@ -2873,9 +2876,7 @@
                             (content-changed view)
                             (set-checked? require-camera #t)
                             (enter-zone self)
-                            (let ((sight (vertex -1. 0. 0.)))
-                              (let ((position (vertex+ position (vertex 3. 0. 0.))))
-                                (teleport zone position sight)))
+                            (teleport-circle self position)
                             (join-circle self name)
                             (presence-mode self feedback?: #f))))))))))))))
   
@@ -2915,6 +2916,8 @@
               (if (eq? (get-mode me) 'player)
                   (setup-circle self name group-info/exception)
                 (enter-zone self)
+                (when circle-vista
+                  (teleport-circle self circle-vista))
                 (setup-circle self name group-info/exception)
                 (presence-mode self feedback?: #f))))))))
   
