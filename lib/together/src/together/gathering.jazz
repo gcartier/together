@@ -542,10 +542,12 @@
   
   
   (method override (only-skybox? self)
-    (if together-skybox?
-        (let ((zone (current-zone)))
-          (void? zone))
-      #f))
+    (if (unverified?)
+        #t
+      (if together-skybox?
+          (let ((zone (current-zone)))
+            (void? zone))
+        #f)))
   
   
   (method override (draw-world? self)
