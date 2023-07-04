@@ -2326,6 +2326,7 @@
                                   (set-visible? verify #t)
                                 (set-visible? verify #f))))))
                        (else
+                        (set! message-recipient #f)
                         (no-recipient)))))
               ((group)
                (set-title to name)
