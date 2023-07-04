@@ -67,30 +67,20 @@
   
   
   (method override (render-outputs self)
-    (let ((together (current-together)))
-      (when (and (client?) together (circling? together) (not (get-roaming? (current-client))))
-        (nextmethod self))))
-  
-  
-  (method override (is-circling? self)
-    (let ((together (current-together)))
-      (and together
-           (circling? together))))
+    (when (and (client?) (circling?) (not (get-roaming? (current-client))))
+      (nextmethod self)))
   
   
   (method override (autotrack-inhibit? self)
-    (let ((together (current-together)))
-      (or (nextmethod self)
-          (and together
-               (circling? together)
-               (not (avatar-mode? together))))))
+    (or (nextmethod self)
+        (circling?)
+        (not (avatar-mode?))))
   
   
   (method override (effective-independent-camera? self)
-    (let ((together (current-together)))
-      (if (and together (circling? together))
-          #f
-        (nextmethod self))))
+    (if (circling?)
+        #f
+      (nextmethod self)))
   
   
   (method override (check-element-action self element)

@@ -478,7 +478,7 @@
   (method override (space-bindings self)
     (let ((together (current-together)))
       (let ((grouped? (grouped? together))
-            (circling? (circling? together)))
+            (circling? (circling?)))
         `(,gathering-bindings
           ,@(if grouped? (list gathering-group-bindings) '())
           ,@(if circling? (list gathering-circle-bindings) '())))))
@@ -601,7 +601,7 @@
             (selected-zoom? (get-selected-zoom? together))
             (active-zone (get-active-zone together))
             (active-group (get-active-group together))
-            (circling? (circling? together)))
+            (circling? (circling?)))
         (let ((loaded? (selected-loaded? together)))
           (define (unverified-visible flag)
             (set-visible? (child root 'unverified) flag))
@@ -722,7 +722,7 @@
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (if (circling? together)
+          (if (circling?)
               (enter-circle together)
             (join-circle together (get-active-group together)))))))
   
@@ -1300,7 +1300,7 @@
       (set-position (child interface '(command-to verify)) {Point 380 9})
       (set-visible? (child interface 'chat) #f)
       (set-visible? (child mainbar 'profile) #f)
-      (update-message-recipient together (list 'group (get-circle-name together)))
+      (update-message-recipient together (list 'group current-circle-name))
       (layout-interface)
       (no-showcase world)))
   
@@ -1402,12 +1402,12 @@
   (method override (space-bindings self)
     (let ((together (current-together)))
       (let ((grouped? (grouped? together))
-            (avatar? (avatar-mode? together)))
+            (avatar? (avatar-mode?)))
         `(,zone-bindings
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
-          ,@(if (eq? circle-mode 'presence) (list circle-bindings) '())
+          ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())
           ,zone-free-bindings))))
   
   
@@ -1588,7 +1588,7 @@
       (free-motion world feedback?: #f)
       (bind-camera)
       (set-visible? (child mainbar 'circle-name) #t)
-      (set-title (child mainbar 'circle-name) (get-circle-name together))
+      (set-title (child mainbar 'circle-name) current-circle-name)
       (set-visible? (child mainbar 'profile) #t)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #f)
@@ -1678,12 +1678,12 @@
   (method override (space-bindings self)
     (let ((together (current-together)))
       (let ((grouped? (grouped? together))
-            (avatar? (avatar-mode? together)))
+            (avatar? (avatar-mode?)))
         `(,presence-bindings
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
-          ,@(if (eq? circle-mode 'presence) (list circle-bindings) '())))))
+          ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())))))
   
   
   (method override (show-me? self)
@@ -1695,8 +1695,8 @@
   
   
   (method override (draw-world? self)
-    (or (eq? circle-mode 'avatar)
-        (eq? circle-mode 'presence)))
+    (or (eq? current-circle-mode 'avatar)
+        (eq? current-circle-mode 'presence)))
   
   
   ;;;
@@ -2027,10 +2027,6 @@
   (slot selected-color      initialize #f getter generate)
   (slot zone-loading        initialize #f getter generate)
   (slot in-group?           initialize #f getter generate)
-  (slot circle-name         initialize #f getter generate)
-  (slot circle-no           initialize #f getter generate)
-  (slot circle-started      initialize #f getter generate)
-  (slot circle-joined       initialize #f getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
@@ -2246,7 +2242,7 @@
     (assert-task-mutex)
     (when (client?)
       (let ((client (current-client)))
-        (cond ((circling? self)
+        (cond ((circling?)
                (leave-circle self)
                (set! sleep-disconnected 'circle))
               ((grouped? self)
@@ -2278,7 +2274,7 @@
              recipient)
             ((group)
              (if (and (is? space Sphere-Space)
-                      (equal? name circle-name))
+                      (equal? name current-circle-name))
                  recipient
                #f))
             (else
@@ -2322,11 +2318,11 @@
                               ;; invite
                               (if (and user-verified? (not player-me?) (not in-party?))
                                   (begin
-                                    (set-kind invite (if circle-name 'circle 'group))
+                                    (set-kind invite (if current-circle-name 'circle 'group))
                                     (set-visible? invite #t))
                                 (set-visible? invite #f))
                               ;; verify
-                              (if (and user-verified? (not player-verified?) (or in-group? circle-name) in-party?)
+                              (if (and user-verified? (not player-verified?) (or in-group? current-circle-name) in-party?)
                                   (set-visible? verify #t)
                                 (set-visible? verify #f))))))
                        (else
@@ -2343,10 +2339,6 @@
   
   (method package (grouped? self)
     in-group?)
-  
-  
-  (method package (circling? self)
-    (boolean circle-name))
   
   
   ;;;
@@ -2376,7 +2368,7 @@
   
   (method (on-invite self evt)
     (let ((recipient (cadr message-recipient)))
-      (invite-to-group self recipient circle-name)))
+      (invite-to-group self recipient current-circle-name)))
   
   
   (method (invite-to-group self recipient circle-name)
@@ -2472,7 +2464,7 @@
   (method (on-toggle-microphone self evt)
     (let ((client (current-client))
           (world (current-world)))
-      (if (and (not circle-name)
+      (if (and (not current-circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
         (with-cursor :wait
@@ -2550,7 +2542,7 @@
             (lambda ()
               (unless from-central?
                 (close-non-central-top self))
-              (push-panel (open-frame (new Circle-Options circle-name: circle-name size: {Dimension 466 288} location: 'center)))))))))
+              (push-panel (open-frame (new Circle-Options circle-name: current-circle-name size: {Dimension 466 288} location: 'center)))))))))
   
   
   (method (on-toggle-push-to-talk self evt)
@@ -2561,7 +2553,7 @@
     (let ((client (current-client))
           (video (current-video))
           (world (current-world)))
-      (if (and (not circle-name)
+      (if (and (not current-circle-name)
                (not (get-live-stream client)))
           (display-error world "You are not in a group")
         (with-cursor :wait
@@ -2682,7 +2674,7 @@
   
   (method package (check-circle-stone self stone)
     (let ((world (current-world)))
-      (cond ((not circle-name)
+      (cond ((not current-circle-name)
              (display-action world "E : Join Circle"
                (lambda ()
                  (with-cursor :wait
@@ -2705,12 +2697,12 @@
             (let ((in-party? (and user-group player-group (eq? user-group player-group))))
               (cond ((not in-party?)
                      (let ((invite (cond (in-group? "your audio group")
-                                         (circle-name "your circle")
+                                         (current-circle-name "your circle")
                                          (else "an audio group"))))
                        (display-action world (format "E : Invite {a} to join {a}" player-name invite)
                          (lambda ()
                            (let ((recipient player-name))
-                             (invite-to-group self recipient circle-name))))))
+                             (invite-to-group self recipient current-circle-name))))))
                     (else
                      #f))))))))
   
@@ -3036,13 +3028,13 @@
         (cond-expand
           (windows (set! hide-last-mouse #f))
           (else))
-        (set! circle-name name)
-        (set! circle-no no)
-        (set! circle-started (- (current-seconds) duration))
-        (set! circle-joined (current-seconds))
+        (set-current-circle-name name)
+        (set-current-circle-no no)
+        (set-current-circle-started (- (current-seconds) duration))
+        (set-current-circle-joined (current-seconds))
         (set-visible? (child mainbar 'circle-name) #t)
-        (set-title (child mainbar 'circle-name) circle-name)
-        (add-snapshot-property 'live.circle-name circle-name)
+        (set-title (child mainbar 'circle-name) current-circle-name)
+        (add-snapshot-property 'live.circle-name current-circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
         (set-circle-center (if stone (second stone) default-circle-center))
         (when stone
@@ -3100,9 +3092,9 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (let ((removed? (leave-group tier circle-name)))
+      (let ((removed? (leave-group tier current-circle-name)))
         (unless removed?
-          (let ((stone (find-circle-stone tier circle-name)))
+          (let ((stone (find-circle-stone tier current-circle-name)))
             (when stone
               (bind (id position) stone
                 (let ((section-index (position->section-index position)))
@@ -3116,9 +3108,9 @@
       (uninstall-push-to-talk)
       (restore-fov)
       (restore-eye self)
-      (set! circle-name #f)
-      (set! circle-no #f)
-      (set-circle-mode 'avatar)
+      (set-current-circle-name #f)
+      (set-current-circle-no #f)
+      (set-current-circle-mode 'avatar)
       (unbind-camera)
       (maybe-enable-autotrack world)
       (person-motion world feedback?: #f)
@@ -3373,8 +3365,8 @@
   (method (stream-addable self group-no)
     (or (not group-no)
         ;; quick hack for test
-        (not circle-no)
-        (eqv? group-no circle-no)))
+        (not current-circle-no)
+        (eqv? group-no current-circle-no)))
   
   
   ;;;
@@ -3447,7 +3439,7 @@
           
           (when show-debug?
             (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-            (draw (format "{a}" (present-duration (- (current-seconds) circle-started))) {Color World-Ochre})
+            (draw (format "{a}" (present-duration (- (current-seconds) current-circle-started))) {Color World-Ochre})
             (unless (eq? show-media 'energy)
               (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
               (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
@@ -3620,7 +3612,7 @@
   
   
   (method (eye-matrix self camera stable?)
-    (when (circling-mode? self)
+    (when (circling-3d?)
       (update-interface-matrices (current-video))
       @wait
       (let ((position (get-position camera))
@@ -3966,7 +3958,7 @@
                      (when (eq? kind 'group)
                        (with-cursor :wait
                          (lambda ()
-                           (if (circling? self)
+                           (if (circling?)
                                (enter-circle self)
                              (join-circle self active-group))))))
                     ((and active-zone (neq? active-zone 'start))
@@ -4188,7 +4180,7 @@
                  (if (not (acquire-microphone-pipeline))
                      (show-panel-message (get-character-name tier) 'show unable-to-acquire-microphone)
                    (let ((recipient (trim-whitespace (substring content 8 (string-length content)))))
-                     (let ((error (client-invite tier recipient circle-name)))
+                     (let ((error (client-invite tier recipient current-circle-name)))
                        (if error
                            (show-panel-message (get-character-name tier) 'show error)
                          (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
@@ -4209,7 +4201,7 @@
       
       (define (group-recipient)
         (if (is? space Circle-Space)
-            circle-name
+            current-circle-name
           #f))
       
       (define (selected-recipient message)
@@ -4388,7 +4380,7 @@
   
   (method (avatar-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'avatar)
+      (unless (eq? current-circle-mode 'avatar)
         (change-circle-mode self 'avatar 'circle feedback?: feedback?)
         (restore-eye self)
         (unbind-camera)
@@ -4400,8 +4392,8 @@
   
   (method (presence-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'presence)
-        (let ((from-avatar? (eq? circle-mode 'avatar)))
+      (unless (eq? current-circle-mode 'presence)
+        (let ((from-avatar? (eq? current-circle-mode 'avatar)))
           (change-circle-mode self 'presence 'circle feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
@@ -4412,8 +4404,8 @@
   
   (method (focus-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'focus)
-        (let ((from-avatar? (eq? circle-mode 'avatar)))
+      (unless (eq? current-circle-mode 'focus)
+        (let ((from-avatar? (eq? current-circle-mode 'avatar)))
           (change-circle-mode self 'focus 'focus feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
@@ -4423,8 +4415,8 @@
   
   (method (gallery-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
-      (unless (eq? circle-mode 'gallery)
-        (let ((from-avatar? (eq? circle-mode 'avatar)))
+      (unless (eq? current-circle-mode 'gallery)
+        (let ((from-avatar? (eq? current-circle-mode 'avatar)))
           (change-circle-mode self 'gallery 'gallery feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
@@ -4435,7 +4427,7 @@
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
     (let ((world (current-world))
           (video (current-video)))
-      (set-circle-mode mode)
+      (set-current-circle-mode mode)
       (unless (if (eq? mode 'avatar)
                   (is? (current-space) Avatar-Space)
                 (is? (current-space) Presence-Space))
@@ -4460,27 +4452,6 @@
       (let ((focused-output (effective-focused-output video)))
         (when focused-output
           (circle-goto-focus focused-output)))))
-  
-  
-  (method package (avatar-mode? self)
-    (and circle-name (eq? circle-mode 'avatar)))
-  
-  
-  (method package (presence-mode? self)
-    (and circle-name (eq? circle-mode 'presence)))
-  
-  
-  (method package (focus-mode? self)
-    (and circle-name (eq? circle-mode 'focus)))
-  
-  
-  (method package (gallery-mode? self)
-    (and circle-name (eq? circle-mode 'gallery)))
-  
-  
-  (method package (circling-mode? self)
-    (or (presence-mode? self)
-        (avatar-mode? self)))
   
   
   ;;;
@@ -4623,7 +4594,7 @@
              (begin
                (seek-backward focus)
                #t)
-           (and (presence-mode? self)
+           (and (presence-mode?)
                 (world-focus? focus)
                 (begin
                   (circle-left)
@@ -4633,75 +4604,75 @@
              (begin
                (seek-forward focus)
                #t)
-           (and (presence-mode? self)
+           (and (presence-mode?)
                 (world-focus? focus)
                 (begin
                   (circle-right)
                   #t))))
         (({Shortcut Up})
-         (and (presence-mode? self)
+         (and (presence-mode?)
               (world/circle-focus? focus)
               (begin
                 (circle-up)
                 #t)))
         (({Shortcut Down})
-         (and (presence-mode? self)
+         (and (presence-mode?)
               (world/circle-focus? focus)
               (begin
                 (circle-down)
                 #t)))
         (({Shortcut Return})
-         (and (presence-mode? self)
+         (and (presence-mode?)
               (world/circle-focus? focus)
               (begin
                 (circle-return)
                 #t)))
         (({Shortcut Backspace})
-         (and (presence-mode? self)
+         (and (presence-mode?)
               (world/circle-focus? focus)
               (begin
                 (circle-backspace)
                 #t)))
         (({Shortcut #\1})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (begin
                 (focus-no 1)
                 #t)))
         (({Shortcut #\2})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (begin
                 (focus-no 2)
                 #t)))
         (({Shortcut #\3})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (begin
                 (focus-no 3)
                 #t)))
         (({Shortcut #\4})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (begin
                 (focus-no 4)
                 #t)))
         (({Shortcut #\5})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (begin
                 (focus-no 5)
                 #t)))
         (({Shortcut Tab})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (world/circle-focus? focus)
               (begin
                 (cycle-focus #f)
                 #t)))
         (({Shortcut :shift Tab})
-         (and (or (presence-mode? self)
-                  (focus-mode? self))
+         (and (or (presence-mode?)
+                  (focus-mode?))
               (world/circle-focus? focus)
               (begin
                 (cycle-focus #t)
@@ -4886,7 +4857,7 @@
         ((Sphere-Space)
          (exit-zone self)
          @roaming
-         (if circle-name
+         (if current-circle-name
              (goto-gathering self)
            (exit-zone self)))
         (else
@@ -5285,7 +5256,7 @@
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
-      (if (not circle-name)
+      (if (not current-circle-name)
           (display-error world "You are not in a group")
         (let ((stream (locate-view-stream)))
           (cond ((not stream)
@@ -5318,7 +5289,7 @@
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
-      (if (not circle-name)
+      (if (not current-circle-name)
           (display-error world "You are not in a group")
         (let ((stream (locate-screen-stream)))
           (cond ((not stream)

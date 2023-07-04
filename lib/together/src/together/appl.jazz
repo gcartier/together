@@ -833,33 +833,25 @@
 (define-parameter avatar-mode
   (new World-Parameter
     (lambda ()
-      (let ((together (current-together)))
-        (and together
-             (avatar-mode? together))))))
+      (avatar-mode?))))
 
 
 (define-parameter presence-mode
   (new World-Parameter
     (lambda ()
-      (let ((together (current-together)))
-        (and together
-             (presence-mode? together))))))
+      (presence-mode?))))
 
 
 (define-parameter focus-mode
   (new World-Parameter
     (lambda ()
-      (let ((together (current-together)))
-        (and together
-             (focus-mode? together))))))
+      (focus-mode?))))
 
 
 (define-parameter gallery-mode
   (new World-Parameter
     (lambda ()
-      (let ((together (current-together)))
-        (and together
-             (gallery-mode? together))))))
+      (gallery-mode?))))
 
 
 ;;;
@@ -918,7 +910,7 @@
                           (set! previous? #t)))))
                   children))
       (let ((gathering? (is? space Gathering-Space))
-            (circling? (circling? (current-together))))
+            (circling? (circling?)))
         (set-visible? (child self 'name) gathering?)
         (set-visible? (child self 'circle-name) (and circling? (not gathering?)))
         (set-visible? (child self 'microphone-power) (and circling? (not gathering?)))
