@@ -73,8 +73,8 @@
   
   (method override (autotrack-inhibit? self)
     (or (nextmethod self)
-        (circling?)
-        (not (avatar-mode?))))
+        (and (circling?)
+             (not (avatar-mode?)))))
   
   
   (method override (effective-independent-camera? self)
