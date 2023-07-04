@@ -441,6 +441,7 @@
       (update-center-interface self)
       (layout-view interface)
       (layout-view root)
+      (set-horizon-cut .04)
       (install-vista)
       (no-showcase world)
       (show root)
@@ -469,6 +470,7 @@
       (hide-interface)
       (reset-panel-stack)
       (no-showcase world)
+      (set-horizon-cut 0.)
       (restore-fov)
       (uninstall-vista)))
   
