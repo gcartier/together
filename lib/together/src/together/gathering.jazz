@@ -2234,9 +2234,7 @@
   (method (prepare-skybox self)
     (let ((zone (current-zone)))
       (unless (get-skybox zone)
-        (set-skybox zone (let ((skybox (find-skybox (cache-together-skybox))))
-                           (prepare skybox)
-                           skybox)))))
+        (install-skybox zone (cache-together-skybox)))))
   
   
   (method protected (sleep-process self)

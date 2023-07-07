@@ -193,9 +193,7 @@
   
   
   (method override (prepare-skybox self)
-    (set! skybox (let ((skybox (find-skybox "world/nebula")))
-                   (prepare skybox)
-                   skybox)))
+    (install-skybox self "world/nebula"))
   
   
   (method override (camera-update self)
