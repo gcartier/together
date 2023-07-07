@@ -191,7 +191,7 @@
            (cond ((world-setting 'together.first-use? #t)
                   (set-setting options-settings 'together.first-use? #f)
                   (save-content options-settings)
-                  "world/nebula")
+                  "world/earth")
                  ((unverified?)
                   "world/nebula")
                  (else
