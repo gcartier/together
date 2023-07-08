@@ -981,7 +981,8 @@
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
       (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
-      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options}))))
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options})
+      (<World-Action-Button>    resource: {Icon-Resource "Logogram/Moons"} action-handler: {Action together-circle organize-circle}))))
 
 
 ;;;
@@ -1044,6 +1045,7 @@
       (<World-Action-Item> name: down-press           title: "Decrease speed" shortcut: {Shortcut "Down Arrow"} description: "Down.")
       (<World-Action-Item> name: tab-press            title: "Cycle focus" shortcut: {Shortcut "Tab / shift Tab"} description: "Tab Right or Left")
       (<World-Action-Item> name: number-press         title: "Change focus" shortcut: {Shortcut "1, 2, 3, 4, 5"} description: "Number of Image")
+      (<World-Action-Item> name: organize-circle      title: "Organize circle" action-handler: {Event-Handler :together on-organize-circle} shortcut: {Shortcut :alt #\O} description: "Organize circle.")
       (<World-Action-Item> name: circle-options       title: "Circle options" action-handler: {Event-Handler :together on-circle-options} shortcut: {Shortcut :alt :shift #\O} description: "Toggle circle options."))))
 
 
@@ -1383,6 +1385,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: organize-circle            visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
       @wait
       (<together-record!>
@@ -1548,6 +1551,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: organize-circle            visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
       @wait
       (<together-record!>
@@ -1838,6 +1842,7 @@
         (<!>                 name: down-press                 visible?: #t)
         (<!>                 name: tab-press                  visible?: #t)
         (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: organize-circle            visible?: #t)
         (<!>                 name: circle-options             visible?: #t))
       (<together-view!>
         (<!>                 name: toggle-paused              visible?: #t)

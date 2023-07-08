@@ -72,6 +72,7 @@
         (<Jazz-File>       name: remote            source: {File :context "src" "together" "remote.jazz"})
         (<Jazz-File>       name: show-base         source: {File :context "src" "together" "show-base.jazz"})
         (<Jazz-File>       name: record            source: {File :context "src" "together" "record.jazz"})
-        (<Jazz-File>       name: zoom              source: {File :context "src" "together" "zoom.jazz"}))
+        (<Jazz-File>       name: zoom              source: {File :context "src" "together" "zoom.jazz"})
+        (<Jazz-File>       name: organize          source: {File :context "src" "together" "organize.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))

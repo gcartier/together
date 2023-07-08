@@ -131,6 +131,7 @@
         (together.experiment)
         (together.network)
         (together.options)
+        (together.organize)
         (together.record)
         (together.replay)
         (together.replay-space)
@@ -1971,6 +1972,7 @@
         (<!>                 name: presence-mode              active?: #t)
         (<!>                 name: focus-mode                 active?: #t)
         (<!>                 name: gallery-mode               active?: #t)
+        (<!>                 name: organize-circle            active?: #t)
         (<!>                 name: circle-options             active?: #t))
       (<together-view!>
         (<!>                 name: toggle-paused              active?: #t)
@@ -2526,6 +2528,19 @@
               (unless from-central?
                 (close-non-central-top self))
               (push-panel (open-frame (new Video-Options size: {Dimension 466 288} location: 'center)))))))))
+  
+  
+  (method (on-organize-circle self evt)
+    (let ((interface (current-interface)))
+      (let ((panel (find-type interface Organize-Circle)))
+        (if panel
+            (close panel)
+          (with-cursor :wait
+            (lambda ()
+              (let ((from-central? (central-button? self evt)))
+                (unless from-central?
+                  (close-non-central-top self))
+                (push-panel (open-frame (new Organize-Circle size: {Dimension 366 588} location: 'center))))))))))
   
   
   (method (on-circle-options self evt)
