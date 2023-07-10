@@ -135,7 +135,6 @@
 
 
 (definition (create-documents)
-  @wait-user-assets
   (create-directories {Directory Documents "assets"})
   @wait-till-there-is-a-user-way-to-share-documents
   (create-directories {Directory Documents "shared"})

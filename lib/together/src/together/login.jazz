@@ -274,7 +274,6 @@
                     (retrieve-gstreamer)
                     (retrieve-critical-assets)))
                 (enter-together #f)
-                @wait-user-assets
                 (let ((tier (current-tier)))
                   (when (is? tier Client-Tier)
                     (upload-assets tier 'world)
