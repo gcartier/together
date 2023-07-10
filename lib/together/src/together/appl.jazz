@@ -1508,13 +1508,12 @@
         @too-much (<!>                 name: decrease-grid              visible?: #t)
         @too-much (<!>                 name: increase-grid              visible?: #t)
         @too-much (<!>                 name: change-editor-mode         visible?: #t))
-      @too-much
       (<world-target!>
         (<!>                 name: select-target-mode         visible?: #t)
         (<!>                 name: move-target-mode           visible?: #t)
         (<!>                 name: rotate-target-mode         visible?: #t)
         (<!>                 name: scale-target-mode          visible?: #t)
-        (<!>                 name: skeleton-target-mode       visible?: #t))
+        @too-much (<!>                 name: skeleton-target-mode       visible?: #t))
       (<world-debug!>
         @too-much (<!>                 name: toggle-info                visible?: #t)
         @too-much (<!>                 name: toggle-profiler            visible?: #t)
