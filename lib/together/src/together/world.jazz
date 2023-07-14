@@ -71,8 +71,8 @@
       (nextmethod self)))
   
   
-  (method override (autotrack-inhibit? self)
-    (or (nextmethod self)
+  (method override (autotrack-inhibit? self from-activate?)
+    (or (nextmethod self from-activate?)
         (and (circling?)
              (not (avatar-mode?)))))
   

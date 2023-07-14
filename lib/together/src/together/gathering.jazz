@@ -1227,7 +1227,7 @@
   (method override (application-activate self)
     (let ((world (current-world)))
       (when (get-autotrack-mode?)
-        (maybe-enable-autotrack world))))
+        (maybe-enable-autotrack world #t))))
   
   
   (method override (application-deactivate self)
@@ -1425,7 +1425,7 @@
   (method override (application-activate self)
     (let ((world (current-world)))
       (when (get-autotrack-mode?)
-        (maybe-enable-autotrack world))))
+        (maybe-enable-autotrack world #t))))
   
   
   (method override (application-deactivate self)
