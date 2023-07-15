@@ -136,6 +136,8 @@
 
 (definition (create-documents)
   (create-directories {Directory Documents "assets"})
+  (create-directories {Directory Documents "assets" "model"})
+  (create-directories {Directory Documents "assets" "painting"})
   @wait-till-there-is-a-user-way-to-share-documents
   (create-directories {Directory Documents "shared"})
   (create-directories {Directory Documents "streams"}))
