@@ -2810,8 +2810,8 @@
   
   (method (teleport-circle self position)
     (let ((zone (current-zone)))
-      (let ((sight (vertex -1. 0. 0.)))
-        (let ((position (vertex+ position (vertex 3. 0. 0.))))
+      (let ((sight (random-horizon)))
+        (let ((position (vertex+ position (vertex-scalar* sight -4.))))
           (teleport zone position sight)))))
   
   
