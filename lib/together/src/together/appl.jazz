@@ -1337,7 +1337,8 @@
         (<!>                 name: move-right                 visible?: #t))
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
-        (<!>                 name: zoom-in/out                visible?: #t))
+        (<!>                 name: zoom-in/out                visible?: #t)
+        (<!>                 name: toggle-autotrack-mode      visible?: #t))
       (<world-game!>
         (<!>                 name: jump                       visible?: #t)
         (<!>                 name: action                     visible?: #t)
