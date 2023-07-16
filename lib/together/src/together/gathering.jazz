@@ -459,7 +459,8 @@
     (show-mainbar self)
     (let ((world (current-world)))
       (layout-message world)
-      (layout-working world)))
+      (layout-working world)
+      (update-autotrack world)))
   
   
   (method override (space-uninstall self)
@@ -1149,8 +1150,7 @@
       (hide-history world)
       (hide-compass world)
       (hide-interface)
-      (reset-panel-stack)
-      (disable-autotrack-mode world feedback?: #f)))
+      (reset-panel-stack)))
 
   
   (method override (space-bindings self)
@@ -1323,8 +1323,7 @@
       (hide-history world)
       (hide-compass world)
       (hide-interface)
-      (reset-panel-stack)
-      (disable-autotrack-mode world feedback?: #f)))
+      (reset-panel-stack)))
   
   
   (method override (space-actions self)
@@ -2838,8 +2837,7 @@
       (set-mode me 'observer)
       (add-snapshot-property 'live.player-mode (get-mode me))
       (restore-active-zone self)
-      (reset-history)
-      (disable-autotrack-mode world feedback?: #f)))
+      (reset-history)))
   
   
   (method (goto-gathering self)

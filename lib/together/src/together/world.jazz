@@ -73,6 +73,7 @@
   
   (method override (autotrack-inhibit? self from-activate?)
     (or (nextmethod self from-activate?)
+        (is-not? (current-space) together.sphere-space:Sphere-Space)
         (and (circling?)
              (not (avatar-mode?)))))
   

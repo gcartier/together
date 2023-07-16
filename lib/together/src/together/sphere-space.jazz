@@ -25,6 +25,7 @@
         (world.client.udp)
         (world.configure)
         (world.context)
+        (world.live)
         (world.preprocess)
         (world.settings)
         (world.space)
@@ -45,6 +46,12 @@
 
 
 (class Sphere-Space extends Space
+  
+  
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (update-autotrack world)))
   
   
   ;;;
