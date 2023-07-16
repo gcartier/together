@@ -2816,12 +2816,12 @@
   
   (method (delay-enable-autotrack self)
     (let ((world (current-world)))
-      (when (user?)
-        (delay-event
-          (lambda ()
-            (with-task-mutex
-              (lambda ()
-                (enable-autotrack-mode world feedback?: #f))))))))
+      (delay-event
+        (lambda ()
+          (with-task-mutex
+            (lambda ()
+              (when (get-autotrack-mode?)
+                (maybe-enable-autotrack world))))))))
   
   
   (method package (exit-zone self)
