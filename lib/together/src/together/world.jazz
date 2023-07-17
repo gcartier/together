@@ -54,6 +54,14 @@
     Evolution-Timeline-Panel)
   
   
+  (method override (interface-layout self)
+    (let ((interface (current-interface)))
+      (let ((view (find-component interface 'command-to)))
+        (when view
+          (command-to-layouter view))))
+    (nextmethod self))
+  
+  
   (method override (draw-message-offset self)
     (let ((space (current-space+)))
       (or (and space (draw-message-offset space))
