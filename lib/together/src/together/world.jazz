@@ -56,9 +56,13 @@
   
   (method override (interface-layout self)
     (let ((interface (current-interface)))
-      (let ((view (find-component interface 'command-to)))
-        (when view
-          (command-to-layouter view))))
+      ;; simple solution around command-to not being a panel
+      (when (let ((panel (find-component interface 'command)))
+              (and panel
+                   (get-layouter panel)))
+        (let ((view (find-component interface 'command-to)))
+          (when view
+            (command-to-layouter view)))))
     (nextmethod self))
   
   
