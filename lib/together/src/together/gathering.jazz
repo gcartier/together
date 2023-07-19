@@ -2916,9 +2916,7 @@
   
   (method package (join-circle self name)
     (let ((tier (current-client))
-          (world (current-world))
-          (zone (current-zone))
-          (me (current-me)))
+          (world (current-world)))
       (let ((err (acquire-circle self name)))
         (client-status tier err)
         (if err
@@ -2926,13 +2924,7 @@
           (let ((group-info/exception (join-group tier name 'player)))
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
-              (if (eq? (get-mode me) 'player)
-                  (setup-circle self name group-info/exception)
-                (enter-zone self)
-                (when circle-vista
-                  (teleport-circle self circle-vista))
-                (setup-circle self name group-info/exception)
-                (presence-mode self feedback?: #f))))))))
+              (circle-join self name group-info/exception)))))))
   
   
   (method package (join-zoom-circle self name)
@@ -2997,9 +2989,14 @@
   
   
   (method (circle-join self name group-info/exception)
-    (enter-zone self)
-    (setup-circle self name group-info/exception)
-    (presence-mode self))
+    (let ((me (current-me)))
+      (if (eq? (get-mode me) 'player)
+          (setup-circle self name group-info/exception)
+        (enter-zone self)
+        (when circle-vista
+          (teleport-circle self circle-vista))
+        (setup-circle self name group-info/exception)
+        (presence-mode self feedback?: #f))))
   
   
   (method (acquire-circle self name)
