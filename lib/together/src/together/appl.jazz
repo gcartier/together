@@ -1518,6 +1518,7 @@
       (<world-debug!>
         @too-much (<!>                 name: toggle-info                visible?: #t)
         @too-much (<!>                 name: toggle-profiler            visible?: #t)
+        (<!>                 name: toggle-target              visible?: #t)
         @too-much (<!>                 name: toggle-axes                visible?: #t)
         @version1 (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
