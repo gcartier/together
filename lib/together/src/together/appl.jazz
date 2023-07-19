@@ -979,6 +979,7 @@
   (form
     (<install>                  title: "Circle"
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Solar-Symbol"} action-handler: {Action together-share toggle-view-share} parameter: view-share)
       (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
       (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
       (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options})
