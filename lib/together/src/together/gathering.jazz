@@ -1599,7 +1599,6 @@
     (let ((together (current-together))
           (interface (current-interface))
           (world (current-world)))
-      (show-mainbar self)
       (free-motion world feedback?: #f)
       (bind-camera)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
