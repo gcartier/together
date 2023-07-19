@@ -2392,7 +2392,25 @@
             (display-problem unable-to-acquire-microphone)
           (let ((error (client-invite tier recipient circle-name)))
             (if error
-                (display-error world error)
+                (if (equal? error "You cannot invite yourself")
+                    (display-error world error)
+                  (open-message (format "{a}. Chat instead?" error)
+                                caption: "Chat"
+                                type: 'question
+                                yes: "Yes"
+                                no: "No"
+                                execute: (lambda (evt)
+                                           (let ((dialog (find-ascendant (get-sender evt) World-Dialog))
+                                                 (button (get-property evt button:)))
+                                             (close dialog)
+                                             (case button
+                                               ((yes)
+                                                (update-message-recipient self (list 'player recipient))
+                                                (show-chat self)
+                                                (focus-command-text self))
+                                               ((no))
+                                               ((cancel)
+                                                (signal-cancel)))))))
               (chat-show world (format "Invite {a}" recipient))))))))
   
   
