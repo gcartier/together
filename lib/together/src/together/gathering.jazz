@@ -2993,9 +2993,8 @@
       (if (eq? (get-mode me) 'player)
           (setup-circle self name group-info/exception)
         (enter-zone self)
-        (when circle-vista
-          (teleport-circle self circle-vista))
         (setup-circle self name group-info/exception)
+        (teleport-circle self circle-center)
         (presence-mode self feedback?: #f))))
   
   
