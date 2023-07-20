@@ -154,7 +154,7 @@
       (when (current-space+)
         (space-deactivate (current-space))
         (space-uninstall (current-space)))
-      (set! space (need-space self (if (get-personal-key configuration)
+      (set! space (need-space self (if #t @wait-until-we-use-invitations-more (get-personal-key configuration)
                                        'key
                                      'invitation)))
       (space-install space)
