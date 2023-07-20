@@ -52,11 +52,13 @@
 
 
 (definition protected (open-client-enter remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
-  (let ((obj (open-client remote-file auto-enter: auto-enter)))
+  (let ((obj (open-client remote-file retrieved?: #f auto-enter: auto-enter)))
     (if (is? obj Zone)
         (begin
           (retrieve-gstreamer)
           (retrieve-critical-assets)
+          (set-retrieved? obj #t)
+          (prepare-skybox obj)
           (enter-together auto-enter))
       (let ((title (if (string? obj) obj "Unable to connect to server"))
             (zone (if from-login? (current-zone) (open-login-zone))))

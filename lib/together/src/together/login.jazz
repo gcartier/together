@@ -266,13 +266,15 @@
     (with-window-cursor :wait
       (lambda ()
         (clear-exception)
-        (let ((obj (open-client file)))
+        (let ((obj (open-client file retrieved?: #f)))
           (if (is? obj Zone)
               (begin
                 (working (current-world)
                   (lambda ()
                     (retrieve-gstreamer)
                     (retrieve-critical-assets)))
+                (set-retrieved? obj #t)
+                (prepare-skybox obj)
                 (enter-together #f)
                 (let ((tier (current-tier)))
                   (when (is? tier Client-Tier)
