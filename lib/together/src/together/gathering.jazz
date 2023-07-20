@@ -1217,12 +1217,7 @@
   
   
   (method override (panel-stack-change self)
-    (let ((world (current-world)))
-      (when (get-autotrack-mode?)
-        (cond ((top-panel)
-               (disable-autotrack world))
-              (else
-               (maybe-enable-autotrack world))))))
+    (zone/avatar-panel-stack-change))
   
   
   (method override (application-activate self)
@@ -1397,6 +1392,20 @@
 
 
 ;;;
+;;;; Zone/Avatar
+;;;
+
+
+(definition (zone/avatar-panel-stack-change)
+  (let ((world (current-world)))
+    (when (get-autotrack-mode?)
+      (cond ((top-panel)
+             (disable-autotrack world))
+            (else
+             (maybe-enable-autotrack world))))))
+
+
+;;;
 ;;;; Avatar-Space
 ;;;
 
@@ -1427,12 +1436,7 @@
   
   
   (method override (panel-stack-change self)
-    (let ((world (current-world)))
-      (when (get-autotrack-mode?)
-        (cond ((top-panel)
-               (disable-autotrack world))
-              (else
-               (maybe-enable-autotrack world))))))
+    (zone/avatar-panel-stack-change))
   
   
   (method override (application-activate self)
