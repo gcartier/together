@@ -4017,14 +4017,19 @@
       (when (selected-loaded? self)
         (let ((data (get-single-selected-data (people-tree self))))
           (when (pair? data)
-            (let ((kind (car data)))
+            (let ((kind (car data))
+                  (rest (cdr data)))
               (cond (active-group
                      (when (eq? kind 'group)
                        (with-cursor :wait
                          (lambda ()
-                           (if (circling?)
-                               (enter-circle self)
-                             (join-circle self active-group))))))
+                           (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
+                             (cond (zoom?
+                                    (join-zoom-circle self active-group))
+                                   ((circling?)
+                                    (enter-circle self))
+                                   (else
+                                    (join-circle self active-group))))))))
                     ((and active-zone (neq? active-zone 'start))
                      (when (eq? kind 'zone)
                        (enter-zone self))))))))))
