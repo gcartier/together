@@ -232,7 +232,7 @@
                (let ((choice (or (assoc identifier choices) (car choices))))
                  (values choices (car choice))))))))
       ((retina)
-       (world-setting 'world.application-retina? #f))
+       (world-setting 'world.application-retina? #t))
       ((multisampling)
        (world-setting 'world.multisampling? #t))
       ((scale)
