@@ -4016,7 +4016,7 @@
     (when (is? space Gathering-Space)
       (when (selected-loaded? self)
         (let ((data (get-single-selected-data (people-tree self))))
-          (when data
+          (when (pair? data)
             (let ((kind (car data)))
               (cond (active-group
                      (when (eq? kind 'group)
