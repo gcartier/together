@@ -2940,7 +2940,7 @@
                             (enter-zone self)
                             (teleport-circle self position)
                             (join-circle self name)
-                            (presence-mode self feedback?: #f))))))))))))))
+                            (presence/gallery-mode self))))))))))))))
   
   
   (method package (create-zoom-circle self)
@@ -3044,7 +3044,7 @@
         (enter-zone self)
         (setup-circle self name group-info/exception)
         (teleport-circle self circle-center)
-        (presence-mode self feedback?: #f))))
+        (presence/gallery-mode self))))
   
   
   (method (acquire-circle self name)
@@ -4424,7 +4424,9 @@
   
   
   (method (on-presence-mode self evt)
-    (presence-mode self))
+    (presence-mode self)
+    (set-setting options-settings 'world.presence-mode? #t)
+    (save-content options-settings))
   
   
   (method (on-focus-mode self evt)
@@ -4432,7 +4434,9 @@
   
   
   (method (on-gallery-mode self evt)
-    (gallery-mode self))
+    (gallery-mode self)
+    (set-setting options-settings 'world.presence-mode? #f)
+    (save-content options-settings))
   
   
   ;; for testing camera positioning
@@ -4487,6 +4491,12 @@
             (preserve-camera self)
             (bind-camera)
             (disable-autotrack world))))))
+  
+  
+  (method (presence/gallery-mode self)
+    (if (world-setting 'world.presence-mode? #f)
+        (presence-mode self feedback?: #f)
+      (gallery-mode self feedback?: #f)))
   
   
   (method (change-circle-mode self mode layout (feedback?: feedback? #t))
