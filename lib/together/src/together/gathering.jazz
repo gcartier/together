@@ -1220,6 +1220,10 @@
     (zone/avatar-panel-stack-change))
   
   
+  (method override (showcase-change self)
+    (zone/avatar-showcase-change))
+  
+  
   (method override (application-activate self)
     (let ((world (current-world)))
       (when (get-autotrack-mode?)
@@ -1405,6 +1409,15 @@
              (maybe-enable-autotrack world))))))
 
 
+(definition (zone/avatar-showcase-change)
+  (let ((world (current-world)))
+    (when (get-autotrack-mode?)
+      (cond ((get-showcase world)
+             (disable-autotrack world))
+            (else
+             (maybe-enable-autotrack world))))))
+
+
 ;;;
 ;;;; Avatar-Space
 ;;;
@@ -1437,6 +1450,10 @@
   
   (method override (panel-stack-change self)
     (zone/avatar-panel-stack-change))
+  
+  
+  (method override (showcase-change self)
+    (zone/avatar-showcase-change))
   
   
   (method override (application-activate self)
