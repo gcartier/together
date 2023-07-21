@@ -227,6 +227,8 @@
                  ((unverified?)
                   "world/nebula")
                  (else
+                  "world/earth"
+                  @wait-all-nice-and-also-part-of-critical-assets
                   (random-element '("world/calm_sea" "world/dark_sea" "world/nebula")))))))
 
 
