@@ -271,8 +271,7 @@
               (begin
                 (working (current-world)
                   (lambda ()
-                    (retrieve-gstreamer)
-                    (retrieve-critical-assets)))
+                    (retrieve-gstreamer/critical-assets)))
                 (set-retrieved? obj #t)
                 (prepare-skybox obj)
                 (enter-together #f)

@@ -66,10 +66,10 @@
 (definition connected-client
   #f)
 
-(definition (connect-client)
+(definition (connect-client feedback)
   (or connected-client
       (let ((repo (open-local-repository)))
-        (let ((client (new Jas-Client repo remote-host remote-path 'read)))
+        (let ((client (new Jas-Client repo remote-host remote-path 'read feedback: feedback)))
           (connect client)
           (set! connected-client client)
           client))))
@@ -85,9 +85,9 @@
 (definition connected-client-mutex
   (make-mutex 'connected-client))
 
-(definition protected (with-connected-client proc)
+(definition protected (with-connected-client proc (feedback: feedback #f))
   (mutex-lock! connected-client-mutex)
-  (unwind-protect (let ((client (connect-client)))
+  (unwind-protect (let ((client (connect-client feedback)))
                     (proc client)
                     (in deconnect-waiter deconnect-delay
                       (lambda (again)

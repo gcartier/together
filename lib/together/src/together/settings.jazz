@@ -55,8 +55,7 @@
   (let ((obj (open-client remote-file retrieved?: #f auto-enter: auto-enter)))
     (if (is? obj Zone)
         (begin
-          (retrieve-gstreamer)
-          (retrieve-critical-assets)
+          (retrieve-gstreamer/critical-assets)
           (set-retrieved? obj #t)
           (prepare-skybox obj)
           (enter-together auto-enter))
@@ -76,41 +75,63 @@
       (together-enter together auto-enter))))
 
 
-(definition protected (retrieve-gstreamer)
-  (let ((world (current-world)))
-    (when remote-repository?
-      (when (not (have-set-locally? 'gstreamer))
-        (working-progress world "Downloading gstreamer" #f)
-        (with-connected-client
-          (lambda (client)
-            (download-sets client '(gstreamer))))))))
-
-
-(definition protected (retrieve-critical-assets)
-  (let ((client (current-client))
-        (world (current-world)))
+(definition protected (retrieve-gstreamer/critical-assets)
+  (let ((client (current-client)))
     (let ((assets (get-universe-assets client))
           (avatar (get-character-avatar (get-configuration client))))
-      (parameterize ((inhibit-working? #t))
-        (let ((critical (collect (lambda (path)
-                                   (and (contains-file? assets path)
-                                        (cons (new Asset assets path) (estimate-asset-size path))))
-                                 (critical-assets avatar))))
-          (let ((blocks (new-queue))
-                (count (length critical))
-                (total (apply + (map cdr critical))))
-            (for-each (lambda (info)
-                        (bind (asset . size) info
-                          (enqueue blocks (cons (request-file asset) size))))
-                      critical)
-            (let ((downloaded 0))
-              (for-each (lambda (info n)
-                          (bind (block . size) info
-                            (working-progress world "Downloading assets" (percentage downloaded total))
-                            (increase! downloaded size)
-                            (block)))
-                        (queue-list blocks)
-                        (naturals 0 count))))))))
+      (let ((critical (collect (lambda (path)
+                                 (and (contains-file? assets path)
+                                      (cons (new Asset assets path) (estimate-asset-size path))))
+                               (critical-assets avatar))))
+        (let ((assets-total (apply + (map cdr critical))))
+          (let ((gstreamer-total (retrieve-gstreamer assets-total)))
+            (let ((total (+ gstreamer-total assets-total)))
+              (retrieve-critical-assets critical gstreamer-total total))))))))
+
+
+(definition protected (retrieve-gstreamer assets-total)
+  (let ((world (current-world)))
+    (if (or (not remote-repository?)
+            (have-set-locally? 'gstreamer))
+        0
+      (let ((gstreamer-total #f)
+            (total 0)
+            (downloaded 0)
+            (estimated-size 400))
+        (define (feedback stage . rest)
+          (case stage
+            ((progress)
+             (when (not gstreamer-total)
+               (set! gstreamer-total (* (car rest) estimated-size))
+               (set! total (+ gstreamer-total assets-total)))
+             (increase! downloaded estimated-size)
+             (working-progress world "Downloading assets" (percentage downloaded total)))))
+        
+        (working-progress world "Downloading assets" 0.)
+        (with-connected-client
+          (lambda (client)
+            (download-sets client '(gstreamer)))
+          feedback: feedback)
+        (or gstreamer-total 0)))))
+
+
+(definition protected (retrieve-critical-assets critical downloaded total)
+  (let ((world (current-world)))
+    (parameterize ((inhibit-working? #t))
+      (let ((blocks (new-queue)))
+        (for-each (lambda (info)
+                    (bind (asset . size) info
+                      (enqueue blocks (cons (request-file asset) size))))
+                  critical)
+        (for-each (lambda (info)
+                    (bind (block . size) info
+                      (working-progress world "Downloading assets" (percentage downloaded total))
+                      (increase! downloaded size)
+                      (block)))
+                  (queue-list blocks))))
+    (when (> total 0)
+      (working-progress world "Downloading assets" 100.)
+      (sleep .1)))
   (when (not (world-setting 'together.critical-assets? #f))
     (set-setting options-settings 'together.critical-assets? #t)
     (save-content options-settings)))
