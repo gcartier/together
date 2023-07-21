@@ -79,7 +79,7 @@
 (definition protected (retrieve-gstreamer)
   (let ((world (current-world)))
     (when remote-repository?
-      (when (and remote-repository? (not (have-set-locally? 'gstreamer)))
+      (when (not (have-set-locally? 'gstreamer))
         (working-progress world "Downloading gstreamer" #f)
         (with-connected-client
           (lambda (client)
