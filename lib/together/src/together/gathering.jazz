@@ -4674,7 +4674,8 @@
              (begin
                (seek-backward focus)
                #t)
-           (and (presence-mode?)
+           (and (or (presence-mode?)
+                    (focus-mode?))
                 (world-focus? focus)
                 (begin
                   (circle-left)
@@ -4684,7 +4685,8 @@
              (begin
                (seek-forward focus)
                #t)
-           (and (presence-mode?)
+           (and (or (presence-mode?)
+                    (focus-mode?))
                 (world-focus? focus)
                 (begin
                   (circle-right)
