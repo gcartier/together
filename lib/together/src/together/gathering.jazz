@@ -317,6 +317,12 @@
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-stress              active?: #t)
         (<!>                 name: test                       active?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          active?: #t)
+        (<!>                 name: run-experiment7            active?: #t)
+        (<!>                 name: run-experiment8            active?: #t)
+        (<!>                 name: run-experiment9            active?: #t)
+        (<!>                 name: run-experiment0            active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -500,6 +506,7 @@
                   (find-actions 'together-share)
                   (find-actions 'together-profile)
                   (find-actions 'together-debug)
+                  (find-actions 'together-experiment)
                   (find-actions 'together-script))
             (nextmethod self)))
   
@@ -938,6 +945,12 @@
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
         (<!>                 name: capture-view               active?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          active?: #t)
+        (<!>                 name: run-experiment7            active?: #t)
+        (<!>                 name: run-experiment8            active?: #t)
+        (<!>                 name: run-experiment9            active?: #t)
+        (<!>                 name: run-experiment0            active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -1553,12 +1566,6 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t))
-      (<together-experiment!>
-        (<!>                 name: toggle-experiment          active?: #t)
-        (<!>                 name: run-experiment7            active?: #t)
-        (<!>                 name: run-experiment8            active?: #t)
-        (<!>                 name: run-experiment9            active?: #t)
-        (<!>                 name: run-experiment0            active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -2020,7 +2027,13 @@
         (<!>                 name: remove-stream              active?: #t)
         (<!>                 name: toggle-screen-share        active?: #t)
         (<!>                 name: toggle-view-share          active?: #t)
-        (<!>                 name: capture-view               active?: #t)))))
+        (<!>                 name: capture-view               active?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          active?: #t)
+        (<!>                 name: run-experiment7            active?: #t)
+        (<!>                 name: run-experiment8            active?: #t)
+        (<!>                 name: run-experiment9            active?: #t)
+        (<!>                 name: run-experiment0            active?: #t)))))
 
 
 (define-trait circle-bindings Bindings
