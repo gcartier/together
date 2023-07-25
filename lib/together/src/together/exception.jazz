@@ -40,10 +40,9 @@
 
 (definition (together-exception-feedback)
   (lambda (exception snapshot)
-    (system-message (format "{a} {a}.{%}{%}{a}.{%}{%}{a}."
-                            "An unexpected problem occurred while executing"
-                            (current-process-present)
-                            "This will terminate the application immediately"
-                            "Launching Together again will send a log file of the problem to the developers")
+    (system-message (format "{a}.{%}{%}{a}.{%}{%}{a}."
+                            "An unexpected problem occurred"
+                            "A log file of the problem will be generated and Together will exit"
+                            "Restarting Together will send the log file to the developers")
                     title: "Application Error"
                     type: 'problem))))
