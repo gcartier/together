@@ -1316,7 +1316,7 @@
       (<world-main!>
         (<!>                 name: graphics-options           visible?: #t)
         @version1 (<!>                 name: sound-options              visible?: #t)
-        @version1 (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
         @wait-having-news!
@@ -1414,7 +1414,7 @@
       (<world-main!>
         (<!>                 name: graphics-options           visible?: #t)
         @version1 (<!>                 name: sound-options              visible?: #t)
-        @version1 (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: interface-options          visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
         @wait-having-news!
