@@ -117,24 +117,23 @@
 
 (definition protected (retrieve-critical-assets critical downloaded total)
   (let ((world (current-world)))
-    (parameterize ((inhibit-working? #t))
-      (let ((blocks (new-queue)))
-        (for-each (lambda (info)
-                    (bind (asset . size) info
-                      (enqueue blocks (cons (request-file asset) size))))
-                  critical)
-        (for-each (lambda (info)
-                    (bind (block . size) info
-                      (working-progress world "Downloading assets" (percentage downloaded total))
-                      (increase! downloaded size)
-                      (block)))
-                  (queue-list blocks))))
-    (when (> total 0)
+    (unless (world-setting 'together.critical-assets? #f)
+      (parameterize ((inhibit-working? #t))
+        (let ((blocks (new-queue)))
+          (for-each (lambda (info)
+                      (bind (asset . size) info
+                        (enqueue blocks (cons (request-file asset) size))))
+                    critical)
+          (for-each (lambda (info)
+                      (bind (block . size) info
+                        (working-progress world "Downloading assets" (percentage downloaded total))
+                        (increase! downloaded size)
+                        (block)))
+                    (queue-list blocks))))
       (working-progress world "Downloading assets" 100.)
-      (sleep .1)))
-  (when (not (world-setting 'together.critical-assets? #f))
-    (set-setting options-settings 'together.critical-assets? #t)
-    (save-content options-settings)))
+      (sleep .1)
+      (set-setting options-settings 'together.critical-assets? #t)
+      (save-content options-settings))))
 
 
 (definition preload-gstreamer-audio
