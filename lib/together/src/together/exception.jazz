@@ -15,7 +15,9 @@
 
 
 (import (jazz.platform)
-        (jazz.snapshot))
+        (jazz.snapshot)
+        (world.io)
+        (world.task))
 
 
 (definition protected (setup-together-exception-debugger)
@@ -24,8 +26,16 @@
 
 
 (definition (together-exception-debugger)
-  (snapshot-exception-debugger
-    feedback: (together-exception-feedback)))
+  (let ((snapshot-debugger
+          (snapshot-exception-debugger
+            feedback: (together-exception-feedback))))
+    (lambda (exc)
+      (with-bailout-mutex
+        (lambda ()
+          (if bailout?
+              (let ((bailout-continuation (current-bailout-continuation)))
+                (continuation-return bailout-continuation #f))
+            (snapshot-debugger exc)))))))
 
 
 (definition (together-exception-feedback)
