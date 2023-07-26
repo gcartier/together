@@ -29,6 +29,7 @@
         (together)
         (together.gathering)
         (together.login)
+        (together.portal)
         (together.replay)
         (together.script)
         (together.zone))

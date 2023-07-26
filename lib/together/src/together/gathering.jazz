@@ -2749,15 +2749,6 @@
     (leave-circle self))
   
   
-  (method package (check-rune self rune)
-    (let ((world (current-world)))
-      (display-action world "E : Enter Portal"
-        (lambda ()
-          (with-cursor :wait
-            (lambda ()
-              ))))))
-  
-  
   (method package (check-circle-stone self stone)
     (let ((world (current-world)))
       (cond ((not current-circle-name)
@@ -3375,20 +3366,22 @@
       (set! selected-color {Color World-Red})
       (set! selected-message message))
     
-    (if (not (equal? path zone-loading))
-        (load-zone self zone-loading)
-      (set! zone-loading #f)
-      (when (equal? path selected-zone)
-        (if (string? info)
-            (selected-error info)
-          (let ((info (change-zone self path)))
+    (with-task-mutex
+      (lambda ()
+        (if (not (equal? path zone-loading))
+            (load-zone self zone-loading)
+          (set! zone-loading #f)
+          (when (equal? path selected-zone)
             (if (string? info)
                 (selected-error info)
-              (set! active-zone selected-zone)
-              (set! active-group selected-group)
-              (set! active-data selected-data))))
-        (when (is? space Gathering-Space)
-          (update-center-interface space)))))
+              (let ((info (change-zone self path)))
+                (if (string? info)
+                    (selected-error info)
+                  (set! active-zone selected-zone)
+                  (set! active-group selected-group)
+                  (set! active-data selected-data))))
+            (when (is? space Gathering-Space)
+              (update-center-interface space)))))))
   
   
   (method (hierarchy-update self hierarchy)
