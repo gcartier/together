@@ -2749,6 +2749,15 @@
     (leave-circle self))
   
   
+  (method package (check-rune self rune)
+    (let ((world (current-world)))
+      (display-action world "E : Enter Portal"
+        (lambda ()
+          (with-cursor :wait
+            (lambda ()
+              ))))))
+  
+  
   (method package (check-circle-stone self stone)
     (let ((world (current-world)))
       (cond ((not current-circle-name)

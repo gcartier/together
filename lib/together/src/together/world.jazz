@@ -23,6 +23,7 @@
         (world.foreign)
         (world.interface)
         (world.interface.sheet)
+        (world.rune)
         (world.sound)
         (world.support)
         (together)
@@ -98,6 +99,8 @@
   
   (method override (check-element-action self element)
     (typecase element
+      ((Rune)
+       (check-rune (current-together) element))
       ((Circle-Stone)
        (check-circle-stone (current-together) element))
       ((Player)
