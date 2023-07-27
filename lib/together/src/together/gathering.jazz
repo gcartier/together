@@ -552,13 +552,16 @@
     #f)
   
   
-  (method override (only-skybox? self)
-    (if (unverified?)
-        #t
-      (if together-skybox?
-          (let ((zone (current-zone)))
-            (void? zone))
-        #f)))
+  (method override (only-skybox self)
+    (let ((together (current-together))
+          (zone (current-zone)))
+      (if (or (unverified?)
+              (not (get-retrieved? zone)))
+          (cache-nebula-skybox)
+        (let ((type (get-selected-type together)))
+          (if (eq? type 'player)
+              #f
+            (cache-nebula-skybox))))))
   
   
   (method override (draw-world? self)
@@ -2068,6 +2071,7 @@
   (slot selected-zone       initialize #f getter generate)
   (slot selected-group      initialize #f getter generate)
   (slot selected-data       initialize #f getter generate)
+  (slot selected-type       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
   (slot selected-message    initialize #f getter generate)
@@ -2148,6 +2152,7 @@
               (set! active-data zone)
               (set! selected-zone zone)
               (set! selected-data zone)
+              (set! selected-type 'zone)
               (set! message-recipient zone)
               (set-path (current-zone) zone)))))
       
@@ -3955,13 +3960,13 @@
   (method package (people-selection-change self)
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
-        (define (select-gathering)
-          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f)))
+        (define (select-gathering type)
+          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f) type))
         
-        (define (select-zoom)
-          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f)))
+        (define (select-zoom type)
+          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f) type))
         
-        (define (select data)
+        (define (select data (type #f))
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set! selected-message "")
@@ -3977,6 +3982,7 @@
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
+              (set! selected-type (or type kind))
               (set! selected-owner owner)
               (set! selected-zoom? zoom?)
               (when (selected-loaded? self)
@@ -3992,20 +3998,20 @@
               ((zone)
                (select data #f #f #f #f #f #f #f)))))
         
-        (define (select-row row)
+        (define (select-row row (type #f))
           (if (not row)
-              (select-gathering)
+              (select-gathering (or type 'gathering))
             (let ((data (get-user-data row)))
               (if (not data)
-                  (select-gathering)
+                  (select-gathering (or type 'gathering))
                 (if (eq? data 'zoom)
-                    (select-zoom)
+                    (select-zoom (or type 'zoom))
                   (bind (kind) data
                     (if (eq? kind 'separator)
-                        (select-gathering)
+                        (select-gathering (or type 'gathering))
                       (if (eq? kind 'player)
-                          (select-row (get-father row))
-                        (select data)))))))))
+                          (select-row (get-father row) 'player)
+                        (select data type)))))))))
         
         (select-row (get-selected-row tree)))))
   
