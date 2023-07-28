@@ -2946,8 +2946,6 @@
                             (set-string-content text "")
                             (content-changed view)
                             (set-checked? require-camera #t)
-                            (enter-zone self)
-                            (teleport-circle self position)
                             (join-circle self name)
                             (presence/gallery-mode self))))))))))))))
   
@@ -3026,7 +3024,7 @@
           (let ((group-info/exception (join-group tier name 'player)))
             (if (string? group-info/exception)
                 group-info/exception
-              (setup-circle self name group-info/exception)
+              (setup-circle self name #t group-info/exception)
               #f))))))
   
   
@@ -3038,7 +3036,7 @@
           (let ((group-info/exception (rejoin-group tier name)))
             (if (string? group-info/exception)
                 group-info/exception
-              (setup-circle self name group-info/exception)
+              (setup-circle self name #t group-info/exception)
               #f))))))
   
   
@@ -3049,9 +3047,9 @@
   (method (circle-join self name group-info/exception)
     (let ((me (current-me)))
       (if (eq? (get-mode me) 'player)
-          (setup-circle self name group-info/exception)
+          (setup-circle self name #f group-info/exception)
         (enter-zone self)
-        (setup-circle self name group-info/exception)
+        (setup-circle self name #t group-info/exception)
         (teleport-circle self circle-center)
         (presence/gallery-mode self))))
   
@@ -3080,7 +3078,7 @@
       #f))
   
   
-  (method (setup-circle self name group-info/exception)
+  (method (setup-circle self name from-gathering? group-info/exception)
     (let ((tier (current-client))
           (udp (current-udp))
           (universe (current-universe))
@@ -3105,6 +3103,7 @@
         (set-current-circle-no no)
         (set-current-circle-started (- (current-seconds) duration))
         (set-current-circle-joined (current-seconds))
+        (set-current-circle-from-gathering? from-gathering?)
         (set-visible? (child mainbar 'circle-name) #t)
         (set-title (child mainbar 'circle-name) current-circle-name)
         (add-snapshot-property 'live.circle-name current-circle-name)
@@ -3196,7 +3195,9 @@
       (hide-streams self)
       (let ((frame (find-type interface Circle-Options)))
         (when frame
-          (close frame)))))
+          (close frame)))
+      (when current-circle-from-gathering?
+        (exit-zone self))))
   
   
   (method (rejoin-group self group-no)
