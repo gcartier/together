@@ -744,6 +744,7 @@
           `(,unverified-bindings ,@platform)
         (case current-role
           ((user) `(,user-bindings ,@admin ,@platform))
+          ((explorer) `(,explorer-bindings ,@admin ,@platform))
           ((builder) `(,builder-bindings ,@admin ,@platform))
           ((developer) `(,developer-bindings ,@admin ,@platform))
           (else (nextmethod self))))))
@@ -1312,6 +1313,75 @@
 
 (define-trait user-bindings Bindings
   (<Role-Trait>        name: user
+    (<install>
+      (<world-main!>
+        (<!>                 name: bindings-viewer            visible?: #t)
+        @wait-having-news!
+        (<!>                 name: view-news                  visible?: #t)
+        @version1 (<!>                 name: view-roadmap               visible?: #t)
+        @version1 (<!>                 name: view-help                  visible?: #t)
+        (<!>                 name: open-about                 visible?: #t)
+        (<!>                 name: open-welcome               visible?: #t)
+        (<!>                 name: quit-world                 visible?: #t))
+      (<world-interface!>
+        @version0
+        (<!>                 name: toggle-interface           visible?: #t)
+        (<!>                 name: toggle-windowed-mode       visible?: #t))
+      (<world-people!>
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
+      (<world-chat!>
+        (<!>                 name: toggle-chat                visible?: #t)
+        (<!>                 name: command-message            visible?: #t)
+        @version1 (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: repeat-previous            visible?: #t))
+      (<together-menu!>
+        (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: create-circle              visible?: #t)
+        (<!>                 name: leave-group                visible?: #t)
+        (<!>                 name: leave-circle               visible?: #t)
+        (<!>                 name: goto-login                 visible?: #t))
+      (<together-audio!>
+        (<!>                 name: toggle-microphone          visible?: #t)
+        (<!>                 name: toggle-push-to-talk        visible?: #t)
+        (<!>                 name: talk                       visible?: #t)
+        @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
+        @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
+        (<!>                 name: toggle-camera              visible?: #t)
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
+      (<together-circle!>
+        (<!>                 name: presence-mode              visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
+        (<!>                 name: tab-press                  visible?: #t)
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: organize-circle            visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
+      @wait
+      (<together-record!>
+        (<!>                 name: start-recording            visible?: #t)
+        (<!>                 name: stop-recording             visible?: #t)
+        (<!>                 name: process-recording          visible?: #t))
+      (<together-share!>
+        (<!>                 name: toggle-streams             visible?: #t)
+        (<!>                 name: toggle-screen-share        visible?: #t)
+        (<!>                 name: toggle-view-share          visible?: #t)
+        (<!>                 name: capture-view               visible?: #t))
+      (<together-profile!>
+        (<!>                 name: test-network               visible?: #t)))))
+
+
+;;;
+;;;; Explorer
+;;;
+
+
+(define-trait explorer-bindings Bindings
+  (<Role-Trait>        name: explorer
     (<install>
       (<world-main!>
         (<!>                 name: graphics-options           visible?: #t)

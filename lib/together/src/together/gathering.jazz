@@ -556,10 +556,12 @@
     (let ((together (current-together))
           (zone (current-zone)))
       (if (or (unverified?)
-              (not (get-retrieved? zone)))
+              (not (get-retrieved? zone))
+              (user?))
           (cache-nebula-skybox)
         (let ((type (get-selected-type together)))
-          (if (eq? type 'player)
+          (if (or (eq? type 'player)
+                  (eq? type 'group))
               #f
             (cache-nebula-skybox))))))
   
@@ -583,7 +585,8 @@
                    (lambda ()
                      (join-circle together group))))
                 (zone
-                 (enter-zone together)))))))
+                 (unless (user?)
+                   (enter-zone together))))))))
   
   
   ;; quicky
@@ -704,10 +707,10 @@
                    (create-visible #f)
                    (zoom-visible #t)
                    (layout-view root))
-                  ((eq? active-zone 'start)
+                  ((or (eq? active-zone 'start) (user?))
                    (unverified-visible #f)
                    (enter-visible #f)
-                   (start-visible #t)
+                   (start-visible (not (user?)))
                    (join-visible #f)
                    (launch-visible #f)
                    (create-visible #t)
@@ -2101,6 +2104,7 @@
     (set! spaces (make-table test: eq?))
     (set! active-zone 'start)
     (set! selected-zone 'start)
+    (set! selected-type 'gathering)
     (set! selected-color {Color World-Orange})
     (set! selected-message "")
     (set! preserved-eye (make-camera)))
@@ -3841,14 +3845,14 @@
                     (when player
                       (set-disconnected? player disconnected?)))))
               
-              (define (add-group father info (empty? #f))
+              (define (add-group kind father info (empty? #f))
                 (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list 'group group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description))))
+                                        user-data: (list kind group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3866,17 +3870,17 @@
                                   (set! empty (cons info empty)))))
                             circles)
                   (for-each (lambda (info)
-                              (add-group #f info))
+                              (add-group 'group #f info))
                             (sort di<? non-empty key: car))
                   (when (not-null? empty)
                     (add-separator 'empty)
                     (for-each (lambda (info)
-                                (add-group #f info #t))
+                                (add-group 'group #f info #t))
                               (sort di<? empty key: car)))))
               
               (define (add-zoom-circles father circles)
                 (for-each (lambda (info)
-                            (add-group father info))
+                            (add-group 'zoom-group father info))
                           (sort di<? circles key: car)))
               
               (define (add-zones father spine zones)
@@ -3916,7 +3920,7 @@
                                               (bind (kind . info) info
                                                 (case kind
                                                   ((player) (add-player row info #f))
-                                                  ((group) (add-group row info)))))
+                                                  ((group) (add-group 'group row info)))))
                                             members)))))
                           (sort di<? children key: (lambda (info)
                                                      (last (car info))))))
@@ -3993,11 +3997,12 @@
               (update-center-interface space))
             
             (case kind
-              ((group)
+              ((group zoom-group)
                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
                  (select zone group owner stone zoom? link description #f)))
               ((zone)
-               (select data #f #f #f #f #f #f #f)))))
+               (let ((zone (if (user?) 'start data)))
+                 (select zone #f #f #f #f #f #f #f))))))
         
         (define (select-row row (type #f))
           (if (not row)
@@ -4043,7 +4048,7 @@
                                     (enter-circle self))
                                    (else
                                     (join-circle self active-group))))))))
-                    ((and active-zone (neq? active-zone 'start))
+                    ((and active-zone (neq? active-zone 'start) (not (user?)))
                      (when (eq? kind 'zone)
                        (enter-zone self))))))))))
   
