@@ -3746,7 +3746,7 @@
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
-                                         (mobile? (format "{a} (web)" player-title))
+                                         (mobile? (format "{a} (Web)" player-title))
                                          ((eq? mode 'observer) player-title)
                                          (else (format "{a} ({a})" player-title (present-zone self zone)))))
                             (font (if (and roaming? group)
@@ -3818,7 +3818,7 @@
                 (let ((row (add-row tree
                                     state: 'expanded
                                     children: (list (new Tree-Node
-                                                      title: "Out there"
+                                                      title: "Web"
                                                       font: {Font Label-User}
                                                       color: gathering-color))
                                     user-data: 'zoom)))
