@@ -29,7 +29,7 @@
     (let ((path (get-path rune)))
       (define (present-path)
         (if (eq? path 'start)
-            "The gathering"
+            "World"
           (last path)))
       
       (when path

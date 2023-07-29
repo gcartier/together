@@ -392,7 +392,6 @@
           (new Push-Button name: 'zoom-launch parent: root title: "Join on Zoom" location: '(center center) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))
           (new Push-Button name: 'zoom-edit parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
           (new Push-Button name: 'zoom-copy parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
-          (new Push-Button name: 'enter-world parent: root title: "Enter World" location: '(center -30) size: {Dimension 160 30} font: {Font font-name: tahoma point-size: 14.5 shadow: thin} action-handler: (~ on-enter self))
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
           (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
@@ -421,7 +420,6 @@
           (set-visible? (child root 'circle-join) (not admin-visible?))))
       (set-visible? (child root 'circle-create) #t)
       (set-visible? (child root 'zoom-create) #f)
-      (set-visible? (child root 'enter-world) #t)
       (set-visible? (child mainbar 'profile) #t)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #t)
@@ -557,13 +555,9 @@
           (zone (current-zone)))
       (if (or (unverified?)
               (not (get-retrieved? zone))
-              (user?))
+              (not (get-selected-zone? together)))
           (cache-nebula-skybox)
-        (let ((type (get-selected-type together)))
-          (if (or (eq? type 'player)
-                  (eq? type 'group))
-              #f
-            (cache-nebula-skybox))))))
+        #f)))
   
   
   (method override (draw-world? self)
@@ -576,17 +570,15 @@
   
   (method override (enter-press self)
     (let ((together (current-together)))
-      (when (and (eq? (active-focus) (current-interface))
-                 (selected-loaded? together))
-        (let ((zone (get-active-zone together))
-              (group (get-active-group together)))
+      (when (eq? (active-focus) (current-interface))
+        (let ((zone? (get-selected-zone? together))
+              (group (get-selected-group together)))
           (cond (group
                  (with-cursor :wait
                    (lambda ()
                      (join-circle together group))))
-                (zone
-                 (unless (user?)
-                   (enter-zone together))))))))
+                (zone?
+                 (enter-zone together)))))))
   
   
   ;; quicky
@@ -604,7 +596,7 @@
   (method (circle-create-enabled? self)
     (let ((together (current-together)))
       (let ((circle-view (child root '(circle-create view))))
-        (and (selected-loaded? together) (not (name-invalid circle-view))))))
+        (not (name-invalid circle-view)))))
   
   
   (method package (update-center-interface self)
@@ -612,120 +604,105 @@
           (client (current-client))
           (interface (current-interface))
           (world (current-world)))
-      (let ((selected-owner (get-selected-owner together))
+      (let ((selected-zone? (get-selected-zone? together))
+            (selected-zone (get-selected-zone together))
+            (selected-group (get-selected-group together))
+            (selected-owner (get-selected-owner together))
             (selected-zoom? (get-selected-zoom? together))
-            (active-zone (get-active-zone together))
-            (active-group (get-active-group together))
             (circling? (circling?)))
-        (let ((loaded? (selected-loaded? together)))
-          (define (unverified-visible flag)
-            (set-visible? (child root 'unverified) flag))
-          
-          (define (enter-visible flag)
-            (set-visible? (child root 'zone) flag)
-            (set-visible? (child root 'zone-enter) flag)
-            (set-enabled? (child root 'zone-enter) loaded?))
-          
-          (define (start-visible flag)
-            (set-visible? (child root 'enter-world) flag))
-          
-          (define (join-visible flag)
-            (set-visible? (child root 'circle) flag)
-            (set-visible? (child root 'circle-join) flag)
-            (set-enabled? (child root 'circle-join) loaded?))
-          
-          (define (launch-visible flag)
-            (set-visible? (child root 'zoom-circle) flag)
-            (set-visible? (child root 'zoom-launch) flag)
-            (let ((owner? (personal-key? client selected-owner)))
-              (set-visible? (child root 'zoom-edit) (and flag owner?))
-              (set-visible? (child root 'zoom-copy) (and flag (not owner?)))))
-          
-          (define (create-visible flag)
-            (let ((create (child root 'circle-create)))
-              (set-visible? create flag)
-              (let ((circle-view (child create 'view)))
-                (set-visible? (child create 'label) flag)
-                (set-visible? circle-view flag)
-                (set-enabled? (locate circle-view 'text) loaded?)
-                (set-visible? (child create 'invalid) flag)
-                (set-visible? (child create 'create) flag)
-                (let ((enabled? (circle-create-enabled? self)))
-                  (set-enabled? (child create 'create) enabled?)
-                  (set-visible? (child create 'require-camera?) (and flag enabled?))))))
-          
-          (define (zoom-visible flag)
-            (let ((create (child root 'zoom-create)))
-              (set-visible? create flag)
-              (set-stops root (and flag (list
+        (define (unverified-visible flag)
+          (set-visible? (child root 'unverified) flag))
+        
+        (define (enter-visible flag)
+          (when flag
+            (set-title (child root 'zone) (present-zone together selected-zone)))
+          (set-visible? (child root 'zone) flag)
+          (set-visible? (child root 'zone-enter) flag))
+        
+        (define (join-visible flag)
+          (set-visible? (child root 'circle) flag)
+          (set-visible? (child root 'circle-join) flag))
+        
+        (define (launch-visible flag)
+          (set-visible? (child root 'zoom-circle) flag)
+          (set-visible? (child root 'zoom-launch) flag)
+          (let ((owner? (personal-key? client selected-owner)))
+            (set-visible? (child root 'zoom-edit) (and flag owner?))
+            (set-visible? (child root 'zoom-copy) (and flag (not owner?)))))
+        
+        (define (create-visible flag)
+          (let ((create (child root 'circle-create)))
+            (set-visible? create flag)
+            (let ((circle-view (child create 'view)))
+              (set-visible? (child create 'label) flag)
+              (set-visible? circle-view flag)
+              (set-visible? (child create 'invalid) flag)
+              (set-visible? (child create 'create) flag)
+              (let ((enabled? (circle-create-enabled? self)))
+                (set-enabled? (child create 'create) enabled?)
+                (set-visible? (child create 'require-camera?) (and flag enabled?))))))
+        
+        (define (zoom-visible flag)
+          (let ((create (child root 'zoom-create)))
+            (set-visible? create flag)
+            (set-stops root (and flag (list
                                         (locate (child create 'view) 'text)
                                         (locate (child create 'link-view) 'text))))))
-          
-          (when (not (and (admin?) (get-visible? (child interface 'admin))))
-            (if loaded?
-                (set-title (child root 'selected-label) "")
-              (set-color (child root 'selected-label) (get-selected-color together))
-              (set-title (child root 'selected-label) (get-selected-message together)))
-            (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
-            (cond ((top-panel)
-                   (unverified-visible #f)
-                   (enter-visible #f)
-                   (start-visible #f)
-                   (join-visible #f)
-                   (launch-visible #f)
-                   (create-visible #f)
-                   (zoom-visible #f))
-                  ((unverified?)
-                   (unverified-visible #t)
-                   (enter-visible #f)
-                   (start-visible #f)
-                   (join-visible #f)
-                   (launch-visible #f)
-                   (create-visible #f)
-                   (zoom-visible #f))
-                  (active-group
-                   (unverified-visible #f)
-                   (enter-visible #f)
-                   (start-visible #f)
-                   (cond ((not selected-zoom?)
-                          (set-title (child root 'circle) active-group)
-                          (join-visible #t)
-                          (launch-visible #f))
-                         (else
-                          (set-title (child root 'zoom-circle) active-group)
-                          (join-visible #f)
-                          (launch-visible #t)))
-                   (create-visible #f)
-                   (zoom-visible #f)
-                   (layout-view root))
-                  (selected-zoom?
-                   (unverified-visible #f)
-                   (enter-visible #f)
-                   (start-visible #f)
-                   (join-visible #f)
-                   (launch-visible #f)
-                   (create-visible #f)
-                   (zoom-visible #t)
-                   (layout-view root))
-                  ((or (eq? active-zone 'start) (user?))
-                   (unverified-visible #f)
-                   (enter-visible #f)
-                   (start-visible (not (user?)))
-                   (join-visible #f)
-                   (launch-visible #f)
-                   (create-visible #t)
-                   (zoom-visible #f)
-                   (layout-view root))
-                  (else
-                   (set-title (child root 'zone) (last active-zone))
-                   (unverified-visible #f)
-                   (enter-visible #t)
-                   (start-visible #f)
-                   (join-visible #f)
-                   (launch-visible #f)
-                   (create-visible #f)
-                   (zoom-visible #f)
-                   (layout-view root))))))))
+        
+        (when (not (and (admin?) (get-visible? (child interface 'admin))))
+          (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
+          (cond ((top-panel)
+                 (unverified-visible #f)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (launch-visible #f)
+                 (create-visible #f)
+                 (zoom-visible #f))
+                ((unverified?)
+                 (unverified-visible #t)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (launch-visible #f)
+                 (create-visible #f)
+                 (zoom-visible #f))
+                (selected-group
+                 (unverified-visible #f)
+                 (enter-visible #f)
+                 (cond ((not selected-zoom?)
+                        (set-title (child root 'circle) selected-group)
+                        (join-visible #t)
+                        (launch-visible #f))
+                       (else
+                        (set-title (child root 'zoom-circle) selected-group)
+                        (join-visible #f)
+                        (launch-visible #t)))
+                 (create-visible #f)
+                 (zoom-visible #f)
+                 (layout-view root))
+                (selected-zoom?
+                 (unverified-visible #f)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (launch-visible #f)
+                 (create-visible #f)
+                 (zoom-visible #t)
+                 (layout-view root))
+                (selected-zone?
+                 (unverified-visible #f)
+                 (enter-visible #t)
+                 (join-visible #f)
+                 (launch-visible #f)
+                 (create-visible #f)
+                 (zoom-visible #f)
+                 (layout-view root))
+                (else
+                 (unverified-visible #f)
+                 (enter-visible #f)
+                 (join-visible #f)
+                 (launch-visible #f)
+                 (create-visible #t)
+                 (zoom-visible #f)
+                 (layout-view root)))))))
   
   
   (method (on-enter self evt)
@@ -739,24 +716,24 @@
         (lambda ()
           (if (circling?)
               (enter-circle together)
-            (join-circle together (get-active-group together)))))))
+            (join-circle together (get-selected-group together)))))))
   
   
   (method (on-join-zoom self evt)
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (join-zoom-circle together (get-active-group together))))))
+          (join-zoom-circle together (get-selected-group together))))))
   
   
   (method (on-edit-zoom self evt)
     (let ((together (current-together)))
-      (edit-zoom together (get-active-group together))))
+      (edit-zoom together (get-selected-group together))))
   
   
   (method (on-copy-zoom self evt)
     (let ((together (current-together)))
-      (copy-zoom together (get-active-group together))))
+      (copy-zoom together (get-selected-group together))))
   
   
   (method (on-create&join self evt)
@@ -2068,18 +2045,12 @@
   (slot spaces              initialize #f getter generate)
   (slot space               initialize #f getter generate)
   (slot configuration       initialize #f getter generate)
-  (slot active-zone         initialize #f getter generate)
-  (slot active-group        initialize #f getter generate)
-  (slot active-data         initialize #f getter generate)
-  (slot selected-zone       initialize #f getter generate)
+  (slot selected-zone?      initialize #f getter generate)
+  (slot selected-zone       initialize 'start getter generate)
   (slot selected-group      initialize #f getter generate)
   (slot selected-data       initialize #f getter generate)
-  (slot selected-type       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
-  (slot selected-message    initialize #f getter generate)
-  (slot selected-color      initialize #f getter generate)
-  (slot zone-loading        initialize #f getter generate)
   (slot in-group?           initialize #f getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
@@ -2102,11 +2073,6 @@
   (method override (initialize self)
     (nextmethod self)
     (set! spaces (make-table test: eq?))
-    (set! active-zone 'start)
-    (set! selected-zone 'start)
-    (set! selected-type 'gathering)
-    (set! selected-color {Color World-Orange})
-    (set! selected-message "")
     (set! preserved-eye (make-camera)))
   
   
@@ -2152,11 +2118,8 @@
           (let ((row (user-data-row tree zone test: equal?)))
             (when row
               (set-single-selection tree (row->line tree row) generate-event?: #f)
-              (set! active-zone zone)
-              (set! active-data zone)
               (set! selected-zone zone)
               (set! selected-data zone)
-              (set! selected-type 'zone)
               (set! message-recipient zone)
               (set-path (current-zone) zone)))))
       
@@ -2368,7 +2331,7 @@
                             (let ((in-party? (and user-group player-group (eq? user-group player-group))))
                               ;; to
                               (set-title to (if (and player-group (group? player-group)) (format "<{a}>" name) name))
-                              (set-color to (if (eq? player-mode 'player) {Color World-Blue} {Color White}))
+                              (set-color to (if (and player-group (circle? player-group)) {Color World-Blue} {Color White}))
                               ;; invite
                               (if (and user-verified? (not player-me?) (not in-party?))
                                   (begin
@@ -2386,10 +2349,6 @@
                (set-title to name)
                (set-color to group-color)
                (set-visible? invite #f))))))))
-  
-  
-  (method package (selected-loaded? self)
-    (equal? selected-zone active-zone))
   
   
   (method package (grouped? self)
@@ -2859,8 +2818,8 @@
   (method package (autoenter-zone self)
     (let ((zone (current-zone)))
       (let ((path (get-path zone)))
-        (set! active-zone path)
-        (set! active-data path)
+        (set! selected-zone path)
+        (set! selected-data path)
         (enter-zone self))))
   
   
@@ -2876,6 +2835,12 @@
       (prepare-motion world)
       (delay-enable-autotrack self)
       #f))
+  
+  
+  (method package (present-zone self zone)
+    (if (eq? zone 'start)
+        "World"
+      (last zone)))
   
   
   (method (teleport-circle self position)
@@ -2907,7 +2872,6 @@
       (goto-space self 'gathering)
       (set-mode me 'observer)
       (add-snapshot-property 'live.player-mode (get-mode me))
-      (restore-active-zone self)
       (reset-history)))
   
   
@@ -3239,14 +3203,6 @@
     space)
   
   
-  (method (restore-active-zone self)
-    (let ((tree (people-tree self)))
-      (let ((row (user-data-row tree active-data test: equal?)))
-        (if (not row)
-            (set-selection tree '() generate-event?: #f)
-          (set-single-selection tree (row->line tree row) generate-event?: #f)))))
-  
-  
   ;;;
   ;;;; Hooks
   ;;;
@@ -3266,7 +3222,6 @@
       (set-server-reconnected-hook tier (~ server-reconnected self))
       (set-processor-entered-hook tier (~ processor-entered self))
       (set-processor-exited-hook tier (~ processor-exited self))
-      (set-zone-loaded-hook tier (~ zone-loaded self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-zones-update-hook tier (~ zones-update self))
       (set-group-join-hook tier (~ group-join self))
@@ -3301,7 +3256,6 @@
       (set-server-reconnected-hook tier #f)
       (set-processor-entered-hook tier #f)
       (set-processor-exited-hook tier #f)
-      (set-zone-loaded-hook tier #f)
       (set-hierarchy-update-hook tier #f)
       (set-zones-update-hook tier #f)
       (set-stream-addable-hook tier #f)
@@ -3371,40 +3325,18 @@
     )
   
   
-  (method (zone-loaded self path info)
-    (define (selected-error message)
-      (set! selected-color {Color World-Red})
-      (set! selected-message message))
-    
-    (with-task-mutex
-      (lambda ()
-        (if (not (equal? path zone-loading))
-            (load-zone self zone-loading)
-          (set! zone-loading #f)
-          (when (equal? path selected-zone)
-            (if (string? info)
-                (selected-error info)
-              (let ((info (change-zone self path)))
-                (if (string? info)
-                    (selected-error info)
-                  (set! active-zone selected-zone)
-                  (set! active-group selected-group)
-                  (set! active-data selected-data))))
-            (when (is? space Gathering-Space)
-              (update-center-interface space)))))))
-  
-  
   (method (hierarchy-update self hierarchy)
     (let ((world (current-world)))
       (let ((tree (people-tree self)))
         (define (same-entity? x y)
           (define (entity info)
             (if (or (not info)
-                    (eq? info 'zoom)
-                    (eq? (car info) 'zone))
+                    (eq? info 'zoom))
                 info
               (bind (kind name) info
-                (cons kind name))))
+                (if (eq? kind 'zone)
+                    kind
+                  (cons kind name)))))
           
           (equal? (entity x)
                   (entity y)))
@@ -3731,34 +3663,24 @@
         (hierarchy-update self hierarchy))))
   
   
-  (method (unify-hierarchy self hierarchy available-zones)
+  (method (unify-hierarchy self hierarchy)
     (let ((client (current-client)))
       (bind (groupless . groups) hierarchy
-        (let ((starters '())
-              (start-circles '())
+        (let ((people '())
+              (circles '())
               (zoom-circles '())
-              (zones (make-table test: equal?))
               (circlers #f)
               (party #f)
               (character-name (get-character-name client)))
           (define (add zone member)
-            (let ((path (cdr zone)))
-              (table-add zones path member)))
+            (set! people (cons member people)))
           
           (define (add-players zone players)
             (for-each add-player players))
           
           (define (add-player player)
-            (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
-              (if (eq? zone 'start)
-                  (set! starters (cons player starters))
-                (add zone (cons 'player player)))))
+            (set! people (cons player people)))
           
-          (for-each (lambda (info)
-                      (bind (zone . title) info
-                        (unless (eq? zone 'start)
-                          (table-set! zones (cdr zone) '()))))
-                    available-zones)
           (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
@@ -3770,11 +3692,9 @@
                               (else
                                (when (member? character-name players key: car)
                                  (set! circlers players))
-                               (if (eq? zone 'start)
-                                   (if zoom?
-                                       (set! zoom-circles (cons group zoom-circles))
-                                     (set! start-circles (cons group start-circles)))
-                                 (add zone (cons 'group group)))
+                               (if zoom?
+                                   (set! zoom-circles (cons group zoom-circles))
+                                 (set! circles (cons group circles)))
                                (let ((group-zone zone))
                                  (for-each (lambda (player)
                                              (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
@@ -3787,16 +3707,16 @@
               (clear-snapshot-property 'live.circle-members)
             (add-snapshot-property 'live.circle-members (map car circlers)))
           (add-snapshot-property 'live.player-party (and party (map car party)))
-          (values starters start-circles zoom-circles (table->list zones) party)))))
+          (values people circles zoom-circles party)))))
   
   
   (method (view-hierarchy self hierarchy)
     (let ((tier (current-tier))
+          (zone (current-zone))
           (me (current-me)))
       (let ((tree (people-tree self))
-            (separator? #f)
-            (available-zones (cache-available-zones)))
-        (receive (starters start-circles zoom-circles zones party) (unify-hierarchy self hierarchy available-zones)
+            (separator? #f))
+        (receive (people circles zoom-circles party) (unify-hierarchy self hierarchy)
           (remove-every-row tree)
           (with-update-locked tree
             (lambda ()
@@ -3808,13 +3728,16 @@
                                                       font: {Font Label-User}
                                                       color: gathering-color)))))
                   (added #f)
-                  (for-each (lambda (info)
-                              (add-player row info #f))
-                            (let ((me (get-name me)))
-                              (sort di<? starters key: (lambda (player)
-                                                         (if (equal? player me)
-                                                             (cons 0 player)
-                                                           (cons 1 player))))))))
+                  (add-people row)))
+              
+              (define (add-people father)
+                (for-each (lambda (info)
+                            (add-player father info #f))
+                          (let ((me (get-name me)))
+                            (sort di<? people key: (lambda (player)
+                                                     (if (equal? player me)
+                                                         (cons 0 player)
+                                                       (cons 1 player)))))))
               
               (define (add-player father info group)
                 (bind (player id no verified? asleep? disconnected? roaming? zone mode mobile?) info
@@ -3824,7 +3747,8 @@
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
                                          (mobile? (format "{a} (web)" player-title))
-                                         (else player-title)))
+                                         ((eq? mode 'observer) player-title)
+                                         (else (format "{a} ({a})" player-title (present-zone self zone)))))
                             (font (if (and roaming? group)
                                       {Font Label-Italic}
                                     {Font Label-User}))
@@ -3832,20 +3756,50 @@
                                           {Color Medium-Gray})
                                          ((not verified?)
                                           unverified-color)
-                                         ((eq? mode 'player)
-                                          player-color)
+                                         (group
+                                          circler-color)
                                          (else
-                                          observer-color))))
+                                          player-color))))
                         (add-row tree
                                  father: father
                                  children: (list (new Tree-Node title: title font: font color: color))
-                                 user-data: (list 'player player group zone))
+                                 user-data: (list 'player player group zone mode))
                         (added father))))
                   (let ((player (find-player (current-zone) player)))
                     (when player
                       (set-disconnected? player disconnected?)))))
               
-              (define (add-group kind father info (empty? #f))
+              (define (add-zone)
+                (let ((path (get-path zone)))
+                  (let ((title (present-zone self path)))
+                    (add-row tree
+                             state: 'expanded
+                             children: (list (new Tree-Node
+                                               title: title
+                                               font: {Font Label-User}
+                                               color: zone-color))
+                             user-data: (list 'zone path))
+                    (added #f))))
+              
+              (define (add-circles circles)
+                (let ((non-empty '())
+                      (empty '()))
+                  (for-each (lambda (info)
+                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
+                                (if (not-null? players)
+                                    (set! non-empty (cons info non-empty))
+                                  (set! empty (cons info empty)))))
+                            circles)
+                  (for-each (lambda (info)
+                              (add-circle 'group #f info))
+                            (sort di<? non-empty key: car))
+                  (when (not-null? empty)
+                    (add-separator 'empty)
+                    (for-each (lambda (info)
+                                (add-circle 'group #f info #t))
+                              (sort di<? empty key: car)))))
+              
+              (define (add-circle kind father info (empty? #f))
                 (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
                   (let ((title group))
                     (let ((row (add-row tree
@@ -3860,70 +3814,20 @@
                       (when (not empty?)
                         (add-separator title))))))
               
-              (define (add-start-circles circles)
-                (let ((non-empty '())
-                      (empty '()))
-                  (for-each (lambda (info)
-                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
-                                (if (not-null? players)
-                                    (set! non-empty (cons info non-empty))
-                                  (set! empty (cons info empty)))))
-                            circles)
-                  (for-each (lambda (info)
-                              (add-group 'group #f info))
-                            (sort di<? non-empty key: car))
-                  (when (not-null? empty)
-                    (add-separator 'empty)
-                    (for-each (lambda (info)
-                                (add-group 'group #f info #t))
-                              (sort di<? empty key: car)))))
+              (define (add-zoom)
+                (let ((row (add-row tree
+                                    state: 'expanded
+                                    children: (list (new Tree-Node
+                                                      title: "Out there"
+                                                      font: {Font Label-User}
+                                                      color: gathering-color))
+                                    user-data: 'zoom)))
+                  (add-zoom-circles row zoom-circles)))
               
               (define (add-zoom-circles father circles)
                 (for-each (lambda (info)
-                            (add-group 'zoom-group father info))
+                            (add-circle 'zoom-group father info))
                           (sort di<? circles key: car)))
-              
-              (define (add-zones father spine zones)
-                (for-each (lambda (partition)
-                            (bind (title . children) partition
-                              (if (empty-string? title)
-                                  (add-children father spine children)
-                                (when (not father)
-                                  (add-separator title))
-                                (let ((row (add-directory father title))
-                                      (spine (append spine (list title))))
-                                  (add-zones row spine (map (lambda (info)
-                                                              (cons (cdar info) (cdr info)))
-                                                            children))))))
-                          (sort di<? (partition zones key: (lambda (info)
-                                                             (let ((path (car info)))
-                                                               (if (> (length path) 1)
-                                                                   (car path)
-                                                                 "")))
-                                       test: filename=?)
-                            key: car)))
-              
-              (define (add-children father spine children)
-                (for-each (lambda (info)
-                            (bind (zone . members) info
-                              (let ((title (last zone)))
-                                (let ((row (add-row tree
-                                                    father: father
-                                                    state: 'expanded
-                                                    children: (list (new Tree-Node
-                                                                      title: title
-                                                                      font: {Font Label-User}
-                                                                      color: zone-color))
-                                                    user-data: (cons 'zone (append spine zone)))))
-                                  (added father)
-                                  (for-each (lambda (info)
-                                              (bind (kind . info) info
-                                                (case kind
-                                                  ((player) (add-player row info #f))
-                                                  ((group) (add-group 'group row info)))))
-                                            members)))))
-                          (sort di<? children key: (lambda (info)
-                                                     (last (car info))))))
               
               (define (add-directory father title)
                 (prog1 (add-row tree
@@ -3945,55 +3849,36 @@
                   (set! separator? #f)))
               
               (add-gathering)
-              (when (not-null? start-circles)
-                (add-separator 'start-circles)
-                (add-start-circles start-circles))
-              (when (not-null? zones)
-                (add-separator 'zones)
-                (add-zones #f '() zones))
+              (unless (user?)
+                (add-separator 'zone)
+                (add-zone))
+              (when (not-null? circles)
+                (add-separator 'circles)
+                (add-circles circles))
               (add-separator 'zoom)
-              (let ((row (add-row tree
-                                  state: 'expanded
-                                  children: (list (new Tree-Node
-                                                    title: "Out there"
-                                                    font: {Font Label-User}
-                                                    color: gathering-color))
-                                  user-data: 'zoom)))
-                (add-zoom-circles row zoom-circles))))))))
+              (add-zoom)))))))
   
   
   (method package (people-selection-change self)
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
-        (define (select-gathering type)
-          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f) type))
+        (define (select-gathering)
+          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f)))
         
-        (define (select-zoom type)
-          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f) type))
+        (define (select-zoom)
+          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f)))
         
-        (define (select data (type #f))
+        (define (select data (zone? #f))
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
-              (set! selected-message "")
               (set-circle-vista (and stone (second stone)))
-              (if (equal? zone selected-zone)
-                  (reinstall-vista)
-                (unless zone-loading
-                  (load-zone self zone))
-                (set! zone-loading zone)
-                (unless (eq? zone 'start)
-                  (set! selected-color {Color World-Orange})
-                  (set! selected-message (format "{a} is loading..." (last zone)))))
+              (reinstall-vista)
+              (set! selected-zone? zone?)
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
-              (set! selected-type (or type kind))
               (set! selected-owner owner)
               (set! selected-zoom? zoom?)
-              (when (selected-loaded? self)
-                (set! active-zone zone)
-                (set! active-group group)
-                (set! active-data data))
               (update-center-interface space))
             
             (case kind
@@ -4001,23 +3886,25 @@
                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
                  (select zone group owner stone zoom? link description #f)))
               ((zone)
-               (let ((zone (if (user?) 'start data)))
+               (bind (zone) rest
                  (select zone #f #f #f #f #f #f #f))))))
         
-        (define (select-row row (type #f))
+        (define (select-row row)
           (if (not row)
-              (select-gathering (or type 'gathering))
+              (select-gathering)
             (let ((data (get-user-data row)))
               (if (not data)
-                  (select-gathering (or type 'gathering))
+                  (select-gathering)
                 (if (eq? data 'zoom)
-                    (select-zoom (or type 'zoom))
+                    (select-zoom)
                   (bind (kind) data
                     (if (eq? kind 'separator)
-                        (select-gathering (or type 'gathering))
+                        (select-gathering)
                       (if (eq? kind 'player)
-                          (select-row (get-father row) 'player)
-                        (select data type)))))))))
+                          (select-row (get-father row))
+                        (if (eq? kind 'zone)
+                            (select data #t)
+                          (select data))))))))))
         
         (select-row (get-selected-row tree)))))
   
@@ -4032,25 +3919,23 @@
   
   (method (people-action-selected self)
     (when (is? space Gathering-Space)
-      (when (selected-loaded? self)
-        (let ((data (get-single-selected-data (people-tree self))))
-          (when (pair? data)
-            (let ((kind (car data))
-                  (rest (cdr data)))
-              (cond (active-group
-                     (when (eq? kind 'group)
-                       (with-cursor :wait
-                         (lambda ()
-                           (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
-                             (cond (zoom?
-                                    (join-zoom-circle self active-group))
-                                   ((circling?)
-                                    (enter-circle self))
-                                   (else
-                                    (join-circle self active-group))))))))
-                    ((and active-zone (neq? active-zone 'start) (not (user?)))
-                     (when (eq? kind 'zone)
-                       (enter-zone self))))))))))
+      (let ((data (get-single-selected-data (people-tree self))))
+        (when (pair? data)
+          (let ((kind (car data))
+                (rest (cdr data)))
+            (cond (selected-group
+                   (when (eq? kind 'group)
+                     (with-cursor :wait
+                       (lambda ()
+                         (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
+                           (cond (zoom?
+                                  (join-zoom-circle self selected-group))
+                                 ((circling?)
+                                  (enter-circle self))
+                                 (else
+                                  (join-circle self selected-group))))))))
+                  (selected-zone?
+                   (enter-zone self))))))))
   
   
   (method package (focus-command-text self)
