@@ -3164,7 +3164,7 @@
       (let ((frame (find-type interface Circle-Options)))
         (when frame
           (close frame)))
-      (when current-circle-from-gathering?
+      (when (and current-circle-from-gathering? (neq? current-circle-mode 'avatar))
         (exit-zone self))))
   
   
