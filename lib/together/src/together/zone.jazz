@@ -273,7 +273,7 @@
   (lambda (elapse)
     (let ((world (current-world)))
       (unless sleeping?
-        (increase! vista-angle (/ elapse 10.))
+        (increase! vista-angle (/ elapse 20.))
         (let ((angle vista-angle))
           (let ((x (cos angle))
                 (z (sin angle)))
