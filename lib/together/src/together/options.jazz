@@ -305,16 +305,18 @@
   (form
     (<install>
       (<caption~>           title: "Circle Options")
-      (<content~>                                        layout-type: center
-        (<View>                                          size: {Dimension 390 160}
-          (<Option-Label>   title: "Layout"              position: {Point   0 1})
-          (<Combo-Option>                                position: {Point 140 0} size: {Dimension 250 19} option: layout)
-          (<Option-Label>   title: "Join by invite only" position: {Point 20  60} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0  60} option: join-by-invite-only)
-          (<Option-Label>   title: "Persistent"          position: {Point 20 100} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0 100} option: persistent)
-          (<Option-Label>   title: "Require camera"      position: {Point 20 140} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point  0 140} option: require-camera)))))
+      (<content~>                                          layout-type: center
+        (<View>                                            size: {Dimension 390 180}
+          (<Option-Label>   title: "Layout"                position: {Point   0 1})
+          (<Combo-Option>                                  position: {Point 140 0} size: {Dimension 250 19} option: layout)
+          (<Option-Label>   title: "Join by invite only"   position: {Point 20  60} size: {Dimension 200 15})
+          (<Boolean-Option>                                position: {Point  0  60} option: join-by-invite-only)
+          (<Option-Label>   title: "Persistent"            position: {Point 20 95} size: {Dimension 200 15})
+          (<Boolean-Option>                                position: {Point  0 95} option: persistent)
+          (<Option-Label>   title: "Start with microphone" position: {Point 20 130} size: {Dimension 200 15})
+          (<Boolean-Option>                                position: {Point  0 130} option: require-microphone)
+          (<Option-Label>   title: "Start with camera"     position: {Point 20 165} size: {Dimension 200 15})
+          (<Boolean-Option>                                position: {Point  0 165} option: require-camera)))))
   
   
   (method override (prepare self rest)
@@ -335,6 +337,8 @@
        (circle-property (current-client) circle-name 'invite-only?))
       ((persistent)
        (circle-property (current-client) circle-name 'persistent?))
+      ((require-microphone)
+       (circle-property (current-client) circle-name 'require-microphone?))
       ((require-camera)
        (circle-property (current-client) circle-name 'require-camera?))))
   
@@ -348,6 +352,8 @@
        (change-circle-property (current-client) circle-name 'invite-only? value))
       ((persistent)
        (change-circle-property (current-client) circle-name 'persistent? value))
+      ((require-microphone)
+       (change-circle-property (current-client) circle-name 'require-microphone? value))
       ((require-camera)
        (change-circle-property (current-client) circle-name 'require-camera? value)))))
 
