@@ -3218,6 +3218,7 @@
           (audio (current-audio))
           (video (current-video)))
       (set-user-verified-hook tier (~ user-verified self))
+      (set-user-upgraded-hook tier (~ user-upgraded self))
       (set-server-entered-hook tier (~ server-entered self))
       (set-server-exited-hook tier (~ server-exited self))
       (set-server-disconnected-hook tier (~ server-disconnected self))
@@ -3283,6 +3284,11 @@
           (space (current-space)))
       (space-refresh space)
       (refresh-central-menu world)))
+  
+  
+  (method (user-upgraded self role)
+    (let ((world (current-world)))
+      (change-role world role)))
   
   
   (method (server-entered self character-name)
