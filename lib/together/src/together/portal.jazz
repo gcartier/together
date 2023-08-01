@@ -18,6 +18,7 @@
         (gaea.geometry)
         (world)
         (world.autoload)
+        (world.circle)
         (world.client.tier)
         (world.context)
         (world.task)
@@ -32,29 +33,33 @@
             "World"
           (last path)))
       
-      (when path
-        (let ((name (present-path)))
-          (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
+      (if (circling?)
+          (display-action world "Cannot use Portal while in a circle"
             (lambda ()
-              (with-cursor :wait
-                (lambda ()
-                  (let ((client (current-client)))
-                    (let ((path (get-path rune))
-                          (loaded (make-mutex 'loaded))
-                          (before (current-seconds)))
-                      (set-zone-loaded-hook client (lambda (path info)
-                                                     (let ((elapse (- (current-seconds) before)))
-                                                       (sleep (- 1. elapse)))
-                                                     (mutex-unlock! loaded)
-                                                     (mutex-unlock! loaded)
-                                                     (with-task-mutex
-                                                       (lambda ()
-                                                         (change-zone client path)
-                                                         (set-mode (current-me) 'player)
-                                                         (person-motion world feedback?: #f)))))
-                      (working world
-                        (lambda ()
-                          (working-progress world (format "Loading {a}" name) #f)
-                          (load-zone client path)
-                          (mutex-lock! loaded)
-                          (mutex-lock! loaded)))))))))))))))
+              ))
+        (when path
+          (let ((name (present-path)))
+            (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
+              (lambda ()
+                (with-cursor :wait
+                  (lambda ()
+                    (let ((client (current-client)))
+                      (let ((path (get-path rune))
+                            (loaded (make-mutex 'loaded))
+                            (before (current-seconds)))
+                        (set-zone-loaded-hook client (lambda (path info)
+                                                       (let ((elapse (- (current-seconds) before)))
+                                                         (sleep (- 1. elapse)))
+                                                       (mutex-unlock! loaded)
+                                                       (mutex-unlock! loaded)
+                                                       (with-task-mutex
+                                                         (lambda ()
+                                                           (change-zone client path)
+                                                           (set-mode (current-me) 'player)
+                                                           (person-motion world feedback?: #f)))))
+                        (working world
+                          (lambda ()
+                            (working-progress world (format "Loading {a}" name) #f)
+                            (load-zone client path)
+                            (mutex-lock! loaded)
+                            (mutex-lock! loaded))))))))))))))))
