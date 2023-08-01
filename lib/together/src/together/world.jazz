@@ -101,7 +101,7 @@
   (method override (check-element-action self element)
     (typecase element
       ((Rune)
-       (check-rune (current-together) element))
+       (check-rune element))
       ((Circle-Stone)
        (check-circle-stone (current-together) element))
       ((Player)
