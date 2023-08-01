@@ -233,9 +233,9 @@
         (zone (current-zone))
         (me (current-me)))
     (unless vista-tick
-      (let ((target (or circle-vista (effective-vista-target zone) (get-position me)))
-            (radius (if circle-vista 14. (or (get-vista-radius zone) 75.)))
-            (elevation (if circle-vista 5. (or (get-vista-elevation zone) 20.))))
+      (let ((target (or (effective-vista-target zone) (get-position me)))
+            (radius (or (get-vista-radius zone) 75.))
+            (elevation (or (get-vista-elevation zone) 20.)))
         (let ((tick (path-vista target radius elevation)))
           (set! vista-tick tick)
           (register-tick zone vista-tick)
