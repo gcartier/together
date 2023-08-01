@@ -41,6 +41,7 @@
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
         (jazz.syntax (phase syntax))
+        (jazz.template)
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
@@ -87,6 +88,7 @@
         (world.interface.invitations)
         (world.interface.mainbar)
         (world.interface.panel)
+        (world.interface.participation)
         (world.interface.script)
         (world.interface.sheet)
         (world.interface.text)
@@ -100,6 +102,7 @@
         (world.moment.syntax (phase syntax))
         (world.motion)
         (world.pane)
+        (world.participation)
         (world.platform)
         (world.player)
         (world.preprocess)
@@ -256,6 +259,7 @@
         (<!>                 name: toggle-interface           active?: #t)
         (<!>                 name: toggle-windowed-mode       active?: #t))
       (<world-people!>
+        (<!>                 name: toggle-participation       active?: #t)
         (<!>                 name: toggle-invite              active?: #t))
       (<world-chat!>
         (<!>                 name: command-message            active?: #t)
@@ -828,6 +832,7 @@
         (<!>                 name: toggle-user                active?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              active?: #t)
+        (<!>                 name: toggle-participation       active?: #t)
         (<!>                 name: toggle-invite              active?: #t)
         (<!>                 name: who-panel                  active?: #t))
       (<world-chat!>
@@ -1509,6 +1514,7 @@
         (<!>                 name: toggle-user                active?: #t))
       (<world-people!>
         (<!>                 name: toggle-people              active?: #t)
+        (<!>                 name: toggle-participation       active?: #t)
         (<!>                 name: toggle-invite              active?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                active?: #t)
@@ -2363,6 +2369,23 @@
   (method (on-central-menu self evt)
     (let ((world (current-world)))
       (toggle-radial-menu world)))
+  
+  
+  (method (on-toggle-participation self evt)
+    (let ((interface (current-interface))
+          (client (current-client))
+          (zone (current-zone)))
+      (let ((frame (find-component interface 'participation)))
+        (if frame
+            (close frame)
+          (let ((template (world-file '("devel" "together" "Participation.ftx") 'Resources))
+                (associations (list (cons 'name (get-character-name client))
+                                    (cons 'participation (present-current-participation)))))
+            (let ((expander (new Template-Expander)))
+              (let ((output (open-output-string)))
+                (expand expander template associations output)
+                (let ((content (get-output-string output)))
+                  (push-panel (open-world-document content class: World-Formatted-Text-View name: 'participation title: "Participation" size: {Dimension 550 260} background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))))))))
   
   
   (method (on-toggle-invite self evt)

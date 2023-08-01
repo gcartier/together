@@ -1,0 +1,52 @@
+{Formatted-Text
+ formats:
+ ({Format Base}
+  {Format Base left-margin: 16 bulleted?: #t}
+  {Format Base left-margin: 48 bulleted?: #t}
+  {Format Base left-margin: 0 bulleted?: #f}
+  {Format Heading1}
+  {Format Heading2}
+  {Format Heading2 left-margin: 16 bulleted?: #t}
+  {Format Heading2 left-margin: 48 bulleted?: #t}
+  {Format Heading1 justification: center}
+  {Format Heading2 left-margin: 32}
+  {Format Heading2 left-margin: 64}
+  {Format Heading2 left-margin: 80 bulleted?: #t}
+  {Format Heading2 left-margin: 0})
+
+ styles:
+ ({Text-Style Base}
+  {Text-Style Base color: {Color World-Ochre}}
+  {Text-Style Heading2}
+  {Text-Style Base font: {Font Text bold?: #t}}
+  {Text-Style Base font: {Font Text bold?: #t italic?: #t}}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #t}}
+  {Text-Style Base font: {Font Text italic?: #t}}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f}}
+  {Text-Style Base font: {Font Text italic?: #f}}
+  {Text-Style Base frame: {Color Dark-Red}}
+  {Text-Style Base frame: #f}
+  {Text-Style Base color: {Color Dark-Red} frame: #f}
+  {Text-Style Base color: #f frame: #f}
+  {Text-Style Base color: #f highlight: {Color Dark-Red} frame: #f}
+  {Text-Style Base color: #f highlight: #f frame: #f}
+  {Text-Style Base color: {Color Red} highlight: #f frame: #f}
+  {Text-Style Base color: {Color Dark-Red} highlight: #f frame: #f}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f} color: {Color Dark-Blue}}
+  {Text-Style Base color: #f}
+  {Text-Style Base font: {Font Text bold?: #f italic?: #f} color: #f}
+  {Text-Style Base color: {Color World-Green}}
+  {Text-Style Base color: {Color World-Blue}}
+  {Text-Style Base color: {Color World-Red}})
+ 
+ paragraphs:
+ ((5 ("Your Participation is %participation%" 20))
+  (5)
+  (5 ("Participation determines how you interact with Together. It is not restrictive. Anyone can be any Participation they want. The intent is to offer a simpler experience of Together to new users" 1))
+  (5)
+  (7 ("Circler : You can create and join circles" 0))
+  (7 ("Explorer : You can explore the world" 0))
+  (7 ("Builder : You can shape the world" 0))
+  (7 ("Developer : You can script the world" 0))
+  (5)
+  (5 ("Talk to Barbara or Guillaume if you have any question or want to experiment with a different Participation" 21)))}
