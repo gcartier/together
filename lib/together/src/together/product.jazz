@@ -56,6 +56,7 @@
       (install-filename '("devel" "together" "About.ftx"))
       (install-filename '("devel" "together" "Help.ftx"))
       (install-filename '("devel" "together" "News.ftx"))
+      (install-filename '("devel" "together" "Participation.ftx"))
       (install-filename '("devel" "together" "Roadmap.ftx"))
       (install-filename '("devel" "together" "Unverified.ftx")))
     
