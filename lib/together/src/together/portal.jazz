@@ -70,14 +70,18 @@
             "World"
           (last path)))
       
-      (if (circling?)
-          (display-action world "Cannot use Portal while in a circle"
-            (lambda ()
-              ))
-        (when path
-          (let ((name (present-path)))
-            (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
-              (lambda ()
-                (load/wait-zone (get-path rune) (format "Loading {a}" name)
-                  (lambda ()
-                    )))))))))))
+      (cond ((circling?)
+             (display-action world "Cannot use Portal while in a circle"
+               (lambda ()
+                 )))
+            ((not path)
+             (display-action world "Unassigned Portal"
+               (lambda ()
+                 )))
+            (else
+             (let ((name (present-path)))
+               (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
+                 (lambda ()
+                   (load/wait-zone (get-path rune) (format "Loading {a}" name)
+                     (lambda ()
+                       )))))))))))
