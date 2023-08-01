@@ -25,6 +25,43 @@
         (together))
 
 
+(definition loading-zone
+  (make-parameter #f))
+
+
+(definition package (load/wait-zone path message thunk)
+  (let ((client (current-client))
+        (world (current-world))
+        (zone (current-zone)))
+    (if (equal? path (loading-zone))
+        (thunk)
+      (parameterize ((loading-zone path))
+        (with-cursor :wait
+          (lambda ()
+            (let ((min-delay 1.))
+              (if (equal? (get-path zone) path)
+                  (working-wait world message min-delay thunk)
+                (let ((loaded (make-mutex 'loaded))
+                      (before (current-seconds)))
+                  (set-zone-loaded-hook client (lambda (path info)
+                                                 (let ((elapse (- (current-seconds) before)))
+                                                   (sleep (- min-delay elapse)))
+                                                 (mutex-unlock! loaded)
+                                                 (mutex-unlock! loaded)
+                                                 (with-task-mutex
+                                                   (lambda ()
+                                                     (change-zone client path)
+                                                     (set-mode (current-me) 'player)
+                                                     (person-motion world feedback?: #f)
+                                                     (thunk)))))
+                  (working world
+                    (lambda ()
+                      (working-progress world message #f)
+                      (load-zone client path)
+                      (mutex-lock! loaded)
+                      (mutex-lock! loaded))))))))))))
+
+
 (definition package (check-rune rune)
   (let ((world (current-world)))
     (let ((path (get-path rune)))
@@ -41,25 +78,6 @@
           (let ((name (present-path)))
             (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
               (lambda ()
-                (with-cursor :wait
+                (load/wait-zone (get-path rune) (format "Loading {a}" name)
                   (lambda ()
-                    (let ((client (current-client)))
-                      (let ((path (get-path rune))
-                            (loaded (make-mutex 'loaded))
-                            (before (current-seconds)))
-                        (set-zone-loaded-hook client (lambda (path info)
-                                                       (let ((elapse (- (current-seconds) before)))
-                                                         (sleep (- 1. elapse)))
-                                                       (mutex-unlock! loaded)
-                                                       (mutex-unlock! loaded)
-                                                       (with-task-mutex
-                                                         (lambda ()
-                                                           (change-zone client path)
-                                                           (set-mode (current-me) 'player)
-                                                           (person-motion world feedback?: #f)))))
-                        (working world
-                          (lambda ()
-                            (working-progress world (format "Loading {a}" name) #f)
-                            (load-zone client path)
-                            (mutex-lock! loaded)
-                            (mutex-lock! loaded))))))))))))))))
+                    )))))))))))

@@ -135,6 +135,7 @@
         (together.network)
         (together.options)
         (together.organize)
+        (together.portal)
         (together.record)
         (together.replay)
         (together.replay-space)
@@ -2925,20 +2926,22 @@
               (client-status tier err)
               (if err
                   (display-problem err)
-                (let ((text (locate view 'text)))
-                  (let ((name (trim-whitespace (get-string-content text))))
-                    (let ((ring (random-ring 10 25)))
-                      (let ((position (vertex (vertex-x ring) 4. (vertex-z ring)))
-                            (lookat (horizon-lookat (random-horizon))))
-                        (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
-                          (if (string? no/exception)
-                              (display-error world no/exception)
-                            (clear-message world)
-                            (set-string-content text "")
-                            (content-changed view)
-                            (set-checked? require-camera #t)
-                            (join-circle self name)
-                            (presence/gallery-mode self))))))))))))))
+                (load/wait-zone 'start "Creating circle"
+                  (lambda ()
+                    (let ((text (locate view 'text)))
+                      (let ((name (trim-whitespace (get-string-content text))))
+                        (let ((ring (random-ring 10 25)))
+                          (let ((position (vertex (vertex-x ring) 4. (vertex-z ring)))
+                                (lookat (horizon-lookat (random-horizon))))
+                            (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
+                              (if (string? no/exception)
+                                  (display-error world no/exception)
+                                (clear-message world)
+                                (set-string-content text "")
+                                (content-changed view)
+                                (set-checked? require-camera #t)
+                                (join-circle self name)
+                                (presence/gallery-mode self))))))))))))))))
   
   
   (method package (create-zoom-circle self)
@@ -3039,10 +3042,13 @@
     (let ((me (current-me)))
       (if (eq? (get-mode me) 'player)
           (setup-circle self name #f group-info/exception)
-        (enter-zone self)
-        (setup-circle self name #t group-info/exception)
-        (teleport-circle self circle-center)
-        (presence/gallery-mode self))))
+        (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
+          (load/wait-zone zone "Joining circle"
+            (lambda ()
+              (enter-zone self)
+              (setup-circle self name #t group-info/exception)
+              (teleport-circle self circle-center)
+              (presence/gallery-mode self)))))))
   
   
   (method (acquire-circle self name)
@@ -3075,7 +3081,7 @@
           (universe (current-universe))
           (world (current-world))
           (video (current-video)))
-      (bind (no require-microphone? require-camera? duration stone shape . streams) group-info/exception
+      (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
         (startup-gstreamer)
         (when (auto-live?)
           (require-live-stream tier))
@@ -3198,7 +3204,7 @@
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no require-microphone? require-camera? duration stone shape . streams) group-info/exception
+          (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier)
