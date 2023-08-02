@@ -442,6 +442,7 @@
       (set-size (child interface 'command-to) {Dimension 226 32})
       (set-position (child interface '(command-to invite)) {Point 200 9})
       (set-position (child interface '(command-to verify)) {Point 200 9})
+      (set-position (child interface '(command-to teleport)) {Point 178 9})
       (set-visible? (child interface 'command) #t)
       (set-proportion (child interface 'command) #f)
       (set-size (child interface 'command) (command-size together))
@@ -1133,6 +1134,7 @@
       (set-size (child interface 'command-to) {Dimension 406 32})
       (set-position (child interface '(command-to invite)) {Point 380 9})
       (set-position (child interface '(command-to verify)) {Point 380 9})
+      (set-position (child interface '(command-to teleport)) {Point 358 9})
       (set-visible? (child mainbar 'profile) #f)
       (layout-interface)))
   
@@ -1309,6 +1311,7 @@
       (set-size (child interface 'command-to) {Dimension 406 32})
       (set-position (child interface '(command-to invite)) {Point 380 9})
       (set-position (child interface '(command-to verify)) {Point 380 9})
+      (set-position (child interface '(command-to teleport)) {Point 358 9})
       (update-message-recipient together (list 'group current-circle-name))
       (layout-interface)
       (no-showcase world)))
@@ -1630,6 +1633,7 @@
       (set-size (child interface 'command-to) {Dimension 226 32})
       (set-position (child interface '(command-to invite)) {Point 200 9})
       (set-position (child interface '(command-to verify)) {Point 200 9})
+      (set-position (child interface '(command-to teleport)) {Point 178 9})
       (layout-view interface)
       (layout-view root)
       (when auto-hide?
@@ -2221,7 +2225,8 @@
         (new Kind-Label name: 'to-label parent: to title: "To" position: {Point 0 10} size: {Dimension 22 21} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(head head))
         (new Kind-Label name: 'to parent: to title: "The gathering" position: {Point 23 10} size: {Dimension 220 21} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: '(head head))
         (new Invite-Tool name: 'invite parent: to position: {Point 200 9} resource: {Image-Resource "Workbench"} action-handler: (~ on-invite self))
-        (new Verify-Tool name: 'verify parent: to position: {Point 200 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self)))
+        (new Verify-Tool name: 'verify parent: to position: {Point 200 9} resource: {Image-Resource "JEMValidator"} action-handler: (~ on-verify self))
+        (new Teleport-Tool name: 'teleport parent: to position: {Point 178 9} resource: {Image-Resource "Previous"} action-handler: (~ on-teleport self)))
       (let ((command (child interface 'command)))
         (set-border-type (child command 'border) 'solid)
         (set-border-color (child command 'border) {Color Dark-Gray})
@@ -2311,12 +2316,14 @@
       (let ((to (child interface '(command-to to)))
             (invite (child interface '(command-to invite)))
             (verify (child interface '(command-to verify)))
+            (teleport (child interface '(command-to teleport)))
             (user-verified? (verified?)))
         (define (no-recipient)
           (set-title to "The gathering")
           (set-color to {Color red: 32 green: 205 blue: 33})
           (set-visible? invite #f)
-          (set-visible? verify #f))
+          (set-visible? verify #f)
+          (set-visible? teleport #f))
         
         (if (not message-recipient)
             (no-recipient)
@@ -2344,7 +2351,11 @@
                               ;; verify
                               (if (and user-verified? (not player-verified?) (or in-group? current-circle-name) in-party?)
                                   (set-visible? verify #t)
-                                (set-visible? verify #f))))))
+                                (set-visible? verify #f))
+                              ;; teleport
+                              (if (and user-verified? (not player-me?))
+                                  (set-visible? teleport #t)
+                                (set-visible? teleport #f))))))
                        (else
                         (set! message-recipient #f)
                         (no-recipient)))))
@@ -2476,6 +2487,23 @@
                                       (let ((err (client-verify client (get-character-name client) recipient)))
                                         (when (string? err)
                                           (display-error (current-world) err)))))))))))
+  
+  
+  (method (on-teleport self evt)
+    (let ((client (current-client))
+          (space (current-space))
+          (world (current-world))
+          (zone (current-zone))
+          (me (current-me)))
+      (let ((recipient (cadr message-recipient))
+            (path (get-path zone))
+            (position (get-position me))
+            (sight (get-sight me)))
+        (if (is? space Gathering-Space)
+            (display-error world "You cannot teleport someone to The gathering")
+          (let ((err (client-teleport client recipient path position sight)))
+            (when (string? err)
+              (display-error world err)))))))
 
   
   (method (on-message self evt)
@@ -3228,6 +3256,7 @@
       (set-circle-join-hook tier (~ circle-join self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
+      (set-teleport-hook tier (~ teleport-to self))
       (set-profile-changed-hook udp (~ profile-changed self))
       (set-render-hook video (~ render-video self))
       (set-layout-circle-hook (~ layout-circle self))
@@ -4033,6 +4062,23 @@
                     (action feedback)
                     (set-running? experiment #f)
                     (update-cell))))))))))
+  
+  
+  ;;;
+  ;;;; Teleport
+  ;;;
+  
+  
+  (method (teleport-to self path position sight)
+    (load/wait-zone path "Teleport in progress"
+      (lambda ()
+        (let ((zone (current-zone))
+              (me (current-me))
+              (position (vertex+ position (vertex-scalar* sight 3.)))
+              (sight (vertex-negate sight)))
+          (when (eq? (get-mode me) 'observer)
+            (enter-zone self))
+          (teleport zone position sight)))))
   
   
   ;;;
@@ -5892,6 +5938,21 @@
        (<paragraph> "Verify")
        ""
        (<paragraph> (<text> color: World-Green "Verify that you know this person")))))
+
+
+;;;
+;;;; Teleport-Tool
+;;;
+
+
+(class Teleport-Tool extends To-Tool
+  
+  
+  (method override (get-tooltip-text self)
+    `(<span>
+       (<paragraph> "Teleport to you")
+       ""
+       (<paragraph> (<text> color: World-Green "Teleport person to your location")))))
 
 
 ;;;
