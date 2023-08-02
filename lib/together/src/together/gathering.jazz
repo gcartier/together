@@ -4092,8 +4092,8 @@
     #f)
   
   
-  (method (chat-sender self sender (user? #t))
-    (when user?
+  (method (chat-sender self sender (user-origin? #t))
+    (when user-origin?
       (update-message-recipient self (if (not sender)
                                          #f
                                        (list 'player sender)))
