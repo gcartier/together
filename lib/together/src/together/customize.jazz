@@ -150,6 +150,10 @@
     #f)
   
   
+  (method override (draw-horizon? self)
+    #f)
+  
+  
   (method override (showcase-avatar? self)
     #t)
   
