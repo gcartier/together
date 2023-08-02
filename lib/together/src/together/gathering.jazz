@@ -3195,7 +3195,7 @@
         (let ((frame (find-type interface Circle-Options)))
           (when frame
             (close frame)))
-        (when (or (user?) (and from-gathering? (neq? circle-mode 'avatar)))
+        (when (or (circler?) (and from-gathering? (neq? circle-mode 'avatar)))
           (exit-zone self)))))
   
   
@@ -3886,7 +3886,7 @@
                   (set! separator? #f)))
               
               (add-gathering)
-              (unless (user?)
+              (unless (circler?)
                 (add-separator 'zone)
                 (add-zone))
               (when (not-null? circles)
