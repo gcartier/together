@@ -4134,13 +4134,10 @@
   
   (method package (show-chat self)
     (let ((interface (current-interface))
+          (world (current-world))
           (space (current-space)))
       (typecase space
-        ((Zone-Space)
-         (set-visible? (child interface 'chat) #t)
-         (set-visible? (child interface 'command-to) #t)
-         (set-visible? (child interface 'command) #t))
-        ((Avatar-Space)
+        ((Zone-Space Avatar-Space)
          (set-visible? (child interface 'chat) #t)
          (set-visible? (child interface 'command-to) #t)
          (set-visible? (child interface 'command) #t))
@@ -4148,7 +4145,8 @@
          (set-visible? (child interface 'chat-label) #t)
          (set-visible? (child interface 'chat) #t)
          (set-visible? (child interface 'command-to) #t)
-         (set-visible? (child interface 'command) #t)))))
+         (set-visible? (child interface 'command) #t)))
+      (update-parameter world 'chat)))
   
   
   (method package (show-command self)
@@ -5731,11 +5729,8 @@
   
   
   (method package (on-mouse-up self evt)
-    (let ((together (current-together))
-          (world (current-world))
-          (space (current-space)))
-      (show-chat together)
-      (update-parameter world 'chat)))
+    (let ((together (current-together)))
+      (show-chat together)))
   
   
   (method package (on-action self evt)
