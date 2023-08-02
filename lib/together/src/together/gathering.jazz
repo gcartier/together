@@ -3312,7 +3312,9 @@
     (let ((world (current-world))
           (space (current-space)))
       (space-refresh space)
-      (refresh-central-menu world)))
+      (refresh-central-menu world)
+      (when (is? space Gathering-Space)
+        (update-center-interface space))))
   
   
   (method (user-upgraded self role)
