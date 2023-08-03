@@ -2067,6 +2067,7 @@
   (slot draw-hook           initialize #f getter generate)
   (slot sleep-disconnected  initialize #f getter generate)
   (slot chat-wide?          initialize #f getter generate)
+  (slot chat-was-hidden?    initialize #f getter generate)
   (slot previous-command    initialize #f getter generate)
   
   (cond-expand
@@ -4129,6 +4130,7 @@
   
   (method package (chat-slash self)
     (let ((interface (current-interface)))
+      (set! chat-was-hidden? (not (get-visible? (child interface 'chat))))
       (show-chat self)
       (show-command self)
       (let ((text (locate (child interface 'command) 'text)))
@@ -4172,6 +4174,16 @@
     (let ((interface (current-interface)))
       (set-visible? (child interface 'command-to) #t)
       (set-visible? (child interface 'command) #t)))
+  
+  
+  (method package (hide-chat self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (set-visible? (child interface 'chat-label) #f)
+      (set-visible? (child interface 'chat) #f)
+      (set-visible? (child interface 'command-to) #f)
+      (set-visible? (child interface 'command) #f)
+      (update-parameter world 'chat)))
   
   
   (method (command-return self command)
@@ -4309,7 +4321,11 @@
         (let ((me (current-me)))
           (when (find-animation (cache-model me) emote)
             (set-animation-continuous me emote)
-            (hide-command world))))
+            (if chat-was-hidden?
+                (begin
+                  (hide-chat self)
+                  (set! chat-was-hidden? #f))
+              (hide-command world)))))
       
       (let ((text (locate command 'text)))
         (let ((content (get-string-content text)))
