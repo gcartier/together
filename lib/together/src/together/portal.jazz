@@ -38,7 +38,7 @@
       (parameterize ((loading-zone path))
         (with-cursor :wait
           (lambda ()
-            (let ((min-delay 1.))
+            (let ((min-delay .8))
               (if (equal? (get-path zone) path)
                   (working-wait world message min-delay thunk)
                 (let ((loaded (make-mutex 'loaded))
