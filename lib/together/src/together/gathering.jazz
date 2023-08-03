@@ -2490,20 +2490,25 @@
   
   
   (method (on-teleport self evt)
+    (let ((recipient (cadr message-recipient)))
+      (teleport-person self recipient)))
+  
+  
+  (method (teleport-person self recipient)
     (let ((client (current-client))
           (space (current-space))
           (world (current-world))
           (zone (current-zone))
           (me (current-me)))
-      (let ((recipient (cadr message-recipient))
-            (path (get-path zone))
+      (let ((path (get-path zone))
             (position (get-position me))
             (sight (get-sight me)))
         (if (is? space Gathering-Space)
             (display-error world "You cannot teleport someone to The gathering")
           (let ((err (client-teleport client recipient path position sight)))
-            (when (string? err)
-              (display-error world err)))))))
+            (if (string? err)
+                (display-error world err)
+              (chat-show world (format "Teleport {a}" recipient))))))))
 
   
   (method (on-message self evt)
