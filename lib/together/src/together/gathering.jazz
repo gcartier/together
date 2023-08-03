@@ -448,7 +448,6 @@
       (set-size (child interface 'command) (command-size together))
       (set-location (child interface 'command) (command-location together))
       (set-visible? (child root 'about) #t)
-      (update-message-recipient together #f)
       (update-center-interface self)
       (layout-view interface)
       (layout-view root)
@@ -1312,7 +1311,6 @@
       (set-position (child interface '(command-to invite)) {Point 380 9})
       (set-position (child interface '(command-to verify)) {Point 380 9})
       (set-position (child interface '(command-to teleport)) {Point 358 9})
-      (update-message-recipient together (list 'group current-circle-name))
       (layout-interface)
       (no-showcase world)))
   
