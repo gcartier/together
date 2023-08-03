@@ -2362,7 +2362,9 @@
               ((group)
                (set-title to name)
                (set-color to group-color)
-               (set-visible? invite #f))))))))
+               (set-visible? invite #f)
+               (set-visible? verify #f)
+               (set-visible? teleport #f))))))))
   
   
   (method package (grouped? self)
