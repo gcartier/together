@@ -2394,7 +2394,7 @@
               (let ((output (open-output-string)))
                 (expand expander template associations output)
                 (let ((content (get-output-string output)))
-                  (push-panel (open-world-document content class: World-Formatted-Text-View name: 'participation title: "Participation" size: {Dimension 550 260} background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))))))))
+                  (push-panel (open-world-document content class: World-Formatted-Text-View name: 'participation title: "Participation" size: {Dimension 550 225} background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))))))))
   
   
   (method (on-toggle-invite self evt)

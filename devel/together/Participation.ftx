@@ -42,11 +42,11 @@
  paragraphs:
  ((5 ("Your Participation is %participation%" 20))
   (5)
-  (5 ("Participation determines how you interact with Together. It is not restrictive. Anyone can be any Participation they want. The intent is to offer a simpler experience of Together to new users" 1))
+  (5 ("Participation helps you discover the richness of Together progressively" 0))
   (5)
   (7 ("Circler : You can create and join circles" 0))
   (7 ("Explorer : You can explore the world" 0))
   (7 ("Builder : You can shape the world" 0))
   (7 ("Developer : You can script the world" 0))
   (5)
-  (5 ("Talk to Barbara or Guillaume if you have any question or want to experiment with a different Participation" 21)))}
+  (5 ("Talk to Barbara or Guillaume if you have any questions or want to experiment with a different Participation" 21)))}
