@@ -2353,7 +2353,7 @@
                                   (set-visible? verify #t)
                                 (set-visible? verify #f))
                               ;; teleport
-                              (if (and user-verified? (not player-me?))
+                              (if (and user-verified? (not player-me?) (can-explore?))
                                   (set-visible? teleport #t)
                                 (set-visible? teleport #f))))))
                        (else
