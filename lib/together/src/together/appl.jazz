@@ -1424,7 +1424,7 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
-        @version1 (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: command-slash              visible?: #t)
         (<!>                 name: repeat-previous            visible?: #t))
       (<world-debug!>
         @version1 (<!>                 name: toggle-info                visible?: #t))
@@ -1559,7 +1559,7 @@
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
         (<!>                 name: command-message            visible?: #t)
-        @version1 (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: command-slash              visible?: #t)
         (<!>                 name: repeat-previous            visible?: #t))
       (<world-showcase!>
         (<!>                 name: no-showcase                visible?: #t)
