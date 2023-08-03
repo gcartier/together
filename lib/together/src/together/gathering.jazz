@@ -401,7 +401,7 @@
           (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
           (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
           (make-unverified-view self root)
-          (set-action-handler (child root '(circle-create create)) (~ on-create&join self))
+          (set-action-handler (child root '(circle-create create)) (~ on-create-random-circle self))
           (set-action-handler (child root '(zoom-create create)) (~ on-create-zoom self))
           (set! self.root root)))))
   
@@ -741,11 +741,11 @@
       (copy-zoom together (get-selected-group together))))
   
   
-  (method (on-create&join self evt)
+  (method (on-create-random-circle self evt)
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (create&join-circle together)))))
+          (create-random-circle together)))))
   
   
   (method (on-create-zoom self evt)
@@ -2911,7 +2911,7 @@
       (set-mode me 'observer)))
   
   
-  (method package (create&join-circle self)
+  (method package (create-random-circle self)
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
