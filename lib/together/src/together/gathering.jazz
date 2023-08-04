@@ -2912,6 +2912,15 @@
       (set-mode me 'observer)))
   
   
+  (method (moonless-lookat self)
+    (let ((moon-sight (vertex .499 0. .867))
+          (moon-cone 2.356))
+      (let ((moon-half-cone (/ moon-cone 2.)))
+        (let ((lookat (horizon-lookat moon-sight))
+              (angle (+ moon-half-cone (random-between 0. (- PI*2 moon-cone)))))
+          (rotate-lookat lookat angle (vertex 0. 1. 0.))))))
+  
+  
   (method package (create-random-circle self)
     (let ((tier (current-client))
           (world (current-world))
@@ -2931,9 +2940,9 @@
                   (lambda ()
                     (let ((text (locate view 'text)))
                       (let ((name (trim-whitespace (get-string-content text))))
-                        (let ((ring (random-ring 10 25)))
-                          (let ((position (vertex (vertex-x ring) 4. (vertex-z ring)))
-                                (lookat (horizon-lookat (random-horizon)))
+                        (let ((lookat (moonless-lookat self))
+                              (distance (random-between 15. 50.)))
+                          (let ((position (vertex+ (vertex 0. 4. 0.) (vertex-scalar* (get-sight lookat) distance)))
                                 (scale (vertex 1. 1. 1.)))
                             (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
                               (if (string? no/exception)
