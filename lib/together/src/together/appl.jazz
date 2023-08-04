@@ -395,18 +395,7 @@
                 (edit-catalog-target target history-item: history-item))))))))
   
   
-  (import world.audio)
   (method (on-test self evt)
-    (let ((audio (current-audio))
-          (world (current-world)))
-      (let ((ordered-outputs (get-ordered-outputs audio)))
-        (if (not-null? ordered-outputs)
-            (display-message world "Audio is not empty")
-          (if (not cached-audio)
-              (display-message world "Audio is already closed")
-            (close-audio)
-            (display-message world "Audio closed")))))
-    @w
     (dispatch-to 'world.test-script "test/test"))
   
   
