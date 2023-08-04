@@ -3056,11 +3056,20 @@
     (acquire-microphone/camera self require-microphone? require-camera?))
   
   
-  (method (circle-join self name group-info/exception)
+  (method (circle-invite self name group-info/exception)
+    (circle-join self name group-info/exception #t))
+  
+  
+  (method (circle-join self name group-info/exception (from-invite? #f))
     (let ((me (current-me)))
-      (if (eq? (get-mode me) 'player)
-          (setup-circle self name #f group-info/exception)
-        (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
+      (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
+        (if (eq? (get-mode me) 'player)
+            (if (not from-invite?)
+                (setup-circle self name #f group-info/exception)
+              (load/wait-zone zone "Joining circle"
+                (lambda ()
+                  (setup-circle self name #t group-info/exception)
+                  (teleport-circle self circle-position))))
           (load/wait-zone zone "Joining circle"
             (lambda ()
               (enter-zone self)
@@ -3282,10 +3291,10 @@
       (set-processor-exited-hook tier (~ processor-exited self))
       (set-hierarchy-update-hook tier (~ hierarchy-update self))
       (set-zones-update-hook tier (~ zones-update self))
-      (set-group-join-hook tier (~ group-join self))
+      (set-group-invite-hook tier (~ group-invite self))
       (set-group-leave-hook tier (~ group-leave self))
       (set-circle-acquire-hook tier (~ circle-acquire self))
-      (set-circle-join-hook tier (~ circle-join self))
+      (set-circle-invite-hook tier (~ circle-invite self))
       (set-stream-addable-hook tier (~ stream-addable self))
       (set-message-received-hook tier (~ message-received self))
       (set-teleport-hook tier (~ teleport-to self))
@@ -4599,7 +4608,7 @@
   ;;;
   
   
-  (method (group-join self)
+  (method (group-invite self)
     (let ((world (current-world))
           (space (current-space)))
       (set! in-group? #t)
