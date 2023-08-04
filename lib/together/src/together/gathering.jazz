@@ -2708,14 +2708,15 @@
                                      (let ((text (locate panel '(create view text))))
                                        (let ((name (trim-whitespace (get-string-content text)))
                                              (position (get-position me))
-                                             (lookat (get-lookat me)))
+                                             (lookat (get-lookat me))
+                                             (scale (vertex 1. 1. 1.)))
                                          (let ((position (vertex+ position (vertex-scalar* (get-sight lookat) 3.))))
                                            (define (block-center pos)
                                              (- (round (+ pos .5)) .5))
                                            
                                            (let ((position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
                                              (let ((broadcast-hierarchy? persistent?))
-                                               (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
+                                               (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
                                                  (if (string? no/exception)
                                                      (display-error world no/exception)
                                                    (close panel)
@@ -2734,13 +2735,13 @@
               (acquire-focus (locate panel '(create view text)))))))))
   
   
-  (method (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)
+  (method (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)
     (let ((tier (current-client))
           (universe (current-universe))
           (world (current-world))
           (zone (current-zone)))
       (let ((id (make-unique-id)))
-        (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position) #f #f #f)))
+        (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position lookat scale) #f #f #f)))
           (if (string? no/exception)
               no/exception
             (clear-message world)
@@ -2932,8 +2933,9 @@
                       (let ((name (trim-whitespace (get-string-content text))))
                         (let ((ring (random-ring 10 25)))
                           (let ((position (vertex (vertex-x ring) 4. (vertex-z ring)))
-                                (lookat (horizon-lookat (random-horizon))))
-                            (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat)))
+                                (lookat (horizon-lookat (random-horizon)))
+                                (scale (vertex 1. 1. 1.)))
+                            (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
                               (if (string? no/exception)
                                   (display-error world no/exception)
                                 (clear-message world)
@@ -3047,7 +3049,7 @@
             (lambda ()
               (enter-zone self)
               (setup-circle self name #t group-info/exception)
-              (teleport-circle self circle-center)
+              (teleport-circle self circle-position)
               (presence/gallery-mode self)))))))
   
   
@@ -3105,7 +3107,15 @@
         (set-title (child mainbar 'circle-name) current-circle-name)
         (add-snapshot-property 'live.circle-name current-circle-name)
         (streams-add tier no require-microphone? require-camera? streams)
-        (set-circle-center (if stone (second stone) default-circle-center))
+        (cond ((not stone)
+               (set-circle-position default-circle-position)
+               (set-circle-lookat default-circle-lookat)
+               (set-circle-scale default-circle-scale))
+              (else
+               (bind (id position lookat scale) stone
+                 (set-circle-position position)
+                 (set-circle-lookat lookat)
+                 (set-circle-scale scale))))
         (when stone
           (bind (id position) stone
             (let ((section-index (position->section-index position)))
