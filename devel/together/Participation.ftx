@@ -40,7 +40,7 @@
   {Text-Style Base color: {Color World-Red}})
  
  paragraphs:
- ((5 ("Your Participation is %participation%" 20))
+ ((5 ("There are many ways to participate in Together" 1))
   (5)
   (5 ("Participation helps you discover the richness of Together progressively" 0))
   (5)
@@ -49,4 +49,6 @@
   (7 ("Builder : You can shape the world" 0))
   (7 ("Developer : You can script the world" 0))
   (5)
-  (5 ("Talk to Barbara or Guillaume if you have any questions or want to experiment with a different Participation" 21)))}
+  (5 ("Your Participation is currently %participation%" 20))
+  (5)
+  (5 ("Talk to Barbara or Guillaume to experiment with a different Participation" 21)))}
