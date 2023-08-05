@@ -1320,6 +1320,7 @@
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
         (<!>                 name: toggle-participation       visible?: #t)
+        @wait
         (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
@@ -1410,6 +1411,7 @@
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
         (<!>                 name: toggle-participation       visible?: #t)
+        @wait
         (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
@@ -1542,6 +1544,7 @@
       (<world-people!>
         (<!>                 name: toggle-people              visible?: #t)
         (<!>                 name: toggle-participation       visible?: #t)
+        @wait
         (<!>                 name: toggle-invite              visible?: #t))
       (<world-chat!>
         (<!>                 name: toggle-chat                visible?: #t)
