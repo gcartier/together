@@ -50,10 +50,12 @@
                                                  (mutex-unlock! loaded)
                                                  (with-task-mutex
                                                    (lambda ()
-                                                     (change-zone client path)
-                                                     (set-mode (current-me) 'player)
-                                                     (person-motion world feedback?: #f)
-                                                     (thunk)))))
+                                                     (let ((error (change-zone client path)))
+                                                       (if (string? error)
+                                                           (display-error world error)
+                                                         (set-mode (current-me) 'player)
+                                                         (person-motion world feedback?: #f)
+                                                         (thunk)))))))
                   (working world
                     (lambda ()
                       (working-progress world message #f)
