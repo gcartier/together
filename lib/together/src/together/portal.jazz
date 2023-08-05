@@ -63,7 +63,9 @@
 
 
 (definition package (check-rune rune)
-  (let ((world (current-world)))
+  (let ((together (current-together))
+        (world (current-world))
+        (zone (current-zone)))
     (let ((path (get-path rune)))
       (define (present-path)
         (if (eq? path 'start)
@@ -79,9 +81,11 @@
                (lambda ()
                  )))
             (else
-             (let ((name (present-path)))
+             (let ((name (present-path))
+                   (same-zone? (equal? (get-path zone) path)))
                (display-action world (format "E : Enter Portal{a}" (format " to {a}" name))
                  (lambda ()
-                   (load/wait-zone (get-path rune) (format "Loading {a}" name)
+                   (load/wait-zone path (format "Loading {a}" name)
                      (lambda ()
-                       )))))))))))
+                       (unless same-zone?
+                         (enter-zone together)))))))))))))
