@@ -1362,6 +1362,7 @@
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
         (<!>                 name: capture-view               visible?: #t))
+      @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
 
@@ -1461,6 +1462,7 @@
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
         (<!>                 name: capture-view               visible?: #t))
+      @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
 
@@ -1625,6 +1627,7 @@
         (<!>                 name: toggle-screen-share        visible?: #t)
         (<!>                 name: toggle-view-share          visible?: #t)
         (<!>                 name: capture-view               visible?: #t))
+      @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
 
