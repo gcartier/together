@@ -1509,11 +1509,7 @@
         (<!>                 name: move-forward               visible?: #t)
         (<!>                 name: move-backward              visible?: #t)
         (<!>                 name: move-left                  visible?: #t)
-        (<!>                 name: move-right                 visible?: #t)
-        @broken-by-action-on-e
-        (<!>                 name: rotate-left                visible?: #t)
-        @broken-by-action-on-e
-        (<!>                 name: rotate-right               visible?: #t))
+        (<!>                 name: move-right                 visible?: #t))
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
         (<!>                 name: zoom-in/out                visible?: #t)
@@ -1743,10 +1739,6 @@
         (<!>                 name: move-backward              visible?: #t)
         (<!>                 name: move-left                  visible?: #t)
         (<!>                 name: move-right                 visible?: #t)
-        @broken-by-action-on-e
-        (<!>                 name: rotate-left                visible?: #t)
-        @broken-by-action-on-e
-        (<!>                 name: rotate-right               visible?: #t)
         (<!>                 name: toggle-run                 visible?: #t))
       (<world-camera!>
         (<!>                 name: rotate-camera              visible?: #t)
