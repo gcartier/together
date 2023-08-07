@@ -1118,7 +1118,7 @@
           (world (current-world))
           (video (current-video)))
       (unbind-camera)
-      (person-motion world feedback?: #f)
+      (person-motion world yaw: default-yaw pitch: default-pitch feedback?: #f)
       (show-mainbar self)
       (show-compass world)
       (set-proportion (child interface 'people) '(220 (bounds -324)))
