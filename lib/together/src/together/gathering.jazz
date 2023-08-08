@@ -3995,7 +3995,8 @@
           (let ((kind (car data))
                 (rest (cdr data)))
             (cond (selected-group
-                   (when (eq? kind 'group)
+                   (when (or (eq? kind 'group)
+                             (eq? kind 'zoom-group))
                      (with-cursor :wait
                        (lambda ()
                          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
