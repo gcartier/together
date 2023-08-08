@@ -2924,6 +2924,34 @@
           (rotate-lookat lookat angle (vertex 0. 1. 0.))))))
   
   
+  (method (spaced-moonless-lookat self)
+    (let ((zone (current-zone)))
+      (let ((stones (collect-type Circle-Stone (get-entities zone))))
+        (define (try spacing (n 0))
+          (if (>= n 10)
+              #f
+            (let ((lookat (moonless-lookat self)))
+              (if (null? stones)
+                  lookat
+                (let ((closest (closest-stone lookat)))
+                  (if (>= closest spacing)
+                      lookat
+                    (try spacing (+ n 1))))))))
+        
+        (define (closest-stone lookat)
+          (apply min
+                 (map (lambda (stone)
+                        (let ((sight (get-sight lookat))
+                              (stone-sight (get-sight stone)))
+                          (vector-angle sight stone-sight)))
+                      stones)))
+        
+        (or (try PI/4)
+            (try PI/8)
+            (try PI/12)
+            (moonless-lookat self)))))
+  
+  
   (method package (create-random-circle self)
     (let ((tier (current-client))
           (world (current-world))
@@ -2943,7 +2971,7 @@
                   (lambda ()
                     (let ((text (locate view 'text)))
                       (let ((name (trim-whitespace (get-string-content text))))
-                        (let ((lookat (moonless-lookat self))
+                        (let ((lookat (spaced-moonless-lookat self))
                               (distance (random-between 15. 50.)))
                           (let ((position (vertex+ (vertex 0. 4. 0.) (vertex-scalar* (get-sight lookat) distance)))
                                 (scale (vertex 1. 1. 1.)))
