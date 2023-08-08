@@ -2751,7 +2751,7 @@
             (let ((class Circle-Stone)
                   (scale (vertex .4 .4 .4))
                   (color (make-dye))
-                  (model "warcraft/world/doodad/meetingstone01")
+                  (model circle-stone-model)
                   (script-text #f)
                   (properties '()))
               (let ((entity (apply new class name: name id: id position: position lookat: lookat scale: scale color: color model: model properties)))
