@@ -3058,6 +3058,8 @@
             (if (string? group-info/exception)
                 group-info/exception
               (setup-circle self name #t group-info/exception)
+              (teleport-circle self circle-position)
+              (presence/gallery-mode self)
               #f))))))
   
   
@@ -3070,6 +3072,8 @@
             (if (string? group-info/exception)
                 group-info/exception
               (setup-circle self name #t group-info/exception)
+              (teleport-circle self circle-position)
+              (presence/gallery-mode self)
               #f))))))
   
   
