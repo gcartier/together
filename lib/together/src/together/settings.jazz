@@ -41,6 +41,39 @@
 
 
 ;;;
+;;;; Arguments
+;;;
+
+
+(definition url-parameters
+  (let ((url (string-argument "url" #f)))
+    (and url
+         (receive (scheme parameters) (parse-url url)
+           parameters))))
+
+(definition (url-parameter parameter default)
+  (if (not url-parameters)
+      default
+    (let ((pair (assoc parameter url-parameters)))
+      (if (not pair)
+          default
+        (let ((value (cdr pair)))
+          (if (not value)
+              default
+            value))))))
+
+
+(definition protected auto-create
+  (world-setting 'together.auto-create #f))
+
+(definition protected auto-join
+  (world-setting 'together.auto-join (url-parameter "join" #f)))
+
+(definition protected auto-enter
+  (world-setting 'together.auto-enter (url-parameter "enter" #f)))
+
+
+;;;
 ;;;; Welcome
 ;;;
 
@@ -169,8 +202,7 @@
                 (not (world-setting 'together.critical-assets? #f))
                 (shift-down?))
             (open-login-zone)
-          (let ((auto-enter (world-setting 'together.auto-enter #f)))
-            (open-client-enter file auto-enter: (and auto-enter (if (eq? auto-enter 'start) auto-enter (split auto-enter "/"))))))))))
+          (open-client-enter file auto-enter: (and auto-enter (if (eq? auto-enter 'start) auto-enter (split auto-enter "/")))))))))
 
 
 (welcome-zone-open-set! open-login/client-enter)

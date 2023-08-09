@@ -166,13 +166,6 @@
     #t))
 
 
-(definition auto-create
-  (world-setting 'together.auto-create #f))
-
-(definition auto-join
-  (world-setting 'together.auto-join #f))
-
-
 (definition connect-sound
   (world-setting 'together.connect-sound #f))
 
