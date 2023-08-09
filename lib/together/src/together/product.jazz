@@ -93,19 +93,19 @@
   (cond-expand
     (mac
      (cond-expand (devel
-                   "together-devel.app")
+                   "together-devel")
                   (trial
-                   "together-trial.app")
+                   "together-trial")
                   (test
-                   "together-test.app")
+                   "together-test")
                   (triage
-                   "together-triage.app")
+                   "together-triage")
                   (stable
-                   "together-stable.app")
+                   "together-stable")
                   (stage
-                   "together-stage.app")
+                   "together-stage")
                   (prod
-                   "together-prod.app")))
+                   "together-prod")))
     (else
      (cond-expand (devel
                    "together-devel")
