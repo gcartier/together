@@ -2373,6 +2373,10 @@
     in-group?)
   
   
+  (method package (in-call? self)
+    (or in-group? current-circle-name))
+  
+  
   ;;;
   ;;;; Events
   ;;;
@@ -3384,14 +3388,15 @@
   
   (method (server-entered self character-name)
     (let ((world (current-world)))
-      (when (cond ((eqv? connect-sound #t) #t)
-                  ((eqv? connect-sound 'gathering) (is? space Gathering-Space))
-                  (else #f))
-        (play-ambient-sound 'connect))
-      (when (cond ((eqv? connect-attention #t) #t)
-                  ((eqv? connect-attention 'gathering) (is? space Gathering-Space))
-                  (else #f))
-        (user-attention (current-toplevel)))
+      (unless (in-call? self)
+        (when (cond ((eqv? connect-sound #t) #t)
+                    ((eqv? connect-sound 'gathering) (is? space Gathering-Space))
+                    (else #f))
+          (play-ambient-sound 'connect))
+        (when (cond ((eqv? connect-attention #t) #t)
+                    ((eqv? connect-attention 'gathering) (is? space Gathering-Space))
+                    (else #f))
+          (user-attention (current-toplevel))))
       (when (cond ((eqv? connect-message #t) #t)
                   ((eqv? connect-message 'gathering) (is? space Gathering-Space))
                   (else #f))
