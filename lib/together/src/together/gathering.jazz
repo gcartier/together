@@ -3024,7 +3024,9 @@
             (display-message world "No Zoom link")
           (catch (Invalid-Link exc
                    (display-message world "Invalid Zoom link"))
-            (launch-zoom-link link))))))
+            (let ((successful? (launch-zoom-link link)))
+              (when (not successful?)
+                (display-error world "Unable to launch Zoom"))))))))
   
   
   (method package (edit-zoom self name)
