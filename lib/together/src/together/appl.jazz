@@ -1314,7 +1314,7 @@
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-interface!>
-        @version0
+        @version1
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-people!>
@@ -1390,7 +1390,7 @@
         (<!>                 name: open-welcome               visible?: #t)
         (<!>                 name: quit-world                 visible?: #t))
       (<world-interface!>
-        @version0
+        @version1
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-movement!>
@@ -1505,7 +1505,7 @@
         (<!>                 name: toggle-ambience            visible?: #t)
         (<!>                 name: toggle-sound               visible?: #t))
       (<world-interface!>
-        @version0
+        @version1
         (<!>                 name: toggle-interface           visible?: #t)
         (<!>                 name: toggle-windowed-mode       visible?: #t))
       (<world-movement!>
