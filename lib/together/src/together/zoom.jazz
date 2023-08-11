@@ -80,13 +80,6 @@
 ;;;
 
 
-(class Zoom-Not-Found extends Exception)
-
-
-(definition public (throw-zoom-not-found)
-  (throw (new Zoom-Not-Found)))
-
-
 (definition public (launch-zoom-link link)
   (receive (server confno pwd) (parse-link link)
     (launch-zoom server confno pwd)))
