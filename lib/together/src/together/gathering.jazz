@@ -71,6 +71,7 @@
         (world.evolution)
         (world.fog)
         (world.gc)
+        (world.group)
         (world.hierarchy)
         (world.history)
         (world.id)
@@ -488,7 +489,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped? together))
+      (let ((grouped? (grouped?))
             (circling? (circling?)))
         `(,gathering-bindings
           ,@(if grouped? (list gathering-group-bindings) '())
@@ -1155,7 +1156,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped? together)))
+      (let ((grouped? (grouped?)))
         `(,zone-bindings
            @roaming ,@(if (admin?) (list zone-admin-bindings) '())
            ,@(cond (grouped? (list zone-group-bindings))
@@ -1436,7 +1437,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped? together))
+      (let ((grouped? (grouped?))
             (avatar? (avatar-mode?)))
         `(,zone-bindings
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
@@ -1695,7 +1696,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped? together))
+      (let ((grouped? (grouped?))
             (avatar? (avatar-mode?)))
         `(,presence-bindings
           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
@@ -2054,7 +2055,6 @@
   (slot selected-data       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
-  (slot in-group?           initialize #f getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
@@ -2265,7 +2265,7 @@
         (cond ((circling?)
                (leave-circle self)
                (set! sleep-disconnected 'circle))
-              ((grouped? self)
+              ((grouped?)
                (leave-group self)
                (set! sleep-disconnected 'group)))
         (sleep-to-server client))))
@@ -2360,10 +2360,6 @@
                (set-visible? invite #f)
                (set-visible? verify #f)
                (set-visible? teleport #f))))))))
-  
-  
-  (method package (grouped? self)
-    in-group?)
   
   
   (method package (in-call? self)
@@ -4638,7 +4634,7 @@
   (method (group-invite self)
     (let ((world (current-world))
           (space (current-space)))
-      (set! in-group? #t)
+      (set-in-group? #t)
       (space-refresh space)
       (setup-visibility mainbar)
       (refresh-central-menu world)))
@@ -4647,7 +4643,7 @@
   (method (group-leave self)
     (let ((world (current-world))
           (space (current-space)))
-      (set! in-group? #f)
+      (set-in-group? #f)
       (space-refresh space)
       (setup-visibility mainbar)
       (refresh-central-menu world)))
