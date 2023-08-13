@@ -58,18 +58,13 @@
         (<View>             name: container               size: {Dimension 390 230}
           (<Option-Label>   title: "Microphone"           position: {Point 0 1})
           (<Combo-Option>                                 position: {Point 190 0} size: {Dimension 200 19} option: microphone)
-          (<Option-Label>   title: "Push to talk (Space)" position: {Point 20 30} size: {Dimension 200 15})
-          (<Boolean-Option>                               position: {Point 0 30} option: push-to-talk)
-          (<Option-Label>   title: "Echo Cancellation"    position: {Point 20 74} size: {Dimension 200 15})
-          (<Boolean-Option>                               position: {Point 0 74} option: echo-cancel)
-          (<Option-Label>   title: "Noise Suppression"    position: {Point 20 100} size: {Dimension 200 15})
-          (<Boolean-Option>                               position: {Point 0 100} option: noise-suppress)
-          (<Option-Label>   title: "Aggressive Denoising (can impact voice quality)" position: {Point 20 126} size: {Dimension 300 15})
-          (<Boolean-Option>                               position: {Point 0 126} option: aggressive-denoising)
-          (<Option-Label>   name: directsound-label title: "Use DirectSound (try if microphone is not working)"      position: {Point 20 170} size: {Dimension 300 15} visible?: #f)
-          (<Boolean-Option> name: directsound-option                          position: {Point 0 170} visible?: #f option: directsound)
-          (<Option-Label>   name: speaker-label title: "Speaker"              position: {Point 0 211} size: {Dimension 200 15})
-          (<Combo-Option>   name: speaker-option                              position: {Point 190 210} size: {Dimension 200 19} option: speaker)))))
+          (<Boolean-Option> title: "Push to talk (Space)" position: {Point 0 30} size: {Dimension 200 16} option: push-to-talk)
+          (<Boolean-Option> title: "Echo Cancellation"    position: {Point 0 74} size: {Dimension 200 16} option: echo-cancel)
+          (<Boolean-Option> title: "Noise Suppression"    position: {Point 0 100} size: {Dimension 200 16} option: noise-suppress)
+          (<Boolean-Option> title: "Aggressive Denoising (can impact voice quality)" position: {Point 0 126} size: {Dimension 300 15} option: aggressive-denoising)
+          (<Boolean-Option> name: directsound-option      title: "Use DirectSound (try if microphone is not working)" position: {Point 0 170} size: {Dimension 300 15} visible?: #f option: directsound)
+          (<Option-Label>   name: speaker-label           title: "Speaker" position: {Point 0 211} size: {Dimension 200 15})
+          (<Combo-Option>   name: speaker-option          position: {Point 190 210} size: {Dimension 200 19} option: speaker)))))
   
   
   (method override (install self rest)
@@ -77,7 +72,6 @@
     (reset-install/restart)
     (cond-expand
       (windows
-       (set-visible? (locate self 'directsound-label) #t)
        (set-visible? (locate self 'directsound-option) #t))
       (else
        (set-size (locate self 'container) {Dimension 390 200})
@@ -173,14 +167,11 @@
           (<Combo-Option>                                                     position: {Point 140 0} size: {Dimension 250 19} option: quality)
           (<Option-Label>                              title: "Camera"        position: {Point 0 51})
           (<Combo-Option>                                                     position: {Point 140 50} size: {Dimension 250 19} option: camera)
-          (<Option-Label>   name: retina-label         title: "Retina"        position: {Point 20 110} visible?: #f)
-          (<Boolean-Option> name: retina-option                               position: {Point 0 110} size: {Dimension 250 19} visible?: #f option: retina)
+          (<Boolean-Option> name: retina-option        title: "Retina"        position: {Point 0 110} size: {Dimension 250 16} visible?: #f option: retina)
           (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 101} visible?: #f)
           (<Combo-Option>   name: scale-option                                position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
-          (<Option-Label>   name: multisampling-label  title: "Multisampling" position: {Point 20 160})
-          (<Boolean-Option> name: multisampling-option                        position: {Point 0 160} size: {Dimension 250 19} option: multisampling)
-          (<Option-Label>   name: hardware-label       title: "Hardware Acceleration (experimental)" position: {Point 20 170} size: {Dimension 300 16} visible?: #f)
-          (<Boolean-Option> name: hardware-option                             position: {Point 0 170} size: {Dimension 250 19} visible?: #f option: hardware)))))
+          (<Boolean-Option> name: multisampling-option title: "Multisampling" position: {Point 0 160} size: {Dimension 250 16} option: multisampling)
+          (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration (experimental)" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)))))
   
   
   (method override (install self rest)
@@ -189,11 +180,8 @@
     (cond-expand
       (mac
        (when (main-screen-retina?)
-         (set-visible? (locate self 'retina-label) #t)
          (set-visible? (locate self 'retina-option) #t))
-       (set-visible? (locate self 'hardware-label) #t)
        (set-visible? (locate self 'hardware-option) #t)
-       (set-position (locate self 'multisampling-label) {Point 20 140})
        (set-position (locate self 'multisampling-option) {Point 0 140}))
       (windows
        (set-visible? (locate self 'scale-label) #t)
@@ -309,14 +297,10 @@
         (<View>                                            size: {Dimension 390 180}
           (<Option-Label>   title: "Layout"                position: {Point   0 1})
           (<Combo-Option>                                  position: {Point 140 0} size: {Dimension 250 19} option: layout)
-          (<Option-Label>   title: "Join by invite only"   position: {Point 20  60} size: {Dimension 200 15})
-          (<Boolean-Option>                                position: {Point  0  60} option: join-by-invite-only)
-          (<Option-Label>   title: "Persistent"            position: {Point 20 95} size: {Dimension 200 15})
-          (<Boolean-Option>                                position: {Point  0 95} option: persistent)
-          (<Option-Label>   title: "Start with microphone" position: {Point 20 130} size: {Dimension 200 15})
-          (<Boolean-Option>                                position: {Point  0 130} option: require-microphone)
-          (<Option-Label>   title: "Start with camera"     position: {Point 20 165} size: {Dimension 200 15})
-          (<Boolean-Option>                                position: {Point  0 165} option: require-camera)))))
+          (<Boolean-Option> title: "Join by invite only"   position: {Point  0  60} size: {Dimension 200 16} option: join-by-invite-only)
+          (<Boolean-Option> title: "Persistent"            position: {Point  0 95} size: {Dimension 200 16} option: persistent)
+          (<Boolean-Option> title: "Start with microphone" position: {Point  0 130} size: {Dimension 200 16} option: require-microphone)
+          (<Boolean-Option> title: "Start with camera"     position: {Point  0 165} size: {Dimension 200 16} option: require-camera)))))
   
   
   (method override (prepare self rest)
@@ -374,8 +358,7 @@
       (<caption~>           title: "Zoom Circle Options")
       (<content~>                                        layout-type: center
         (<View>                                          size: {Dimension 390 145}
-          (<Option-Label>   title: "Persistent"          position: {Point  20   0} size: {Dimension 200 15})
-          (<Boolean-Option>                              position: {Point   0   0} option: persistent)
+          (<Boolean-Option> title: "Persistent"          position: {Point   0   0} size: {Dimension 200 16} option: persistent)
           (<Option-Label>   title: "Zoom Link"           position: {Point   0  50} size: {Dimension 100 15})
           (<Link-View>      name: link-view              position: {Point  85  45} size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} invalid-view: link-invalid)
           (<Name-Invalid>   name: link-invalid           position: {Point  85  71} size: {Dimension 300 16} font: {Font Label-User point-size: 12.5 antialias: default})
