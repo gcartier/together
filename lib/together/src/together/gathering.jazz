@@ -2149,7 +2149,8 @@
             (auto-enter
              (check-error (autoenter-zone self)))
             (else
-             (enter-gathering)))))
+             (enter-gathering)))
+      (player-ready)))
   
   
   (method (together-exit self)
