@@ -171,7 +171,7 @@
           (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 101} visible?: #f)
           (<Combo-Option>   name: scale-option                                position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
           (<Boolean-Option> name: multisampling-option title: "Multisampling" position: {Point 0 160} size: {Dimension 250 16} option: multisampling)
-          (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration (experimental)" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)))))
+          (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)))))
   
   
   (method override (install self rest)
