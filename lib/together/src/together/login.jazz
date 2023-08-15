@@ -324,6 +324,11 @@
     (let ((interface (current-interface))
           (world (current-world)))
       (let ((configuration (get-configuration zone)))
+        (when (not (get-personal-key configuration))
+          (let ((url-key (url-parameter "key" #f)))
+            (when url-key
+              (set-personal-key configuration url-key)
+              (save-configuration zone))))
         (let ((version (process-version (current-process)))
               (date (build-short-date))
               (key (get-personal-key configuration)))

@@ -51,7 +51,7 @@
          (receive (scheme parameters) (parse-url url)
            parameters))))
 
-(definition (url-parameter parameter default)
+(definition protected (url-parameter parameter default)
   (if (not url-parameters)
       default
     (let ((pair (assoc parameter url-parameters)))
