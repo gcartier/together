@@ -574,6 +574,11 @@
     120)
   
   
+  (method override (vista-target? self)
+    (let ((together (current-together)))
+      (get-selected-zone? together)))
+  
+  
   (method override (enter-press self)
     (let ((together (current-together)))
       (when (eq? (active-focus) (current-interface))
@@ -3970,13 +3975,13 @@
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
-              (reinstall-vista)
               (set! selected-zone? zone?)
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)
               (set! selected-zoom? zoom?)
+              (reinstall-vista)
               (update-center-interface space))
             
             (case kind
