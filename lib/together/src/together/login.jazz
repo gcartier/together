@@ -90,12 +90,15 @@
     (set! self.zone zone))
   
   
-  (method override (show-me? self)
-    #f)
+  (method override (space-activate self)
+    (nextmethod self)
+    (let ((world (current-world)))
+      (layout-message world)
+      (layout-working world)))
   
   
-  (method override (draw-horizon? self)
-    #f)
+  (method override (only-skybox self)
+    (cache-nebula-skybox))
   
   
   (method override (draw-message-offset self)
@@ -623,13 +626,6 @@
           (send-to-back root)
           (unbind-camera)
           (focus-world)))))
-  
-  
-  (method override (space-activate self)
-    (nextmethod self)
-    (let ((world (current-world)))
-      (layout-message world)
-      (layout-working world)))
   
   
   (method override (space-uninstall self)
