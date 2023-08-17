@@ -146,18 +146,20 @@
                                              user-data: (list kind base location files profiles))))))
                             (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
-                  (lambda (subdir)
-                    (let ((name (get-name subdir)))
-                      (let ((father (add-row tree
-                                             father: father
-                                             state: 'expanded
-                                             children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
-                        (iterate subdir father))))
+                  add
                   files?: #f
                   directories?: #t
                   recursive?: #f))
               
-              (iterate-stream-directories iterate)))))))
+              (define (add dir)
+                (let ((name (get-name dir)))
+                  (let ((father (add-row tree
+                                         state: 'expanded
+                                         children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
+                    (iterate dir father))))
+              
+              (iterate-stream-directories iterate)
+              (add {Directory Documents "screenshots"})))))))
   
   
   (method package (streams-action self)
