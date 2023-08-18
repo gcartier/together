@@ -393,6 +393,8 @@
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
           (make-unverified-view self root)
           (set-action-handler (child root '(enter enter)) (~ on-enter self))
+          (set-action-handler (locate (child root 'join) 'join) (~ on-join self))
+          (set-action-handler (locate (child root 'join-zoom) 'join) (~ on-join-zoom self))
           (set-action-handler (child root '(create create)) (~ on-create-random-circle self))
           (set-action-handler (child root '(create-zoom create)) (~ on-create-zoom self))
           (set! self.root root)))))
@@ -5757,7 +5759,7 @@
       (<Layout-View>                          location: center size: {Dimension 505 34} layout-type: justify
         (<Description-View> name: description location: center))
       (<Layout-View>                          location: south size: {Dimension 200 42} layout-type: justify
-        (<Push-Button>      name: join        title: "Join" location: (center tail) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))))))
+        (<Push-Button>      name: join        title: "Join" location: (center tail) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default})))))
 
 
 ;;;
@@ -5774,7 +5776,7 @@
       (<Layout-View>                          location: center size: {Dimension 505 34} layout-type: justify
         (<Description-View> name: description location: center))
       (<Layout-View>                          location: south size: {Dimension 200 42} layout-type: justify
-        (<Push-Button>      name: join        title: "Join on Zoom" location: (center tail) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))))))
+        (<Push-Button>      name: join        title: "Join on Zoom" location: (center tail) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default})))))
 
 
 ;;;
