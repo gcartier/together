@@ -3012,7 +3012,7 @@
                 (link-text (locate link-view 'text)))
             (let ((name (trim-whitespace (get-string-content text)))
                   (link (trim-whitespace (get-string-content link-text))))
-              (let ((no/exception (create-group tier name #f #f #f #t #f #f #t link #f)))
+              (let ((no/exception (create-group tier name #t #f #f #t #f #f #t link #f)))
                 (if (string? no/exception)
                     (display-error world no/exception)
                   (clear-message world)
