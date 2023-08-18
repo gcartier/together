@@ -543,7 +543,7 @@
   
   (method override (panel-stack-change self)
     (unless shutdown?
-      (update-center-interface self)))
+      (update-center-interface self #t)))
   
   
   (method override (zone-change self zone)
@@ -609,7 +609,7 @@
         (not (name-invalid circle-view)))))
   
   
-  (method package (update-center-interface self)
+  (method package (update-center-interface self (panel-stack-change? #f))
     (let ((together (current-together))
           (client (current-client))
           (interface (current-interface))
@@ -680,7 +680,9 @@
                                         (locate (child create 'link-view) 'text))))))
         
         (when (not (and (admin?) (get-visible? (child interface 'admin))))
-          (cond ((top-panel)
+          (unless panel-stack-change?
+            (reset-panel-stack))
+          (cond ((and panel-stack-change? (top-panel))
                  (unverified-visible #f)
                  (enter-visible #f)
                  (join-visible #f)
