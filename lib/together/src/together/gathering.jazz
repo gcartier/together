@@ -636,14 +636,7 @@
             (when flag
               (set-title (child layout 'label) selected-group)
               (layout-view layout)
-              (let ((text (get-description (find-group-info selected-group)))
-                    (desc (locate layout 'description)))
-                (if (not text)
-                    (begin
-                      (set-visible? (get-parent desc) #f)
-                      (set-size layout {Dimension 505 70}))
-                  (set-visible? (get-parent desc) #t)
-                  (set-description-text layout text))))))
+              (update-description layout))))
         
         (define (join-zoom-visible flag)
           (let ((layout (child root 'join-zoom)))
@@ -651,17 +644,21 @@
             (when flag
               (set-title (child layout 'label) selected-group)
               (layout-view layout)
-              (let ((text (get-description (find-group-info selected-group)))
-                    (desc (locate layout 'description)))
-                (if (not text)
-                    (begin
-                      (set-visible? (get-parent desc) #f)
-                      (set-size layout {Dimension 505 70}))
-                  (set-visible? (get-parent desc) #t)
-                  (set-description-text layout text)))))
+              (update-description layout)))
           (let ((owner? (personal-key? client selected-owner)))
             (set-visible? (child root 'edit-zoom) (and flag owner?))
             (set-visible? (child root 'copy-zoom) (and flag (not owner?)))))
+        
+        (define (update-description layout)
+          (let ((group (find-group-info selected-group)))
+            (let ((text (and group (get-description group)))
+                  (desc (locate layout 'description)))
+              (if (not text)
+                  (begin
+                    (set-visible? (get-parent desc) #f)
+                    (set-size layout {Dimension 505 70}))
+                (set-visible? (get-parent desc) #t)
+                (set-description-text layout text)))))
         
         (define (create-visible flag)
           (let ((create (child root 'create)))
