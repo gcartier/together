@@ -197,6 +197,35 @@
 
 
 ;;;
+;;;; Description-View
+;;;
+
+
+(class Description-View extends Scroller-View
+  
+  
+  (form
+    (<install>                                  style: 'document hscroll?: #f vscroll?: #f
+      (<content~>                               layout-type: fill
+        (<World-Formatted-Text-View> name: text background: #f selectable?: #f editable?: #f))))
+  
+  
+  (method protected (set-text self text)
+    (let ((text-view (locate self 'text)))
+      (let ((text-model (get-model text-view)))
+        (set-text text-model text)
+        (let ((size (scrollee-content-size text-view))
+              (max-width 505))
+          (if (< (get-width size) max-width)
+              (set-size self (scrollee-content-size text-view))
+            (set-size self (new Dimension max-width 10))
+            (set-wrap? text-model #t)
+            (wrap-content text-model '())
+            (set-wrap? text-model #f)
+            (set-size self (new Dimension 505 (get-height text-view)))))))))
+
+
+;;;
 ;;;; Link-View
 ;;;
 

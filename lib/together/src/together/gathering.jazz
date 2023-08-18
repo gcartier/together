@@ -383,20 +383,18 @@
           (new Version-Label name: 'date parent: root title: date location: '(30 -70) size: {Dimension 200 40} font: {Font font-name: tahoma point-size: 12.5 shadow: thin})
           (new Push-Button name: 'quit parent: root title: "Quit" location: '(30 -30) size: {Dimension 100 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-quit self))
           (new Kind-Label name: 'selected-label parent: root title: "" location: '(center (center -120)) size: {Dimension 500 40} auto-size?: #t font: {Font font-name: tahoma point-size: 24.5 antialias: default} justification: 'center)
-          (new Kind-Label name: 'zone parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-          (new Push-Button name: 'zone-enter parent: root title: "Enter" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-enter self))
-          (new Kind-Label name: 'circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-          (new Push-Button name: 'circle-join parent: root title: "Join" location: '(center center) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join self))
-          (new Kind-Label name: 'zoom-circle parent: root title: "" location: '(center (center -40)) size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: 'center)
-          (new Push-Button name: 'zoom-launch parent: root title: "Join on Zoom" location: '(center center) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))
-          (new Push-Button name: 'zoom-edit parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
-          (new Push-Button name: 'zoom-copy parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
+          (new Enter-View name: 'enter parent: root location: 'center size: {Dimension 200 70})
+          (new Join-View name: 'join parent: root location: 'center size: {Dimension 505 70})
+          (new Join-Zoom-View name: 'join-zoom parent: root location: 'center size: {Dimension 505 70})
+          (new Push-Button name: 'edit-zoom parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
+          (new Push-Button name: 'copy-zoom parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
+          (new Create-View name: 'create parent: root location: 'center size: {Dimension 400 160})
+          (new Create-Zoom-View name: 'create-zoom parent: root location: '(center (center -10)) size: {Dimension 400 210})
           (new Toggle-Button name: 'about parent: root title: "About & Copyright" location: '(-30 -30) size: {Dimension 160 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-about self))
-          (new Create-Circle-View name: 'circle-create parent: root location: 'center size: {Dimension 400 160})
-          (new Create-Zoom-View name: 'zoom-create parent: root location: '(center (center -10)) size: {Dimension 400 210})
           (make-unverified-view self root)
-          (set-action-handler (child root '(circle-create create)) (~ on-create-random-circle self))
-          (set-action-handler (child root '(zoom-create create)) (~ on-create-zoom self))
+          (set-action-handler (child root '(enter enter)) (~ on-enter self))
+          (set-action-handler (child root '(create create)) (~ on-create-random-circle self))
+          (set-action-handler (child root '(create-zoom create)) (~ on-create-zoom self))
           (set! self.root root)))))
   
   
@@ -422,10 +420,9 @@
       (set-title (child mainbar 'name) (get-character-name client))
       (when (admin?)
         (let ((admin-visible? (get-visible? (child interface 'admin))))
-          (set-visible? (child root 'circle) (not admin-visible?))
-          (set-visible? (child root 'circle-join) (not admin-visible?))))
-      (set-visible? (child root 'circle-create) #t)
-      (set-visible? (child root 'zoom-create) #f)
+          (set-visible? (child root 'join) (not admin-visible?))))
+      (set-visible? (child root 'create) #t)
+      (set-visible? (child root 'create-zoom) #f)
       (set-visible? (child mainbar 'profile) #t)
       (set-proportion (child interface 'people) '(220 (bounds -300)))
       (set-visible? (child interface 'people-label) #t)
@@ -606,7 +603,7 @@
   
   (method (circle-create-enabled? self)
     (let ((together (current-together)))
-      (let ((circle-view (child root '(circle-create view))))
+      (let ((circle-view (child root '(create view))))
         (not (name-invalid circle-view)))))
   
   
@@ -625,24 +622,47 @@
           (set-visible? (child root 'unverified) flag))
         
         (define (enter-visible flag)
-          (when flag
-            (set-title (child root 'zone) (present-zone together selected-zone)))
-          (set-visible? (child root 'zone) flag)
-          (set-visible? (child root 'zone-enter) flag))
+          (let ((layout (child root 'enter)))
+            (when flag
+              (set-title (child layout 'label) (present-zone together selected-zone))
+              (layout-view layout))
+            (set-visible? layout flag)))
         
         (define (join-visible flag)
-          (set-visible? (child root 'circle) flag)
-          (set-visible? (child root 'circle-join) flag))
+          (let ((layout (child root 'join)))
+            (set-visible? layout flag)
+            (when flag
+              (set-title (child layout 'label) selected-group)
+              (layout-view layout)
+              (let ((text (get-description (find-group-info selected-group)))
+                    (desc (locate layout 'description)))
+                (if (not text)
+                    (begin
+                      (set-visible? (get-parent desc) #f)
+                      (set-size layout {Dimension 505 70}))
+                  (set-visible? (get-parent desc) #t)
+                  (set-description-text layout text))))))
         
-        (define (launch-visible flag)
-          (set-visible? (child root 'zoom-circle) flag)
-          (set-visible? (child root 'zoom-launch) flag)
+        (define (join-zoom-visible flag)
+          (let ((layout (child root 'join-zoom)))
+            (set-visible? layout flag)
+            (when flag
+              (set-title (child layout 'label) selected-group)
+              (layout-view layout)
+              (let ((text (get-description (find-group-info selected-group)))
+                    (desc (locate layout 'description)))
+                (if (not text)
+                    (begin
+                      (set-visible? (get-parent desc) #f)
+                      (set-size layout {Dimension 505 70}))
+                  (set-visible? (get-parent desc) #t)
+                  (set-description-text layout text)))))
           (let ((owner? (personal-key? client selected-owner)))
-            (set-visible? (child root 'zoom-edit) (and flag owner?))
-            (set-visible? (child root 'zoom-copy) (and flag (not owner?)))))
+            (set-visible? (child root 'edit-zoom) (and flag owner?))
+            (set-visible? (child root 'copy-zoom) (and flag (not owner?)))))
         
         (define (create-visible flag)
-          (let ((create (child root 'circle-create)))
+          (let ((create (child root 'create)))
             (set-visible? create flag)
             (let ((circle-view (child create 'view)))
               (set-visible? (child create 'label) flag)
@@ -653,66 +673,67 @@
                 (set-enabled? (child create 'create) enabled?)
                 (set-visible? (child create 'require-camera?) (and flag enabled?))))))
         
-        (define (zoom-visible flag)
-          (let ((create (child root 'zoom-create)))
+        (define (create-zoom-visible flag)
+          (let ((create (child root 'create-zoom)))
             (set-visible? create flag)
             (set-stops root (and flag (list
                                         (locate (child create 'view) 'text)
                                         (locate (child create 'link-view) 'text))))))
         
         (when (not (and (admin?) (get-visible? (child interface 'admin))))
-          (set-title (child root 'circle-join) (if circling? "Enter" "Join"))
           (cond ((top-panel)
                  (unverified-visible #f)
                  (enter-visible #f)
                  (join-visible #f)
-                 (launch-visible #f)
+                 (join-zoom-visible #f)
                  (create-visible #f)
-                 (zoom-visible #f))
+                 (create-zoom-visible #f))
                 ((unverified?)
                  (unverified-visible #t)
                  (enter-visible #f)
                  (join-visible #f)
-                 (launch-visible #f)
+                 (join-zoom-visible #f)
                  (create-visible #f)
-                 (zoom-visible #f))
+                 (create-zoom-visible #f))
+                ((and selected-group (not selected-zoom?))
+                 (unverified-visible #f)
+                 (enter-visible #f)
+                 (join-visible #t)
+                 (join-zoom-visible #f)
+                 (create-visible #f)
+                 (create-zoom-visible #f)
+                 (layout-view root))
                 (selected-group
                  (unverified-visible #f)
                  (enter-visible #f)
-                 (cond ((not selected-zoom?)
-                        (set-title (child root 'circle) selected-group)
-                        (join-visible #t)
-                        (launch-visible #f))
-                       (else
-                        (set-title (child root 'zoom-circle) selected-group)
-                        (join-visible #f)
-                        (launch-visible #t)))
+                 (join-visible #f)
+                 (join-zoom-visible #t)
                  (create-visible #f)
-                 (zoom-visible #f)
+                 (create-zoom-visible #f)
                  (layout-view root))
                 (selected-zoom?
                  (unverified-visible #f)
                  (enter-visible #f)
                  (join-visible #f)
-                 (launch-visible #f)
+                 (join-zoom-visible #f)
                  (create-visible #f)
-                 (zoom-visible #t)
+                 (create-zoom-visible #t)
                  (layout-view root))
                 (selected-zone?
                  (unverified-visible #f)
                  (enter-visible #t)
                  (join-visible #f)
-                 (launch-visible #f)
+                 (join-zoom-visible #f)
                  (create-visible #f)
-                 (zoom-visible #f)
+                 (create-zoom-visible #f)
                  (layout-view root))
                 (else
                  (unverified-visible #f)
                  (enter-visible #f)
                  (join-visible #f)
-                 (launch-visible #f)
+                 (join-zoom-visible #f)
                  (create-visible #t)
-                 (zoom-visible #f)
+                 (create-zoom-visible #f)
                  (layout-view root)))))))
   
   
@@ -769,9 +790,8 @@
     (let ((interface (current-interface)))
       (define (closer frame)
         (set-visible? (child root 'selected-label) #t)
-        (set-visible? (child root 'circle) #t)
-        (set-visible? (child root 'circle-join) #t)
-        (set-visible? (child root 'circle-create) #t)
+        (set-visible? (child root 'join) #t)
+        (set-visible? (child root 'create) #t)
         (set-visible? (child interface 'people-label) #t)
         (set-visible? (child interface 'people) #t)
         (set-visible? (child interface 'chat-label) #t)
@@ -797,8 +817,7 @@
           (world (current-world)))
       (set! view-focused (active-focus))
       (set-visible? (child root 'selected-label) #f)
-      (set-visible? (child root 'circle) #f)
-      (set-visible? (child root 'circle-join) #f)
+      (set-visible? (child root 'join) #f)
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
       (set-visible? (child interface 'streams-label) #f)
@@ -810,11 +829,9 @@
       (when (admin?)
         (set-visible? (child interface 'admin-label) #f)
         (set-visible? (child interface 'admin) #f))
-      (set-visible? (child root 'zone) #f)
-      (set-visible? (child root 'zone-enter) #f)
-      (set-visible? (child root 'circle) #f)
-      (set-visible? (child root 'circle-join) #f)
-      (set-visible? (child root 'circle-create) #f)
+      (set-visible? (child root 'enter) #f)
+      (set-visible? (child root 'join) #f)
+      (set-visible? (child root 'create) #f)
       (open-about world name: 'about&copyright title: (or title "About & Copyright") movable?: #f closable?: closable? closer: closer background: {Color red: .000 green: .000 blue: .000 alpha: .250}))))
 
 
@@ -2695,7 +2712,7 @@
       (set-cursor :wait)
       (let ((persistent? #f)
             (require-microphone? #t)
-            (panel-class Create-Circle-Panel))
+            (panel-class Create-Panel))
         (if (and require-microphone? (not (has-microphone?)))
             (problem no-microphone-found)
           (if (and require-microphone? (not (acquire-microphone-pipeline)))
@@ -2956,7 +2973,7 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
-      (let ((create (child (get-root space) 'circle-create)))
+      (let ((create (child (get-root space) 'create)))
         (let ((require-camera (child create 'require-camera?))
               (view (child create 'view)))
           (let ((persistent? #f)
@@ -2989,7 +3006,7 @@
   (method package (create-zoom-circle self)
     (let ((tier (current-client))
           (world (current-world)))
-      (let ((create (child (get-root space) 'zoom-create)))
+      (let ((create (child (get-root space) 'create-zoom)))
         (let ((view (child create 'view))
               (link-view (child create 'link-view)))
           (let ((text (locate view 'text))
@@ -4944,11 +4961,9 @@
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
           (set-visible? (child root 'selected-label) #f)
-          (set-visible? (child root 'zone) #f)
-          (set-visible? (child root 'zone-enter) #f)
-          (set-visible? (child root 'circle) #f)
-          (set-visible? (child root 'circle-join) #f)
-          (set-visible? (child root 'circle-create) #f)))
+          (set-visible? (child root 'enter) #f)
+          (set-visible? (child root 'join) #f)
+          (set-visible? (child root 'create) #f)))
       (layout-view interface)))
   
   
@@ -5535,8 +5550,7 @@
       (set-visible? (child interface 'experiment) #t)
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'circle-join) #f)
-          (set-visible? (child root 'circle) #f)))
+          (set-visible? (child root 'join) #f)))
       (view-experiment self)
       (layout-view interface)))
   
@@ -5547,8 +5561,7 @@
       (set-visible? (child interface 'experiment) #f)
       (when (is? space Gathering-Space)
         (let ((root (get-root space)))
-          (set-visible? (child root 'circle-join) #t)
-          (set-visible? (child root 'circle) #t)))))
+          (set-visible? (child root 'join) #t)))))
   
   
   (method (on-add-image self evt)
@@ -5695,11 +5708,81 @@
 
 
 ;;;
-;;;; Create-Circle
+;;;; Enter
 ;;;
 
 
-(class Create-Circle-View extends Layout-View
+(class Enter-View extends Layout-View
+  
+  
+  (form
+    (<install>                   layout-type: border
+      (<Kind-Label>  name: label title: "" location: north size: {Dimension 200 34} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: center)
+      (<Push-Button> name: enter title: "Enter" location: south size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default}))))
+
+
+;;;
+;;;; Join-Circle
+;;;
+
+
+(class Join-Circle-View extends Layout-View
+  
+  
+  (method protected (set-description-text self text)
+    (let ((desc (locate self 'description))
+          (text `(<span>
+                   (<paragraph>
+                     (<text> color: White font: {Font font-name: vera-sans point-size: 14.5 italic?: #t shadow: thin} @w Description ,text)))))
+      (set-text desc text)
+      (let ((height (+ (get-height (locate self 'label))
+                       (get-height (locate self 'description))
+                       (get-height (locate self 'join)))))
+        (set-size self (new Dimension 505 (+ height 20)))
+        (layout-view (get-parent (locate self 'description)))
+        (layout-view (get-parent (locate self 'join)))))))
+
+
+;;;
+;;;; Join
+;;;
+
+
+(class Join-View extends Join-Circle-View
+  
+  
+  (form
+    (<install>                                layout-type: border
+      (<Kind-Label>         name: label       title: "" location: north size: {Dimension 200 34} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: center)
+      (<Layout-View>                          location: center size: {Dimension 505 34} layout-type: justify
+        (<Description-View> name: description location: center))
+      (<Layout-View>                          location: south size: {Dimension 200 42} layout-type: justify
+        (<Push-Button>      name: join        title: "Join" location: (center tail) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))))))
+
+
+;;;
+;;;; Join-Zoom
+;;;
+
+
+(class Join-Zoom-View extends Join-Circle-View
+  
+  
+  (form
+    (<install>                                layout-type: border
+      (<Kind-Label>         name: label       title: "" location: north size: {Dimension 200 34} auto-size?: #t font: {Font font-name: tahoma point-size: 19.5 antialias: default} justification: center)
+      (<Layout-View>                          location: center size: {Dimension 505 34} layout-type: justify
+        (<Description-View> name: description location: center))
+      (<Layout-View>                          location: south size: {Dimension 200 42} layout-type: justify
+        (<Push-Button>      name: join        title: "Join on Zoom" location: (center tail) size: {Dimension 210 36} font: {Font Label-User point-size: 16.5 antialias: default} action-handler: (~ on-join-zoom self))))))
+
+
+;;;
+;;;; Create
+;;;
+
+
+(class Create-View extends Layout-View
   
   
   (form
@@ -5711,7 +5794,7 @@
       (<Check-Box>    name: require-camera? title: "Start with camera" location: (center 134) size: {Dimension 116 16} checked?: #t visible?: #f))))
 
 
-(class Create-Circle-Close extends View
+(class Create-Close extends View
   
   
   (method override (draw self surface context)
@@ -5724,23 +5807,23 @@
   
   
   (method override (mouse-up self evt)
-    (let ((panel (find-ascendant self Create-Circle-Panel)))
+    (let ((panel (find-ascendant self Create-Panel)))
       (close panel))))
 
 
-(class Create-Circle-Panel extends World-Panel
+(class Create-Panel extends World-Panel
   
   
   (form
-    (<install>                                         layout-type: fill
-      (<Border-View>             name: content         location: center border-color: {Color Medium-Gray} border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .450}
-        (<Create-Circle-View>    name: create
-          (<!>                   name: label           location: (center 10))
-          (<!>                   name: view            location: (center 40))
-          (<!>                   name: invalid         location: (center 66))
-          (<!>                   name: create          location: (center 99))
-          (<!>                   name: require-camera? location: (center 142) checked?: #t)
-          (<Create-Circle-Close> name: close           location: (-6 6) size: {Dimension 8 8})))))
+    (<install>                                  layout-type: fill
+      (<Border-View>      name: content         location: center border-color: {Color Medium-Gray} border-type: edge style: entry layout-type: fill background: {Color red: .000 green: .000 blue: .000 alpha: .450}
+        (<Create-View>    name: create
+          (<!>            name: label           location: (center 10))
+          (<!>            name: view            location: (center 40))
+          (<!>            name: invalid         location: (center 66))
+          (<!>            name: create          location: (center 99))
+          (<!>            name: require-camera? location: (center 142) checked?: #t)
+          (<Create-Close> name: close           location: (-6 6) size: {Dimension 8 8})))))
   
   
   (method override (escape-close? self)
