@@ -385,6 +385,7 @@
           (new Kind-Label name: 'selected-label parent: root title: "" location: '(center (center -120)) size: {Dimension 500 40} auto-size?: #t font: {Font font-name: tahoma point-size: 24.5 antialias: default} justification: 'center)
           (new Enter-View name: 'enter parent: root location: 'center size: {Dimension 200 70})
           (new Join-View name: 'join parent: root location: 'center size: {Dimension 505 70})
+          (new Push-Button name: 'edit-circle parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-circle self))
           (new Join-Zoom-View name: 'join-zoom parent: root location: 'center size: {Dimension 505 70})
           (new Push-Button name: 'edit-zoom parent: root title: "Edit Circle" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-edit-zoom self))
           (new Push-Button name: 'copy-zoom parent: root title: "Copy Link" location: '(center -30) size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: (~ on-copy-zoom self))
@@ -636,7 +637,9 @@
             (when flag
               (set-title (child layout 'label) selected-group)
               (layout-view layout)
-              (update-description layout))))
+              (update-description layout)))
+          (let ((owner? (personal-key? client selected-owner)))
+            (set-visible? (child root 'edit-circle) (and flag owner?))))
         
         (define (join-zoom-visible flag)
           (let ((layout (child root 'join-zoom)))
@@ -757,6 +760,11 @@
       (with-cursor :wait
         (lambda ()
           (join-zoom-circle together (get-selected-group together))))))
+  
+  
+  (method (on-edit-circle self evt)
+    (let ((together (current-together)))
+      (edit-circle together (get-selected-group together))))
   
   
   (method (on-edit-zoom self evt)
@@ -3038,14 +3046,24 @@
                 (display-error world "Unable to launch Zoom"))))))))
   
   
-  (method package (edit-zoom self name)
+  (method package (edit-circle self name)
     (let ((interface (current-interface)))
-      (let ((frame (find-type interface Zoom-Circle-Options)))
+      (let ((frame (find-type interface Circle-Edit)))
         (if frame
             (close frame)
           (with-cursor :wait
             (lambda ()
-              (push-panel (open-frame (new Zoom-Circle-Options circle-name: name size: {Dimension 466 268} location: 'center)))))))))
+              (push-panel (open-frame (new Circle-Edit circle-name: name size: {Dimension 566 260} location: 'center)))))))))
+  
+  
+  (method package (edit-zoom self name)
+    (let ((interface (current-interface)))
+      (let ((frame (find-type interface Zoom-Circle-Edit)))
+        (if frame
+            (close frame)
+          (with-cursor :wait
+            (lambda ()
+              (push-panel (open-frame (new Zoom-Circle-Edit circle-name: name size: {Dimension 566 328} location: 'center)))))))))
   
   
   (method package (copy-zoom self name)
@@ -5723,17 +5741,19 @@
   
   
   (method protected (set-description-text self text)
-    (let ((desc (locate self 'description))
+    (let ((label (locate self 'label))
+          (desc (locate self 'description))
+          (join (locate self 'join))
           (text `(<span>
                    (<paragraph>
-                     (<text> color: White font: {Font font-name: vera-sans point-size: 14.5 italic?: #t shadow: thin} @w Description ,text)))))
+                     (<text> color: White font: Description-View ,text)))))
       (set-text desc text)
-      (let ((height (+ (get-height (locate self 'label))
-                       (get-height (locate self 'description))
-                       (get-height (locate self 'join)))))
+      (let ((height (+ (get-height label)
+                       (get-height desc)
+                       (get-height join))))
         (set-size self (new Dimension 505 (+ height 20)))
-        (layout-view (get-parent (locate self 'description)))
-        (layout-view (get-parent (locate self 'join)))))))
+        (layout-view (get-parent desc))
+        (layout-view (get-parent join))))))
 
 
 ;;;

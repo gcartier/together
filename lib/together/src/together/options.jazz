@@ -32,6 +32,7 @@
         (world.circle)
         (world.client.tier)
         (world.context)
+        (world.hierarchy)
         (world.interface.frame)
         (world.interface.mainbar)
         (world.interface.options)
@@ -40,6 +41,7 @@
         (world.settings)
         (world.task)
         (world.video)
+        (together)
         (together.zone))
 
 
@@ -343,11 +345,11 @@
 
 
 ;;;
-;;;; Zoom
+;;;; Edit
 ;;;
 
 
-(class Zoom-Circle-Options extends Option-Frame
+(class Circle-Edit extends World-Frame
   
   
   (property circle-name initialize #f accessors generate)
@@ -355,14 +357,12 @@
   
   (form
     (<install>
-      (<caption~>           title: "Zoom Circle Options")
-      (<content~>                                        layout-type: center
-        (<View>                                          size: {Dimension 390 145}
-          (<Boolean-Option> title: "Persistent"          position: {Point   0   0} size: {Dimension 200 16} option: persistent)
-          (<Option-Label>   title: "Zoom Link"           position: {Point   0  50} size: {Dimension 100 15})
-          (<Link-View>      name: link-view              position: {Point  85  45} size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} invalid-view: link-invalid)
-          (<Name-Invalid>   name: link-invalid           position: {Point  85  71} size: {Dimension 300 16} font: {Font Label-User point-size: 12.5 antialias: default})
-          (<Push-Button>    title: "Delete Circle"       position: {Point 122 120} size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: {Event-Handler :form on-delete-zoom})))))
+      (<caption~>                                title: "Edit Circle")
+      (<content~>                                layout-type: center
+        (<View>                                  size: {Dimension 490 165}
+          (<Option-Label>                        title: "Description" position: {Point 0 5} size: {Dimension 100 15})
+          (<Description-Edit> name: description  position: {Point 85 0} size: {Dimension 400 104} border-type: solid border-color: {Color Dark-Gray})
+          (<Push-Button>                         title: "Delete Circle" position: {Point 170 140} size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: {Event-Handler :form on-delete-circle})))))
   
   
   (method override (prepare self rest)
@@ -372,31 +372,91 @@
   
   (method override (install self rest)
     (nextmethod self rest)
-    (let ((link-view (locate self 'link-view)))
-      (let ((text (locate link-view 'text)))
-        (let ((link (circle-property (current-client) circle-name 'link)))
-          (set-string-content text link)))))
+    (set-wrap? (get-model (locate self '(description text))) #t)
+    (let ((description (circle-property (current-client) circle-name 'description)))
+      (when description
+        (set-string-content (locate self '(description text)) description))))
   
   
   (method override (user-close self)
+    (let ((description-view (locate self 'description)))
+      (let ((text (locate description-view 'text)))
+        (let ((content (get-string-content text)))
+          (let ((description (if (empty-string? content) #f content)))
+            (change-circle-property (current-client) circle-name 'description description)
+            (let ((group (find-group-info circle-name)))
+              (when group
+                (set-description group description)))))))
+    (nextmethod self))
+  
+  
+  (method (on-delete-circle self evt)
+    (delay-event
+      (lambda ()
+        (with-task-mutex
+          (lambda ()
+            (let ((client (current-client))
+                  (world (current-world)))
+              (let ((error (delete-group client circle-name)))
+                (if error
+                    (display-error world error)
+                  (close self))))))))))
+
+
+;;;
+;;;; Zoom Edit
+;;;
+
+
+(class Zoom-Circle-Edit extends World-Frame
+  
+  
+  (property circle-name initialize #f accessors generate)
+  
+  
+  (form
+    (<install>
+      (<caption~>                                title: "Edit Zoom Circle")
+      (<content~>                                layout-type: center
+        (<View>                                  size: {Dimension 490 215}
+          (<Option-Label>                        title: "Description" position: {Point 0 5} size: {Dimension 100 15})
+          (<Description-Edit> name: description  position: {Point 85 0} size: {Dimension 400 104} border-type: solid border-color: {Color Dark-Gray})
+          (<Option-Label>                        title: "Zoom Link" position: {Point 0 130} size: {Dimension 100 15})
+          (<Link-View>        name: link-view    position: {Point 85 125} size: {Dimension 400 24} border-type: solid border-color: {Color Dark-Gray} invalid-view: link-invalid)
+          (<Name-Invalid>     name: link-invalid position: {Point 85 151} size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+          (<Push-Button>                         title: "Delete Circle" position: {Point 170 190} size: {Dimension 150 24} font: {Font font-name: tahoma point-size: 13 shadow: thin} action-handler: {Event-Handler :form on-delete-zoom})))))
+  
+  
+  (method override (prepare self rest)
+    (nextmethod self rest)
+    (set! circle-name (getf rest circle-name:)))
+  
+  
+  (method override (install self rest)
+    (nextmethod self rest)
+    (set-wrap? (get-model (locate self '(description text))) #t)
+    (let ((description (circle-property (current-client) circle-name 'description))
+          (link (circle-property (current-client) circle-name 'link)))
+      (when description
+        (set-string-content (locate self '(description text)) description))
+      (set-string-content (locate self '(link-view text)) link)))
+  
+  
+  (method override (user-close self)
+    (let ((description-view (locate self 'description)))
+      (let ((text (locate description-view 'text)))
+        (let ((content (get-string-content text)))
+          (let ((description (if (empty-string? content) #f content)))
+            (change-circle-property (current-client) circle-name 'description description)
+            (let ((group (find-group-info circle-name)))
+              (when group
+                (set-description group description)))))))
     (let ((link-view (locate self 'link-view)))
       (unless (name-invalid link-view)
         (let ((text (locate link-view 'text)))
           (let ((link (trim-whitespace (get-string-content text))))
             (change-circle-property (current-client) circle-name 'link link)))))
     (nextmethod self))
-  
-  
-  (method override (read-option self option)
-    (case option
-      ((persistent)
-       (circle-property (current-client) circle-name 'persistent?))))
-  
-  
-  (method override (write-option self option value title)
-    (case option
-      ((persistent)
-       (change-circle-property (current-client) circle-name 'persistent? value))))
   
   
   (method (on-delete-zoom self evt)

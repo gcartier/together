@@ -766,7 +766,7 @@
   
   
   (form
-    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
+    (<install>                    size: {Dimension 250 24} border-type: edge style: entry
       (<Scroller-View>            hscroll?: #f vscroll?: #f
         (<content~>               layout-type: fill
           (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return} escape-press-handler: {Event-Handler :form on-escape})))))

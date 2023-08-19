@@ -116,7 +116,7 @@
   
   
   (form
-    (<install>                    size: {Dimension 250 24} border-type: edge style: entry @border-type: solid @border-color: {Color Medium-Gray}
+    (<install>                    size: {Dimension 250 24} border-type: edge style: entry
       (<Scroller-View>            hscroll?: #f vscroll?: #f
         (<content~>               layout-type: fill
           (<Name-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f focus-selects-all?: #t content-change-handler: {Event-Handler :form on-content-change} return-press-handler: {Event-Handler :form on-return})))))
@@ -216,13 +216,55 @@
         (set-text text-model text)
         (let ((size (scrollee-content-size text-view))
               (max-width 505))
-          (if (< (get-width size) max-width)
-              (set-size self (scrollee-content-size text-view))
-            (set-size self (new Dimension max-width 10))
-            (set-wrap? text-model #t)
-            (wrap-content text-model '())
-            (set-wrap? text-model #f)
-            (set-size self (new Dimension 505 (get-height text-view)))))))))
+          (cond ((< (get-width size) max-width)
+                 (set-size self (scrollee-content-size text-view))
+                 (set-wrap? text-model #t)
+                 (wrap-content text-model '())
+                 (set-wrap? text-model #f)
+                 (set-size self (scrollee-content-size text-view)))
+                (else
+                 (set-size self (new Dimension max-width 10))
+                 (set-wrap? text-model #t)
+                 (wrap-content text-model '())
+                 (set-wrap? text-model #f)
+                 (set-size self (new Dimension 505 (get-height text-view))))))))))
+
+
+;;;
+;;;; Description-Edit
+;;;
+
+
+(class Description-Edit extends Border-View
+  
+  
+  (form
+    (<install>                           size: {Dimension 250 24} border-type: edge style: entry
+      (<Scroller-View>                   hscroll?: #f vscroll?: #f
+        (<content~>                      layout-type: fill
+          (<Description-Text> name: text accepts-returns?: #f left-padding: 1 top-padding: 1 background: #f show-unfocused-selection?: #f))))))
+
+
+;;;
+;;;; Description-Text
+;;;
+
+
+(class Description-Text extends World-Text-View
+  
+  
+  (method override (new-model self)
+    (new Text-Model default-style: {Text-Style Text-Base font: {Font Description-Edit}} left-padding: 12))
+  
+  
+  (method override (handle-escape? self)
+    #t)
+  
+  
+  (method override (paste-clipboard-string self string)
+    (let ((lines (split-lines string)))
+      (let ((line (join (remove "" lines test: equal?) " ")))
+        (replace-selection self (list line))))))
 
 
 ;;;
