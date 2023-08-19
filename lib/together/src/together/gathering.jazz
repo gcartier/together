@@ -1396,6 +1396,33 @@
     80)
   
   
+  (method override (fade-mainbar? self)
+    #t)
+  
+  
+  (method override (maybe-fade-mainbar self)
+    (let ((window (current-window)))
+      (when (fade-mainbar? self)
+        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
+  
+  
+  (method override (central-menu-show self)
+    (when (fade-mainbar? self)
+      (set-fade mainbar-pane #f)
+      (invalidate-view mainbar)))
+  
+  
+  (method override (central-menu-hide self)
+    (maybe-fade-mainbar self))
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (let ((world (current-world)))
+      (unless (get-central-menu world)
+        (fade-mainbar (new Point$fl$ x y)))))
+  
+  
   (method protected virtual (toggle-hide self)
     (let ((world (current-world)))
       (set! auto-hide? (not auto-hide?))
@@ -1487,34 +1514,7 @@
   (method override (application-deactivate self)
     (let ((world (current-world)))
       (when (get-autotrack-mode?)
-        (disable-autotrack world))))
-  
-  
-  (method override (fade-mainbar? self)
-    #t)
-  
-  
-  (method override (maybe-fade-mainbar self)
-    (let ((window (current-window)))
-      (when (fade-mainbar? self)
-        (fade-mainbar (point->point$fl$ (mouse-position window)) #t))))
-  
-  
-  (method override (central-menu-show self)
-    (when (fade-mainbar? self)
-      (set-fade mainbar-pane #f)
-      (invalidate-view mainbar)))
-  
-  
-  (method override (central-menu-hide self)
-    (maybe-fade-mainbar self))
-  
-  
-  (method override (mouse-moved self x y)
-    (nextmethod self x y)
-    (let ((world (current-world)))
-      (unless (get-central-menu world)
-        (fade-mainbar (new Point$fl$ x y))))))
+        (disable-autotrack world)))))
 
 
 ;;;
@@ -1787,21 +1787,6 @@
       (when power?
         (uninstall-microphone-power-probe)
         (set! power? #f))))
-    
-  
-  ;;;
-  ;;;; Central
-  ;;;
-
-  
-  (method override (central-menu-show self)
-    (unless (get-visible? mainbar)
-      (show-mainbar self)))
-  
-  
-  (method override (central-menu-hide self)
-    (when (get-visible? mainbar)
-      (hide-mainbar self)))
   
   
   ;;;
@@ -1951,10 +1936,9 @@
           (window (current-window))
           (interface (current-interface))
           (video (current-video)))
-      (unless (get-visible? mainbar)
+      (unless video-interface?
         @wait-buggy
         (show-cursor window)
-        (show-mainbar self)
         (for-each (lambda (child)
                     (when (and (is? child World-Actionbar)
                                (get-auto-show/hide? child))
@@ -1978,12 +1962,11 @@
                                                   (video (current-video)))
                                               (when (and (is? (current-space) Presence-Space)
                                                          auto-hide?
-                                                         (get-visible? mainbar)
+                                                         video-interface?
                                                          (not (current-tooltip-context))
                                                          (not (get-central-menu world)))
                                                 @wait-buggy
                                                 (hide-cursor window)
-                                                (hide-mainbar self)
                                                 (for-each (lambda (child)
                                                             (when (and (is? child World-Actionbar)
                                                                        (get-auto-show/hide? child))
