@@ -59,7 +59,7 @@
   ;;;
   
   
-  (method protected virtual (show-interface self hide-interface? (hide-mainbar? #f))
+  (method protected virtual (show-interface self hide-interface?)
     )
   
   

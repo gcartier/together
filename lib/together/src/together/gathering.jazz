@@ -1946,7 +1946,7 @@
   
   ;; we probably need a tolerance so moving
   ;; only 1 pixel doesn't show the interface
-  (method override (show-interface self hide-interface? (hide-mainbar? #f))
+  (method override (show-interface self hide-interface?)
     (let ((together (current-together))
           (window (current-window))
           (interface (current-interface))
@@ -1961,8 +1961,6 @@
                       (set-visible? child #t)))
                   (get-children interface))
         (set-video-interface? #t))
-      (when hide-mainbar?
-        (hide-mainbar self))
       (delay-hide-interface self hide-interface?)))
   
   
@@ -4621,7 +4619,7 @@
       (set-draw-players? world (eq? mode 'avatar))
       (reset-looked-at-output)
       (space-refresh (current-space))
-      (show-interface (current-space) #t feedback?)
+      (show-interface (current-space) #t)
       (update-parameter world 'avatar-mode)
       (update-parameter world 'presence-mode)
       (update-parameter world 'focus-mode)
