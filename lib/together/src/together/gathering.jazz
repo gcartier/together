@@ -2282,6 +2282,13 @@
         (install-skybox zone (cache-together-skybox)))))
   
   
+  (method protected (cleanup-group/circle self)
+    (cond ((circling?)
+           (leave-circle self))
+          ((grouped?)
+           (leave-group self))))
+  
+  
   (method protected (sleep-process self)
     (assert-task-mutex)
     (when (client?)
@@ -5646,8 +5653,10 @@
   
   
   (method override (mouse-up self evt)
-    (clear-together-skybox)
-    (open-login-zone)))
+    (let ((together (current-together)))
+      (cleanup-group/circle together)
+      (clear-together-skybox)
+      (open-login-zone))))
 
 
 ;;;
