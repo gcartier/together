@@ -3109,7 +3109,8 @@
               (enter-zone self)
               (setup-circle self name #t group-info/exception)
               (teleport-circle self circle-position)
-              (presence/gallery-mode self)))))))
+              (presence/gallery-mode self)))
+          (paint-mainbar (current-space))))))
   
   
   (method (acquire-circle self name)
