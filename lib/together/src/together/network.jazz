@@ -588,24 +588,102 @@
         (connection-state (new UDP-Connection-State))
         (rate-sample (new UDP-Rate-Sample))
         (bbr (new UDP-Congestion))
+        (delayed (new-queue))
+        (windowed 0)
         (mutex (make-mutex 'bbr))
-        (limit? #f)
-        (overflow? #f)
-        (show? #f))
+        (base-window #f @w (* 17500. 1.5))
+        (base-rate 8. @w 10.)
+        (rate #f)
+        (window? #t)
+        (last-sent #f)
+        (last-received #f)
+        (last-acked #f))
     (define (media-ack-received data)
-      (receive-ack data))
+      (mutex-lock! mutex)
+      (receive-ack data)
+      (mutex-unlock! mutex))
+    
+    (define (display-rate)
+      (display-message world (format "Rate {r precision: 2}" base-rate) duration: +inf.0))
+    
+    (define (record-rate adjustment)
+      )
     
     (define (key-callback key)
+      (define rates
+        '(0. .1 .25 .5 .75 1. 2. 3. 4. 6. 8. 10. 12. 16. 20.))
+      
+      (define (closest-rate)
+        (bind (dist . rate) (car (sort < (map (lambda (rate)
+                                                (cons (abs (- rate base-rate)) rate))
+                                              rates)
+                                   key: car))
+          (let ((exact? (= dist 0.)))
+            (values rate exact?))))
+      
+      (define (decrease-rate)
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (previous-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #t)
+              (record-rate (- new-rate base-rate))))))
+      
+      (define (increase-rate)
+        (receive (rate exact?) (closest-rate)
+          (let ((new-rate (if #f rate (next-element rates rate cycle?: #f))))
+            (when new-rate
+              (set-rate new-rate #f)
+              (record-rate (- new-rate base-rate))))))
+      
+      (define (down-rate)
+        (set-rate (- base-rate .1) #t)
+        (record-rate -.1))
+      
+      (define (up-rate)
+        (set-rate (+ base-rate .1) #t)
+        (record-rate .1))
+      
+      (define (set-rate rate reset?)
+        (set! base-rate rate)
+        (display-rate))
+      
+      (define (change-rate r)
+        (cond ((equal? r rate)
+               (set! rate #f)
+               (set-cruise-rate bbr #f)
+               (display-message world "No rate"))
+              (else
+               (set! rate r)
+               (set-cruise-rate bbr (exact->inexact (mbps->bytes r)))
+               (display-message world (format "Rate {a}Mbps" (fxround rate))))))
+      
       (case key
-        ((#\l)
-         (set! limit? (not limit?))
-         (display-on/off world "Limit" limit?))
-        ((#\o)
-         (set! overflow? (not overflow?))
-         (display-on/off world "Overflow" overflow?))
+        ((#\a)
+         (decrease-rate))
+        ((#\A)
+         (down-rate))
         ((#\s)
-         (set! show? (not show?))
-         (display-on/off world "Show" show?))
+         (display-rate))
+        ((#\d)
+         (increase-rate))
+        ((#\D)
+         (up-rate))
+        ((#\r)
+         (set-rate 1. #t))
+        ((#\0)
+         (set-rate 0. #t))
+        ((#\l)
+         (change-rate 4.))
+        ((#\m)
+         (change-rate 8.))
+        ((#\h)
+         (change-rate 32.))
+        ((#\w)
+         (set! window? (not window?))
+         (display-on/off world "Window" window?))
+        ((#\p)
+         (set-plot? (not plot?))
+         (display-on/off world "Plot" plot?))
         ((#\f #\space)
          (cond ((time-frozen? panel)
                 (thaw-events)
@@ -617,50 +695,108 @@
         ((#\c)
          (sleep .5)
          (cancel-profile title: "Test"))
-        ((#\d)
+        ((#\v)
          (sleep .5)
+         @w
+         (set-plot? #t)
          (done-profile title: "Test"))))
     
     (define (plot-callback surface)
       (let ((statistics (get-profile-statistics udp)))
-        (let ((lowest-rtt (get-minRTT connection-state))
-              (last-rtt (get-lastRTT connection-state))
+        (when (> (get-sent connection-state) 0)
+        (let ((average-rtt (get-average (get-movingRTT connection-state)))
+              (pacing-rate (get-pacing-rate bbr))
               (delivery-rate (get-delivery-rate rate-sample))
-              (upload-drop (get-upload-drop statistics)))
-          (when (and lowest-rtt upload-drop)
-            (let ((title (format "RTT: {r precision: 3}s, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%" last-rtt (bytes->mbps delivery-rate) upload-drop)))
-              (draw-text surface 5 3 title {Color Light-Gray}))))))
+              (delivery-average (get-delivery-average rate-sample))
+              (upload-rate (get-last-upload-rate statistics))
+              (upload-drop (percentage (get-lost connection-state) (get-sent connection-state)) @w (get-upload-drop statistics))
+              (delayed (queue-length delayed)))
+          (when (and average-rtt upload-rate upload-drop)
+            (let ((title (format "RTT: {r precision: 3}s, Pacing: {r precision: 1}Mbps, Upload: {r precision: 1}Mbps, Delivery: {r precision: 1}Mbps, Drop: {r precision: 1}%, Delayed: {a}" average-rtt (bytes->mbps pacing-rate) (bytes->mbps upload-rate) (bytes->mbps delivery-rate) upload-drop windowed @w delayed)))
+              (draw-text surface 5 3 title {Color Light-Gray})))))))
     
     (define (init-bbr size)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
-        (init bbr connection-state size)))
+        (init bbr connection-state size)
+        (set-cruise-rate bbr (and rate (exact->inexact (mbps->bytes rate))))))
     
     (define (send-packet payload)
-      (mutex-lock! mutex)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
         (let ((data (send-profile-media udp payload)))
           (with-record profile-media
             (let ((sent (current-seconds))
                   (sequence (read-profile-media-sequence data))
                   (size (u8vector-length data)))
-              (let ((packet-state (update-sent connection-state sent sequence size)))
-                (when limit?
+              (let ((packet-state (packet-sent connection-state sent sequence size)))
+                @w
+                (when rate
                   (set-app-limited connection-state (+ (get-delivered connection-state) (get-inflight connection-state))))
                 (packet-sent rate-sample connection-state packet-state)
-                (on-transmit bbr))))))
-      (mutex-unlock! mutex))
+                (packet-sent bbr))
+              @sent
+              (when last-sent
+                (let ((elapse (- sent last-sent)))
+                  (record-event udp-id-congestion-test
+                                -1.
+                                -1.
+                                -1.
+                                (fixnum->flonum sequence)
+                                elapse
+                                -1.
+                                -1.)))
+              (set! last-sent sent))))))
     
     (define (receive-ack data)
-      (mutex-lock! mutex)
       (parameterize ((simulation-evolution (get-profile-evolution udp)))
         (with-record profile-media-ack
-          (let ((sequence (read-profile-media-ack-sequence data)))
-            (let ((packet-state (update-received connection-state sequence)))
+          (let ((received (read-profile-media-ack-received data))
+                (sequence (read-profile-media-ack-sequence data)))
+            (let ((packet-state (ack-received connection-state sequence)))
               (when packet-state
-                (set-%p packet-state)
                 (ack-received rate-sample connection-state packet-state)
-                (generate-rate-sample rate-sample connection-state packet-state)
-                (on-ack bbr rate-sample packet-state)
+                @w
+                (let ((rate (bytes->mbps (get-delivery-rate rate-sample))))
+                  (when (> rate 12.)
+                    (terminal '******** rate))
+                  (when (< rate 4.)
+                    (terminal '<<<<<<<< rate)))
+                (ack-received bbr rate-sample packet-state)
+                ;; hack to plot round trip
+                ;@w
+                (record-event udp-id-receive-ack
+                              -1.
+                              (fixnum->flonum client-no)
+                              -1.
+                              (fixnum->flonum (get-sequence packet-state))
+                              (get-rtt packet-state)
+                              -1.
+                              -1.)
+                @received
+                (when last-received
+                  (let ((elapse (- received last-received)))
+                    (record-event udp-id-congestion-test
+                              -1.
+                              -1.
+                              -1.
+                              (fixnum->flonum sequence)
+                              elapse
+                              -1.
+                              -1.)))
+                (set! last-received received)
+                @acked
+                (let ((acked (current-seconds)))
+                  (when last-acked
+                    (let ((elapse (- acked last-acked)))
+                      (record-event udp-id-congestion-test
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum sequence)
+                                    elapse
+                                    -1.
+                                    -1.)))
+                  (set! last-acked acked))
+                ;@w
                 (record-event udp-id-rate-sample
                               -1.
                               -1.
@@ -668,32 +804,81 @@
                               (fixnum->flonum sequence)
                               (bytes->mbps (get-delivery-rate rate-sample))
                               -1.
-                              -1.))))))
-      (mutex-unlock! mutex))
+                              -1.)))))))
     
     (set-%c connection-state)
-    (set-%r rate-sample)
     (set-%b bbr)
+    (set-plot? #t)
+    (set-plot-latency? panel #f)
+    (set-plot-traffic? panel #f)
     (setup-pulse #f #f media-ack-received key-callback plot-callback)
-    (let ((payload (make-u8vector 1000)))
+    (let ((start (current-seconds))
+          (payload (make-u8vector 1000)))
       (let ((size (+ (calculate-profile-media-size payload) udp-code-size)))
-        (define (pace)
-          (let ((wait (cond (limit?
-                             2.0e-3)
-                            (overflow?
-                             3.0e-4)
-                            (else
-                             (/ size (get-pacing-rate bbr))))))
-            (when show?
-              (terminal wait (bytes->mbps (get-pacing-rate bbr)) (bytes->mbps (get-cwnd bbr))))
-            (sleep wait)))
+        (define (wait)
+          (/ size (if base-rate
+                      (mbps->bytes base-rate)
+                    (get-pacing-rate bbr))))
+        
+        (define (pace next)
+          (sleep (- next (current-seconds))))
         
         (init-bbr size)
-        (let (loop)
-          (when (or overflow? (<= (+ (get-inflight connection-state) size) (get-cwnd bbr)))
-            (send-packet payload))
-          (pace)
-          (loop))))))
+        (let (loop (n 0) (next start))
+          (mutex-lock! mutex)
+          ;; base window
+          (if base-window
+              (cond ((> (+ (get-inflight connection-state) size) base-window)
+                     ;(terminal-string ">")
+                     (enqueue delayed payload)
+                     (mutex-unlock! mutex)
+                     (sleep 8.136e-4)
+                     (loop (+ n 1) next))
+                    ((not (queue-empty? delayed))
+                     ;(terminal-string "<")
+                     (let ((payload (dequeue delayed)))
+                       (send-packet payload))
+                     (mutex-unlock! mutex)
+                     (loop (+ n 1) next))
+                    (else
+                     ;(terminal-string ".")
+                     (send-packet payload)
+                     (mutex-unlock! mutex)
+                     (sleep .00001)
+                     (loop (+ n 1) next)))
+            (cond ;; base rate
+                  (base-rate
+                   (let ((cwnd (let ((quanta (* 3 size))
+                                     (estimated-bdp (* @w (mbps->bytes base-rate) (get-btlbw bbr) (get-minrtt bbr))))
+                                 (+ (* 2. estimated-bdp) quanta))))
+                     @w
+                     (if (> (+ (get-inflight connection-state) size) (get-cwnd bbr))
+                         (terminal-string "$")
+                       (terminal-string ".")
+                       (send-packet payload)))
+                   (send-packet payload)
+                   (mutex-unlock! mutex)
+                   (pace next))
+                  ;; exceeding congestion window
+                  ((and window? (> (+ (get-inflight connection-state) size) (get-cwnd bbr)))
+                   (terminal-string "$")
+                   ;(enqueue delayed payload)
+                   (increase! windowed)
+                   (mutex-unlock! mutex)
+                   (pace next))
+                  ;; send delayed
+                  ((not (queue-empty? delayed))
+                   (let ((payload (dequeue delayed)))
+                     (send-packet payload))
+                   (decrease! windowed)
+                   (mutex-unlock! mutex))
+                  ;; send packet
+                  (else
+                   (terminal-string ".")
+                   (send-packet payload)
+                   (mutex-unlock! mutex)
+                   (pace next)))
+            (loop (+ n 1) (+ next (wait)))))))))
 
 
 (definition (setup-noack-waiter)
