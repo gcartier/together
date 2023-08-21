@@ -861,7 +861,7 @@
                    (pace next))
                   ;; exceeding congestion window
                   ((and window? (> (+ (get-inflight connection-state) size) (get-cwnd bbr)))
-                   (terminal-string "$")
+                   ;(terminal-string "$")
                    ;(enqueue delayed payload)
                    (increase! windowed)
                    (mutex-unlock! mutex)
@@ -874,7 +874,7 @@
                    (mutex-unlock! mutex))
                   ;; send packet
                   (else
-                   (terminal-string ".")
+                   ;(terminal-string ".")
                    (send-packet payload)
                    (mutex-unlock! mutex)
                    (pace next)))
