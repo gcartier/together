@@ -592,7 +592,7 @@
         (windowed 0)
         (mutex (make-mutex 'bbr))
         (base-window #f @w (* 17500. 1.5))
-        (base-rate 8. @w 10.)
+        (base-rate #f @w 8. @w 10.)
         (rate #f)
         (window? #t)
         (last-sent #f)
