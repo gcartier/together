@@ -5798,7 +5798,7 @@
     (<install>                              layout-type: justify
       (<Kind-Label>   name: label           title: "New circle name" location: (center 0) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
       (<Name-View>    name: view            location: (center 30) size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: invalid option-view: require-camera? name-label: "Circle name" max-length: 40)
-      (<Name-Invalid> name: invalid         location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Name-Invalid> name: invalid         location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5})
       (<Push-Button>  name: create          title: "Create & Join" enabled?: #f location: (center 89) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default})
       (<Check-Box>    name: require-camera? title: "Start with camera" location: (center 134) size: {Dimension 116 16} checked?: #t visible?: #f))))
 
@@ -5851,10 +5851,10 @@
     (<install>                               layout-type: justify
       (<Kind-Label>    name: label           title: "New circle name" location: (center 0) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
       (<Zoom-Name>     name: view            location: (center 30) size: {Dimension 300 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: invalid brother-view: link-view name-label: "Circle name" max-length: 40)
-      (<Name-Invalid>  name: invalid         location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Name-Invalid>  name: invalid         location: (center 56) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5})
       (<Kind-Label>    name: link-label      title: "Zoom link" location: (center 75) size: {Dimension 200 40} auto-size?: #t font: {Font Label-User point-size: 17.5 antialias: default} justification: tail)
       (<Zoom-Link>     name: link-view       location: (center 105) size: {Dimension 400 24} border-type: solid border-color: {Color Dark-Gray} action-view: create invalid-view: link-invalid brother-view: view name-label: "Zoom link")
-      (<Name-Invalid>  name: link-invalid    location: (center 131) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5 antialias: default})
+      (<Name-Invalid>  name: link-invalid    location: (center 131) size: {Dimension 400 16} font: {Font Label-User point-size: 12.5})
       (<Push-Button>   name: create          title: "Create" enabled?: #f location: (center 165) size: {Dimension 180 36} font: {Font Label-User point-size: 16.5 antialias: default}))))
 
 
