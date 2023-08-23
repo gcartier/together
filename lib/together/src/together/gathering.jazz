@@ -2678,7 +2678,7 @@
               (update-layouts video)
               (update-parameter world 'camera)
               @version0
-              (effective-base-profile-update)))))))
+              (download-profile-update)))))))
   
   
   (method (escape-press self)
@@ -3212,7 +3212,7 @@
         @admin-request
         (start-captures)
         @version0
-        (effective-base-profile-update)
+        (download-profile-update)
         (setup-visibility mainbar)
         (refresh-central-menu world))))
   

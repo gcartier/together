@@ -199,7 +199,7 @@
   (method override (read-option self option)
     (case option
       ((quality)
-       (let ((profile-list (case (or explicit-base-profile (find-setting 'caps.profile.base))
+       (let ((profile-list (case (find-setting 'caps.profile.graphic 'standard)
                              ((full) '(full high standard medium low))
                              ((high) '(high standard medium low))
                              ((standard) '(standard medium low))
@@ -208,7 +208,7 @@
          (let ((choices (map (lambda (profile)
                                (list profile (capitalize (symbol->string profile))))
                              profile-list))
-               (choice user-base-profile))
+               (choice graphic-profile))
            (values choices choice))))
       ((camera)
        (let ((providers (camera-providers)))
@@ -244,8 +244,9 @@
        (set-setting options-settings 'world.base-profile value)
        @work-needed-to-correctly-handle-save-profile
        (save-content options-settings)
-       (set-user-base-profile value)
-       (effective-base-profile-update)
+       (set-graphic-profile value)
+       (upload-profile-update)
+       (download-profile-update)
        (update-profile-label))
       ((camera)
        (update-camera-identifier (current-client) title value))
@@ -273,7 +274,7 @@
       (set-title label title)
       (set-color label color)))
   
-  (case user-base-profile
+  (case graphic-profile
     ((full)     (update-label "Full"     {Color Pastel-Purple}))
     ((high)     (update-label "High"     {Color Pastel-Blue}))
     ((standard) (update-label "Standard" {Color Pastel-Green}))
