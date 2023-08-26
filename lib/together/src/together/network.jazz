@@ -770,11 +770,11 @@
         (define (change-rate r)
           (cond ((equal? r rate)
                  (set! rate #f)
-                 (set-cruise-rate bbr #f)
+                 @old (set-cruise-rate bbr #f)
                  (display-message world "No rate"))
                 (else
                  (set! rate r)
-                 (set-cruise-rate bbr (exact->inexact (mbps->bytes r)))
+                 @old (set-cruise-rate bbr (exact->inexact (mbps->bytes r)))
                  (display-message world (format "Rate {a}Mbps" (fxround rate))))))
         
         (case key
@@ -839,6 +839,7 @@
       (define (init-bbr size)
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (init bbr connection-state size)
+          @old
           (set-cruise-rate bbr (and rate (exact->inexact (mbps->bytes rate))))))
       
       (define (receive-ack data)
