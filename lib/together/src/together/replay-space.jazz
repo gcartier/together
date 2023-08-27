@@ -28,6 +28,7 @@
         (world.interface.mainbar)
         (world.interface.panel)
         (world.settings)
+        (world.skybox)
         (together)
         (together.replay)
         (together.sphere-space)
@@ -175,8 +176,8 @@
             (nextmethod self)))
   
   
-  (method override (draw-world? self)
-    #f)
+  (method override (only-skybox self)
+    (cache-nebula-skybox))
   
   
   (method override (draw-message-offset self)
