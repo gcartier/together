@@ -2146,7 +2146,7 @@
       (together-ready self)
       (when auto-create
         (for-each (lambda (name)
-                    (create-group client name #t #t #t #t #t #f #f #f #f))
+                    (create-group client name #f #t #t #t #t #f #f #f #f))
                   (listify auto-create)))
       (cond ((get-reconnect-info client)
              =>
@@ -3081,6 +3081,7 @@
           (let ((group-info/exception (join-group tier name 'player)))
             (if (string? group-info/exception)
                 group-info/exception
+              (enter-zone self)
               (setup-circle self name #t group-info/exception)
               (teleport-circle self circle-position)
               (presence/gallery-mode self)
@@ -3095,6 +3096,7 @@
           (let ((group-info/exception (rejoin-group tier name)))
             (if (string? group-info/exception)
                 group-info/exception
+              (enter-zone self)
               (setup-circle self name #t group-info/exception)
               (teleport-circle self circle-position)
               (presence/gallery-mode self)
