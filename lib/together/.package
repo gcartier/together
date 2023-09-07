@@ -12,6 +12,7 @@
                       (build (together executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
                       (update together
                               together.appl
+                              together.bbr
                               together.boot
                               together.boot-processor
                               together.boot-server

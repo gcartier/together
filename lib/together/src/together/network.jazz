@@ -951,11 +951,14 @@
                 (packet-sent rate-sample connection-state packet-state)
                 (packet-sent bbr)))))))
     
-    (define (wait size)
+    (define (pace size)
       (/ size (get-pacing-rate bbr)))
     
-    (define (pace next)
+    (define (wait next)
       (sleep (- next (current-seconds))))
+    
+    (define (show str)
+      @w (terminal-string str))
     
     (define (payload-pop)
       (pop queue 0))
@@ -971,9 +974,9 @@
         (mutex-lock! mutex)
         (cond ;; no payload
               ((eof-object? payload)
-               (terminal-string ".")
+               (show ".")
                (set-app-limited connection-state (+ (get-delivered connection-state) (get-inflight connection-state)))
-               (pace next)
+               (wait next)
                (mutex-unlock! mutex)
                (loop (+ n 1) (payload-pop) (+ next .01)))
               ;; payload
@@ -981,17 +984,17 @@
                (let ((size (payload-size payload)))
                  (cond ;; exceeding congestion window
                        ((> (+ (get-inflight connection-state) size) (get-cwnd bbr))
-                        (terminal-string "$")
-                        (pace next)
+                        (show "$")
+                        (wait next)
                         (mutex-unlock! mutex)
                         (loop (+ n 1) payload (+ next .0001)))
                        ;; send packet
                        (else
-                        (terminal-string "^")
+                        (show "^")
                         (send-packet payload)
-                        (pace next)
+                        (wait next)
                         (mutex-unlock! mutex)
-                        (loop (+ n 1) (payload-pop) (+ next (wait size))))))))))))
+                        (loop (+ n 1) (payload-pop) (+ next (pace size))))))))))))
 
 
 (definition protected (test-bbr)

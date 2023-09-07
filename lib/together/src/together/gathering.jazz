@@ -132,6 +132,7 @@
         (world.window)
         (world.zone)
         (together)
+        (together.bbr)
         (together.experiment)
         (together.network)
         (together.options)
@@ -993,6 +994,7 @@
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
+        (<!>                 name: toggle-debug-bbr           active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
@@ -1117,6 +1119,7 @@
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
+        (<!>                 name: toggle-debug-bbr           active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
@@ -1604,6 +1607,7 @@
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
+        (<!>                 name: toggle-debug-bbr           active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
@@ -3579,15 +3583,17 @@
           
           (when show-debug?
             (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-            (draw (format "{a}" (present-duration (- (current-seconds) current-circle-started))) {Color World-Ochre})
-            (unless (eq? show-media 'energy)
-              (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
-              (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
-              (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
-              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
+            (unless (eq? show-media 'bbr)
+              (when current-circle-started
+                (draw (format "{a}" (present-duration (- (current-seconds) current-circle-started))) {Color World-Ochre}))
+              (unless (eq? show-media 'energy)
+                (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
+                (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
+                (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
+                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})))
             (with-bin-mutex
               (lambda ()
-                (let ((threads (current-process-threads)))
+                (let ((threads (and (neq? show-media 'bbr) (current-process-threads))))
                   (cond-expand
                     (mac
                      (when threads
@@ -3604,7 +3610,10 @@
                        (else)))
                     ((audio video)
                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                     (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))))))
+                     (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))
+                    ((bbr)
+                     (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
+                     (draw-bbr surface 20 235))))))
             @wait
             (let ((leaks (leaks)))
               (when (not-null? leaks)
@@ -4872,6 +4881,7 @@
   
   (method (refresh-hook self)
     (cond (show-debug?
+           (invalidate-interface)
            #t)
           ((and debug-stream (not auto-hide?))
            (lambda ()
@@ -4892,6 +4902,7 @@
   
   (method (on-toggle-debug-energy self evt)
     (cond ((eq? show-media 'energy)
+           (set-show-debug? #f)
            (set-show-media #f))
           (else
            (set-show-debug? #t)
@@ -4901,6 +4912,7 @@
   
   (method (on-toggle-debug-audio self evt)
     (cond ((eq? show-media 'audio)
+           (set-show-debug? #f)
            (set-show-media #f))
           (else
            (set-show-debug? #t)
@@ -4910,10 +4922,21 @@
   
   (method (on-toggle-debug-video self evt)
     (cond ((eq? show-media 'video)
+           (set-show-debug? #f)
            (set-show-media #f))
           (else
            (set-show-debug? #t)
            (set-show-media 'video)))
+    (invalidate-interface))
+  
+  
+  (method (on-toggle-debug-bbr self evt)
+    (cond ((eq? show-media 'bbr)
+           (set-show-debug? #f)
+           (set-show-media #f))
+          (else
+           (set-show-debug? #t)
+           (set-show-media 'bbr)))
     (invalidate-interface))
   
   

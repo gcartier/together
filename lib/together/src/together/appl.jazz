@@ -1085,8 +1085,8 @@
   (form
     (<install>                                        title: "Profile"
       (<World-Action-Item> name: profile-pulse        title: "Profile pulse" action-handler: {Event-Handler :together on-profile-pulse} description: "Profile pulse.")
-      (<World-Action-Item> name: profile-bandwidth    title: "Profile bandwidth" shortcut: {Shortcut :control :shift #\B} action-handler: {Event-Handler :together on-profile-bandwidth} description: "Profile bandwidth.")
-      (<World-Action-Item> name: profile-network      title: "Profile network" shortcut: {Shortcut :control :shift #\N} action-handler: {Event-Handler :together on-profile-network} description: "Profile network.")
+      (<World-Action-Item> name: profile-bandwidth    title: "Profile bandwidth" action-handler: {Event-Handler :together on-profile-bandwidth} description: "Profile bandwidth.")
+      (<World-Action-Item> name: profile-network      title: "Profile network" action-handler: {Event-Handler :together on-profile-network} description: "Profile network.")
       (<World-Action-Item> name: test-network         title: "Test network" shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :together on-test-network} description: "Test network.")
       (<World-Action-Item> name: test-bbr             title: "Test BBR" shortcut: {Shortcut :alt :shift #\B} action-handler: {Event-Handler :together on-test-bbr} description: "Test BBR."))))
 
@@ -1137,6 +1137,7 @@
       (<World-Action-Item> name: toggle-debug-media        title: "Debug media" shortcut: {Shortcut :control :shift #\M} action-handler: {Event-Handler :together on-toggle-debug-media} description: "Toggle debug media.")
       (<World-Action-Item> name: toggle-debug-flow         title: "Debug flow" shortcut: {Shortcut :control :shift #\F} action-handler: {Event-Handler :together on-toggle-debug-flow} description: "Toggle debug flow.")
       (<World-Action-Item> name: toggle-debug-live         title: "Debug live" shortcut: {Shortcut :control :shift #\L} action-handler: {Event-Handler :together on-toggle-debug-live} description: "Toggle debug live.")
+      (<World-Action-Item> name: toggle-debug-bbr          title: "Debug bbr" shortcut: {Shortcut :control :shift #\B} action-handler: {Event-Handler :together on-toggle-debug-bbr} description: "Toggle debug bbr.")
       (<World-Action-Item> name: toggle-admin              title: "Admin" shortcut: {Shortcut :alt :shift #\W} action-handler: {Event-Handler :together on-toggle-admin} description: "Toggle admin.")
       (<World-Action-Item> name: toggle-evolution          title: "Timeline" shortcut: {Shortcut :alt #\T} action-handler: {Event-Handler :together on-toggle-evolution} description: "Toggle timeline.")
       (<World-Action-Item> name: toggle-visualizer         title: "Visualizer" shortcut: {Shortcut :alt :shift #\V} action-handler: {Event-Handler :together on-toggle-visualizer} description: "Toggle visualizer.")
@@ -1962,6 +1963,7 @@
         (<!>                 name: toggle-debug-media         visible?: #t)
         (<!>                 name: toggle-debug-flow          visible?: #t)
         (<!>                 name: toggle-debug-live          visible?: #t)
+        (<!>                 name: toggle-debug-bbr           visible?: #t)
         (<!>                 name: toggle-evolution           visible?: #t)
         (<!>                 name: toggle-stress              visible?: #t)
         (<!>                 name: add-bookmark               visible?: #t)

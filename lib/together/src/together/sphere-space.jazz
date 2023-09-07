@@ -152,11 +152,12 @@
                   recursive?: #f))
               
               (define (add dir)
-                (let ((name (get-name dir)))
-                  (let ((father (add-row tree
-                                         state: 'expanded
-                                         children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
-                    (iterate dir father))))
+                (when (exists? dir)
+                  (let ((name (get-name dir)))
+                    (let ((father (add-row tree
+                                           state: 'expanded
+                                           children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
+                      (iterate dir father)))))
               
               (iterate-stream-directories iterate)
               (add {Directory Documents "screenshots"})))))))
