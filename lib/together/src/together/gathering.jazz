@@ -69,6 +69,7 @@
         (world.context)
         (world.debugging)
         (world.evolution)
+        (world.exibit)
         (world.fog)
         (world.gc)
         (world.group)
@@ -970,7 +971,9 @@
         (<!>                 name: run-experiment7            active?: #t)
         (<!>                 name: run-experiment8            active?: #t)
         (<!>                 name: run-experiment9            active?: #t)
-        (<!>                 name: run-experiment0            active?: #t))
+        (<!>                 name: run-experiment0            active?: #t)
+        (<!>                 name: exibit-on                  active?: #t)
+        (<!>                 name: exibit-off                 active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -5324,6 +5327,14 @@
     (if running-profile
         (cancel-profile title: "BBR3")
       (test-bbr3)))
+  
+  
+  (method (on-exibit-on self evt)
+    (exibit-on))
+  
+  
+  (method (on-exibit-off self evt)
+    (exibit-off))
   
   
   (method (on-request-evolutions self evt)

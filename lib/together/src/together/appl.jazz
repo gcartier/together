@@ -1101,7 +1101,9 @@
       (<World-Action-Item> name: run-experiment7      title: "Run experiment #7" action-handler: {Event-Handler :together on-run-experiment7} shortcut: {Shortcut :control #\7} description: "Run experiment #7.")
       (<World-Action-Item> name: run-experiment8      title: "Run experiment #8" action-handler: {Event-Handler :together on-run-experiment8} shortcut: {Shortcut :control #\8} description: "Run experiment #8.")
       (<World-Action-Item> name: run-experiment9      title: "Run experiment #9" action-handler: {Event-Handler :together on-run-experiment9} shortcut: {Shortcut :control #\9} description: "Run experiment #9.")
-      (<World-Action-Item> name: run-experiment0      title: "Run experiment #0" action-handler: {Event-Handler :together on-run-experiment0} shortcut: {Shortcut :control #\0} description: "Run experiment #0."))))
+      (<World-Action-Item> name: run-experiment0      title: "Run experiment #0" action-handler: {Event-Handler :together on-run-experiment0} shortcut: {Shortcut :control #\0} description: "Run experiment #0.")
+      (<World-Action-Item> name: exibit-on            title: "Exibit On" shortcut: {Shortcut :alt :shift #\5} action-handler: {Event-Handler :together on-exibit-on} description: "Exibit On.")
+      (<World-Action-Item> name: exibit-off           title: "Exibit Off" shortcut: {Shortcut :alt :shift #\6} action-handler: {Event-Handler :together on-exibit-off} description: "Exibit Off."))))
 
 
 (class Together-Script-Actions extends World-Actions
@@ -1940,7 +1942,9 @@
         (<!>                 name: run-experiment7            visible?: #t)
         (<!>                 name: run-experiment8            visible?: #t)
         (<!>                 name: run-experiment9            visible?: #t)
-        (<!>                 name: run-experiment0            visible?: #t))
+        (<!>                 name: run-experiment0            visible?: #t)
+        (<!>                 name: exibit-on                  visible?: #t)
+        (<!>                 name: exibit-off                 visible?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            visible?: #t)
         (<!>                 name: edit-definition            visible?: #t)
