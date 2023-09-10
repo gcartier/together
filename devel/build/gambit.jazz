@@ -21,13 +21,19 @@
 ;;;
 
 
+;; WINDOWS
+;; - add to environment variables
+;;   - HOME C:\Home
+
+
 ;; MINGW
 ;; - need to use the version of MinGW-w64 that is on Zathras
 ;;   https://github.com/jazzscheme/mingw64.git
+;; - add C:\mingw64\bin to PATH environment variable
 
 
 ;; CLONE
-;; - cd ~/Devel/gambit/app
+;; - cd ~/gambit/app
 ;; - git clone https://github.com/jazzscheme/gambit devel
 
 
@@ -36,3 +42,4 @@
 ;; - ./configure 'CXX=g++ -fpermissive' '--prefix=C:/App/gambit' '--enable-cplusplus' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-high-res-timing'
 ;; - make
 ;; - make install
+;; - add C:\App\gambit\bin to PATH environment variable
