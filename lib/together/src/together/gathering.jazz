@@ -5290,38 +5290,33 @@
   
   
   (method (on-profile-pulse self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile)
-        (profile-pulse))))
+    (if running-profile
+        (cancel-profile)
+      (profile-pulse)))
   
   
   (method (on-profile-bandwidth self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile)
-        (profile-bandwidth))))
+    (if running-profile
+        (cancel-profile)
+      (profile-bandwidth)))
   
   
   (method (on-profile-network self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile)
-        (profile-network))))
+    (if running-profile
+        (cancel-profile)
+      (profile-network)))
   
   
   (method (on-test-network self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile title: "Test")
-        (test-network))))
+    (if running-profile
+        (cancel-profile title: "Test")
+      (test-network)))
   
   
   (method (on-test-bbr self evt)
-    (when (is? space Gathering-Space)
-      (if running-profile
-          (cancel-profile title: "BBR")
-        (test-bbr))))
+    (if running-profile
+        (cancel-profile title: "BBR")
+      (test-bbr)))
   
   
   (method (on-request-evolutions self evt)
