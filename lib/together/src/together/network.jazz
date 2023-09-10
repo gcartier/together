@@ -22,6 +22,7 @@
         (jazz.time)
         (jazz.view)
         (world)
+        (world.bbr)
         (world.client.tier)
         (world.client.udp)
         (world.configure)
@@ -998,4 +999,161 @@
 
 
 (definition protected (test-bbr)
-  (profile-run "Network" setup-bbr send-bbr pace-bbr title: "BBR")))
+  (profile-run "Network" setup-bbr send-bbr pace-bbr title: "BBR"))
+
+
+;;;
+;;;; BBR3
+;;;
+
+
+(definition (setup-bbr3 panel)
+  (let ((udp (current-udp))
+        (mutex (make-mutex 'bbr3))
+        (state (new Upload-State))
+        (socket (new_tcpsock))
+        (rate-info (new_ratesample))
+        (rate (new Transfer-Rate))
+        (payload (make-u8vector (- (calculate-media-burst-size) (recordsize profile-media)))))
+    (set-plot? #t)
+    (set-plot-latency? panel #f)
+    (set-plot-traffic? panel #f)
+    (values (list udp mutex state socket rate-info rate payload)
+            (lambda ()
+              ))))
+
+
+(definition (send-bbr3 panel setup-pulse wait queue user-data)
+  (declare (proper-tail-calls))
+  (bind (udp mutex state socket rate-info rate payload) user-data
+    (let ((world (current-world)))
+      (define (media-ack-received data)
+        (mutex-lock! mutex)
+        (receive-ack data)
+        (mutex-unlock! mutex))
+      
+      (define (key-callback key)
+        (case key
+          ((#\p)
+           (set-plot? (not plot?))
+           (display-on/off world "Plot" plot?))
+          ((#\f #\space)
+           (cond ((time-frozen? panel)
+                  (thaw-events)
+                  (thaw-time panel))
+                 (else
+                  (freeze-events)
+                  (freeze-time panel)))
+           (redraw panel))
+          ((#\c)
+           (sleep .5)
+           (cancel-profile title: "Test"))
+          ((#\v)
+           (sleep .5)
+           @w
+           (set-plot? #t)
+           (done-profile title: "Test"))))
+      
+      (define (plot-callback surface)
+        (let ((statistics (get-profile-statistics udp)))
+          (let ((min-rtt (tcp_min_rtt socket))
+                (cwnd (tcp_snd_cwnd socket))
+                (pacing-rate (tcp_pacing_rate socket))
+                (rate (get-average rate))
+                (upload-drop (get-upload-drop statistics))
+                (limited? (ratesample-is_app_limited-ref rate-info))
+                (queue (size queue)))
+            (when upload-drop
+              (let ((title (format "MinRTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%, Limited: {a}, Queue: {a}" min-rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps rate) upload-drop (if limited? "true" "false") queue)))
+                (draw-text surface 5 3 title {Color Light-Gray}))))))
+      
+      (define (init-bbr)
+        (tcp_init socket udp-datagram-max (current-monotonic-nanoseconds) (current-monotonic-frequency))
+        (congestion_init socket))
+      
+      (define (receive-ack data)
+        (with-record profile-media-ack
+          (let ((sequence (read-profile-media-ack-sequence data)))
+            (let ((skb (ack-received state socket sequence)))
+              (when skb
+                (tcp_ack socket skb #f (current-monotonic-nanoseconds) rate-info)
+                (free_skbuff skb)))
+            (record-event udp-id-rate-sample
+                          -1.
+                          -1.
+                          -1.
+                          (fixnum->flonum sequence)
+                          (bytes->mbps (tcp_pacing_rate socket))
+                          -1.
+                          -1.))))
+      
+      (setup-pulse #f #f media-ack-received key-callback plot-callback)
+      (init-bbr)
+      (let (inner)
+        (unless (get-done? panel)
+          (sleep .01)
+          (inner))))))
+
+
+(definition (pace-bbr3 panel queue user-data)
+  (declare (proper-tail-calls))
+  (bind (udp mutex state socket rate-info rate payload) user-data
+    (define (send-packet)
+      (let ((data (send-profile-media udp payload)))
+        (update rate (u8vector-length data))
+        (with-record profile-media
+          (let ((sent (current-seconds))
+                (sequence (read-profile-media-sequence data)))
+            (let ((skb (packet-sent state sent sequence)))
+              (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+              (tcp_rate_skb_sent socket skb))))))
+    
+    (define (send-pulse sent)
+      (let ((data (send-profile-media-pulse udp)))
+        (update rate (u8vector-length data))
+        (with-record profile-media-pulse
+          (let ((sequence (read-profile-media-pulse-sequence data)))
+            (let ((skb (packet-sent state sent sequence)))
+              (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+              (tcp_rate_skb_sent socket skb))))))
+    
+    (define (wait next-delivery-time)
+      (sleep (- next-delivery-time (current-seconds))))
+    
+    (define (pace size)
+      (/ size (tcp_pacing_rate socket)))
+    
+    (define (show str)
+      @w (terminal-string str))
+    
+    (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size)))
+      (let (loop (next-delivery-time (current-seconds)))
+        (unless (get-done? panel)
+          (mutex-lock! mutex)
+          (cond ;; exceeding congestion window
+                ((> (+ (tcp_packets_in_flight socket) 1) (tcp_snd_cwnd socket))
+                 (let ((now (current-seconds)))
+                   (cond ;; send pulse
+                         ((>= now (+ (get-last-sent-time state) .1))
+                          (show "@")
+                          (wait next-delivery-time)
+                          (send-pulse now)
+                          (mutex-unlock! mutex)
+                          (loop (+ next-delivery-time .0001)))
+                         ;; do nothing
+                         (else
+                          (show "$")
+                          (wait next-delivery-time)
+                          (mutex-unlock! mutex)
+                          (loop (+ next-delivery-time .0001))))))
+                ;; send packet
+                (else
+                 (show ">")
+                 (wait next-delivery-time)
+                 (send-packet)
+                 (mutex-unlock! mutex)
+                 (loop (+ next-delivery-time (pace payload-size))))))))))
+
+
+(definition protected (test-bbr3)
+  (profile-run "Network" setup-bbr3 send-bbr3 pace-bbr3 title: "BBR3")))

@@ -311,7 +311,8 @@
         (<!>                 name: profile-bandwidth          active?: #t)
         (<!>                 name: profile-network            active?: #t)
         (<!>                 name: test-network               active?: #t)
-        (<!>                 name: test-bbr                   active?: #t))
+        (<!>                 name: test-bbr                   active?: #t)
+        (<!>                 name: test-bbr3                  active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
@@ -5317,6 +5318,12 @@
     (if running-profile
         (cancel-profile title: "BBR")
       (test-bbr)))
+  
+  
+  (method (on-test-bbr3 self evt)
+    (if running-profile
+        (cancel-profile title: "BBR3")
+      (test-bbr3)))
   
   
   (method (on-request-evolutions self evt)

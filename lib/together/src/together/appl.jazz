@@ -1088,7 +1088,8 @@
       (<World-Action-Item> name: profile-bandwidth    title: "Profile bandwidth" action-handler: {Event-Handler :together on-profile-bandwidth} description: "Profile bandwidth.")
       (<World-Action-Item> name: profile-network      title: "Profile network" action-handler: {Event-Handler :together on-profile-network} description: "Profile network.")
       (<World-Action-Item> name: test-network         title: "Test network" shortcut: {Shortcut :alt :shift #\N} action-handler: {Event-Handler :together on-test-network} description: "Test network.")
-      (<World-Action-Item> name: test-bbr             title: "Test BBR" shortcut: {Shortcut :alt :shift #\B} action-handler: {Event-Handler :together on-test-bbr} description: "Test BBR."))))
+      (<World-Action-Item> name: test-bbr             title: "Test BBR" shortcut: {Shortcut :alt :shift #\B} action-handler: {Event-Handler :together on-test-bbr} description: "Test BBR.")
+      (<World-Action-Item> name: test-bbr3            title: "Test BBR3" shortcut: {Shortcut :alt :shift #\3} action-handler: {Event-Handler :together on-test-bbr3} description: "Test BBR3."))))
 
 
 (class Together-Experiment-Actions extends World-Actions
@@ -1932,7 +1933,8 @@
         (<!>                 name: profile-bandwidth          visible?: #t)
         (<!>                 name: profile-network            visible?: #t)
         (<!>                 name: test-network               visible?: #t)
-        (<!>                 name: test-bbr                   visible?: #t))
+        (<!>                 name: test-bbr                   visible?: #t)
+        (<!>                 name: test-bbr3                  visible?: #t))
       (<together-experiment!>
         (<!>                 name: toggle-experiment          visible?: #t)
         (<!>                 name: run-experiment7            visible?: #t)
