@@ -99,12 +99,13 @@
 ;; cd test
 ;; git clone https://github.com/gcartier/world
 ;; git clone https://github.com/gcartier/jiri
-;; git clone https://github.com/jazzscheme/jazz (1G)
+;; git clone https://github.com/jazzscheme/jazz
+;; git clone https://github.com/jazzscheme/gaea
 ;; cat > .jaz
-;; export JAZCONF=test
+export JAZCONF=test
 ;; <ctrl-d>
-;; jm kernel (optional step)
-;; jm jazz (optional step)
+;; jm kernel (optional)
+;; jm jazz (optional)
 ;; jm -j 2
 
 ;; cd ~/Devel/together

@@ -3,21 +3,24 @@
 ;;;
 
 
-;;;
-;;;; CUSTOM CHANGES
-;;;
+;; ******************** PRELIMINARY ********************
 
 
-;; NEW VERSION CHECK HISTORY OF THESE
-;; - gstsystemclock
-;; - gstaudiomixer
-;; - gstaudioaggregator
-;; - gstaggregator
-;; - gstosxaudiosink
-;; - gstaudiosink
-;; - gstbasesink
-;; - gstclocksync
-;; - gstappsrc
+;; install gstreamer universal runtime and development packages
+
+;; on a rosetta brew
+;; - brew install meson
+
+;; cd ~/Devel/gstreamer
+;; git clone https://github.com/gcartier/gstreamer
+;; cd gstreamer
+;; git checkout work
+;; git fetch --tags https://gitlab.freedesktop.org/gstreamer/gstreamer.git
+;; git checkout 1.22.5
+;; apply custom commits
+
+
+;; ******************** PRELIMINARY ********************
 
 
 ;;;
@@ -26,7 +29,6 @@
 
 
 ;; GST-BUILD
-;; - install git lfs
 ;; - install gstreamer latest packages
 ;; - clone https://gitlab.freedesktop.org/gstreamer/cerbero.git
 ;;   - ./cerbero-uninstalled bootstrap
@@ -77,8 +79,8 @@
 ;;;
 
 
-  ;; make sure to have (I think to be confirmed)
-  ;; export MACOSX_DEPLOYMENT_TARGET=10.12
+  ;; make sure to match gstreamer required version
+  ;; export MACOSX_DEPLOYMENT_TARGET=10.13
 
   ;; need to brew install pkgconfig and
   ;; export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
@@ -86,11 +88,6 @@
 
   ;; also need to brew install glib for glib-mkenums even
   ;; though it is not the glib that will end up being used
-
-  ;; starting with version 1.20 i also had to fucking do a replace
-  ;; in all the pc files located in /Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
-  ;; search for /non_existent_on_purpose/please_use_framework_pkg-config/or_pass_--define-prefix_to_your_pkg-config
-  ;; replace with /Library/Frameworks/GStreamer.framework/Versions/1.0
 
 
   ;;;
@@ -103,20 +100,64 @@
   ;; - ninja -C builddistr
   ;; - meson install -C builddistr
 
+ 
+  ;; JAZZ
+  ;; - cd to together
+  ;; - cd jazz/foreign/jazz.stream/mac
+  ;; - ./copy.sh
+  ;; - ./install.sh
+  ;; - ./patch.sh
+  ;; - build, test and commit
 
-  ;; TROUBLESHOOTING
-  ;; - when building: ninja -C build and getting the following error
-  ;;   Traceback (most recent call last):
-  ;;     File "/usr/local/Cellar/python@3.9/3.9.2_4/Frameworks/Python.framework/Versions/3.9/lib/python3.9/importlib/metadata.py", line 187, in from_name
-  ;;       raise PackageNotFoundError(name)
-  ;;   importlib.metadata.PackageNotFoundError: meson
-  ;;   => brew reinstall python fixed it
-  ;;   keywords: python meson ninja
+
+  ;;;
+  ;;;; DEVELOPMENT
+  ;;;
+
+
+  ;; BUILD SOURCE
+  ;; - cd ~/Devel/gstreamer/gst-build
+  ;; - meson build
+  ;; - ninja -C build
+
+
+  ;; RUN FROM SOURCE
+  ;; - uncomment GST_SOURCE in ~/.profilerc
+  ;; - source ~/.profilerc
+  ;; - cd to together
+  ;; - jazz -c jazz.stream.foreign -f
+
+
+;;;
+;;;; SILICON
+;;;
+
+
+  ;; make sure to at least match gstreamer required version
+  ;; export MACOSX_DEPLOYMENT_TARGET=11
+
+  ;; need to brew install pkgconfig and
+  ;; export PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/Versions/1.0/lib/pkgconfig
+  ;; for the build to use the libraries in the installed gstreamer
+
+  ;; also need to brew install glib for glib-mkenums even
+  ;; though it is not the glib that will end up being used
+
+
+  ;;;
+  ;;;; BUILDING
+  ;;;
+
+
+  ;; DISTRIBUTION
+  ;; - meson setup -Dprefix=/Users/cartier/Devel/gstreamer/gstreamer-silicon/distr -Dbuildtype=debugoptimized builddistr
+  ;; - ninja -C builddistr
+  ;; - meson install -C builddistr
 
  
   ;; JAZZ
   ;; - cd to together
-  ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
+  ;; - cd jazz/foreign/jazz.stream/silicon
   ;; - ./copy.sh
   ;; - ./install.sh
   ;; - ./patch.sh

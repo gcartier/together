@@ -1,5 +1,28 @@
 ;;;
+;;;; GAMBIT
+;;;
+
+
+;;;
 ;;;; MAC
+;;;
+
+
+;; CLONE
+;; - cd ~/Devel/gambit/app
+;; - git clone https://github.com/jazzscheme/gambit devel_x86
+
+
+;; BUILD
+;; - cd devel_x86
+;; - export MACOSX_DEPLOYMENT_TARGET=10.12
+;; - ./configure 'CC=/usr/local/bin/gcc-13' '--prefix=/usr/local/Gambit_x86' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
+;; - make -j8
+;; - sudo make install
+
+
+;;;
+;;;; SILICON
 ;;;
 
 
@@ -10,8 +33,8 @@
 
 ;; BUILD
 ;; - cd devel
-;; - export MACOSX_DEPLOYMENT_TARGET=10.12
-;; - ./configure 'CC=/usr/local/bin/gcc-10' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
+;; - export MACOSX_DEPLOYMENT_TARGET=11
+;; - ./configure 'CC=/usr/local/bin/gcc-13' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
 ;; - make -j8
 ;; - sudo make install
 
