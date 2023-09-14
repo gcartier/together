@@ -33,3 +33,12 @@ export JAZDEST=binaries/prod
 ;; - ./jaz make kernel (optional)
 ;; - ./jaz make jazz (optional)
 ;; - ./jaz make
+
+
+;;;
+;;;; WINDOWS
+;;;
+
+
+;; to debug dll dependency problems use Process Monitor
+
