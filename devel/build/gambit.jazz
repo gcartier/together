@@ -8,17 +8,17 @@
 ;;;
 
 
-;; CLONE
-;; - cd ~/Devel/gambit/app
-;; - git clone https://github.com/jazzscheme/gambit devel_x86
+  ;; CLONE
+  ;; - cd ~/Devel/gambit/app
+  ;; - git clone https://github.com/jazzscheme/gambit devel_x86
 
 
-;; BUILD
-;; - cd devel_x86
-;; - export MACOSX_DEPLOYMENT_TARGET=10.12
-;; - ./configure 'CC=/usr/local/bin/gcc-13' '--prefix=/usr/local/Gambit_x86' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
-;; - make -j8
-;; - sudo make install
+  ;; BUILD
+  ;; - cd devel_x86
+  ;; - export MACOSX_DEPLOYMENT_TARGET=10.12
+  ;; - ./configure 'CC=/usr/local/bin/gcc-13' '--prefix=/usr/local/Gambit_x86' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
+  ;; - make -j8
+  ;; - sudo make install
 
 
 ;;;
@@ -26,17 +26,17 @@
 ;;;
 
 
-;; CLONE
-;; - cd ~/Devel/gambit/app
-;; - git clone https://github.com/jazzscheme/gambit devel
+  ;; CLONE
+  ;; - cd ~/Devel/gambit/app
+  ;; - git clone https://github.com/jazzscheme/gambit devel
 
 
-;; BUILD
-;; - cd devel
-;; - export MACOSX_DEPLOYMENT_TARGET=11
-;; - ./configure 'CC=/usr/local/bin/gcc-13' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
-;; - make -j8
-;; - sudo make install
+  ;; BUILD
+  ;; - cd devel
+  ;; - export MACOSX_DEPLOYMENT_TARGET=11
+  ;; - ./configure 'CC=/usr/local/bin/gcc-13' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
+  ;; - make -j8
+  ;; - sudo make install
 
 
 ;;;
@@ -44,25 +44,25 @@
 ;;;
 
 
-;; WINDOWS
-;; - add to environment variables
-;;   - HOME C:\Home
+  ;; WINDOWS
+  ;; - add to environment variables
+  ;;   - HOME C:\Home
 
 
-;; MINGW
-;; - need to use the version of MinGW-w64 that is on Zathras
-;;   https://github.com/jazzscheme/mingw64.git
-;; - add C:\mingw64\bin to PATH environment variable
+  ;; MINGW
+  ;; - need to use the version of MinGW-w64 that is on Zathras
+  ;;   https://github.com/jazzscheme/mingw64.git
+  ;; - add C:\mingw64\bin to PATH environment variable
 
 
-;; CLONE
-;; - cd ~/gambit/app
-;; - git clone https://github.com/jazzscheme/gambit devel
+  ;; CLONE
+  ;; - cd ~/gambit/app
+  ;; - git clone https://github.com/jazzscheme/gambit devel
 
 
-;; BUILD
-;; - cd devel
-;; - ./configure 'CXX=g++ -fpermissive' '--prefix=C:/App/gambit' '--enable-cplusplus' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-high-res-timing'
-;; - make
-;; - make install
-;; - add C:\App\gambit\bin to PATH environment variable
+  ;; BUILD
+  ;; - cd devel
+  ;; - ./configure 'CXX=g++ -fpermissive' '--prefix=C:/App/gambit' '--enable-cplusplus' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-high-res-timing'
+  ;; - make
+  ;; - make install
+  ;; - add C:\App\gambit\bin to PATH environment variable

@@ -22,17 +22,17 @@
 ;;;
 
 
-;; BUILD
-;; cat > .jaz
+  ;; BUILD
+  ;; cat > .jaz
 export GAMBITDIR=/usr/local/Gambit_x86
 export JAZCONF=prod
 export JAZDEST=binaries/prod
-;; <ctrl-d>
-;; - ./jaz make zlib
-;; - ./jaz download
-;; - ./jaz make kernel (optional)
-;; - ./jaz make jazz (optional)
-;; - ./jaz make
+  ;; <ctrl-d>
+  ;; - ./jaz make zlib
+  ;; - ./jaz download
+  ;; - ./jaz make kernel (optional)
+  ;; - ./jaz make jazz (optional)
+  ;; - ./jaz make
 
 
 ;;;
@@ -40,5 +40,5 @@ export JAZDEST=binaries/prod
 ;;;
 
 
-;; to debug dll dependency problems use Process Monitor
+  ;; to debug dll dependency problems use Process Monitor
 
