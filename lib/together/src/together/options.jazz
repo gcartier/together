@@ -240,9 +240,7 @@
   (method override (write-option self option value title)
     (case option
       ((quality)
-       @work-needed-to-correctly-handle-save-profile
-       (set-setting options-settings 'world.base-profile value)
-       @work-needed-to-correctly-handle-save-profile
+       (set-setting options-settings 'world.graphic-profile value)
        (save-content options-settings)
        (set-graphic-profile value)
        (upload-profile-update)
