@@ -971,9 +971,7 @@
         (<!>                 name: run-experiment7            active?: #t)
         (<!>                 name: run-experiment8            active?: #t)
         (<!>                 name: run-experiment9            active?: #t)
-        (<!>                 name: run-experiment0            active?: #t)
-        (<!>                 name: exibit-on                  active?: #t)
-        (<!>                 name: exibit-off                 active?: #t))
+        (<!>                 name: run-experiment0            active?: #t))
       (<together-script!>
         (<!>                 name: update-catalogs            active?: #t)
         (<!>                 name: edit-definition            active?: #t)
@@ -2037,7 +2035,9 @@
         (<!>                 name: run-experiment7            active?: #t)
         (<!>                 name: run-experiment8            active?: #t)
         (<!>                 name: run-experiment9            active?: #t)
-        (<!>                 name: run-experiment0            active?: #t)))))
+        (<!>                 name: run-experiment0            active?: #t)
+        (<!>                 name: exibit-on                  active?: #t)
+        (<!>                 name: exibit-off                 active?: #t)))))
 
 
 (define-trait circle-bindings Bindings
