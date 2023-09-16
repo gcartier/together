@@ -199,7 +199,7 @@
   (method override (read-option self option)
     (case option
       ((quality)
-       (let ((profile-list (case (find-setting 'caps.profile.graphic 'standard)
+       (let ((profile-list (case maximum-graphic-profile
                              ((full) '(full high standard medium low))
                              ((high) '(high standard medium low))
                              ((standard) '(standard medium low))
