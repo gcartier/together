@@ -46,7 +46,7 @@
 
   ;; BUILD SOURCE
   ;; - cd ~/Devel/gstreamer/gst-build
-  ;; - meson build
+  ;; - meson setup build
   ;; - ninja -C build
 
 
@@ -100,7 +100,7 @@
 
   ;; BUILD SOURCE
   ;; - cd ~/Devel/gstreamer/gst-build
-  ;; - meson build
+  ;; - meson setup build
   ;; - ninja -C build
 
 

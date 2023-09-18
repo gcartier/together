@@ -70,7 +70,7 @@ treat_warnings_as_errors = false
 
   ;; BUILD
   ;; - cd webrtc
-  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
 
@@ -88,7 +88,7 @@ treat_warnings_as_errors = false
 
   ;; BUILD
   ;; - cd webrtcaudioprocessing
-  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
 
@@ -200,7 +200,7 @@ treat_warnings_as_errors = false
 
   ;; BUILD
   ;; - cd webrtcaudioprocessing
-  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
 

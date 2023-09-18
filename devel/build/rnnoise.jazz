@@ -48,7 +48,7 @@
   ;; BUILD
   ;; - start Visual Studio 2019 / x64 Native Tools Command Prompt
   ;; - cd c:\Home\gstreamer\rnnoise
-  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
  
