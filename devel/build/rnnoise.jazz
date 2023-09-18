@@ -32,7 +32,7 @@
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
   ;; - ./rnnoise.sh
-  ;; - build, test and commit
+  ;; - build, test and upload
 
 
 ;;;
@@ -56,4 +56,4 @@
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/windows/gstreamer
   ;; - ./rnnoise.sh
-  ;; - build, test and commit
+  ;; - build, test and upload

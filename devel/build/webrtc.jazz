@@ -100,7 +100,7 @@ treat_warnings_as_errors = false
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
   ;; - ./webrtc.sh
-  ;; - build, test and commit
+  ;; - build, test and upload
 
 
 ;;;
@@ -212,4 +212,4 @@ treat_warnings_as_errors = false
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/windows/gstreamer
   ;; - ./webrtc.sh
-  ;; - build, test and commit
+  ;; - build, test and upload
