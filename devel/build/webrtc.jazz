@@ -104,6 +104,113 @@ treat_warnings_as_errors = false
 
 
 ;;;
+;;;; SILICON
+;;;
+
+
+  ;; make sure to have
+  ;; export MACOSX_DEPLOYMENT_TARGET=11
+
+
+  ;;;
+  ;;;; STATIC
+  ;;;
+
+  ;; static build of webrtc
+
+
+  ;; DEPOT TOOLS
+  ;; - git clone https://chromium.googlesource.com/chromium/tools/depot_tools
+  ;; - add depot_tools to the start of the path
+
+
+  ;; CLONE
+  ;; - https://webrtc.github.io/webrtc-org/native-code/development
+  ;; - cd ~/Devel/google
+  ;; - mkdir webrtc
+  ;; - cd webrtc
+  ;; - fetch --nohooks webrtc (can take a long long time)
+  ;;
+  ;; - i think this the correct place to go to a specific commit
+  ;; - this is needed because when i tried building with the latest
+  ;;   code, the rtc_include_builtin_video_codecs argument is not longer
+  ;;   recognized and there where some vpx related errors
+  ;; - grh 7117f9b68826a214bc988ee78a6ef841cc37487c
+  ;;
+  ;; - gclient sync (can also take a long long time)
+
+
+  ;; BUILD
+  ;; - cd src
+  ;; - gn args out/Release (paste the following arguments many of them to reduce build time)
+is_debug = false
+rtc_build_examples = false
+rtc_build_libvpx = false
+rtc_build_opus = false
+rtc_build_tools = false
+rtc_enable_protobuf = false
+rtc_enable_sctp = false
+rtc_include_builtin_audio_codecs = false
+rtc_include_builtin_video_codecs = false
+rtc_include_dav1d_in_internal_decoder_factory = false
+rtc_include_ilbc = false
+rtc_include_opus = false
+rtc_include_pulse_audio = false
+rtc_include_tests = false
+rtc_libvpx_build_vp9 = false
+use_custom_libcxx = false
+treat_warnings_as_errors = false
+  ;; - ninja -C out/Release
+
+
+  ;;;
+  ;;;; DYLIB
+  ;;;
+
+  ;; dylib webrtc wrapper
+
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/webrtc webrtc-silicon
+
+
+  ;; BUILD
+  ;; - cd webrtc-silicon
+  ;; - meson setup -Dbuildtype=debugoptimized build
+  ;; - ninja -C build
+
+
+  ;;;
+  ;;;; ELEMENT
+  ;;;
+
+  ;; gstreamer audio processing element
+
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/webrtcaudioprocessing webrtcaudioprocessing-silicon
+
+
+  ;; BUILD
+  ;; - cd webrtcaudioprocessing-silicon
+  ;; - meson setup -Dbuildtype=debugoptimized build
+  ;; - ninja -C build
+
+
+  ;;;
+  ;;;; JAZZ
+  ;;;
+
+
+  ;; - cd to together
+  ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
+  ;; - ./webrtc.sh
+  ;; - build, test and upload
+
+
+;;;
 ;;;; WINDOWS
 ;;;
 
