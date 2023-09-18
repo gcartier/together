@@ -15,7 +15,7 @@
 
   ;; BUILD
   ;; - cd devel_x86
-  ;; - export MACOSX_DEPLOYMENT_TARGET=10.12
+  ;; - export MACOSX_DEPLOYMENT_TARGET=10.13
   ;; - ./configure 'CC=/usr/local/bin/gcc-13' '--prefix=/usr/local/Gambit_x86' '--enable-single-host' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-track-scheme'
   ;; - make -j8
   ;; - sudo make install
