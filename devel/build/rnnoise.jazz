@@ -13,7 +13,7 @@
 
 
   ;;;
-  ;;;; GSTREAMER
+  ;;;; ELEMENT
   ;;;
 
 
@@ -24,11 +24,15 @@
 
   ;; BUILD
   ;; - cd rnnoise
-  ;; - meson -Dbuildtype=debugoptimized build
+  ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
+
+  ;;;
+  ;;;; JAZZ
+  ;;;
+
  
-  ;; JAZZ
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/mac/gstreamer
   ;; - ./rnnoise.sh
@@ -36,8 +40,62 @@
 
 
 ;;;
+;;;; SILICON
+;;;
+
+
+  ;; make sure to have
+  ;; export MACOSX_DEPLOYMENT_TARGET=11
+
+
+  ;;;
+  ;;;; DYLIB
+  ;;;
+
+
+  ;; cd ~/Devel/system
+  ;; git clone https://github.com/gcartier/rnnoise-meson.git rnnoise
+  ;; cd rnnoise
+  ;; meson setup build
+  ;; ninja -C build
+  ;; cp -R include ~/Devel/gstreamer/rnnoise-silicon/rnnoise/silicon/include
+  ;; cp build/src/librnnoise.dylib ~/Devel/gstreamer/rnnoise-silicon/rnnoise/silicon/lib/librnnoise.0.dylib
+
+
+  ;;;
+  ;;;; ELEMENT
+  ;;;
+
+
+  ;; CLONE
+  ;; - cd ~/Devel/gstreamer
+  ;; - git clone https://github.com/gcartier/rnnoise rnnoise-silicon
+
+
+  ;; BUILD
+  ;; - cd rnnoise-silicon
+  ;; - meson setup -Dbuildtype=debugoptimized build
+  ;; - ninja -C build
+
+
+  ;;;
+  ;;;; JAZZ
+  ;;;
+
+ 
+  ;; - cd ~/Devel/jazz/foreign/silicon/lib/jazz.stream
+  ;; - ./rnnoise.sh
+  ;; - build, test and upload
+
+
+;;;
 ;;;; WINDOWS
 ;;;
+
+
+  ;;;
+  ;;;; ELEMENT
+  ;;;
 
 
   ;; CLONE
@@ -51,8 +109,12 @@
   ;; - meson setup -Dbuildtype=debugoptimized build
   ;; - ninja -C build
 
+
+  ;;;
+  ;;;; JAZZ
+  ;;;
+
  
-  ;; JAZZ
   ;; - cd to together
   ;; - cd jazz/lib/jazz.stream/foreign/windows/gstreamer
   ;; - ./rnnoise.sh
