@@ -8,25 +8,24 @@
 
 
 ;; CLONE
-;; - cd ~/Devel/together/app
-;; - git clone https://github.com/gcartier/together prod
+;; - cd ~/Devel/together/sirius/app
+;; - git clone https://github.com/gcartier/together-sirius prod
 ;; - cd prod
+;; - git checkout silicon (until everything works on mac and silicon)
 ;; - git clone https://github.com/jazzscheme/jazz
-;; - git clone https://github.com/jazzscheme/gaea
 ;; - git clone https://github.com/gcartier/jiri
-;; - git clone https://github.com/gcartier/world
 
 
 ;;;
-;;;; MAC
+;;;; SILICON
 ;;;
 
 
   ;; BUILD
   ;; cat > .jaz
-export GAMBITDIR=/usr/local/Gambit_x86
 export JAZCONF=prod
-export JAZDEST=binaries/prod
+export JAZZ_APPLE_DEVELOPER_ID="R74FF3EJWG"
+export JAZZ_APPLE_ENTITLEMENTS="/Users/cartier/Devel/together/notary/Entitlements.plist"
   ;; <ctrl-d>
   ;; - ./jaz make zlib
   ;; - ./jaz download
@@ -39,9 +38,9 @@ export JAZDEST=binaries/prod
   ;; ./deploy
 
 
-;;;
-;;;; WINDOWS
-;;;
+  ;; NOTARIZE
+  ;; ./notarize
 
 
-  ;; to debug dll dependency problems use Process Monitor
+  ;; PACKAGE
+  ;; ./package
