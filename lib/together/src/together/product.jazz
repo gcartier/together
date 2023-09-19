@@ -91,6 +91,21 @@
 
 (definition install-name
   (cond-expand
+    (silicon
+     (cond-expand (devel
+                   "together-devel-silicon")
+                  (trial
+                   "together-trial-silicon")
+                  (test
+                   "together-test-silicon")
+                  (triage
+                   "together-triage-silicon")
+                  (stable
+                   "together-stable-silicon")
+                  (stage
+                   "together-stage-silicon")
+                  (prod
+                   "together-prod-silicon")))
     (mac
      (cond-expand (devel
                    "together-devel")
