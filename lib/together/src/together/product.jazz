@@ -108,19 +108,19 @@
                    "together-prod-silicon")))
     (mac
      (cond-expand (devel
-                   "together-devel")
+                   "together-devel-mac")
                   (trial
-                   "together-trial")
+                   "together-trial-mac")
                   (test
-                   "together-test")
+                   "together-test-mac")
                   (triage
-                   "together-triage")
+                   "together-triage-mac")
                   (stable
-                   "together-stable")
+                   "together-stable-mac")
                   (stage
-                   "together-stage")
+                   "together-stage-mac")
                   (prod
-                   "together-prod")))
+                   "together-prod-mac")))
     (else
      (cond-expand (devel
                    "together-devel")
