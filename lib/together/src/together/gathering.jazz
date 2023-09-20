@@ -1748,8 +1748,9 @@
   
   
   (method override (draw-world? self)
-    (or (eq? current-circle-mode 'avatar)
-        (eq? current-circle-mode 'presence)))
+    (and (3d?)
+         (or (eq? current-circle-mode 'avatar)
+             (eq? current-circle-mode 'presence))))
   
   
   (method override (draw-skybox? self)
