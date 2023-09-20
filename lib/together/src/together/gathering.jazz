@@ -302,10 +302,6 @@
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: preprocess-qualities       active?: #t)
-        @needs-roaming
-        (<!>                 name: toggle-screen-share        active?: #t)
-        @needs-roaming
-        (<!>                 name: toggle-view-share          active?: #t)
         (<!>                 name: capture-view               active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
@@ -1009,14 +1005,6 @@
         (<!>                 name: test                       active?: #t)))))
 
 
-@roaming
-(define-trait zone-admin-bindings Bindings
-  (<Trait>                   name: zone
-    (<install>
-      (<world-main!>
-        (<!>                 name: open-welcome               active?: #t)))))
-
-
 (define-trait zone-group-bindings Bindings
   (<Trait>                   name: avatar
     (<install>
@@ -1191,7 +1179,6 @@
     (let ((together (current-together)))
       (let ((grouped? (grouped?)))
         `(,zone-bindings
-           @roaming ,@(if (admin?) (list zone-admin-bindings) '())
            ,@(cond (grouped? (list zone-group-bindings))
                    (else (list zone-not-grouped-bindings)))
            ,zone-free-bindings))))
@@ -1500,7 +1487,6 @@
       (let ((grouped? (grouped?))
             (avatar? (avatar-mode?)))
         `(,zone-bindings
-          @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
           ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())
@@ -1733,7 +1719,6 @@
       (let ((grouped? (grouped?))
             (avatar? (avatar-mode?)))
         `(,presence-bindings
-          @roaming ,@(if (admin?) (list zone-admin-bindings) '())
           ,circling-bindings
           ,zone-circling-bindings
           ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())))))
@@ -2923,18 +2908,6 @@
       (reset-history)))
   
   
-  (method (goto-gathering self)
-    (let ((client (current-client))
-          (me (current-me)))
-      (stop-camera client)
-      (close-send-streams (get-udp-client client))
-      (roam-to-server client)
-      (observe-to-server client)
-      (install-vista)
-      (goto-space self 'gathering)
-      (set-mode me 'observer)))
-  
-  
   (method (moonless-lookat self)
     (let ((moon-sight (vertex .499 0. .867))
           (moon-cone 2.356))
@@ -3231,7 +3204,6 @@
   (method package (enter-circle self)
     (let ((client (current-client))
           (me (current-me)))
-      (anchor-to-server client)
       (play-to-server client)
       (bind-camera)
       (uninstall-vista)
@@ -3836,14 +3808,7 @@
                                  (set! circlers players))
                                (if zoom?
                                    (set! zoom-circles (cons group zoom-circles))
-                                 (set! circles (cons group circles)))
-                               (let ((group-zone zone))
-                                 (for-each (lambda (player)
-                                             (bind (name id no verified? asleep? disconnected? roaming? zone mode mobile?) player
-                                               (when (or (eq? mode 'observer)
-                                                         (not (equal? zone group-zone)))
-                                                 (add-player player))))
-                                           players))))))
+                                 (set! circles (cons group circles)))))))
                     groups)
           (if (not circlers)
               (clear-snapshot-property 'live.circle-members)
@@ -3882,18 +3847,16 @@
                                                        (cons 1 player)))))))
               
               (define (add-player father info group)
-                (bind (player id no verified? asleep? disconnected? roaming? zone mode mobile?) info
+                (bind (player id no verified? asleep? disconnected? zone mode mobile?) info
                   (let ((group? (and party (memq? info party))))
                     (let ((player-title (if group? (format "<{a}>" player) player)))
                       (let ((title (cond (disconnected? (format "{a} (disconnected)" player-title))
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
                                          (mobile? (format "{a} (Web)" player-title))
-                                         ((eq? mode 'observer) player-title)
-                                         (else (format "{a} ({a})" player-title (present-zone self zone)))))
-                            (font (if (and roaming? group)
-                                      {Font Label-Italic}
-                                    {Font Label-User}))
+                                         ((eq? mode 'player) (format "{a} ({a})" player-title (present-zone self zone)))
+                                         (else player-title)))
+                            (font {Font Label-User})
                             (color (cond ((or disconnected? asleep?)
                                           {Color Medium-Gray})
                                          ((not verified?)
@@ -5064,11 +5027,7 @@
       (typecase space
         ((Gathering-Space))
         ((Sphere-Space)
-         (exit-zone self)
-         @roaming
-         (if current-circle-name
-             (goto-gathering self)
-           (exit-zone self)))
+         (exit-zone self))
         (else
          (goto-space self 'gathering)))))
   

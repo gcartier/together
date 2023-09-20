@@ -81,7 +81,7 @@
   
   
   (method override (render-outputs self)
-    (when (and (client?) (circling?) (not (get-roaming? (current-client))))
+    (when (and (client?) (circling?))
       (nextmethod self)))
   
   
