@@ -21,6 +21,7 @@
         (world.circle)
         (world.client.tier)
         (world.context)
+        (world.settings)
         (world.task)
         (together))
 
@@ -53,7 +54,8 @@
                                                      (let ((error (change-zone client path)))
                                                        (if (string? error)
                                                            (display-error world error)
-                                                         (set-mode (current-me) 'player)
+                                                         (set-current-mode 'participant)
+                                                         (mode-change (current-me))
                                                          (person-motion world feedback?: #f)
                                                          (thunk)))))))
                   (working world

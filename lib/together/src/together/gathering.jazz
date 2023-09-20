@@ -2360,7 +2360,7 @@
                                   (set-visible? verify #t)
                                 (set-visible? verify #f))
                               ;; teleport
-                              (if (and user-verified? (not player-me?) (eq? (get-mode me) 'player) (can-explore?) (or (not current-circle-name) (avatar-mode?)) (not player-mobile?))
+                              (if (and user-verified? (not player-me?) (participant?) (can-explore?) (or (not current-circle-name) (avatar-mode?)) (not player-mobile?))
                                   (set-visible? teleport #t)
                                 (set-visible? teleport #f))))))
                        (else
@@ -2827,7 +2827,7 @@
           (world (current-world))
           (zone (current-zone))
           (me (current-me)))
-      (let ((info (play-to-server client)))
+      (let ((info (participate-to-server client)))
         (if (string? info)
             (begin
               (display-error world (format "{a}" info))
@@ -2840,8 +2840,9 @@
           (uninstall-vista)
           (goto-space self 'zone)
           (setup-visibility mainbar)
-          (set-mode me 'player)
-          (add-snapshot-property 'live.player-mode (get-mode me))
+          (set-current-mode 'participant)
+          (mode-change me)
+          (add-snapshot-property 'live.player-mode current-mode)
           (preload-animations me)
           (prepare-motion world)
           (delay-enable-autotrack self)
@@ -2863,8 +2864,9 @@
       (uninstall-vista)
       (goto-space self 'zone)
       (setup-visibility mainbar)
-      (set-mode me 'player)
-      (add-snapshot-property 'live.player-mode (get-mode me))
+      (set-current-mode 'participant)
+      (mode-change me)
+      (add-snapshot-property 'live.player-mode current-mode)
       (prepare-motion world)
       (delay-enable-autotrack self)
       #f))
@@ -2893,18 +2895,29 @@
                 (maybe-enable-autotrack world))))))))
   
   
+  (method (update-mode self)
+    (let ((client (current-client))
+          (me (current-me)))
+      (cond (selected-zone?
+             (set-current-mode 'observer)
+             (mode-change me)
+             (observe-to-server client))
+            (else
+             (set-current-mode 'visitor)
+             (mode-change me)
+             (visit-to-server client)))
+      (add-snapshot-property 'live.player-mode current-mode)))
+  
+  
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
-          (world (current-world))
-          (me (current-me)))
+          (world (current-world)))
       (reset-selection world)
       (save-to-processor client)
-      (observe-to-server client)
+      (update-mode self)
       (install-vista)
       (goto-space self 'gathering)
-      (set-mode me 'observer)
-      (add-snapshot-property 'live.player-mode (get-mode me))
       (reset-history)))
   
   
@@ -3006,7 +3019,7 @@
         (client-status tier err)
         (if err
             (display-problem err)
-          (let ((group-info/exception (join-group tier name 'player)))
+          (let ((group-info/exception (join-group tier name 'participant)))
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
               (circle-join self name group-info/exception)))))))
@@ -3060,7 +3073,7 @@
       (let ((err (acquire-circle self name)))
         (if err
             err
-          (let ((group-info/exception (join-group tier name 'player)))
+          (let ((group-info/exception (join-group tier name 'participant)))
             (if (string? group-info/exception)
                 group-info/exception
               (enter-zone self)
@@ -3094,22 +3107,21 @@
   
   
   (method (circle-join self name group-info/exception (from-invite? #f))
-    (let ((me (current-me)))
-      (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
-        (if (eq? (get-mode me) 'player)
-            (if (not from-invite?)
-                (setup-circle self name #f group-info/exception)
-              (load/wait-zone zone "Joining circle"
-                (lambda ()
-                  (setup-circle self name #t group-info/exception)
-                  (teleport-circle self circle-position))))
-          (load/wait-zone zone "Joining circle"
-            (lambda ()
-              (enter-zone self)
-              (setup-circle self name #t group-info/exception)
-              (teleport-circle self circle-position)
-              (presence/gallery-mode self)))
-          (paint-mainbar (current-space))))))
+    (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
+      (if (participant?)
+          (if (not from-invite?)
+              (setup-circle self name #f group-info/exception)
+            (load/wait-zone zone "Joining circle"
+              (lambda ()
+                (setup-circle self name #t group-info/exception)
+                (teleport-circle self circle-position))))
+        (load/wait-zone zone "Joining circle"
+          (lambda ()
+            (enter-zone self)
+            (setup-circle self name #t group-info/exception)
+            (teleport-circle self circle-position)
+            (presence/gallery-mode self)))
+        (paint-mainbar (current-space)))))
   
   
   (method (acquire-circle self name)
@@ -3204,14 +3216,15 @@
   (method package (enter-circle self)
     (let ((client (current-client))
           (me (current-me)))
-      (play-to-server client)
+      (participate-to-server client)
       (bind-camera)
       (uninstall-vista)
       (install-circle-hooks self)
       (change-circle-mode self 'presence 'circle feedback?: #f)
       (circle-home)
       (setup-visibility mainbar)
-      (set-mode me 'player)))
+      (set-current-mode 'participant)
+      (mode-change me)))
   
   
   (method (leave-circle self)
@@ -3854,7 +3867,7 @@
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
                                          (mobile? (format "{a} (Web)" player-title))
-                                         ((eq? mode 'player) (format "{a} ({a})" player-title (present-zone self zone)))
+                                         ((eq? mode 'participant) (format "{a} ({a})" player-title (present-zone self zone)))
                                          (else player-title)))
                             (font {Font Label-User})
                             (color (cond ((or disconnected? asleep?)
@@ -3979,12 +3992,7 @@
               (set-circle-vista (and stone (second stone)))
               (when (neq? zone? selected-zone?)
                 (set! selected-zone? zone?)
-                (cond (zone?
-                       (set-mode (current-me) 'observer)
-                       (observe-to-server (current-client)))
-                      (else
-                       (set-mode (current-me) 'visitor)
-                       (visit-to-server (current-client)))))
+                (update-mode self))
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
@@ -4149,7 +4157,7 @@
   
   
   (method (teleport-to self path position sight)
-    (let ((observer? (eq? (get-mode (current-me)) 'observer)))
+    (let ((observer? (observer?)))
       (load/wait-zone path "Teleport in progress"
         (lambda ()
           (let ((zone (current-zone))
