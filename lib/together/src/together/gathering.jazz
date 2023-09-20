@@ -3977,7 +3977,14 @@
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
-              (set! selected-zone? zone?)
+              (when (neq? zone? selected-zone?)
+                (set! selected-zone? zone?)
+                (cond (zone?
+                       (set-mode (current-me) 'observer)
+                       (observe-to-server (current-client)))
+                      (else
+                       (set-mode (current-me) 'visitor)
+                       (visit-to-server (current-client)))))
               (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
