@@ -39,9 +39,11 @@
       (parameterize ((loading-zone path))
         (with-cursor :wait
           (lambda ()
-            (let ((min-delay .8))
+            (let ((min-delay (if message .8 0.)))
               (if (equal? (get-path zone) path)
-                  (working-wait world message min-delay thunk)
+                  (if (not message)
+                      (thunk)
+                    (working-wait world message min-delay thunk))
                 (let ((loaded (make-mutex 'loaded))
                       (before (current-seconds)))
                   (set-zone-loaded-hook client (lambda (path info)
@@ -60,7 +62,8 @@
                                                          (thunk)))))))
                   (working world
                     (lambda ()
-                      (working-progress world message #f)
+                      (when message
+                        (working-progress world message #f))
                       (load-zone client path)
                       (mutex-lock! loaded)
                       (mutex-lock! loaded))))))))))))
@@ -73,7 +76,7 @@
     (let ((path (get-path rune)))
       (define (present-path)
         (if (eq? path 'start)
-            "World"
+            "Void"
           (last path)))
       
       (cond ((circling?)

@@ -230,6 +230,10 @@
   (set! *available-zones* zones))
 
 
+(definition protected world-zone
+  '(zone "World"))
+
+
 ;; quicky
 (cond-expand
   (windows
@@ -2058,6 +2062,7 @@
   (slot selected-data       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
+  (slot active-zone         initialize world-zone getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
@@ -2874,7 +2879,7 @@
   
   (method package (present-zone self zone)
     (if (eq? zone 'start)
-        "World"
+        "Void"
       (last zone)))
   
   
@@ -2895,27 +2900,24 @@
                 (maybe-enable-autotrack world))))))))
   
   
-  (method (update-mode self)
+  (method (observer-mode self)
     (let ((client (current-client))
           (me (current-me)))
-      (cond (selected-zone?
-             (set-current-mode 'observer)
-             (mode-change me)
-             (observe-to-server client))
-            (else
-             (set-current-mode 'visitor)
-             (mode-change me)
-             (visit-to-server client)))
+      (set-current-mode 'observer)
+      (mode-change me)
+      (observe-to-server client)
       (add-snapshot-property 'live.player-mode current-mode)))
   
   
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (reset-selection world)
       (save-to-processor client)
-      (update-mode self)
+      (set! active-zone (get-path zone))
+      (observer-mode self)
       (install-vista)
       (goto-space self 'gathering)
       (reset-history)))
@@ -2973,7 +2975,7 @@
               (client-status tier err)
               (if err
                   (display-problem err)
-                (load/wait-zone 'start "Creating circle"
+                (load/wait-zone world-zone "Creating circle"
                   (lambda ()
                     (let ((text (locate view 'text)))
                       (let ((name (trim-whitespace (get-string-content text))))
@@ -3888,16 +3890,15 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-zone)
-                (let ((path (get-path zone)))
-                  (let ((title (present-zone self path)))
-                    (add-row tree
-                             state: 'expanded
-                             children: (list (new Tree-Node
-                                               title: title
-                                               font: {Font Label-User}
-                                               color: zone-color))
-                             user-data: (list 'zone path))
-                    (added #f))))
+                (let ((title (present-zone self active-zone)))
+                  (add-row tree
+                           state: 'expanded
+                           children: (list (new Tree-Node
+                                             title: title
+                                             font: {Font Label-User}
+                                             color: zone-color))
+                           user-data: (list 'zone active-zone))
+                  (added #f)))
               
               (define (add-circles circles)
                 (let ((non-empty '())
@@ -3990,10 +3991,10 @@
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
-              (when (neq? zone? selected-zone?)
-                (set! selected-zone? zone?)
-                (update-mode self))
-              (set! selected-zone zone)
+              (set! selected-zone? zone?)
+              (unless (equal? zone selected-zone)
+                (set! selected-zone zone)
+                (load/wait-zone zone #f (lambda ())))
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)
