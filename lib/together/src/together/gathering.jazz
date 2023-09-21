@@ -210,10 +210,6 @@
   (set! show-media what))
 
 
-(definition protected world-zone
-  '(zone "World"))
-
-
 ;; quicky
 (cond-expand
   (windows
@@ -1727,6 +1723,12 @@
         (eq? current-circle-mode 'presence)))
   
   
+  (method override (draw-horizon? self)
+    (if (3d?)
+        (nextmethod self)
+      #f))
+  
+  
   ;;;
   ;;;; Mainbar
   ;;;
@@ -2042,7 +2044,6 @@
   (slot selected-data       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
-  (slot active-zone         initialize world-zone getter generate)
   (slot created-zoom-circle initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
@@ -2895,7 +2896,6 @@
           (zone (current-zone)))
       (reset-selection world)
       (save-to-processor client)
-      (set! active-zone (get-path zone))
       (observer-mode self)
       (install-vista)
       (goto-space self 'gathering)
@@ -3089,20 +3089,21 @@
   
   (method (circle-join self name group-info/exception (from-invite? #f))
     (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
-      (if (participant?)
-          (if (not from-invite?)
-              (setup-circle self name #f group-info/exception)
-            (load/wait-zone zone "Joining circle"
-              (lambda ()
-                (setup-circle self name #t group-info/exception)
-                (teleport-circle self circle-position))))
-        (load/wait-zone zone "Joining circle"
-          (lambda ()
-            (enter-zone self)
-            (setup-circle self name #t group-info/exception)
-            (teleport-circle self circle-position)
-            (presence/gallery-mode self)))
-        (paint-mainbar (current-space)))))
+      (let ((effective-zone (if (user?) 'start zone)))
+        (if (participant?)
+            (if (not from-invite?)
+                (setup-circle self name #f group-info/exception)
+              (load/wait-zone effective-zone "Joining circle"
+                (lambda ()
+                  (setup-circle self name #t group-info/exception)
+                  (teleport-circle self circle-position))))
+          (load/wait-zone effective-zone "Joining circle"
+            (lambda ()
+              (enter-zone self)
+              (setup-circle self name #t group-info/exception)
+              (teleport-circle self circle-position)
+              (presence/gallery-mode self)))
+          (paint-mainbar (current-space))))))
   
   
   (method (acquire-circle self name)
@@ -3964,9 +3965,10 @@
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
               (set! selected-zone? zone?)
-              (unless (equal? zone selected-zone)
-                (set! selected-zone zone)
-                (load/wait-zone zone #f (lambda ())))
+              (let ((effective-zone (if zone? zone 'start)))
+                (unless (equal? effective-zone selected-zone)
+                  (set! selected-zone effective-zone)
+                  (load/wait-zone effective-zone #f (lambda ()))))
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)

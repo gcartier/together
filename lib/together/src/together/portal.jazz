@@ -26,6 +26,14 @@
         (together))
 
 
+(definition protected world-zone
+  '(zone "World"))
+
+
+(definition protected active-zone
+   world-zone)
+
+
 (definition loading-zone
   (make-parameter #f))
 
@@ -56,6 +64,8 @@
                                                      (let ((error (change-zone client path)))
                                                        (if (string? error)
                                                            (display-error world error)
+                                                         (unless (eq? path 'start)
+                                                           (set! active-zone path))
                                                          (set-current-mode 'participant)
                                                          (mode-change (current-me))
                                                          (person-motion world feedback?: #f)
