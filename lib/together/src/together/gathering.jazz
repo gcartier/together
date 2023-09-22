@@ -1113,7 +1113,8 @@
           (world (current-world))
           (video (current-video)))
       (unbind-camera)
-      (person-motion world yaw: default-yaw pitch: default-pitch feedback?: #f)
+      (unless (2d?)
+        (person-motion world yaw: default-yaw pitch: default-pitch feedback?: #f))
       (show-mainbar self)
       (show-compass world)
       (set-proportion (child interface 'people) '(220 (bounds -324)))
@@ -1713,7 +1714,7 @@
   
   
   (method override (draw-world? self)
-    (and (3d?)
+    (and (not (2d?))
          (or (eq? current-circle-mode 'avatar)
              (eq? current-circle-mode 'presence))))
   
@@ -1724,9 +1725,9 @@
   
   
   (method override (draw-horizon? self)
-    (if (3d?)
-        (nextmethod self)
-      #f))
+    (if (2d?)
+        #f
+      (nextmethod self)))
   
   
   ;;;
@@ -2828,8 +2829,9 @@
           (set-current-mode 'participant)
           (mode-change me)
           (add-snapshot-property 'live.player-mode current-mode)
-          (preload-animations me)
-          (prepare-motion world)
+          (unless (2d?)
+            (preload-animations me)
+            (prepare-motion world))
           (delay-enable-autotrack self)
           #f))))
   
@@ -2852,7 +2854,8 @@
       (set-current-mode 'participant)
       (mode-change me)
       (add-snapshot-property 'live.player-mode current-mode)
-      (prepare-motion world)
+      (unless (2d?)
+        (prepare-motion world))
       (delay-enable-autotrack self)
       #f))
   
@@ -2903,7 +2906,7 @@
   
   
   (method (moonless-lookat self)
-    (let ((moon-sight (vertex .499 0. .867))
+    (let ((moon-sight (vertex .49883 .00000 .86670))
           (moon-cone 2.356))
       (let ((moon-half-cone (/ moon-cone 2.)))
         (let ((lookat (horizon-lookat moon-sight))
@@ -3059,7 +3062,8 @@
                 group-info/exception
               (enter-zone self)
               (setup-circle self name #t group-info/exception)
-              (teleport-circle self circle-position)
+              (unless (2d?)
+                (teleport-circle self circle-position))
               (presence/gallery-mode self)
               #f))))))
   
@@ -3074,7 +3078,8 @@
                 group-info/exception
               (enter-zone self)
               (setup-circle self name #t group-info/exception)
-              (teleport-circle self circle-position)
+              (unless (2d?)
+                (teleport-circle self circle-position))
               (presence/gallery-mode self)
               #f))))))
   
@@ -3096,12 +3101,14 @@
               (load/wait-zone effective-zone "Joining circle"
                 (lambda ()
                   (setup-circle self name #t group-info/exception)
-                  (teleport-circle self circle-position))))
+                  (unless (2d?)
+                    (teleport-circle self circle-position)))))
           (load/wait-zone effective-zone "Joining circle"
             (lambda ()
               (enter-zone self)
               (setup-circle self name #t group-info/exception)
-              (teleport-circle self circle-position)
+              (unless (2d?)
+                (teleport-circle self circle-position))
               (presence/gallery-mode self)))
           (paint-mainbar (current-space))))))
   
@@ -3169,14 +3176,15 @@
                  (set-circle-position position)
                  (set-circle-lookat lookat)
                  (set-circle-scale scale))))
-        (when stone
-          (bind (id position) stone
-            (let ((section-index (position->section-index position)))
-              (let ((section (index-section-if universe section-index)))
-                (when section
-                  (let ((entity (find-entity-by-id section id)))
-                    (when entity
-                      (set-visible? entity #f))))))))
+        (unless (2d?)
+          (when stone
+            (bind (id position) stone
+              (let ((section-index (position->section-index position)))
+                (let ((section (index-section-if universe section-index)))
+                  (when section
+                    (let ((entity (find-entity-by-id section id)))
+                      (when entity
+                        (set-visible? entity #f)))))))))
         (current-circle-shape-set! shape)
         (install-circle-hooks self)
         (let ((self-output (get-self-output video)))
@@ -3225,16 +3233,17 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (let ((removed? (leave-group tier current-circle-name)))
-        (unless removed?
-          (let ((stone (find-circle-stone tier current-circle-name)))
-            (when stone
-              (bind (id position) stone
-                (let ((section-index (position->section-index position)))
-                  (let ((section (index-section-if universe section-index)))
-                    (when section
-                      (let ((entity (find-entity-by-id section id)))
-                        (when entity
-                          (set-visible? entity #t)))))))))))
+        (unless (2d?)
+          (unless removed?
+            (let ((stone (find-circle-stone tier current-circle-name)))
+              (when stone
+                (bind (id position) stone
+                  (let ((section-index (position->section-index position)))
+                    (let ((section (index-section-if universe section-index)))
+                      (when section
+                        (let ((entity (find-entity-by-id section id)))
+                          (when entity
+                            (set-visible? entity #t))))))))))))
       (let ((from-gathering? current-circle-from-gathering?)
             (circle-mode current-circle-mode))
         @wait-buggy
@@ -3247,8 +3256,9 @@
         (set-current-circle-mode 'avatar)
         (unbind-camera)
         (maybe-enable-autotrack world)
-        (person-motion world feedback?: #f)
-        (restore-distance self)
+        (unless (2d?)
+          (person-motion world feedback?: #f)
+          (restore-distance self))
         (set-draw-players? world #t)
         (clear-snapshot-property 'live.circle-name)
         (goto-space self 'zone)
