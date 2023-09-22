@@ -1056,7 +1056,7 @@
       
       (define (plot-callback surface)
         (let ((statistics (get-profile-statistics udp)))
-          (let ((min-rtt (tcp_min_rtt socket))
+          (let ((min-rtt (/ (tcp_min_rtt socket) 1000000.))
                 (cwnd (tcp_snd_cwnd socket))
                 (pacing-rate (tcp_pacing_rate socket))
                 (rate (get-average rate))
