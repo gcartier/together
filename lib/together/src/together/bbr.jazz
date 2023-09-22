@@ -180,7 +180,6 @@
         (draw-property 'skbuff "skb_mstamp_ns" (skbuff-skb_mstamp_ns-ref skb))
         (draw-property 'skbuff "seq" (skbcb-seq-ref scb))
         (draw-property 'skbuff "end_seq" (skbcb-end_seq-ref scb))
-        (draw-property 'skbuff "tcp_gso_segs" (skbcb-tcp_gso_segs-ref scb))
         (draw-property 'skbuff "sacked" (skbcb-sacked-ref scb))
         (draw-property 'skbuff "is_app_limited" (skbcb-tx.is_app_limited-ref scb))
         (draw-property 'skbuff "delivered_ce" (skbcb-tx.delivered_ce-ref scb))
