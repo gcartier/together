@@ -1072,20 +1072,21 @@
         (congestion_init socket))
       
       (define (receive-ack data)
-        (with-record profile-media-ack
-          (let ((sequence (read-profile-media-ack-sequence data)))
-            (let ((skb (ack-received state socket sequence)))
-              (when skb
-                (tcp_ack socket skb #f (current-monotonic-nanoseconds) rate-info)
-                (free_skbuff skb)))
-            (record-event udp-id-rate-sample
-                          -1.
-                          -1.
-                          -1.
-                          (fixnum->flonum sequence)
-                          (bytes->mbps (tcp_pacing_rate socket))
-                          -1.
-                          -1.))))
+        (parameterize ((simulation-evolution (get-profile-evolution udp)))
+          (with-record profile-media-ack
+            (let ((sequence (read-profile-media-ack-sequence data)))
+              (let ((skb (ack-received state socket sequence)))
+                (when skb
+                  (tcp_ack socket skb #f (current-monotonic-nanoseconds) rate-info)
+                  (free_skbuff skb)))
+              (record-event udp-id-rate-sample
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            (bytes->mbps (tcp_pacing_rate socket))
+                            -1.
+                            -1.)))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
       (init-bbr)
