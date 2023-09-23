@@ -297,15 +297,15 @@
           (send-thread (get-send-thread running-profile))
           (pace-thread (get-pace-thread running-profile))
           (user-cleanup (get-user-cleanup running-profile)))
-      (when user-cleanup
-        (user-cleanup))
       (set-done? panel #t)
+      (set-profile-ack-callback udp #f)
       (when pace-thread
         (thread-join! pace-thread))
       (when send-thread
         (thread-join! send-thread))
-      (set-profile-ack-callback udp #f)
       (stop-profile client)
+      (when user-cleanup
+        (user-cleanup))
       (close panel)
       (set! running-profile #f))))
 
