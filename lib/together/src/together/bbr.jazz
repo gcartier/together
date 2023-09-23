@@ -135,6 +135,10 @@
               (format "{a} ({a})" mode phase)
             (format "{a}" mode))))
       
+      (define (present-ca-state state)
+        (let ((state (vector-ref #(Open Disorder CWR Recovery Loss) state)))
+          (format "{a}" state)))
+      
       (define (upload-drop)
         (let ((drop (get-upload-drop statistics)))
           (if drop
@@ -201,7 +205,7 @@
         (draw-property 'sock "sk_pacing_rate" (tcpsock-inet_conn.icsk_inet.sk.sk_pacing_rate-ref sk) 'mbps)
         (draw-property 'sock "sk_gso_max_size" (tcpsock-inet_conn.icsk_inet.sk.sk_gso_max_size-ref sk))
         (draw-property 'sock "sk_pacing_shift" (tcpsock-inet_conn.icsk_inet.sk.sk_pacing_shift-ref sk))
-        (draw-property 'sock "icsk_ca_state" (tcpsock-inet_conn.icsk_ca_state-ref sk))
+        (draw-property 'sock "icsk_ca_state" (present-ca-state (tcpsock-inet_conn.icsk_ca_state-ref sk)))
         (draw-property 'sock "icsk_ack_pending" (tcpsock-inet_conn.icsk_ack.pending-ref sk))
         (increase! base-h 200)
         (set! base-v start-v)
