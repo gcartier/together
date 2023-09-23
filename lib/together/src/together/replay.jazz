@@ -530,9 +530,6 @@
     (plot-discard/lost    self surface 290 udp-id-lost-packet udp-audio)
     (plot-discard/lost    self surface 280 udp-id-discard-packet udp-video)
     (plot-discard/lost    self surface 290 udp-id-lost-packet udp-video)
-    (plot-throttle-rate   self surface 500 udp-throttle-gap)
-    (plot-throttle-rate   self surface 520 udp-throttle-noack)
-    (plot-throttle-rate   self surface 570 udp-throttle-restore)
     (plot-moment          self surface 350 1)     ; FATAL_ERROR
     (plot-moment          self surface 360 2)     ; FATAL_CRITICAL
     (plot-moment          self surface 370 3)     ; FATAL_WARNING

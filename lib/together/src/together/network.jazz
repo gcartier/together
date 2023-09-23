@@ -38,7 +38,6 @@
         (world.settings)
         (world.streaming)
         (world.task)
-        (world.throttle)
         (world.udp)
         (world.video)
         (together)
