@@ -18,7 +18,6 @@
         (jazz.stream)
         (world.bbr)
         (world.client.udp)
-        (world.rate)
         (world.udp))
 
 
