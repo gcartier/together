@@ -43,7 +43,8 @@
         (world.throttle)
         (world.udp)
         (world.video)
-        (together))
+        (together)
+        (together.bbr))
 
 
 (definition protected running-profile
@@ -154,17 +155,14 @@
   (let ((interface (current-interface))
         (client (current-client))
         (udp (current-udp))
-        (world (current-world))
-        (zone (current-zone)))
-    (define (feedback message (duration #f))
-      (display-message world message duration: duration))
-    
-    (feedback (format "{a} {a} ..." title name) +inf.0)
+        (zone (current-zone))
+        (me (current-me)))
+    (display-feedback (format "{a} {a} ..." title name) +inf.0)
     (start-profile client)
     (let ((pulse-period (/ 1. 10.))
           (redraw-period 1.25 @w (/ 1. 2.))
           (base (current-monotonic))
-          (panel (new Network-Timeline-Panel parent: interface location: '(center 172) proportion: '((bounds -500) 120)))
+          (panel (new Network-Timeline-Panel parent: interface location: (if (eq? (get-mode me) 'observer) '(center 172) '(center 56)) proportion: '((bounds -500) 120)))
           (pulse-sent #f)
           (queue (and pacer (new Priorities-Queue 1))))
       (define (wait target)
@@ -225,12 +223,12 @@
                              (with-task-mutex
                                (lambda ()
                                  (cond ((developer?)
-                                        (feedback "{a} done" title)
+                                        (display-feedback "{a} done" title)
                                         (close panel)
                                         (set! running-profile #f)
                                         (save-profile server-profile client-profile))
                                        (else
-                                        (feedback "{a} saved" title)
+                                        (display-feedback "{a} saved" title)
                                         (close panel)
                                         (set! running-profile #f)
                                         (save-profile server-profile client-profile view-profile?: #f)))))))
@@ -256,6 +254,14 @@
             (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread pace-thread user-data user-cleanup))))))))
 
 
+(definition (display-feedback message (duration #f))
+  (let ((world (current-world))
+        (me (current-me)))
+    (if (eq? (get-mode me) 'observer)
+        (display-message world message duration: duration)
+      (display-status world message duration: duration))))
+
+
 (definition (setup-noack-waiter panel)
   (let ((waiter (make-waiter 'noack)))
     (values waiter (lambda ()
@@ -279,13 +285,13 @@
     (receive (server-profile client-profile) (retrieve-profiles client)
       (terminate-profile)
       (save-profile server-profile client-profile)
-      (display-message world (format "{a} done" title)))))
+      (display-feedback (format "{a} done" title)))))
 
 
 (definition protected (cancel-profile (title: title "Profile"))
   (let ((world (current-world)))
     (terminate-profile)
-    (display-message world (format "{a} cancelled" title))))
+    (display-feedback (format "{a} cancelled" title))))
 
 
 (definition protected (terminate-profile)
@@ -1012,20 +1018,39 @@
         (mutex (make-mutex 'bbr3))
         (state (new Upload-State))
         (socket (new_tcpsock))
+        (skbuff-info (new_skbuff))
+        (skbcb-info (new_skbcb))
         (rate-info (new_ratesample))
-        (rate (new Transfer-Rate))
+        (bbr-update 0)
+        (send-rate (new Transfer-Rate))
         (payload (make-u8vector (- (calculate-media-burst-size) (recordsize profile-media)))))
-    (set-plot? #t)
-    (set-plot-latency? panel #f)
-    (set-plot-traffic? panel #f)
-    (values (list udp mutex state socket rate-info rate payload)
-            (lambda ()
-              ))))
+    (let ((bbr-info (socket->bbr socket))
+          (bbrinfo-info (new_bbrinfo))
+          (statistics (get-profile-statistics udp)))
+      (define (get-bbr-update)
+        bbr-update)
+      
+      (define (bbr-updated)
+        (increase! bbr-update))
+      
+      (set-plot? #t)
+      (set-plot-latency? panel #f)
+      (set-plot-traffic? panel #f)
+      (set-upload-info state socket 'N/A 'N/A send-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info get-bbr-update statistics)
+      (bbr-updated)
+      (values (list udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated send-rate payload)
+        (lambda ()
+          (free_tcpsock socket)
+          (free_skbuff skbuff-info)
+          (free_skbcb skbcb-info)
+          (free_ratesample rate-info)
+          (free_bbrinfo bbrinfo-info)
+          (set-upload-info #f #f #f #f #f #f #f #f #f #f #f #f))))))
 
 
 (definition (send-bbr3 panel setup-pulse wait queue user-data)
   (declare (proper-tail-calls))
-  (bind (udp mutex state socket rate-info rate payload) user-data
+  (bind (udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated send-rate payload) user-data
     (let ((world (current-world)))
       (define (media-ack-received data)
         (mutex-lock! mutex)
@@ -1059,12 +1084,11 @@
           (let ((min-rtt (/ (tcp_min_rtt socket) 1000000.))
                 (cwnd (tcp_snd_cwnd socket))
                 (pacing-rate (tcp_pacing_rate socket))
-                (rate (get-average rate))
+                (send-rate (get-average send-rate))
                 (upload-drop (get-upload-drop statistics))
-                (limited? (ratesample-is_app_limited-ref rate-info))
-                (queue (size queue)))
+                (limited? (ratesample-is_app_limited-ref rate-info)))
             (when upload-drop
-              (let ((title (format "MinRTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%, Limited: {a}, Queue: {a}" min-rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps rate) upload-drop (if limited? "true" "false") queue)))
+              (let ((title (format "MinRTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%, Limited: {a}" min-rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps send-rate) upload-drop (if limited? "true" "false"))))
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
@@ -1077,8 +1101,11 @@
             (let ((sequence (read-profile-media-ack-sequence data)))
               (let ((skb (ack-received state socket sequence)))
                 (when skb
+                  (skbuff_get_info skb skbuff-info)
+                  (skbcb_get_info skb skbcb-info)
                   (tcp_ack socket skb #f (current-monotonic-nanoseconds) rate-info)
                   (free_skbuff skb)))
+              (bbr-updated)
               (record-event udp-id-rate-sample
                             -1.
                             -1.
@@ -1098,25 +1125,27 @@
 
 (definition (pace-bbr3 panel queue user-data)
   (declare (proper-tail-calls))
-  (bind (udp mutex state socket rate-info rate payload) user-data
+  (bind (udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated send-rate payload) user-data
     (define (send-packet)
       (let ((data (send-profile-media udp payload)))
-        (update rate (u8vector-length data))
+        (update send-rate (u8vector-length data))
         (with-record profile-media
           (let ((sent (current-seconds))
                 (sequence (read-profile-media-sequence data)))
             (let ((skb (packet-sent state sent sequence)))
               (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
-              (tcp_rate_skb_sent socket skb))))))
+              (tcp_rate_skb_sent socket skb))))
+        (bbr-updated)))
     
     (define (send-pulse sent)
       (let ((data (send-profile-media-pulse udp)))
-        (update rate (u8vector-length data))
+        (update send-rate (u8vector-length data))
         (with-record profile-media-pulse
           (let ((sequence (read-profile-media-pulse-sequence data)))
             (let ((skb (packet-sent state sent sequence)))
               (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
-              (tcp_rate_skb_sent socket skb))))))
+              (tcp_rate_skb_sent socket skb))))
+        (bbr-updated)))
     
     (define (wait next-delivery-time)
       (sleep (- next-delivery-time (current-seconds))))

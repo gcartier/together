@@ -962,6 +962,13 @@
         (<!>                 name: edit-script8               active?: #t)
         (<!>                 name: edit-script9               active?: #t)
         (<!>                 name: edit-script0               active?: #t))
+      (<together-profile!>
+        (<!>                 name: profile-pulse              active?: #t)
+        (<!>                 name: profile-bandwidth          active?: #t)
+        (<!>                 name: profile-network            active?: #t)
+        (<!>                 name: test-network               active?: #t)
+        (<!>                 name: test-bbr                   active?: #t)
+        (<!>                 name: test-bbr3                  active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
