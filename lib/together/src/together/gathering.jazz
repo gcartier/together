@@ -4904,13 +4904,16 @@
   
   
   (method (on-toggle-debug-bbr self evt)
-    (cond ((eq? show-media 'bbr)
-           (set-show-debug? #f)
-           (set-show-media #f))
-          (else
-           (set-show-debug? #t)
-           (set-show-media 'bbr)))
-    (invalidate-interface))
+    (let ((udp (current-udp)))
+      (cond ((eq? show-media 'bbr)
+             (set-show-debug? #f)
+             (set-show-media #f)
+             (set-upload-info? udp #t))
+            (else
+             (set-show-debug? #t)
+             (set-show-media 'bbr)
+             (set-upload-info? udp #t)))
+      (invalidate-interface)))
   
   
   (method (on-toggle-debug-media self evt)
