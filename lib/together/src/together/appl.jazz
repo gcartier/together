@@ -683,8 +683,6 @@
     (register-event-look udp-id-giveup-packet    1 chronology-orange)   ;  SR
     (register-event-look udp-id-resend-packet    1 chronology-purple)   ; OS
     (register-event-look udp-id-absent-packet    1 chronology-magenta)  ; OS
-    (register-event-look udp-id-throttle-on      2 chronology-magenta)  ; OS
-    (register-event-look udp-id-throttle-off     2 chronology-purple)   ; OS
     (register-event-look udp-id-connecting       3 chronology-yellow)   ; O
     (register-event-look udp-id-connected        3 chronology-green)    ; O
     (register-event-look udp-id-connect          3 chronology-green)    ;  S
