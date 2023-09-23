@@ -285,10 +285,7 @@
         (<!>                 name: capture-view               active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
-        (<!>                 name: profile-bandwidth          active?: #t)
-        (<!>                 name: profile-network            active?: #t)
-        (<!>                 name: test-network               active?: #t)
-        (<!>                 name: test-bbr                   active?: #t))
+        (<!>                 name: profile-bbr                active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
@@ -963,10 +960,7 @@
         (<!>                 name: edit-script0               active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
-        (<!>                 name: profile-bandwidth          active?: #t)
-        (<!>                 name: profile-network            active?: #t)
-        (<!>                 name: test-network               active?: #t)
-        (<!>                 name: test-bbr                   active?: #t))
+        (<!>                 name: profile-bbr                active?: #t))
       (<together-debug!>
         (<!>                 name: toggle-mode                active?: #t)
         (<!>                 name: toggle-hide                active?: #t)
@@ -5267,28 +5261,10 @@
       (profile-pulse)))
   
   
-  (method (on-profile-bandwidth self evt)
-    (if running-profile
-        (cancel-profile)
-      (profile-bandwidth)))
-  
-  
-  (method (on-profile-network self evt)
-    (if running-profile
-        (cancel-profile)
-      (profile-network)))
-  
-  
-  (method (on-test-network self evt)
-    (if running-profile
-        (cancel-profile title: "Test")
-      (test-network)))
-  
-  
-  (method (on-test-bbr self evt)
+  (method (on-profile-bbr self evt)
     (if running-profile
         (cancel-profile title: "BBR")
-      (test-bbr)))
+      (profile-bbr)))
   
   
   (method (on-exibit-on self evt)
