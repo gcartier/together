@@ -224,7 +224,7 @@
         (draw-property 'skbuff "delivered_mstamp" (skbcb-tx.delivered_mstamp-ref scb))
         (draw-property 'skbuff "in_flight" (skbcb-tx.in_flight-ref scb))
         (draw-property 'skbuff "lost" (skbcb-tx.lost-ref scb))
-        (increase! base-h 220)
+        (increase! base-h 210)
         (set! base-v start-v)
         ;; rate
         (draw "rate" header-color)
