@@ -396,13 +396,14 @@
       (define (plot-callback surface)
         (let ((statistics (get-profile-statistics udp)))
           (let ((min-rtt (/ (tcp_min_rtt socket) 1000000.))
-                (cwnd (tcp_snd_cwnd socket))
-                (pacing-rate (tcp_pacing_rate socket))
+                (rtt (get-round-trip-rate statistics))
+                (cwnd (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                (pacing-rate (or pacing_rate-override (tcp_pacing_rate socket)))
                 (send-rate (get-average send-rate))
                 (upload-drop (get-upload-drop statistics))
                 (limited? (ratesample-is_app_limited-ref rate-info)))
             (when upload-drop
-              (let ((title (format "MinRTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%, Limited: {a}" min-rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps send-rate) upload-drop (if limited? "true" "false"))))
+              (let ((title (format "MinRTT: {r precision: 3}s, RTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Rate: {r precision: 1}Mbps, Drop: {r precision: 1}%, Limited: {a}" min-rtt rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps send-rate) upload-drop (if limited? "true" "false"))))
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
