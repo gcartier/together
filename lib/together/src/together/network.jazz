@@ -418,7 +418,7 @@
                 (when skb
                   (skbuff_get_info skb skbuff-info)
                   (skbcb_get_info skb skbcb-info)
-                  (tcp_ack socket skb #f (current-monotonic-nanoseconds) rate-info)
+                  (tcp_ack socket skb (get-round-trip-rate (get-profile-statistics udp)) #f (current-monotonic-nanoseconds) rate-info)
                   (free_skbuff skb)))
               (bbr-updated)
               (record-event udp-id-rate-sample
