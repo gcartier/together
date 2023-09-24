@@ -158,7 +158,7 @@
         (draw "state" header-color)
         (draw-property 'state "queue" (if (eq? queue 'N/A) queue (format "{l separator: \", \"}" (sizes queue))))
         (draw-property 'state "inflight" (table-length (get-inflight-buffers state)))
-        (draw-property 'state "queue" (if (eq? queue-rate 'N/A) queue-rate (get-average queue-rate)) 'mbps)
+        (draw-property 'state "queue" (if (eq? queue-rate 'N/A) queue-rate (get-average queue-rate)) (if (eq? queue-rate 'N/A) #f 'mbps))
         (draw-property 'state "send" (get-average send-rate) 'mbps)
         (draw-property 'state "drop" (upload-drop))
         (draw-property 'state "bbr" (present-mode))
