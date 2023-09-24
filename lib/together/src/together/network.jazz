@@ -411,6 +411,7 @@
         (bbr_init socket))
       
       (define (receive-ack data)
+        (unless (and ack-drop-percentage (< (random-real) ack-drop-percentage))
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-ack
             (let ((sequence (read-profile-media-ack-sequence data)))
@@ -426,9 +427,9 @@
                             -1.
                             -1.
                             (fixnum->flonum sequence)
-                            (bytes->mbps (tcp_pacing_rate socket))
+                            (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
                             -1.
-                            -1.)))))
+                            -1.))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
       (init-bbr)
@@ -466,7 +467,7 @@
       (sleep (- next-delivery-time (current-seconds))))
     
     (define (pace size)
-      (/ size (tcp_pacing_rate socket)))
+      (/ size (or pacing_rate-override (tcp_pacing_rate socket))))
     
     (define (show str)
       @w (terminal-string str))
@@ -476,7 +477,7 @@
         (unless (get-done? panel)
           (mutex-lock! mutex)
           (cond ;; exceeding congestion window
-                ((> (+ (tcp_packets_in_flight socket) 1) (tcp_snd_cwnd socket))
+                ((> (+ (tcp_packets_in_flight socket) 1) (or snd_cwnd-override (tcp_snd_cwnd socket)))
                  (let ((now (current-seconds)))
                    (cond ;; send pulse
                          ((>= now (+ (get-last-sent-time state) .1))
