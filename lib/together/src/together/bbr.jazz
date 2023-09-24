@@ -35,6 +35,9 @@
 (definition upload-bbr-update #f)
 (definition upload-statistics #f)
 
+(definition protected (effective-upload-socket)
+  (or upload-socket (get-upload-socket (current-udp))))
+
 (definition protected (set-upload-info state socket queue queue-rate send-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-update statistics)
   (set! upload-state state)
   (set! upload-socket socket)
