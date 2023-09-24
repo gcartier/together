@@ -149,7 +149,7 @@
             (info-color {Color White})
             (element-color {Color White}))
         ;; info
-        (congestion_get_info sk 0 #f bbrinfo)
+        (bbr_get_info sk 0 #f bbrinfo)
         ;; state
         (set! base-h start-h)
         (set! base-v 50)
