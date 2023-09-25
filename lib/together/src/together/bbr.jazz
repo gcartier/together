@@ -75,7 +75,7 @@
 
 
 (definition protected (draw-bbr surface start-h start-v)
-  (let ((udp (current-udp)))
+  (let ((udp (and surface (current-udp))))
     (let ((state (or upload-state (get-upload-state udp)))
           (sk (or upload-socket (get-upload-socket udp)))
           (queue (or upload-queue (get-upload-queue udp)))
@@ -91,9 +91,10 @@
           (base-h start-h)
           (base-v start-v))
       (define (draw text color (padding 0))
-        (let ((h (+ base-h padding))
-              (v (+ base-v 17)))
-          (draw-text surface h v text color))
+        (when surface
+          (let ((h (+ base-h padding))
+                (v (+ base-v 17)))
+            (draw-text surface h v text color)))
         (increase! base-v 20))
       
       (define (draw-property category name value (type #f))
