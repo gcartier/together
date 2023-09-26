@@ -2825,7 +2825,7 @@
           (goto-space self 'zone)
           (setup-visibility mainbar)
           (set-current-mode 'participant)
-          (mode-change me)
+          (mode-change me 'participant)
           (add-snapshot-property 'live.player-mode current-mode)
           (unless (2d?)
             (preload-animations me)
@@ -2850,7 +2850,7 @@
       (goto-space self 'zone)
       (setup-visibility mainbar)
       (set-current-mode 'participant)
-      (mode-change me)
+      (mode-change me 'participant)
       (add-snapshot-property 'live.player-mode current-mode)
       (unless (2d?)
         (prepare-motion world))
@@ -2885,7 +2885,7 @@
     (let ((client (current-client))
           (me (current-me)))
       (set-current-mode 'observer)
-      (mode-change me)
+      (mode-change me 'observer)
       (observe-to-server client)
       (add-snapshot-property 'live.player-mode current-mode)))
   
@@ -3212,7 +3212,7 @@
       (circle-home)
       (setup-visibility mainbar)
       (set-current-mode 'participant)
-      (mode-change me)))
+      (mode-change me 'participant)))
   
   
   (method (leave-circle self)

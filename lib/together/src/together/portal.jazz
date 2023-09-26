@@ -67,7 +67,7 @@
                                                          (unless (eq? path 'start)
                                                            (set! active-zone path))
                                                          (set-current-mode 'participant)
-                                                         (mode-change (current-me))
+                                                         (mode-change (current-me) 'participant)
                                                          (person-motion world feedback?: #f)
                                                          (thunk)))))))
                   (working world
