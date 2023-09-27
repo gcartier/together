@@ -176,7 +176,6 @@
         @tcp (draw-property 'tcp "snd_nxt" (tcpsock-snd_nxt-ref sk))
         (draw-property 'tcp "mss_cache" (tcpsock-mss_cache-ref sk))
         @tlp (draw-property 'tcp "tlp_orig_data_app_limited" (tcpsock-tlp_orig_data_app_limited-ref sk))
-        (draw-property 'tcp "rate_app_limited" (tcpsock-rate_app_limited-ref sk))
         (draw-property 'tcp "is_cwnd_limited" (tcpsock-is_cwnd_limited-ref sk))
         (draw-property 'tcp "tcp_wstamp_ns" (tcpsock-tcp_wstamp_ns-ref sk))
         (draw-property 'tcp "tcp_clock_cache" (tcpsock-tcp_clock_cache-ref sk))
