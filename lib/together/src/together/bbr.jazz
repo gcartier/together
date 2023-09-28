@@ -306,7 +306,7 @@
         (draw-property 'bbr "inflight_hi" (bbr-inflight_hi-ref bbr) 'u32)
         (draw-property 'bbr "bw_probe_up_cnt" (bbr-bw_probe_up_cnt-ref bbr) 'u32)
         (draw-property 'bbr "bw_probe_up_acks" (bbr-bw_probe_up_acks-ref bbr))
-        (draw-property 'bbr "probe_wait_us" (bbr-probe_wait_us-ref bbr))
+        (draw-property 'bbr "probe_wait_us" (bbr-probe_wait_us-ref bbr) 'us)
         @plb (draw-property 'bbr "prior_rcv_nxt" (bbr-prior_rcv_nxt-ref bbr))
         @ecn (draw-property 'bbr "ecn_eligible" (bbr-ecn_eligible-ref bbr))
         @ecn (draw-property 'bbr "ecn_alpha" (bbr-ecn_alpha-ref bbr))
