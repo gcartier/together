@@ -332,7 +332,7 @@
         (mutex (make-mutex 'bbr))
         (state (new Upload-State))
         (socket (new_tcpsock))
-        (skbuff-info (new_skbuff))
+        (skbuff-info (new_skbuff 0))
         (skbcb-info (new_skbcb))
         (rate-info (new_ratesample))
         (bbr-update 0)
@@ -407,7 +407,7 @@
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
-        (tcp_init socket udp-datagram-max (current-monotonic-nanoseconds) (current-monotonic-frequency))
+        (tcp_init socket udp-mss (current-monotonic-nanoseconds) (current-monotonic-frequency))
         (bbr_init socket))
       
       (define (receive-ack data)
@@ -449,7 +449,7 @@
         (with-record profile-media
           (let ((sent (current-seconds))
                 (sequence (read-profile-media-sequence data)))
-            (let ((skb (packet-sent state sent sequence)))
+            (let ((skb (packet-sent state sent sequence data)))
               (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
               (tcp_rate_skb_sent socket skb))))
         (bbr-updated)))
@@ -459,7 +459,7 @@
         (update send-rate (u8vector-length data))
         (with-record profile-media-pulse
           (let ((sequence (read-profile-media-pulse-sequence data)))
-            (let ((skb (packet-sent state sent sequence)))
+            (let ((skb (packet-sent state sent sequence data)))
               (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
               (tcp_rate_skb_sent socket skb))))
         (bbr-updated)))
