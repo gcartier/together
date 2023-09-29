@@ -479,6 +479,7 @@
           (mutex-lock! mutex)
           (cond ;; exceeding congestion window
                 ((> (+ (tcp_packets_in_flight socket) 1) (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                 (tcp_set_is_cwnd_limited socket #t)
                  (let ((now (current-seconds)))
                    (cond ;; send pulse
                          ((>= now (+ (get-last-sent-time state) .1))
@@ -495,6 +496,7 @@
                           (loop (+ next-delivery-time .0001))))))
                 ;; send packet
                 (else
+                 (tcp_set_is_cwnd_limited socket #f)
                  (show ">")
                  (wait next-delivery-time)
                  (send-packet)
