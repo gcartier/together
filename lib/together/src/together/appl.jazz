@@ -967,7 +967,7 @@
   (form
     (<install>                  title: "Circle"
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
-      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Solar-Symbol"} action-handler: {Action together-share toggle-view-share} parameter: view-share)
+      (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Solar-Symbol"} action-handler: {Action together-share toggle-window-share} parameter: window-share)
       (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
       (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Lens"} action-handler: {Action together-video video-options})
       (<World-Action-Button>    resource: {Icon-Resource "Logogram/Two-Shaped-Circle"} action-handler: {Action together-circle circle-options})
@@ -1061,8 +1061,8 @@
       (<World-Action-Item> name: add-music            title: "Add music" shortcut: {Shortcut :alt :shift #\9} action-handler: {Event-Handler :together on-add-music} description: "Add music.")
       (<World-Action-Item> name: remove-stream        title: "Remove stream" shortcut: {Shortcut :alt :shift #\0} action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream.")
       (<World-Action-Item> name: toggle-screen-share  title: "Share screen" shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share.")
-      (<World-Action-Item> name: toggle-view-share    title: "Share together" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-view-share} description: "Toggle together share.")
-      (<World-Action-Item> name: capture-view         title: "Capture together" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-view} description: "Capture together to file."))))
+      (<World-Action-Item> name: toggle-window-share  title: "Share window" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-window-share} description: "Toggle window share.")
+      (<World-Action-Item> name: capture-window       title: "Capture window" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-window} description: "Capture window to file."))))
 
 
 @wait
@@ -1357,8 +1357,8 @@
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
-        (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t))
+        (<!>                 name: toggle-window-share        visible?: #t)
+        (<!>                 name: capture-window             visible?: #t))
       @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
@@ -1458,8 +1458,8 @@
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
-        (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t))
+        (<!>                 name: toggle-window-share        visible?: #t)
+        (<!>                 name: capture-window             visible?: #t))
       @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
@@ -1624,8 +1624,8 @@
       (<together-share!>
         (<!>                 name: toggle-streams             visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
-        (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t))
+        (<!>                 name: toggle-window-share        visible?: #t)
+        (<!>                 name: capture-window             visible?: #t))
       @wait
       (<together-profile!>
         (<!>                 name: test-network               visible?: #t)))))
@@ -1921,8 +1921,8 @@
         (<!>                 name: add-music                  visible?: #t)
         (<!>                 name: remove-stream              visible?: #t)
         (<!>                 name: toggle-screen-share        visible?: #t)
-        (<!>                 name: toggle-view-share          visible?: #t)
-        (<!>                 name: capture-view               visible?: #t))
+        (<!>                 name: toggle-window-share        visible?: #t)
+        (<!>                 name: capture-window             visible?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              visible?: #t)
         (<!>                 name: profile-bbr                visible?: #t))

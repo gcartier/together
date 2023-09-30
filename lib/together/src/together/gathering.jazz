@@ -281,7 +281,7 @@
       (<together-share!>
         (<!>                 name: preprocess-streams         active?: #t)
         (<!>                 name: preprocess-qualities       active?: #t)
-        (<!>                 name: capture-view               active?: #t))
+        (<!>                 name: capture-window             active?: #t))
       (<together-profile!>
         (<!>                 name: profile-pulse              active?: #t)
         (<!>                 name: profile-bbr                active?: #t))
@@ -936,7 +936,7 @@
       (<together-video!>
         (<!>                 name: video-options              active?: #t))
       (<together-share!>
-        (<!>                 name: capture-view               active?: #t))
+        (<!>                 name: capture-window             active?: #t))
       (<together-experiment!>
         (<!>                 name: toggle-experiment          active?: #t)
         (<!>                 name: run-experiment7            active?: #t)
@@ -1999,8 +1999,8 @@
         (<!>                 name: add-music                  active?: #t)
         (<!>                 name: remove-stream              active?: #t)
         (<!>                 name: toggle-screen-share        active?: #t)
-        (<!>                 name: toggle-view-share          active?: #t)
-        (<!>                 name: capture-view               active?: #t))
+        (<!>                 name: toggle-window-share        active?: #t)
+        (<!>                 name: capture-window             active?: #t))
       (<together-experiment!>
         (<!>                 name: toggle-experiment          active?: #t)
         (<!>                 name: run-experiment7            active?: #t)
@@ -5399,13 +5399,13 @@
       (thread-start! thread)))
   
   
-  (method (on-toggle-view-share self evt)
+  (method (on-toggle-window-share self evt)
     (with-cursor :wait
       (lambda ()
-        (toggle-view-share self))))
+        (toggle-window-share self))))
   
   
-  (method (toggle-view-share self)
+  (method (toggle-window-share self)
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
@@ -5413,25 +5413,25 @@
           (display-error world "You are not in a group")
         (if (locate-screen-stream)
             (display-error world "You are already sharing your screen")
-          (let ((stream (locate-view-stream)))
+          (let ((stream (locate-window-stream)))
             (cond ((not stream)
-                   (let ((stream (stream-view "View")))
+                   (let ((stream (stream-window "Window")))
                      (play stream)
-                     (let ((channel (locate-view-channel stream)))
+                     (let ((channel (locate-window-channel stream)))
                        (let ((info (require-caps channel)))
                          (if (not info)
                              (begin
                                (close-send-stream udp stream)
-                               (display-error world "Unable to share view"))
+                               (display-error world "Unable to share window"))
                            (receive (caps resolution) info
                              (media-init client (get-no stream) (list (list (get-no channel) caps resolution)))
                              (set-send-state channel 'on)
                              (set-caps channel caps)
                              (set-resolution channel resolution))
-                           (display-on/off world "View sharing" #t))))))
+                           (display-on/off world "Window sharing" #t))))))
                   (else
                    (close-send-stream udp stream)
-                   (display-on/off world "View sharing" #f))))))))
+                   (display-on/off world "Window sharing" #f))))))))
   
   
   (method (on-toggle-screen-share self evt)
@@ -5446,8 +5446,8 @@
           (udp (current-udp)))
       (if (not current-circle-name)
           (display-error world "You are not in a group")
-        (if (locate-view-stream)
-            (display-error world "You are already sharing together")
+        (if (locate-window-stream)
+            (display-error world "You are already sharing your window")
           (let ((stream (locate-screen-stream)))
             (cond ((not stream)
                    (let ((stream (stream-screen "Screen")))
@@ -5469,15 +5469,15 @@
                    (display-on/off world "Screen sharing" #f))))))))
   
   
-  (method (on-capture-view self evt)
-    (capture-view self))
+  (method (on-capture-window self evt)
+    (capture-window self))
   
   
-  (method (capture-view self)
+  (method (capture-window self)
     (let ((world (current-world)))
       (let ((file (timestamped-file {Directory Documents "screenshots"} "together" "png")))
         (create-directories file)
-        (capture-view-to-file file)
+        (capture-window-to-file file)
         (display-message world "Screenshot captured"))))
   
   
