@@ -3529,8 +3529,8 @@
         (define (throttle-rate)
           (let ((bitrate (camera-bitrate client)))
             (if (not bitrate)
-                (format "({r precision: 1}%)" (* (get-bitrate-modifier udp-client) 100.))
-              (format "{r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1000.) (* (get-bitrate-modifier udp-client) 100.)))))
+                (format "({r precision: 1}%)" (* (camera-bitrate-modifier client) 100.))
+              (format "{r precision: 1}Mbps ({r precision: 1}%)" (/ bitrate 1000.) (* (camera-bitrate-modifier client) 100.)))))
         
         (define (present-chronology-duration)
           (let ((chronology (current-chronology)))

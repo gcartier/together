@@ -19,7 +19,8 @@
         (world.bbr)
         (world.client.udp)
         (world.queue)
-        (world.udp))
+        (world.udp)
+        (world.video))
 
 
 (definition upload-state #f)
@@ -136,6 +137,21 @@
               (else
                (error "Unknown type: {a}" type))))
       
+      (define (present-queue)
+        (if (eq? queue 'N/A)
+            queue
+          (format "{l separator: \", \"}" (sizes queue))))
+      
+      (define (present-bitrate)
+        (if (eq? queue 'N/A)
+            queue
+          (format "{l detail: :human separator: \", \"}"
+                  (collect (lambda (channel)
+                             (let ((consumer (get-consumer channel)))
+                               (and consumer
+                                    (format "{r precision: 1}" (get-bitrate-modifier consumer)))))
+                           (get-channels queue)))))
+      
       (define (present-mode)
         (let ((mode (vector-ref #(Startup Drain ProbeBW ProbeRTT) (bbrinfo-bbr_mode-ref bbrinfo)))
               (phase (vector-ref #(Invalid Startup Drain ProbeRTT Up Down Cruise Refill) (bbrinfo-bbr_phase-ref bbrinfo))))
@@ -162,7 +178,8 @@
         (set! base-h start-h)
         (set! base-v 50)
         (draw "state" header-color)
-        (draw-property 'state "queue" (if (eq? queue 'N/A) queue (format "{l separator: \", \"}" (sizes queue))))
+        (draw-property 'state "queue" (present-queue))
+        (draw-property 'state "bitrate" (present-bitrate))
         (draw-property 'state "inflight" (table-length (get-inflight-buffers state)))
         (draw-property 'state "queue" (if (eq? queue-rate 'N/A) queue-rate (get-average queue-rate)) (if (eq? queue-rate 'N/A) #f 'mbps))
         (draw-property 'state "send" (get-average send-rate) 'mbps)
