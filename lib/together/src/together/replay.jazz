@@ -849,7 +849,6 @@
                                             ((udp-id-insert-packet) {Color Blue})
                                             ((udp-id-duplicate-packet) {Color Orange})
                                             ((udp-id-retain-packet) {Color Dark-Gray})
-                                            ((udp-id-release-packet) {Color Dark-Gray})
                                             ((udp-id-state-ok) {Color Green})
                                             ((udp-id-state-play) {Color Orange})
                                             ((udp-id-state-freeze) {Color Orange})

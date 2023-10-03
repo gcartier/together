@@ -168,17 +168,7 @@
                    (when data
                      (when show-visualize?
                        (terminal 'got sequence))
-                     (visualizer-replace-got ring sequence data)))))
-              ;; release
-              ((udp-id-release-packet)
-               (let ((sequence (evolutionary-udp-sequence evolution n)))
-                 (when show-visualize?
-                   (terminal 'release sequence))
-                 (let ((packet (visualizer-earliest-packet ring)))
-                   (let ((consistent? (and packet (eqv? (get-sequence packet) sequence))))
-                     (when (if debug-visualize? (assert consistent? #t) consistent?)
-                       (table-set! removes (get-sequence packet) (list packet (evolutionary-udp-time evolution n) (visualizer-frame-complete? ring 0)))
-                       (remove-earliest ring)))))))))))))
+                     (visualizer-replace-got ring sequence data))))))))))))
 
 
 ;;;
@@ -284,8 +274,8 @@
             (ecase id
               ;; create / info
               ((udp-id-create-packet udp-id-extra-info))
-              ;; retain / release
-              ((udp-id-retain-packet udp-id-release-packet))
+              ;; retain
+              ((udp-id-retain-packet))
               ;; resend / absent
               ((udp-id-resend-packet udp-id-absent-packet))
               ;; insert
