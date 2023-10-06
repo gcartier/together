@@ -3191,7 +3191,7 @@
                          (append! (map third streams) (list (get-stream-no self-output))))))
             (reorder-outputs video order)))
         (set! preserved-eye? #f)
-        (change-circle-mode self 'avatar 'circle feedback?: #f)
+        (change-circle-mode self 'avatar feedback?: #f)
         (space-refresh space)
         @admin-request
         (start-captures)
@@ -3208,7 +3208,7 @@
       (bind-camera)
       (uninstall-vista)
       (install-circle-hooks self)
-      (change-circle-mode self 'presence 'circle feedback?: #f)
+      (change-circle-mode self 'presence feedback?: #f)
       (circle-home)
       (setup-visibility mainbar)
       (set-current-mode 'participant)
@@ -4530,7 +4530,7 @@
   (method (avatar-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'avatar)
-        (change-circle-mode self 'avatar 'circle feedback?: feedback?)
+        (change-circle-mode self 'avatar feedback?: feedback?)
         (restore-eye self)
         (unbind-camera)
         (maybe-enable-autotrack world)
@@ -4543,7 +4543,7 @@
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'presence)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
-          (change-circle-mode self 'presence 'circle feedback?: feedback?)
+          (change-circle-mode self 'presence feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (circle-home)
@@ -4555,7 +4555,7 @@
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'focus)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
-          (change-circle-mode self 'focus 'focus feedback?: feedback?)
+          (change-circle-mode self 'focus feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (bind-camera)
@@ -4566,7 +4566,7 @@
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'gallery)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
-          (change-circle-mode self 'gallery 'gallery feedback?: feedback?)
+          (change-circle-mode self 'gallery feedback?: feedback?)
           (when from-avatar?
             (preserve-camera self)
             (bind-camera)
@@ -4579,7 +4579,7 @@
       (gallery-mode self feedback?: #f)))
   
   
-  (method (change-circle-mode self mode layout (feedback?: feedback? #t))
+  (method (change-circle-mode self mode (feedback?: feedback? #t))
     (let ((world (current-world))
           (video (current-video)))
       (set-current-circle-mode mode)
@@ -4588,7 +4588,7 @@
                 (is? (current-space) Presence-Space))
         (let ((new-space (if (eq? mode 'avatar) 'avatar 'presence)))
           (goto-space self new-space)))
-      (goto-layout video layout)
+      (goto-layout video (if (memq? mode '(avatar presence)) 'circle mode))
       (when (eq? video-layout 'focus)
         (goto-focused self))
       (set-draw-players? world (eq? mode 'avatar))
