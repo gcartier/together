@@ -242,7 +242,7 @@
       ((quality)
        (set-setting options-settings 'world.graphic-profile value)
        (save-content options-settings)
-       (set-graphic-profile value)
+       (graphic-profile-update value)
        (upload-profile-update)
        (download-profile-update)
        (update-profile-label))
