@@ -723,9 +723,7 @@
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (if (circling?)
-              (enter-circle together)
-            (join-circle together (get-selected-group together)))))))
+          (join-circle together (get-selected-group together))))))
   
   
   (method (on-join-zoom self evt)
@@ -3201,20 +3199,6 @@
               (teleport-circle self circle-position)))))))
   
   
-  (method package (enter-circle self)
-    (let ((client (current-client))
-          (me (current-me)))
-      (participate-to-server client)
-      (bind-camera)
-      (uninstall-vista)
-      (install-circle-hooks self)
-      (change-circle-mode self 'presence feedback?: #f)
-      (circle-home)
-      (setup-visibility mainbar)
-      (set-current-mode 'participant)
-      (mode-change me 'participant)))
-  
-  
   (method (leave-circle self)
     (let ((tier (current-client))
           (window (current-window))
@@ -4031,12 +4015,9 @@
                      (with-cursor :wait
                        (lambda ()
                          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
-                           (cond (zoom?
-                                  (join-zoom-circle self selected-group))
-                                 ((circling?)
-                                  (enter-circle self))
-                                 (else
-                                  (join-circle self selected-group))))))))
+                           (if zoom?
+                               (join-zoom-circle self selected-group)
+                             (join-circle self selected-group)))))))
                   (selected-zone?
                    (enter-zone self))))))))
   
