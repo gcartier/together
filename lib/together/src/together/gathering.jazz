@@ -2970,8 +2970,7 @@
                                 (set-string-content text "")
                                 (content-changed view)
                                 (set-checked? require-camera #t)
-                                (join-circle self name)
-                                (presence/gallery-mode self))))))))))))))))
+                                (join-circle self name #t))))))))))))))))
   
   
   (method package (create-zoom-circle self)
@@ -2994,7 +2993,7 @@
                   (set! created-zoom-circle name)))))))))
   
   
-  (method package (join-circle self name)
+  (method package (join-circle self name (from-create-random? #f))
     (let ((tier (current-client))
           (world (current-world)))
       (let ((err (acquire-circle self name)))
@@ -3004,7 +3003,7 @@
           (let ((group-info/exception (join-group tier name 'participant)))
             (if (string? group-info/exception)
                 (display-error world group-info/exception)
-              (circle-join self name group-info/exception)))))))
+              (circle-join self name group-info/exception from-create-random? #f)))))))
   
   
   (method package (join-zoom-circle self name)
@@ -3058,11 +3057,7 @@
           (let ((group-info/exception (join-group tier name 'participant)))
             (if (string? group-info/exception)
                 group-info/exception
-              (enter-zone self)
-              (setup-circle self name #t group-info/exception)
-              (unless (2d?)
-                (teleport-circle self circle-position))
-              (presence/gallery-mode self)
+              (setup-circle self name #t #t group-info/exception)
               #f))))))
   
   
@@ -3074,11 +3069,7 @@
           (let ((group-info/exception (rejoin-group tier name)))
             (if (string? group-info/exception)
                 group-info/exception
-              (enter-zone self)
-              (setup-circle self name #t group-info/exception)
-              (unless (2d?)
-                (teleport-circle self circle-position))
-              (presence/gallery-mode self)
+              (setup-circle self name #t #t group-info/exception)
               #f))))))
   
   
@@ -3087,28 +3078,26 @@
   
   
   (method (circle-invite self name group-info/exception)
-    (circle-join self name group-info/exception #t))
+    (circle-join self name group-info/exception #f #t))
   
   
-  (method (circle-join self name group-info/exception (from-invite? #f))
+  (method (circle-join self name group-info/exception from-create-random? from-invite?)
     (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
       (let ((effective-zone (if (user?) 'start zone)))
-        (if (participant?)
-            (if (not from-invite?)
-                (setup-circle self name #f group-info/exception)
-              (load/wait-zone effective-zone "Joining circle"
-                (lambda ()
-                  (setup-circle self name #t group-info/exception)
-                  (unless (2d?)
-                    (teleport-circle self circle-position)))))
-          (load/wait-zone effective-zone "Joining circle"
-            (lambda ()
-              (enter-zone self)
-              (setup-circle self name #t group-info/exception)
-              (unless (2d?)
-                (teleport-circle self circle-position))
-              (presence/gallery-mode self)))
-          (paint-mainbar (current-space))))))
+        (cond (from-create-random?
+               (setup-circle self name #t #t group-info/exception)
+               (paint-mainbar (current-space)))
+              ((participant?)
+               (if (not from-invite?)
+                   (setup-circle self name #f #f group-info/exception)
+                 (load/wait-zone effective-zone "Joining circle"
+                   (lambda ()
+                     (setup-circle self name #t #f group-info/exception)))))
+              (else
+               (load/wait-zone effective-zone "Joining circle"
+                 (lambda ()
+                   (setup-circle self name #t #t group-info/exception)))
+               (paint-mainbar (current-space)))))))
   
   
   (method (acquire-circle self name)
@@ -3135,70 +3124,81 @@
       #f))
   
   
-  (method (setup-circle self name from-gathering? group-info/exception)
+  (method (setup-circle self name teleport? from-gathering? group-info/exception)
     (let ((tier (current-client))
           (udp (current-udp))
           (universe (current-universe))
           (world (current-world))
           (video (current-video)))
       (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
-        (startup-gstreamer)
-        (when (auto-live?)
-          (require-live-stream tier))
-        (start udp)
-        (when (auto-live?)
-          (when (and (auto-audio?) require-microphone?)
-            (play-microphone tier))
-          (when (and (auto-video?) require-camera?)
-            (play-camera tier)))
-        (clear-message world)
-        (uninstall-vista)
-        (cond-expand
-          (windows (set! hide-last-mouse #f))
-          (else))
-        (set-current-circle-name name)
-        (set-current-circle-no no)
-        (set-current-circle-started (- (current-seconds) duration))
-        (set-current-circle-joined (current-seconds))
-        (set-current-circle-from-gathering? from-gathering?)
-        (set-visible? (child mainbar 'circle-name) #t)
-        (set-title (child mainbar 'circle-name) current-circle-name)
-        (add-snapshot-property 'live.circle-name current-circle-name)
-        (streams-add tier no require-microphone? require-camera? streams)
-        (cond ((not stone)
-               (set-circle-position default-circle-position)
-               (set-circle-lookat default-circle-lookat)
-               (set-circle-scale default-circle-scale))
-              (else
-               (bind (id position lookat scale) stone
-                 (set-circle-position position)
-                 (set-circle-lookat lookat)
-                 (set-circle-scale scale))))
-        (unless (2d?)
-          (when stone
-            (bind (id position) stone
-              (let ((section-index (position->section-index position)))
-                (let ((section (index-section-if universe section-index)))
-                  (when section
-                    (let ((entity (find-entity-by-id section id)))
-                      (when entity
-                        (set-visible? entity #f)))))))))
-        (current-circle-shape-set! shape)
-        (install-circle-hooks self)
-        (let ((self-output (get-self-output video)))
-          (let ((order (if (not self-output)
-                           (map third streams)
-                         (append! (map third streams) (list (get-stream-no self-output))))))
-            (reorder-outputs video order)))
-        (set! preserved-eye? #f)
-        (change-circle-mode self 'avatar feedback?: #f)
-        (space-refresh space)
-        @admin-request
-        (start-captures)
-        @version0
-        (download-profile-update)
-        (setup-visibility mainbar)
-        (refresh-central-menu world))))
+        (let ((circle-mode (cond ((participant?)
+                                  'avatar)
+                                 ((world-setting 'world.presence-mode? #f)
+                                  'presence)
+                                 (else
+                                  'gallery))))
+          (startup-gstreamer)
+          (when (auto-live?)
+            (require-live-stream tier))
+          (start udp)
+          (when (auto-live?)
+            (when (and (auto-audio?) require-microphone?)
+              (play-microphone tier))
+            (when (and (auto-video?) require-camera?)
+              (play-camera tier)))
+          (unless (participant?)
+            (enter-zone self))
+          (clear-message world)
+          (uninstall-vista)
+          (cond-expand
+            (windows (set! hide-last-mouse #f))
+            (else))
+          (set-current-circle-name name)
+          (set-current-circle-no no)
+          (set-current-circle-started (- (current-seconds) duration))
+          (set-current-circle-joined (current-seconds))
+          (set-current-circle-from-gathering? from-gathering?)
+          (set-visible? (child mainbar 'circle-name) #t)
+          (set-title (child mainbar 'circle-name) current-circle-name)
+          (add-snapshot-property 'live.circle-name current-circle-name)
+          (streams-add tier no require-microphone? require-camera? streams)
+          (cond ((not stone)
+                 (set-circle-position default-circle-position)
+                 (set-circle-lookat default-circle-lookat)
+                 (set-circle-scale default-circle-scale))
+                (else
+                 (bind (id position lookat scale) stone
+                   (set-circle-position position)
+                   (set-circle-lookat lookat)
+                   (set-circle-scale scale))))
+          (unless (2d?)
+            (when stone
+              (bind (id position) stone
+                (let ((section-index (position->section-index position)))
+                  (let ((section (index-section-if universe section-index)))
+                    (when section
+                      (let ((entity (find-entity-by-id section id)))
+                        (when entity
+                          (set-visible? entity #f)))))))))
+          (current-circle-shape-set! shape)
+          (install-circle-hooks self)
+          (let ((self-output (get-self-output video)))
+            (let ((order (if (not self-output)
+                             (map third streams)
+                           (append! (map third streams) (list (get-stream-no self-output))))))
+              (reorder-outputs video order)))
+          (set! preserved-eye? #f)
+          (change-circle-mode self circle-mode feedback?: #f)
+          (space-refresh space)
+          @admin-request
+          (start-captures)
+          @version0
+          (download-profile-update)
+          (setup-visibility mainbar)
+          (refresh-central-menu world)
+          (unless (2d?)
+            (when teleport?
+              (teleport-circle self circle-position)))))))
   
   
   (method package (enter-circle self)
@@ -4571,12 +4571,6 @@
             (preserve-camera self)
             (bind-camera)
             (disable-autotrack world))))))
-  
-  
-  (method (presence/gallery-mode self)
-    (if (world-setting 'world.presence-mode? #f)
-        (presence-mode self feedback?: #f)
-      (gallery-mode self feedback?: #f)))
   
   
   (method (change-circle-mode self mode (feedback?: feedback? #t))
