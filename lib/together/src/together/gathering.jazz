@@ -4570,6 +4570,7 @@
       (reset-looked-at-output)
       (space-refresh (current-space))
       (show-interface (current-space) #t)
+      (update-mode/focused)
       (update-parameter world 'avatar-mode)
       (update-parameter world 'presence-mode)
       (update-parameter world 'focus-mode)
