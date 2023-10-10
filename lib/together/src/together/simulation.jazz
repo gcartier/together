@@ -34,6 +34,7 @@
         (world.interface)
         (world.interface.evolution)
         (world.interface.timeline)
+        (world.profile)
         (world.record (phase syntax))
         (world.server.udp)
         (world.settings)
@@ -443,10 +444,10 @@
                     (get-caps video-reader)))))
       
       (receive (audio-reader audio-codec audio-caps) (open-audio)
-        (receive (video-reader video-level video-resolution video-framerate video-bitrate video-codec video-caps) (open-video)
+        (receive (video-reader video-levels video-resolution video-framerate video-bitrate video-codec video-caps) (open-video)
           (let ((metadatas (list->table (list (cons origin-no (list origin-no origin-name
                                                                 (let ((audio (list audio-no udp-audio 'live #f #f #f #f audio-codec audio-caps '()))
-                                                                      (video (list video-no udp-video 'live video-level video-resolution video-framerate video-bitrate video-codec video-caps '())))
+                                                                      (video (list video-no udp-video 'live video-levels video-resolution video-framerate video-bitrate video-codec video-caps '())))
                                                                   (let ((stream (list origin-name "Live" stream-no origin-no 'live #f (list audio video))))
                                                                     (list stream)))
                                                                 '()
@@ -455,7 +456,7 @@
                                               (cons receiver-no (list receiver-no receiver-name
                                                                   '()
                                                                   (let ((audio (list audio-no udp-audio 'live #f #f #f #f audio-codec audio-caps '()))
-                                                                        (video (list video-no udp-video 'live video-level video-resolution video-framerate video-bitrate video-codec video-caps '())))
+                                                                        (video (list video-no udp-video 'live video-levels video-resolution video-framerate video-bitrate video-codec video-caps '())))
                                                                     (let ((stream (list origin-name "Live" stream-no origin-no 'live #f (list audio video))))
                                                                       (list stream)))
                                                                   '()))))))

@@ -98,7 +98,7 @@
               (lambda ()
                 (let ((queue (new-queue)))
                   (for-each (lambda (stream)
-                              (bind (sender name stream-no origin source-kind video-level channels) stream
+                              (bind (sender name stream-no origin source-kind video-levels channels) stream
                                 (enqueue queue stream-no)
                                 (let ((title (if (eq? source-kind 'live) sender name)))
                                   (add-row tree

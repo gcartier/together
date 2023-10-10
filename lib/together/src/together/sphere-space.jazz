@@ -27,6 +27,7 @@
         (world.context)
         (world.live)
         (world.preprocess)
+        (world.profile)
         (world.settings)
         (world.space)
         (world.stream)

@@ -181,7 +181,7 @@
               '()
             (let ((receive-streams (fourth metadata)))
               (sort nu<? (collect (lambda (stream)
-                                    (bind (sender name no origin source-kind video-level channels) stream
+                                    (bind (sender name no origin source-kind video-levels channels) stream
                                       (and (= origin target-origin)
                                            stream)))
                                   receive-streams)
@@ -247,7 +247,7 @@
       (if (or (not target-origin)
               (not stream))
           '()
-        (bind (sender name no origin source-kind video-level channels) stream
+        (bind (sender name no origin source-kind video-levels channels) stream
           (sort nu<? (collect (lambda (channel)
                                 (bind (no media-kind) channel
                                   (and (= origin target-origin)

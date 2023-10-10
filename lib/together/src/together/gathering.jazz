@@ -2652,9 +2652,7 @@
               (require-live-stream client)
               (toggle-camera client)
               (update-layouts video)
-              (update-parameter world 'camera)
-              @version0
-              (download-profile-update)))))))
+              (update-parameter world 'camera)))))))
   
   
   (method (escape-press self)
@@ -3190,8 +3188,6 @@
           (space-refresh space)
           @admin-request
           (start-captures)
-          @version0
-          (download-profile-update)
           (setup-visibility mainbar)
           (refresh-central-menu world)
           (unless (2d?)
@@ -4444,17 +4440,6 @@
   
   
   ;;;
-  ;;;; Profile
-  ;;;
-  
-  
-  (method (profile-changed self profile)
-    (let ((profile-title (capitalize (->string profile))))
-      (display-message (current-world) (format "Lowering video quality to {a}" profile-title) duration: 3.))
-    (update-profile-label))
-  
-  
-  ;;;
   ;;;; Mode
   ;;;
   
@@ -5171,7 +5156,7 @@
                   (udp (current-udp)))
               (define (stream-replay name)
                 (let ((channels (list (make-replay-channel))))
-                  (make-stream "Replay" 'replay #f channels)))
+                  (make-stream "Replay" 'replay '() channels)))
               
               (define (make-replay-channel)
                 (let ((media-kind udp-video)
