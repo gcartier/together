@@ -3725,7 +3725,7 @@
                 (lambda (stream-no stream)
                   (let ((audio-channel (locate-stream-audio-channel stream)))
                     (when audio-channel
-                      (let ((video-channel (locate-stream-video-channel stream)))
+                      (let ((video-channel (locate-video-output-channel stream)))
                         (when video-channel
                           (let ((audio-output (get-output audio-channel))
                                 (video-output (get-output video-channel)))
