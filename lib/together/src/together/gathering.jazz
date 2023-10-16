@@ -5388,18 +5388,7 @@
             (cond ((not stream)
                    (let ((stream (stream-window "Window")))
                      (play stream)
-                     (let ((channel (locate-window-channel stream)))
-                       (let ((info (require-caps channel)))
-                         (if (not info)
-                             (begin
-                               (close-send-stream udp stream)
-                               (display-error world "Unable to share window"))
-                           (receive (caps resolution) info
-                             (media-init client (get-no stream) (list (list (get-no channel) caps resolution)))
-                             (set-send-state channel 'on)
-                             (set-caps channel caps)
-                             (set-resolution channel resolution))
-                           (display-on/off world "Window sharing" #t))))))
+                     (display-on/off world "Window sharing" #t)))
                   (else
                    (close-send-stream udp stream)
                    (display-on/off world "Window sharing" #f))))))))
@@ -5423,18 +5412,7 @@
             (cond ((not stream)
                    (let ((stream (stream-screen "Screen")))
                      (play stream)
-                     (let ((channel (locate-screen-channel stream)))
-                       (let ((info (require-caps channel)))
-                         (if (not info)
-                             (begin
-                               (close-send-stream udp stream)
-                               (display-error world "Unable to share screen"))
-                           (receive (caps resolution) info
-                             (media-init client (get-no stream) (list (list (get-no channel) caps resolution)))
-                             (set-send-state channel 'on)
-                             (set-caps channel caps)
-                             (set-resolution channel resolution))
-                           (display-on/off world "Screen sharing" #t))))))
+                     (display-on/off world "Screen sharing" #t)))
                   (else
                    (close-send-stream udp stream)
                    (display-on/off world "Screen sharing" #f))))))))
