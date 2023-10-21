@@ -966,6 +966,7 @@
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
+        (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-debug-bbr           active?: #t)
@@ -1083,6 +1084,7 @@
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
+        (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-debug-bbr           active?: #t)
@@ -1570,6 +1572,7 @@
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
+        (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
         (<!>                 name: toggle-debug-live          active?: #t)
         (<!>                 name: toggle-debug-bbr           active?: #t)
@@ -4887,6 +4890,12 @@
       (invalidate-outputs video)
       (when debug-stream
         (show-interface (current-space) #t))))
+  
+  
+  (method (on-toggle-debug-upload self evt)
+    (let ((video (current-video)))
+      (set-debug-upload? (not debug-upload?))
+      (invalidate-outputs video)))
   
   
   (method (on-toggle-debug-flow self evt)
