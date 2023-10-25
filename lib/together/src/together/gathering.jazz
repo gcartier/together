@@ -3773,10 +3773,10 @@
           (define (add-player player)
             (set! people (cons player people)))
           
-          (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) groupless
+          (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description . players) groupless
             (add-players zone players))
           (for-each (lambda (group)
-                      (bind (name owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) group
+                      (bind (name owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description . players) group
                         (cond ((integer? name)
                                (when (member? character-name players key: car)
                                  (set! party players))
@@ -3867,7 +3867,7 @@
                 (let ((non-empty '())
                       (empty '()))
                   (for-each (lambda (info)
-                              (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
+                              (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description . players) info
                                 (if (not-null? players)
                                     (set! non-empty (cons info non-empty))
                                   (set! empty (cons info empty)))))
@@ -3882,13 +3882,13 @@
                               (sort di<? empty key: car)))))
               
               (define (add-circle kind father info (empty? #f))
-                (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description . players) info
+                (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description . players) info
                   (let ((title group))
                     (let ((row (add-row tree
                                         father: father
                                         state: 'expanded
                                         children: (list (new Tree-Node title: title font: {Font Label-User} color: group-color))
-                                        user-data: (list kind group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description))))
+                                        user-data: (list kind group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description))))
                       (added father)
                       (for-each (lambda (info)
                                   (add-player row info group))
@@ -3968,7 +3968,7 @@
             
             (case kind
               ((group zoom-group)
-               (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
+               (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
                  (select zone group owner stone zoom? link description #f)))
               ((zone)
                (bind (zone) rest
@@ -4013,7 +4013,7 @@
                              (eq? kind 'zoom-group))
                      (with-cursor :wait
                        (lambda ()
-                         (bind (group owner invite-only? persistent? require-microphone? require-camera? zone stone zoom? link description) rest
+                         (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
                            (if zoom?
                                (join-zoom-circle self selected-group)
                              (join-circle self selected-group)))))))
