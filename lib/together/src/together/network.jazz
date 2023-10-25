@@ -337,7 +337,7 @@
         (rate-info (new_ratesample))
         (bbr-update 0)
         (send-rate (new Transfer-Rate))
-        (payload (make-u8vector (- (calculate-media-burst-size) (recordsize profile-media)))))
+        (payload (make-u8vector (- (calculate-media-trial-size) (recordsize profile-media)))))
     (let ((bbr-info (socket->bbr socket))
           (bbrinfo-info (new_bbrinfo))
           (statistics (get-profile-statistics udp)))
