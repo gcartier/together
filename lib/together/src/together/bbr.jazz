@@ -19,8 +19,8 @@
         (world.bbr)
         (world.client.udp)
         (world.queue)
-        (world.udp)
-        (world.video))
+        (world.stream)
+        (world.udp))
 
 
 (definition upload-state #f)
