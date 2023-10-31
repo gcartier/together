@@ -23,7 +23,7 @@
 ;; CREATE INSTANCE
 ;; together-montreal
 ;; N2 - 2 vCPU - 8GB memory
-;; Boot disk : Ubuntu 18.04 LTF - 30GB SSD
+;; Boot disk : Ubuntu 20.04 LTF - 30GB SSD
 
 ;; try to not use: "Using OS Login"
 ;; else we can
@@ -56,7 +56,7 @@
 
 
 ;; SETUP DEVELOPMENT SERVER
-;; fresh server Ubuntu uses 1.7G
+;; fresh server Ubuntu uses 1.9G
 
 ;; git is already installed
 
@@ -64,6 +64,7 @@
 ;; sudo apt install build-essential
 ;; sudo apt install autoconf
 ;; sudo apt install libsystemd-dev
+;; sudo apt install libssl-dev
 ;; sudo apt install pkg-config
 ;; sudo apt install libx11-dev
 ;; sudo apt install libglu1-mesa-dev
@@ -71,7 +72,7 @@
 ;; sudo apt install emacs
 ;; sudo apt install unzip
 
-;; disk space now at 2.7G
+;; disk space now at 3.1G
 
 ;; mkdir Devel
 ;; cd Devel
@@ -88,25 +89,29 @@
 ;; mkd app
 ;; git clone https://github.com/jazzscheme/gambit devel
 ;; cd devel
-;; ./configure '--enable-single-host' '--enable-systemd' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments'
+;; *** '--enable-systemd' needs to be at the end
+;; ./configure '--enable-single-host' '--enable-openssl' '--enable-rtlib-debug-location' '--enable-rtlib-debug-environments' '--enable-systemd'
 ;; make -j2
 ;; sudo make install (.4G)
 
 ;; cdd
 ;; mkd together
 ;; mkd app
-;; git clone https://github.com/gcartier/together test
-;; cd test
-;; git clone https://github.com/gcartier/world
-;; git clone https://github.com/gcartier/jiri
-;; git clone https://github.com/jazzscheme/jazz
-;; git clone https://github.com/jazzscheme/gaea
+;; git clone -b stable https://github.com/gcartier/together prod
+;; cd prod
+;; git clone -b stable https://github.com/gcartier/world
+;; git clone -b stable https://github.com/gcartier/jiri
+;; git clone -b stable https://github.com/jazzscheme/jazz
+;; git clone -b stable https://github.com/jazzscheme/gaea
 ;; cat > .jaz
-export JAZCONF=test
+export JAZCONF=prod
 ;; <ctrl-d>
-;; jm kernel (optional)
-;; jm jazz (optional)
-;; jm -j 2
+;; ./jaz make kernel (optional)
+;; ./jaz make jazz (optional)
+;; *** this might not complete so run it again until no changes
+;; ./jaz make zlib
+;; ./jaz download
+;; ./jaz make -j 2
 
 ;; cd ~/Devel/together
 ;; mkd worlds
@@ -114,13 +119,10 @@ export JAZCONF=test
 
 ;; cd
 ;; mkd .together
-;; git clone https://github.com/gcartier/together-assets.git assets (.2G)
-;; cd assets
-;; jas init
-;; jas add .
+;; jas clone togethersphere.com/together-assets assets
 
 ;; cd ~/.together
-;; mkd test
+;; mkd prod
 ;; mkd 1.0.0
 ;; mkd servers
 ;; mkd Together
@@ -134,7 +136,7 @@ export JAZCONF=test
 
 
 (form
-  (<Server> host: "*" service: 50200)))
+  (<Server> host: "*" service: 50500)))
 //#
 
 ;; git clone https://github.com/gcartier/together-start.git start
@@ -162,32 +164,32 @@ sudo timedatectl set-timezone America/New_York
 
 ;; cd /etc/systemd/system
 
-;; together-test.service
+;; together-prod.service
 #//
 [Unit]
-Description=Together Test Service
-After=network.target together-test.socket
-Requires=together-test.socket
+Description=Together Prod Service
+After=network.target together-prod.socket
+Requires=together-prod.socket
 
 [Service]
 Type=simple
 User=together
 Group=together
-ExecStart=/home/together/Devel/together/app/test/binaries/test/Together-Server
+ExecStart=/home/together/Devel/together/app/prod/binaries/prod/Together-Server
 TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
 //#
 
-;; together-test.socket
+;; together-prod.socket
 #//
 [Unit]
-Description=Together Test Socket
-PartOf=together-test.service
+Description=Together Prod Socket
+PartOf=together-prod.service
 
 [Socket]
-ListenStream=50200
+ListenStream=50500
 BindIPv6Only=both
 FreeBind=true
 
@@ -210,7 +212,7 @@ net.core.default_qdisc=fq
 net.ipv4.tcp_congestion_control=bbr
 //#
 
-;; sudo systemctl start together-test
+;; sudo systemctl start together-prod
 
 ;; sudo apt install apache2
 
