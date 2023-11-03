@@ -2859,7 +2859,7 @@
   
   (method package (present-zone self zone)
     (if (eq? zone 'start)
-        "Void"
+        "World"
       (last zone)))
   
   
@@ -2954,7 +2954,7 @@
               (client-status tier err)
               (if err
                   (display-problem err)
-                (load/wait-zone world-zone "Creating circle"
+                (load/wait-zone 'start "Creating circle"
                   (lambda ()
                     (let ((text (locate view 'text)))
                       (let ((name (trim-whitespace (get-string-content text))))

@@ -26,12 +26,8 @@
         (together))
 
 
-(definition protected world-zone
-  '(zone "World"))
-
-
 (definition protected active-zone
-   world-zone)
+  'start)
 
 
 (definition loading-zone
@@ -81,7 +77,7 @@
     (let ((path (get-path rune)))
       (define (present-path)
         (if (eq? path 'start)
-            "Void"
+            "World"
           (last path)))
       
       (cond ((circling?)
