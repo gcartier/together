@@ -2818,6 +2818,7 @@
           (startup-gstreamer)
           @work-in-progess
           (prepare-steps)
+          @not-save/retrieve-camera
           (retrieve-camera client)
           (reset-chronology)
           (uninstall-vista)
@@ -2895,6 +2896,7 @@
           (world (current-world))
           (zone (current-zone)))
       (reset-selection world)
+      @not-save/retrieve-camera
       (save-to-processor client)
       (observer-mode self)
       (install-vista)
