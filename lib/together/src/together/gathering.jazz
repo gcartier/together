@@ -560,7 +560,7 @@
           (cond (group
                  (with-cursor :wait
                    (lambda ()
-                     (join-circle together group))))
+                     (acquire/join-circle together group))))
                 (zone?
                  (enter-zone together)))))))
   
@@ -723,7 +723,7 @@
     (let ((together (current-together)))
       (with-cursor :wait
         (lambda ()
-          (join-circle together (get-selected-group together))))))
+          (acquire/join-circle together (get-selected-group together))))))
   
   
   (method (on-join-zoom self evt)
@@ -2770,7 +2770,7 @@
                (lambda ()
                  (with-cursor :wait
                    (lambda ()
-                     (join-circle self (get-name stone))))))
+                     (acquire/join-circle self (get-name stone))))))
              #t)
             (else
              #f))))
@@ -2993,17 +2993,22 @@
                   (set! created-zoom-circle name)))))))))
   
   
-  (method package (join-circle self name (from-create-random? #f))
-    (let ((tier (current-client))
-          (world (current-world)))
+  (method package (acquire/join-circle self name (from-create-random? #f))
+    (let ((tier (current-client)))
       (let ((err (acquire-circle self name)))
         (client-status tier err)
         (if err
             (display-problem err)
-          (let ((group-info/exception (join-group tier name 'participant)))
-            (if (string? group-info/exception)
-                (display-error world group-info/exception)
-              (circle-join self name group-info/exception from-create-random? #f)))))))
+          (join-circle self name from-create-random?)))))
+  
+  
+  (method package (join-circle self name (from-create-random? #f))
+    (let ((tier (current-client))
+          (world (current-world)))
+      (let ((group-info/exception (join-group tier name 'participant)))
+        (if (string? group-info/exception)
+            (display-error world group-info/exception)
+          (circle-join self name group-info/exception from-create-random? #f)))))
   
   
   (method package (join-zoom-circle self name)
@@ -4017,7 +4022,7 @@
                          (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
                            (if zoom?
                                (join-zoom-circle self selected-group)
-                             (join-circle self selected-group)))))))
+                             (acquire/join-circle self selected-group)))))))
                   (selected-zone?
                    (enter-zone self))))))))
   
