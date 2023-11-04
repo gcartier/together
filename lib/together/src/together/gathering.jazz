@@ -1463,8 +1463,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped?))
-            (avatar? (avatar-mode?)))
+      (let ((avatar? (avatar-mode?)))
         `(,zone-bindings
           ,circling-bindings
           ,zone-circling-bindings
@@ -1696,8 +1695,7 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((grouped? (grouped?))
-            (avatar? (avatar-mode?)))
+      (let ((avatar? (avatar-mode?)))
         `(,presence-bindings
           ,circling-bindings
           ,zone-circling-bindings
