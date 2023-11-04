@@ -3201,7 +3201,8 @@
           (unless (2d?)
             (when teleport?
               (teleport-circle self circle-position)))
-          (change-circle-mode self circle-mode feedback?: #f)))))
+          (change-circle-mode self circle-mode feedback?: #f)
+          (setup-visibility mainbar)))))
   
   
   (method (leave-circle self)
