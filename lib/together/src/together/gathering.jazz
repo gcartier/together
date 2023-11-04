@@ -2703,11 +2703,11 @@
                                              (scale (vertex 1. 1. 1.)))
                                          (let ((position (vertex+ position (vertex-scalar* (get-sight lookat) 3.))))
                                            (let ((broadcast-hierarchy? persistent?))
-                                             (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
-                                               (if (string? no/exception)
-                                                   (display-error world no/exception)
+                                             (let ((group-info/exception (create/join-circle self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
+                                               (if (string? group-info/exception)
+                                                   (display-error world group-info/exception)
                                                  (close panel)
-                                                 (join-circle self name))))))))))
+                                                 (circle-join self name group-info/exception #f #f))))))))))
                                
                                (define (escape evt)
                                  (close panel))
@@ -2722,7 +2722,7 @@
               (acquire-focus (locate panel '(create view text)))))))))
   
   
-  (method (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)
+  (method (create/join-circle self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)
     (let ((tier (current-client))
           (universe (current-universe))
           (world (current-world))
@@ -2732,9 +2732,9 @@
       
       (let ((id (make-unique-id))
             (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
-        (let ((no/exception (create-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position lookat scale) #f #f #f)))
-          (if (string? no/exception)
-              no/exception
+        (let ((group-info/exception (create/join-group tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position lookat scale) #f #f #f)))
+          (if (string? group-info/exception)
+              group-info/exception
             (clear-message world)
             (let ((class Circle-Stone)
                   (scale (vertex .4 .4 .4))
@@ -2747,7 +2747,7 @@
                 (bake-entity-lighting zone entity))
               (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position))))
                 (add-block-at-position universe fire-position 51 0))
-              #f))))))
+              group-info/exception))))))
   
   
   (method (on-leave-group self evt)
@@ -2963,14 +2963,14 @@
                           (let ((position (vertex+ (vertex 0. 4. 0.) (vertex-scalar* (get-sight lookat) distance)))
                                 (scale (vertex 1. 1. 1.)))
                             (vista-motion world position)
-                            (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
-                              (if (string? no/exception)
-                                  (display-error world no/exception)
+                            (let ((group-info/exception (create/join-circle self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
+                              (if (string? group-info/exception)
+                                  (display-error world group-info/exception)
                                 (clear-message world)
                                 (set-string-content text "")
                                 (content-changed view)
                                 (set-checked? require-camera #t)
-                                (join-circle self name #t))))))))))))))))
+                                (circle-join self name group-info/exception #t #f))))))))))))))))
   
   
   (method package (create-zoom-circle self)
