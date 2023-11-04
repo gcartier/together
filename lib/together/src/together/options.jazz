@@ -289,6 +289,9 @@
   (property circle-name initialize #f accessors generate)
   
   
+  (slot circle-property-list getter generate)
+  
+  
   (form
     (<install>
       (<caption~>           title: "Circle Options")
@@ -304,7 +307,8 @@
   
   (method override (prepare self rest)
     (nextmethod self rest)
-    (set! circle-name (getf rest circle-name:)))
+    (set! circle-name (getf rest circle-name:))
+    (set! circle-property-list (circle-properties (current-client) circle-name)))
   
   
   (method override (read-option self option)
@@ -314,16 +318,16 @@
          (let ((choices (map (lambda (layout)
                                (list layout (capitalize (symbol->string layout))))
                              layout-list))
-               (choice (circle-shape (current-client) circle-name)))
+               (choice (getf circle-property-list 'shape)))
            (values choices choice))))
       ((persistent)
-       (circle-property (current-client) circle-name 'persistent?))
+       (getf circle-property-list 'persistent?))
       ((join-by-invite-only)
-       (circle-property (current-client) circle-name 'invite-only?))
+       (getf circle-property-list 'invite-only?))
       ((require-microphone)
-       (circle-property (current-client) circle-name 'require-microphone?))
+       (getf circle-property-list 'require-microphone?))
       ((require-camera)
-       (circle-property (current-client) circle-name 'require-camera?))))
+       (getf circle-property-list 'require-camera?))))
   
   
   (method override (write-option self option value title)
