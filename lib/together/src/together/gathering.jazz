@@ -2962,6 +2962,7 @@
                               (distance (random-between 15. 50.)))
                           (let ((position (vertex+ (vertex 0. 4. 0.) (vertex-scalar* (get-sight lookat) distance)))
                                 (scale (vertex 1. 1. 1.)))
+                            (vista-motion world position)
                             (let ((no/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
                               (if (string? no/exception)
                                   (display-error world no/exception)
