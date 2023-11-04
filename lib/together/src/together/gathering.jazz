@@ -3188,7 +3188,6 @@
                            (append! (map third streams) (list (get-stream-no self-output))))))
               (reorder-outputs video order)))
           (set! preserved-eye? #f)
-          (change-circle-mode self circle-mode feedback?: #f)
           (space-refresh space)
           @admin-request
           (start-captures)
@@ -3196,7 +3195,8 @@
           (refresh-central-menu world)
           (unless (2d?)
             (when teleport?
-              (teleport-circle self circle-position)))))))
+              (teleport-circle self circle-position)))
+          (change-circle-mode self circle-mode feedback?: #f)))))
   
   
   (method (leave-circle self)
