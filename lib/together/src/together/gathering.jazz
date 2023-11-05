@@ -2049,6 +2049,7 @@
   (slot message-recipient   initialize #f getter generate)
   (slot draw-hook           initialize #f getter generate)
   (slot sleep-disconnected  initialize #f getter generate)
+  (slot avatar-prepared?    initialize #f getter generate)
   (slot chat-wide?          initialize #f getter generate)
   (slot chat-was-hidden?    initialize #f getter generate)
   (slot previous-command    initialize #f getter generate)
@@ -2825,34 +2826,12 @@
                            (focus-command-text self))))))))))))
   
   
-  (method package (enter-zone self)
-    (let ((client (current-client))
-          (window (current-window))
-          (interface (current-interface))
-          (world (current-world))
-          (zone (current-zone))
-          (me (current-me)))
-      (let ((info (participate-to-server client)))
-        (if (string? info)
-            (begin
-              (display-error world (format "{a}" info))
-              info)
-          (startup-gstreamer)
-          @work-in-progess
-          (prepare-steps)
-          @not-save/retrieve-camera
-          (retrieve-camera client)
-          (reset-chronology)
-          (uninstall-vista)
-          (goto-space self 'zone)
-          (setup-visibility mainbar)
-          (set-current-mode 'participant)
-          (mode-change me 'participant)
-          (add-snapshot-property 'live.player-mode current-mode)
-          (unless (2d?)
-            (preload-animations me))
-          (delay-enable-autotrack self)
-          #f))))
+  (method (avatar-prepare self)
+    (unless avatar-prepared?
+      @work-in-progess
+      (prepare-steps)
+      (preload-animations (current-me))
+      (set! avatar-prepared? #t)))
   
   
   (method package (autoenter-zone self)
@@ -2863,18 +2842,42 @@
         (enter-zone self))))
   
   
+  (method package (enter-zone self)
+    (let ((client (current-client))
+          (world (current-world)))
+      (let ((info (participate-to-server client)))
+        (if (string? info)
+            (begin
+              (display-error world (format "{a}" info))
+              info)
+          (startup-gstreamer)
+          @not-save/retrieve-camera
+          (retrieve-camera client)
+          (reset-chronology)
+          (uninstall-vista)
+          (avatar-prepare self)
+          (goto-space self 'zone)
+          (setup-visibility mainbar)
+          (activate-zone self)
+          #f))))
+  
+  
   (method package (reenter-zone self zone)
-    (let ((world (current-world))
-          (me (current-me)))
-      (reset-chronology)
-      (uninstall-vista)
-      (goto-space self 'zone)
-      (setup-visibility mainbar)
+    (reset-chronology)
+    (uninstall-vista)
+    (avatar-prepare self)
+    (goto-space self 'zone)
+    (setup-visibility mainbar)
+    (activate-zone self)
+    #f)
+  
+  
+  (method package (activate-zone self)
+    (let ((me (current-me)))
       (set-current-mode 'participant)
       (mode-change me 'participant)
       (add-snapshot-property 'live.player-mode current-mode)
-      (delay-enable-autotrack self)
-      #f))
+      (delay-enable-autotrack self)))
   
   
   (method package (present-zone self zone)
@@ -3172,7 +3175,7 @@
             (when (and (auto-video?) require-camera?)
               (play-camera tier)))
           (unless (participant?)
-            (enter-zone self))
+            (activate-zone self))
           (clear-message world)
           (uninstall-vista)
           (cond-expand
@@ -4517,6 +4520,7 @@
         (maybe-enable-autotrack world)
         (person-motion world feedback?: #f)
         (restore-distance self)
+        (avatar-prepare self)
         (focus-world))))
   
   
