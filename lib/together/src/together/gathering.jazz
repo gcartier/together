@@ -2867,7 +2867,8 @@
   
   (method package (activate-zone self)
     (let ((me (current-me)))
-      (participant-mode self)
+      (unless (2d?)
+        (participant-mode self))
       (delay-enable-autotrack self)))
   
   
@@ -2892,6 +2893,15 @@
             (lambda ()
               (when (get-autotrack-mode?)
                 (maybe-enable-autotrack world))))))))
+  
+  
+  (method (visitor-mode self)
+    (let ((client (current-client))
+          (me (current-me)))
+      (set-current-mode 'visitor)
+      (mode-change me 'visitor)
+      (visit-to-server client)
+      (add-snapshot-property 'live.player-mode current-mode)))
   
   
   (method (observer-mode self)
@@ -2920,7 +2930,9 @@
       (reset-selection world)
       @not-save/retrieve-camera
       (save-to-processor client)
-      (observer-mode self)
+      (if selected-zone?
+          (observer-mode self)
+        (visitor-mode self))
       (install-vista)
       (goto-space self 'gathering)
       (reset-history)))
@@ -3969,11 +3981,15 @@
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
-              (set! selected-zone? zone?)
-              (let ((effective-zone (if zone? zone 'start)))
-                (unless (equal? effective-zone selected-zone)
-                  (set! selected-zone effective-zone)
-                  (load/wait-zone effective-zone #f (lambda ()))))
+              (unless (eqv? zone? selected-zone?)
+                (set! selected-zone? zone?)
+                (let ((effective-zone (if zone? zone 'start)))
+                  (unless (equal? effective-zone selected-zone)
+                    (set! selected-zone effective-zone)
+                    (load/wait-zone effective-zone #f (lambda ()))))
+                (if selected-zone?
+                    (observer-mode self)
+                  (visitor-mode self)))
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)
