@@ -2749,6 +2749,29 @@
               group-info/exception))))))
   
   
+  (method (hide-circle-stone self stone)
+    (unless (2d?)
+      (let ((entity (find-stone-entity self stone)))
+        (when entity
+          (set-visible? entity #f)))))
+  
+  
+  (method (show-circle-stone self stone)
+    (unless (2d?)
+      (let ((entity (find-stone-entity self stone)))
+        (when entity
+          (set-visible? entity #t)))))
+  
+  
+  (method (find-stone-entity self stone)
+    (let ((universe (current-universe)))
+      (bind (id position) stone
+        (let ((section-index (position->section-index position)))
+          (let ((section (index-section-if universe section-index)))
+            (and section
+                 (find-entity-by-id section id)))))))
+  
+  
   (method (on-leave-group self evt)
     (leave-group self))
   
@@ -3130,7 +3153,6 @@
   (method (setup-circle self name teleport? from-gathering? group-info/exception)
     (let ((tier (current-client))
           (udp (current-udp))
-          (universe (current-universe))
           (world (current-world))
           (video (current-video)))
       (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
@@ -3174,15 +3196,8 @@
                    (set-circle-position position)
                    (set-circle-lookat lookat)
                    (set-circle-scale scale))))
-          (unless (2d?)
-            (when stone
-              (bind (id position) stone
-                (let ((section-index (position->section-index position)))
-                  (let ((section (index-section-if universe section-index)))
-                    (when section
-                      (let ((entity (find-entity-by-id section id)))
-                        (when entity
-                          (set-visible? entity #f)))))))))
+          (when stone
+            (hide-circle-stone self stone))
           (current-circle-shape-set! shape)
           (install-circle-hooks self)
           (let ((self-output (get-self-output video)))
@@ -3207,7 +3222,6 @@
     (let ((tier (current-client))
           (window (current-window))
           (interface (current-interface))
-          (universe (current-universe))
           (world (current-world))
           (zone (current-zone)))
       @admin-request
@@ -3219,17 +3233,10 @@
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
       (let ((removed? (leave-group tier current-circle-name)))
-        (unless (2d?)
-          (unless removed?
-            (let ((stone (find-circle-stone tier current-circle-name)))
-              (when stone
-                (bind (id position) stone
-                  (let ((section-index (position->section-index position)))
-                    (let ((section (index-section-if universe section-index)))
-                      (when section
-                        (let ((entity (find-entity-by-id section id)))
-                          (when entity
-                            (set-visible? entity #t))))))))))))
+        (unless removed?
+          (let ((stone (find-circle-stone tier current-circle-name)))
+            (when stone
+              (show-circle-stone self stone)))))
       (let ((from-gathering? current-circle-from-gathering?)
             (circle-mode current-circle-mode))
         @wait-buggy
