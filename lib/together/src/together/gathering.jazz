@@ -2730,7 +2730,7 @@
       
       (let ((id (make-unique-id))
             (position (vertex (block-center (vertex-x position)) (vertex-y position) (block-center (vertex-z position)))))
-        (bind (name-id . group-info/exception) (create-circle tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position lookat scale) #f #f #f)
+        (bind (name-id . group-info/exception) (create-circle tier name persistent? require-microphone? require-camera? broadcast-hierarchy? #f (list id position lookat scale) #f #f #f 'participant)
           (if (string? group-info/exception)
               group-info/exception
             (clear-message world)
