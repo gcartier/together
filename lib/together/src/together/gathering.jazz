@@ -2827,8 +2827,7 @@
           (mode-change me 'participant)
           (add-snapshot-property 'live.player-mode current-mode)
           (unless (2d?)
-            (preload-animations me)
-            (prepare-motion world))
+            (preload-animations me))
           (delay-enable-autotrack self)
           #f))))
   
@@ -2851,8 +2850,6 @@
       (set-current-mode 'participant)
       (mode-change me 'participant)
       (add-snapshot-property 'live.player-mode current-mode)
-      (unless (2d?)
-        (prepare-motion world))
       (delay-enable-autotrack self)
       #f))
   
