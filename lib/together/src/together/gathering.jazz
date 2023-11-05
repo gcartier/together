@@ -2842,23 +2842,17 @@
   
   
   (method package (enter-zone self)
-    (let ((client (current-client))
-          (world (current-world)))
-      (let ((info (participate-to-server client)))
-        (if (string? info)
-            (begin
-              (display-error world (format "{a}" info))
-              info)
-          (startup-gstreamer)
-          @not-save/retrieve-camera
-          (retrieve-camera client)
-          (reset-chronology)
-          (uninstall-vista)
-          (avatar-prepare self)
-          (goto-space self 'zone)
-          (setup-visibility mainbar)
-          (activate-zone self)
-          #f))))
+    (let ((client (current-client)))
+      (startup-gstreamer)
+      @not-save/retrieve-camera
+      (retrieve-camera client)
+      (reset-chronology)
+      (uninstall-vista)
+      (avatar-prepare self)
+      (goto-space self 'zone)
+      (setup-visibility mainbar)
+      (activate-zone self)
+      #f))
   
   
   (method package (reenter-zone self zone)
@@ -2873,9 +2867,7 @@
   
   (method package (activate-zone self)
     (let ((me (current-me)))
-      (set-current-mode 'participant)
-      (mode-change me 'participant)
-      (add-snapshot-property 'live.player-mode current-mode)
+      (participant-mode self)
       (delay-enable-autotrack self)))
   
   
@@ -2908,6 +2900,15 @@
       (set-current-mode 'observer)
       (mode-change me 'observer)
       (observe-to-server client)
+      (add-snapshot-property 'live.player-mode current-mode)))
+  
+  
+  (method (participant-mode self)
+    (let ((client (current-client))
+          (me (current-me)))
+      (set-current-mode 'participant)
+      (mode-change me 'participant)
+      (participate-to-server client)
       (add-snapshot-property 'live.player-mode current-mode)))
   
   
