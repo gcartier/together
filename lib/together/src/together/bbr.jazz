@@ -23,7 +23,7 @@
         (world.udp))
 
 
-(definition upload-state #f)
+(definition bbr-state #f)
 (definition upload-socket #f)
 (definition upload-queue #f)
 (definition upload-queue-rate #f)
@@ -40,7 +40,7 @@
   (or upload-socket (get-upload-socket (current-udp))))
 
 (definition protected (set-upload-info state socket queue queue-rate send-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-update statistics)
-  (set! upload-state state)
+  (set! bbr-state state)
   (set! upload-socket socket)
   (set! upload-queue queue)
   (set! upload-queue-rate queue-rate)
@@ -77,7 +77,7 @@
 
 (definition protected (draw-bbr surface start-h start-v)
   (let ((udp (and surface (current-udp))))
-    (let ((state (or upload-state (get-upload-state udp)))
+    (let ((state (or bbr-state (get-bbr-state udp)))
           (sk (or upload-socket (get-upload-socket udp)))
           (queue (or upload-queue (get-upload-queue udp)))
           (queue-rate (or upload-queue-rate (get-upload-queue-rate udp)))

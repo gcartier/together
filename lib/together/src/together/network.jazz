@@ -330,7 +330,7 @@
 (definition (setup-bbr panel)
   (let ((udp (current-udp))
         (mutex (make-mutex 'bbr))
-        (state (new Upload-State))
+        (state (new BBR-State))
         (socket (new_tcpsock))
         (skbuff-info (new_skbuff 0))
         (skbcb-info (new_skbcb))
