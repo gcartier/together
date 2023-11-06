@@ -147,10 +147,7 @@
             queue
           (format "{l detail: :human separator: \", \"}"
                   (map (lambda (channel)
-                         (let ((consumer (get-consumer channel)))
-                           (if (not consumer)
-                               'N/A
-                             (format "{r precision: 1}" (get-bitrate-modifier consumer)))))
+                         (format "{r precision: 1}" (get-upload-modifier channel)))
                        (get-channels queue)))))
       
       (define (present-mode)
