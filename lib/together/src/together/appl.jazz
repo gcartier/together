@@ -516,7 +516,7 @@
   (method override (register-base-objects self)
     (nextmethod self)
     (when local-developer?
-      (register-object (get-local-register 'debugging) 'debugger (new Jazz-Debugger-Local-Proxy (require-presence 'debugging) local-debugger))))
+      (register-object (get-local-register 'debugging) 'debugger (new Debugger-Local-Proxy (require-presence 'debugging) local-debugger))))
   
   
   ;;;
