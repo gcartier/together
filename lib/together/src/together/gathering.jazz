@@ -2606,16 +2606,20 @@
   
   
   (method (on-organize-circle self evt)
+    (let ((from-central? (central-button? self evt)))
+      (toggle-organize-circle self from-central?)))
+  
+  
+  (method package (toggle-organize-circle self (from-central? #f))
     (let ((interface (current-interface)))
       (let ((panel (find-type interface Organize-Circle)))
         (if panel
             (close panel)
           (with-cursor :wait
             (lambda ()
-              (let ((from-central? (central-button? self evt)))
-                (unless from-central?
-                  (close-non-central-top self))
-                (push-panel (open-frame (new Organize-Circle size: {Dimension 366 588} location: 'center))))))))))
+              (unless from-central?
+                (close-non-central-top self))
+              (push-panel (open-frame (new Organize-Circle size: {Dimension 366 588} location: 'center)))))))))
   
   
   (method (on-circle-options self evt)
@@ -5640,7 +5644,9 @@
   
   (method override (mouse-up self evt)
     (let ((together (current-together)))
-      (toggle-circle-options together))))
+      (if (get-shift? evt)
+          (toggle-organize-circle together)
+        (toggle-circle-options together)))))
 
 
 ;;;
