@@ -314,7 +314,7 @@
   (method override (read-option self option)
     (case option
       ((layout)
-       (let ((layout-list '(round flow heart theater)))
+       (let ((layout-list '(round flow heart @theater theater)))
          (let ((choices (map (lambda (layout)
                                (list layout (capitalize (symbol->string layout))))
                              layout-list))
