@@ -34,7 +34,7 @@
   (make-parameter #f))
 
 
-(definition package (load/wait-zone path message thunk)
+(definition package (load/wait-zone path message thunk (immediate #f))
   (let ((client (current-client))
         (world (current-world))
         (zone (current-zone)))
@@ -47,10 +47,12 @@
               (if (equal? (get-path zone) path)
                   (if (not message)
                       (thunk)
-                    (working-wait world message min-delay thunk))
+                    (working-wait world message min-delay thunk immediate))
                 (let ((loaded (make-mutex 'loaded))
                       (before (current-seconds)))
                   (set-zone-loaded-hook client (lambda (path info)
+                                                 (when immediate
+                                                   (immediate))
                                                  (let ((elapse (- (current-seconds) before)))
                                                    (sleep (- min-delay elapse)))
                                                  (mutex-unlock! loaded)
