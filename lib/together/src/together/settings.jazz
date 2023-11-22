@@ -85,11 +85,13 @@
 
 
 (definition protected (open-client-enter remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
-  (let ((obj (open-client remote-file retrieved?: #f auto-enter: auto-enter)))
+  (set-critical-retrieved? #f)
+  (let ((obj (open-client remote-file auto-enter: auto-enter)))
     (if (is? obj Zone)
         (begin
-          (retrieve-gstreamer/critical-assets)
-          (set-retrieved? obj #t)
+          (retrieve-critical)
+          (set-critical-retrieved? #t)
+          (start-delayed-tasks obj)
           (prepare-skybox obj)
           (enter-together auto-enter))
       (let ((title (if (string? obj) obj "Unable to connect to server"))
@@ -108,7 +110,7 @@
       (together-enter together auto-enter))))
 
 
-(definition protected (retrieve-gstreamer/critical-assets)
+(definition protected (retrieve-critical)
   (let ((client (current-client)))
     (let ((assets (get-universe-assets client))
           (avatar (get-character-avatar (get-configuration client))))

@@ -533,7 +533,7 @@
     (let ((together (current-together))
           (zone (current-zone)))
       (if (or (unverified?)
-              (not (get-retrieved? zone))
+              (not critical-retrieved?)
               (not (get-selected-zone? together)))
           (cache-nebula-skybox)
         #f)))
