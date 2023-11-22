@@ -2926,13 +2926,10 @@
     (let ((client (current-client))
           (zone (current-zone))
           (me (current-me)))
-      (let ((old-mode current-mode))
-        (set-current-mode 'participant)
-        (mode-change me 'participant)
-        (participate-to-server client)
-        (when (eq? old-mode 'visitor)
-          (view-distance-reload zone))
-        (add-snapshot-property 'live.player-mode current-mode))))
+      (set-current-mode 'participant)
+      (mode-change me 'participant)
+      (participate-to-server client)
+      (add-snapshot-property 'live.player-mode current-mode)))
   
   
   (method package (exit-zone self)
@@ -3011,6 +3008,8 @@
                               (distance (random-between 15. 50.)))
                           (let ((position (vertex+ (vertex 0. 4. 0.) (vertex-scalar* (get-sight lookat) distance)))
                                 (scale (vertex 1. 1. 1.)))
+                            (when (eq? current-mode 'visitor)
+                              (view-distance-reload zone))
                             (vista-motion world position)
                             (let ((group-info/exception (create-circle-at self name persistent? require-microphone? require-camera? broadcast-hierarchy? position lookat scale)))
                               (if (string? group-info/exception)
@@ -3053,10 +3052,13 @@
   
   (method package (join-circle self name (from-create-random? #f))
     (let ((tier (current-client))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (let ((group-info/exception (join-group tier name 'participant)))
         (if (string? group-info/exception)
             (display-error world group-info/exception)
+          (when (eq? current-mode 'visitor)
+            (view-distance-reload zone))
           (circle-join self name group-info/exception from-create-random? #f)))))
   
   
