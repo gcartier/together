@@ -35,6 +35,7 @@
         (world.sound)
         (world.space)
         (world.tier)
+        (world.urgency)
         (together)
         (together.exception)
         (together.remote))
@@ -302,6 +303,14 @@
 (definition protected together-skybox?
   (and (client?)
        (world-setting 'together.skybox? #t)))
+
+
+;;;
+;;;; Urgency
+;;;
+
+
+(set-urgency-crash-feedback (together-exception-feedback))
 
 
 ;;;

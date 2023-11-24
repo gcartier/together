@@ -38,7 +38,7 @@
             (snapshot-debugger exc)))))))
 
 
-(definition (together-exception-feedback)
+(definition protected (together-exception-feedback)
   (lambda (exception snapshot)
     (system-message (format "{a}.{%}{%}{a}.{%}{%}{a}."
                             "An unexpected problem occurred"
