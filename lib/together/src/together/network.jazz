@@ -414,13 +414,16 @@
         (unless (and ack-drop-percentage (< (random-real) ack-drop-percentage))
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-ack
-            (let ((sequence (read-profile-media-ack-sequence data)))
-              (let ((info (ack-received state socket sequence)))
+            (let ((sequence (read-profile-media-ack-sequence data))
+                  (srtt (get-round-trip-rate (get-profile-statistics udp)))
+                  (queue-empty? #f)
+                  (timer (current-monotonic-nanoseconds)))
+              (let ((info (ack-received state socket sequence srtt queue-empty? timer)))
                 (when info
                   (receive (skb lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
-                    (tcp_ack socket skb lost (get-round-trip-rate (get-profile-statistics udp)) #f (current-monotonic-nanoseconds) rate-info)
+                    (tcp_ack socket skb lost srtt queue-empty? timer rate-info)
                     (free_skbuff skb))))
               (bbr-updated)
               (record-event udp-id-rate-sample
