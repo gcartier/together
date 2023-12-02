@@ -243,6 +243,7 @@
        (set-setting options-settings 'world.graphic-profile value)
        (save-content options-settings)
        (graphic-profile-update value)
+       (update-self-output (current-video))
        (update-profile-label))
       ((camera)
        (update-camera-identifier (current-client) title value))
