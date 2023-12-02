@@ -427,6 +427,7 @@
                     (tcp_ack socket skb lost srtt queue-empty? timer rate-info)
                     (free_skbuff skb))))
               (bbr-updated)
+              (record-state state socket sequence)
               (record-event udp-id-bbr-ack
                             -1.
                             -1.

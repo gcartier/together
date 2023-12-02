@@ -152,8 +152,8 @@
                        (get-channels queue)))))
       
       (define (present-mode)
-        (let ((mode (vector-ref #(Startup Drain ProbeBW ProbeRTT) (bbrinfo-bbr_mode-ref bbrinfo)))
-              (phase (vector-ref #(Invalid Startup Drain ProbeRTT Up Down Cruise Refill) (bbrinfo-bbr_phase-ref bbrinfo))))
+        (let ((mode (present-bbr-mode (bbrinfo-bbr_mode-ref bbrinfo)))
+              (phase (present-bbr-phase (bbrinfo-bbr_phase-ref bbrinfo))))
           (if (eq? mode 'ProbeBW)
               (format "{a} ({a})" mode phase)
             (format "{a}" mode))))
