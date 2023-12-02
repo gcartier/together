@@ -426,6 +426,14 @@
                     (tcp_ack socket skb lost srtt queue-empty? timer rate-info)
                     (free_skbuff skb))))
               (bbr-updated)
+              (record-event udp-id-bbr-ack
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
+                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                            (fixnum->flonum (tcp_packets_in_flight socket)))
               (record-event udp-id-bbr-pacing
                             -1.
                             -1.
@@ -433,6 +441,23 @@
                             (fixnum->flonum sequence)
                             (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
                             -1.
+                            -1.)
+              (record-event udp-id-bbr-window
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                            (fixnum->flonum (tcp_packets_in_flight socket))
+                            -1.)
+              @w
+              (record-event udp-id-bbr-info
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                            (fixnum->flonum (tcp_packets_in_flight socket))
                             -1.))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
@@ -449,22 +474,48 @@
     (define (send-packet)
       (let ((data (send-profile-media udp payload)))
         (update send-rate (u8vector-length data))
-        (with-record profile-media
-          (let ((sent (current-seconds))
-                (sequence (read-profile-media-sequence data)))
-            (let ((skb (packet-sent state sent sequence data)))
-              (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
-              (tcp_rate_skb_sent socket skb))))
+        (parameterize ((simulation-evolution (get-profile-evolution udp)))
+          (with-record profile-media
+            (let ((sent (current-seconds))
+                  (sequence (read-profile-media-sequence data)))
+              (let ((skb (packet-sent state sent sequence data)))
+                (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+                (tcp_rate_skb_sent socket skb))
+              (record-event udp-id-bbr-media
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            -1.
+                            -1.
+                            -1.)
+              (record-event udp-id-send-rate
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            (bytes->mbps (get-average send-rate))
+                            -1.
+                            -1.))))
         (bbr-updated)))
     
     (define (send-pulse sent)
       (let ((data (send-profile-media-pulse udp)))
         (update send-rate (u8vector-length data))
-        (with-record profile-media-pulse
-          (let ((sequence (read-profile-media-pulse-sequence data)))
-            (let ((skb (packet-sent state sent sequence data)))
-              (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
-              (tcp_rate_skb_sent socket skb))))
+        (parameterize ((simulation-evolution (get-profile-evolution udp)))
+          (with-record profile-media-pulse
+            (let ((sequence (read-profile-media-pulse-sequence data)))
+              (let ((skb (packet-sent state sent sequence data)))
+                (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+                (tcp_rate_skb_sent socket skb))
+              (record-event udp-id-bbr-pulse
+                            -1.
+                            -1.
+                            -1.
+                            (fixnum->flonum sequence)
+                            -1.
+                            -1.
+                            -1.))))
         (bbr-updated)))
     
     (define (wait next-delivery-time)
