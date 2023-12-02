@@ -451,15 +451,6 @@
                             (fixnum->flonum sequence)
                             (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
                             (fixnum->flonum (tcp_packets_in_flight socket))
-                            -1.)
-              @w
-              (record-event udp-id-bbr-info
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum sequence)
-                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                            (fixnum->flonum (tcp_packets_in_flight socket))
                             -1.))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
