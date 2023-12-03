@@ -424,34 +424,34 @@
                   (receive (skb lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
-                    (tcp_ack socket skb lost srtt queue-empty? timer rate-info)
-                    (free_skbuff skb))))
-              (bbr-updated)
-              (record-state state socket sequence)
-              (record-event udp-id-bbr-ack
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum sequence)
-                            (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
-                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                            (fixnum->flonum (tcp_packets_in_flight socket)))
-              (record-event udp-id-bbr-pacing
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum sequence)
-                            (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
-                            -1.
-                            -1.)
-              (record-event udp-id-bbr-window
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum sequence)
-                            (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                            (fixnum->flonum (tcp_packets_in_flight socket))
-                            -1.))))))
+                    (let ((app-limited? (tcp_ack socket skb lost srtt queue-empty? timer rate-info)))
+                      (free_skbuff skb)
+                      (bbr-updated)
+                      (record-state state socket sequence)
+                      (record-event udp-id-bbr-ack
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum sequence)
+                                    (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
+                                    (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                                    (fixnum->flonum (tcp_packets_in_flight socket)))
+                      (record-event udp-id-bbr-pacing
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum sequence)
+                                    (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
+                                    (if app-limited? 1. 0.)
+                                    -1.)
+                      (record-event udp-id-bbr-window
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum sequence)
+                                    (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
+                                    (fixnum->flonum (tcp_packets_in_flight socket))
+                                    -1.))))))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
       (init-bbr)
