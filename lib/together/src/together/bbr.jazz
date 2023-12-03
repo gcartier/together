@@ -308,7 +308,7 @@
         (set! base-v start-v)
         (draw "bbr" header-color)
         @ecn (draw-property 'bbr "startup_ecn_rounds" (bbr-startup_ecn_rounds-ref bbr))
-        (draw-property 'bbr "loss_in_cycle" (bbr-loss_in_cycle-ref bbr))
+        @ecn (draw-property 'bbr "loss_in_cycle" (bbr-loss_in_cycle-ref bbr))
         @ecn (draw-property 'bbr "ecn_in_cycle" (bbr-ecn_in_cycle-ref bbr))
         (draw-property 'bbr "loss_round_delivered" (bbr-loss_round_delivered-ref bbr))
         (draw-property 'bbr "undo_bw_lo" (bbr-undo_bw_lo-ref bbr))
