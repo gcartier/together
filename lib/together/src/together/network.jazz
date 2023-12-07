@@ -421,7 +421,7 @@
                   (timer (current-monotonic-nanoseconds)))
               (let ((info (ack-received state socket sequence srtt queue-empty? timer)))
                 (when info
-                  (receive (skb lost) info
+                  (receive (skb data lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
                     (let ((app-limited? (tcp_ack socket skb lost srtt queue-empty? timer rate-info)))
