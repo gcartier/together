@@ -473,8 +473,7 @@
             (let ((sent (current-seconds))
                   (order (read-profile-media-order data)))
               (let ((skb (packet-sent state sent order data)))
-                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds))
-                (tcp_rate_skb_sent socket skb))
+                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds)))
               (with-record media
                 (record-event udp-id-bbr-media
                               (fixnum->flonum (read-media-channel data))
@@ -501,8 +500,7 @@
           (with-record profile-media-pulse
             (let ((order (read-profile-media-pulse-order data)))
               (let ((skb (packet-sent state sent order data)))
-                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds))
-                (tcp_rate_skb_sent socket skb))
+                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds)))
               (record-event udp-id-bbr-pulse
                             -1.
                             -1.
