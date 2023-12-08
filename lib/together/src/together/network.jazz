@@ -415,11 +415,11 @@
         (unless (and ack-drop-percentage (< (random-real) ack-drop-percentage))
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-ack
-            (let ((sequence (read-profile-media-ack-sequence data))
+            (let ((order (read-profile-media-ack-order data))
                   (srtt (get-round-trip-rate (get-profile-statistics udp)))
                   (queue-empty? #f)
                   (timer (current-monotonic-nanoseconds)))
-              (let ((info (ack-received state socket sequence srtt queue-empty? timer)))
+              (let ((info (ack-received state socket order srtt queue-empty? timer)))
                 (when info
                   (receive (skb data lost) info
                     (skbuff_get_info skb skbuff-info)
@@ -427,31 +427,32 @@
                     (let ((app-limited? (tcp_ack socket skb lost srtt queue-empty? timer rate-info)))
                       (free_skbuff skb)
                       (bbr-updated)
-                      (record-state state socket sequence)
-                      (record-event udp-id-bbr-ack
-                                    -1.
-                                    -1.
-                                    -1.
-                                    (fixnum->flonum sequence)
-                                    (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
-                                    (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                                    (fixnum->flonum (tcp_packets_in_flight socket)))
+                      (record-state state socket order)
+                      (with-record media
+                        (record-event udp-id-bbr-ack
+                                      (fixnum->flonum (read-media-channel data))
+                                      (fixnum->flonum (read-header-sender data))
+                                      (fixnum->flonum (read-header-kind data))
+                                      (fixnum->flonum (read-media-sequence data))
+                                      (fixnum->flonum order)
+                                      -1.
+                                      (fixnum->flonum (tcp_packets_in_flight socket))))
                       (record-event udp-id-bbr-pacing
                                     -1.
                                     -1.
                                     -1.
-                                    (fixnum->flonum sequence)
-                                    (bytes->mbps (or pacing_rate-override (tcp_pacing_rate socket)))
-                                    (if app-limited? 1. 0.)
-                                    -1.)
+                                    -1.
+                                    (fixnum->flonum order)
+                                    (bytes->mbps (tcp_pacing_rate socket))
+                                    (if app-limited? 1. 0.))
                       (record-event udp-id-bbr-window
                                     -1.
                                     -1.
                                     -1.
-                                    (fixnum->flonum sequence)
-                                    (fixnum->flonum (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                                    (fixnum->flonum (tcp_packets_in_flight socket))
-                                    -1.))))))))))
+                                    -1.
+                                    (fixnum->flonum order)
+                                    (fixnum->flonum (tcp_snd_cwnd socket))
+                                    (fixnum->flonum (tcp_packets_in_flight socket))))))))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
       (init-bbr)
@@ -470,25 +471,26 @@
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media
             (let ((sent (current-seconds))
-                  (sequence (read-profile-media-sequence data)))
-              (let ((skb (packet-sent state sent sequence data)))
-                (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+                  (order (read-profile-media-order data)))
+              (let ((skb (packet-sent state sent order data)))
+                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds))
                 (tcp_rate_skb_sent socket skb))
-              (record-event udp-id-bbr-media
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum sequence)
-                            -1.
-                            -1.
-                            -1.)
+              (with-record media
+                (record-event udp-id-bbr-media
+                              (fixnum->flonum (read-media-channel data))
+                              (fixnum->flonum (read-header-sender data))
+                              (fixnum->flonum (read-header-kind data))
+                              (fixnum->flonum (read-media-sequence data))
+                              (fixnum->flonum order)
+                              -1.
+                              -1.))
               (record-event udp-id-send-rate
                             -1.
                             -1.
                             -1.
-                            (fixnum->flonum sequence)
-                            (bytes->mbps (get-average send-rate))
                             -1.
+                            (fixnum->flonum order)
+                            (bytes->mbps (get-average send-rate))
                             -1.))))
         (bbr-updated)))
     
@@ -497,16 +499,16 @@
         (update send-rate (u8vector-length data))
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-pulse
-            (let ((sequence (read-profile-media-pulse-sequence data)))
-              (let ((skb (packet-sent state sent sequence data)))
-                (tcp_skb_sent socket skb #f sequence 1 (current-monotonic-nanoseconds))
+            (let ((order (read-profile-media-pulse-order data)))
+              (let ((skb (packet-sent state sent order data)))
+                (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds))
                 (tcp_rate_skb_sent socket skb))
               (record-event udp-id-bbr-pulse
                             -1.
                             -1.
                             -1.
-                            (fixnum->flonum sequence)
                             -1.
+                            (fixnum->flonum order)
                             -1.
                             -1.))))
         (bbr-updated)))
