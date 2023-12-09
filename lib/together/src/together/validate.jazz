@@ -84,12 +84,12 @@
                                               pts))
                               (when record-events?
                                 (record-event udp-id-extra-info
+                                              -1.
+                                              -1.
+                                              -1.
                                               (fixnum->flonum part)
                                               (fixnum->flonum total)
                                               (fixnum->flonum flags)
-                                              -1.
-                                              -1.
-                                              -1.
                                               -1.)))
                             data)))))
                 
