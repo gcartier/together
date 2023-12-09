@@ -3198,7 +3198,7 @@
                                   'gallery))))
           (startup-gstreamer)
           (when (auto-live?)
-            (require-live-stream tier))
+            (require-live-stream tier audio-only?: (not require-camera?)))
           (start udp)
           (when (auto-live?)
             (when (and (auto-audio?) require-microphone?)
@@ -3307,7 +3307,7 @@
           (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
-              (require-live-stream tier)
+              (require-live-stream tier audio-only?: (not require-camera?))
               (streams-add tier no require-microphone? require-camera? streams)
               (play-microphone tier)
               #f))))))
@@ -5226,7 +5226,7 @@
                   (udp (current-udp)))
               (define (stream-replay name)
                 (let ((channels (list (make-replay-channel))))
-                  (make-stream "Replay" 'replay '() channels)))
+                  (make-stream "Replay" 'replay '() #f channels)))
               
               (define (make-replay-channel)
                 (let ((media-kind udp-video)
