@@ -349,7 +349,10 @@
       (when (and origin (or (not now) (/= time now)))
         (emulate-time self time playing?)
         (set! now time)
-        (invalidate-view self))))
+        (invalidate-view self)
+        ;; for tests
+        (when sender-emulator
+          (present-bbr sender-emulator)))))
   
   
   (method protected (emulate-time self time playing?)

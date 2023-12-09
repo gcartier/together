@@ -472,7 +472,7 @@
           (with-record profile-media
             (let ((sent (current-seconds))
                   (order (read-profile-media-order data)))
-              (let ((skb (packet-sent state sent order data)))
+              (receive (skb segs) (packet-sent state sent order data)
                 (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds)))
               (with-record media
                 (record-event udp-id-bbr-media
@@ -499,7 +499,7 @@
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-pulse
             (let ((order (read-profile-media-pulse-order data)))
-              (let ((skb (packet-sent state sent order data)))
+              (receive (skb segs) (packet-sent state sent order data)
                 (tcp_skb_sent socket skb #f order 1 (current-monotonic-nanoseconds)))
               (record-event udp-id-bbr-pulse
                             -1.

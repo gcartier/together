@@ -18,6 +18,8 @@
         (jazz.stream)
         (world)
         (world.audio)
+        (world.bbr)
+        (world.bbr.state)
         (world.client.tier)
         (world.context)
         (world.event)
@@ -179,6 +181,10 @@
 (class Sender-Emulator extends Retain-Emulator
   
   
+  (slot bbr-state  getter generate)
+  (slot tcp-socket getter generate)
+  
+  
   (method override (initialize self call tier origin evolution audio-creates video-creates channel-name channel-audio channel-video)
     (nextmethod self call origin evolution audio-creates video-creates)
     (set! self.audio-no channel-audio)
@@ -187,7 +193,49 @@
       (set! audio-channel (and audio-no (find-send-channel sender audio-no)))
       (set! video-channel (and video-no (find-send-channel sender video-no))))
     (set! self.audio-ring (and audio-channel (get-retain-ring audio-channel)))
-    (set! self.video-ring (and video-channel (get-retain-ring video-channel)))))
+    (set! self.video-ring (and video-channel (get-retain-ring video-channel)))
+    (set! bbr-state (new BBR-State))
+    (set! tcp-socket (new_tcpsock))
+    (tcp_init tcp-socket udp-mss (current-monotonic-nanoseconds) (current-monotonic-frequency))
+    (bbr_init tcp-socket))
+  
+  
+  (method override (destroy self)
+    (free_tcpsock tcp-socket)
+    (set! tcp-socket #f)
+    (nextmethod self))
+  
+  
+  (method override (emulate-event self n playing?)
+    (let ((id (evolutionary-udp-id evolution n)))
+      (ecase id
+        ;; sent / pulsed
+        ((udp-id-bbr-sent udp-id-bbr-pulsed)
+         (let ((segs (flonum->fixnum (evolutionary-udp-data1 evolution n)))
+               (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+               (empty? (= (evolutionary-udp-data3 evolution n) 1.))
+               (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+           (let ((skb (segs-sent bbr-state order segs)))
+             (tcp_skb_sent tcp-socket skb empty? order 1 timer))))
+        ;; acked
+        ((udp-id-bbr-acked)
+         (let ((empty? (= (evolutionary-udp-data1 evolution n) 1.))
+               (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+               (srtt (evolutionary-udp-data3 evolution n))
+               (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+           (let ((info (ack-received bbr-state tcp-socket order srtt empty? timer)))
+             (when info
+               (receive (skb data lost) info
+                 (tcp_ack tcp-socket skb lost srtt empty? timer #f)))))))))
+  
+  
+  ;; for tests
+  (method protected (present-bbr self)
+    @w
+    (tell
+      'inflight (table-length (get-inflight-buffers bbr-state))
+      'window (tcpsock-snd_cwnd-ref tcp-socket)
+      'pacing (bytes->mbps (tcpsock-inet_conn.icsk_inet.sk.sk_pacing_rate-ref tcp-socket)))))
 
 
 ;;;
@@ -416,6 +464,8 @@
               ((udp-id-send-heartbeat udp-id-send-ack udp-id-receive-ack udp-id-traffic-rate))
               ;; reset
               ((udp-id-reset-media))
+              ;; bbr
+              ((udp-id-bbr-media udp-id-bbr-pulse udp-id-bbr-ack udp-id-bbr-lost))
               ;; system
               ((udp-id-paint-event udp-id-reshape-event udp-id-close-event udp-id-key-event udp-id-char-event udp-id-button-event udp-id-moved-event udp-id-wheel-event udp-id-file-event udp-id-drop-event udp-id-enter-event udp-id-leave-event udp-id-activate-event udp-id-deactivate-event udp-id-quit-event udp-id-user-event udp-id-other-event))
               ;; other
