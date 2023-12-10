@@ -216,7 +216,7 @@
                (empty? (= (evolutionary-udp-data3 evolution n) 1.))
                (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
            (let ((skb (segs-sent bbr-state order segs)))
-             (tcp_skb_sent tcp-socket skb empty? order 1 timer))))
+             (tcp_skb_sent tcp-socket skb empty? order timer))))
         ;; acked
         ((udp-id-bbr-acked)
          (let ((empty? (= (evolutionary-udp-data1 evolution n) 1.))
