@@ -430,10 +430,10 @@
                       (record-state state socket order)
                       (with-record media
                         (record-event udp-id-bbr-ack
-                                      (fixnum->flonum (read-media-channel data))
-                                      (fixnum->flonum (read-header-sender data))
-                                      (fixnum->flonum (read-header-kind data))
-                                      (fixnum->flonum (read-media-sequence data))
+                                      -1.
+                                      -1.
+                                      -1.
+                                      -1.
                                       (fixnum->flonum order)
                                       -1.
                                       (fixnum->flonum (tcp_packets_in_flight socket))))
@@ -476,10 +476,10 @@
                 (tcp_skb_sent socket skb #f order (current-monotonic-nanoseconds)))
               (with-record media
                 (record-event udp-id-bbr-media
-                              (fixnum->flonum (read-media-channel data))
-                              (fixnum->flonum (read-header-sender data))
-                              (fixnum->flonum (read-header-kind data))
-                              (fixnum->flonum (read-media-sequence data))
+                              -1.
+                              -1.
+                              -1.
+                              -1.
                               (fixnum->flonum order)
                               -1.
                               -1.))
