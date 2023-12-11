@@ -337,7 +337,7 @@
         (skbcb-info (new_skbcb))
         (rate-info (new_ratesample))
         (bbr-update 0)
-        (send-rate (new Transfer-Rate))
+        (send-rate (new Local-Rate))
         (payload (make-u8vector (- (calculate-media-trial-size) (recordsize profile-media)))))
     (let ((bbr-info (socket->bbr socket))
           (bbrinfo-info (new_bbrinfo))
