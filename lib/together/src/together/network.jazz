@@ -19,6 +19,7 @@
         (jazz.graphic)
         (jazz.io)
         (jazz.math)
+        (jazz.stream)
         (jazz.time)
         (jazz.view)
         (world)
@@ -413,8 +414,18 @@
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
-        (tcp_init socket udp-mss (current-monotonic-nanoseconds) (current-monotonic-frequency))
-        (bbr_init socket))
+        (let ((base (current-monotonic-nanoseconds))
+              (frequency (current-monotonic-frequency)))
+          (tcp_init socket udp-mss base frequency)
+          (bbr_init socket)
+          (record-event udp-id-bbr-init
+                        -1.
+                        -1.
+                        -1.
+                        -1.
+                        (fixnum->flonum udp-mss)
+                        (timestamp->flonum base)
+                        (timestamp->flonum frequency))))
       
       (define (receive-ack data)
         (unless (and ack-drop-percentage (< (random-real) ack-drop-percentage))
