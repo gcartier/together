@@ -518,7 +518,7 @@
       (sleep (- next-delivery-time (current-seconds))))
     
     (define (pace size)
-      (/ size (or pacing_rate-override (tcp_pacing_rate socket))))
+      (/ (cast <fl> size) (or pacing_rate-override (tcp_pacing_rate socket))))
     
     (define (show str)
       @w (terminal-string str))
