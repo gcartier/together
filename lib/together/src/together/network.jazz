@@ -349,8 +349,12 @@
         (increase! bbr-update))
       
       (set-plot? #t)
-      (set-plot-latency? panel #f)
+      (set-plot-queuing? panel #f)
+      (set-plot-sending? panel #f)
+      (set-plot-pacing? panel #t)
+      (set-plot-window? panel #t)
       (set-plot-traffic? panel #f)
+      (set-plot-latency? panel #f)
       (set-upload-info state socket 'N/A 'N/A send-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info get-bbr-update statistics)
       (bbr-updated)
       (values (list udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated send-rate payload)
