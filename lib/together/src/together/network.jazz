@@ -462,6 +462,9 @@
           (inner))))))
 
 
+(proclaim (warn optimizations))
+
+
 (definition (pace-bbr panel queue user-data)
   (declare (proper-tail-calls))
   (bind (udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated send-rate payload) user-data
@@ -549,6 +552,9 @@
                  (send-packet)
                  (mutex-unlock! mutex)
                  (loop (+ next-delivery-time (pace payload-size))))))))))
+
+
+(proclaim (not warn optimizations))
 
 
 (definition protected (profile-bbr)
