@@ -195,9 +195,7 @@
     (set! self.audio-ring (and audio-channel (get-retain-ring audio-channel)))
     (set! self.video-ring (and video-channel (get-retain-ring video-channel)))
     (set! bbr-state (new BBR-State))
-    (set! tcp-socket (new_tcpsock))
-    (tcp_init tcp-socket udp-mss (current-monotonic-nanoseconds) (current-monotonic-frequency))
-    (bbr_init tcp-socket))
+    (set! tcp-socket (new_tcpsock)))
   
   
   (method override (destroy self)
@@ -209,6 +207,13 @@
   (method override (emulate-event self n playing?)
     (let ((id (evolutionary-udp-id evolution n)))
       (ecase id
+        ;; init
+        ((udp-id-bbr-init)
+         (let ((mss (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+               (base (flonum->timestamp (evolutionary-udp-data3 evolution n)))
+               (frequency (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+           (tcp_init tcp-socket mss base frequency)
+           (bbr_init tcp-socket)))
         ;; sent / pulsed
         ((udp-id-bbr-sent udp-id-bbr-pulsed)
          (let ((segs (flonum->fixnum (evolutionary-udp-data1 evolution n)))
