@@ -167,13 +167,14 @@
         (<View>                                                               size: {Dimension 390 184}
           (<Option-Label>                              title: "Quality"       position: {Point 0 1})
           (<Combo-Option>                                                     position: {Point 140 0} size: {Dimension 250 19} option: quality)
-          (<Option-Label>                              title: "Camera"        position: {Point 0 51})
-          (<Combo-Option>                                                     position: {Point 140 50} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: camera-label         title: "Camera"        position: {Point 0 51})
+          (<Combo-Option>   name: camera-option                               position: {Point 140 50} size: {Dimension 250 19} option: camera)
           (<Boolean-Option> name: retina-option        title: "Retina"        position: {Point 0 110} size: {Dimension 250 16} visible?: #f option: retina)
-          (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 101} visible?: #f)
-          (<Combo-Option>   name: scale-option                                position: {Point 140 100} size: {Dimension 250 19} visible?: #f option: scale)
+          (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 81} visible?: #f)
+          (<Combo-Option>   name: scale-option                                position: {Point 140 80} size: {Dimension 250 19} visible?: #f option: scale)
           (<Boolean-Option> name: multisampling-option title: "Multisampling" position: {Point 0 160} size: {Dimension 250 16} option: multisampling)
-          (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)))))
+          (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)
+          (<Boolean-Option> name: mfvideosrc-option    title: "Use MFVideoSrc (experimental camera improvement)" position: {Point 0 170} size: {Dimension 320 15} visible?: #f option: mfvideosrc)))))
   
   
   (method override (install self rest)
@@ -186,8 +187,12 @@
        (set-visible? (locate self 'hardware-option) #t)
        (set-position (locate self 'multisampling-option) {Point 0 140}))
       (windows
+       (set-position (locate self 'camera-label) {Point 0 41})
+       (set-position (locate self 'camera-option) {Point 140 40})
        (set-visible? (locate self 'scale-label) #t)
-       (set-visible? (locate self 'scale-option) #t))
+       (set-visible? (locate self 'scale-option) #t)
+       (set-position (locate self 'multisampling-option) {Point 0 140})
+       (set-visible? (locate self 'mfvideosrc-option) #t))
       (else)))
   
   
@@ -233,6 +238,8 @@
                             (list 2. "200%")))
              (choice (world-setting 'world.application-scale 1.)))
          (values choices choice)))
+      ((mfvideosrc)
+       (world-setting 'world.camera-mfvideosrc? #f))
       ((hardware)
        (world-setting 'world.video-hardware? #f))))
   
@@ -259,6 +266,10 @@
        (set-setting options-settings 'world.application-scale value)
        (save-content options-settings)
        (need-restart))
+      ((mfvideosrc)
+       (set-camera-mfvideosrc? value)
+       (set-setting options-settings 'world.camera-mfvideosrc? value)
+       (save-content options-settings))
       ((hardware)
        (set-video-hardware? value)
        (set-setting options-settings 'world.video-hardware? value)
