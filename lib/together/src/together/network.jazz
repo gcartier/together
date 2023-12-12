@@ -351,9 +351,9 @@
       
       (set-plot? #t)
       (set-plot-queuing? panel #f)
-      (set-plot-sending? panel #f)
-      (set-plot-pacing? panel #t)
-      (set-plot-window? panel #t)
+      (set-plot-sending? panel #t)
+      (set-plot-pacing? panel #f)
+      (set-plot-window? panel #f)
       (set-plot-upload? panel #f)
       (set-plot-download? panel #f)
       (set-plot-latency? panel #f)
