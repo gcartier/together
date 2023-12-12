@@ -947,6 +947,7 @@
       (<World-Action-Button>    resource: {Icon-Resource "Interface/Gadgets-Showcase"} action-handler: {Action world-main open-about})
       @wait
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action world-main view-help})
+      (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action world-main network-test})
       (<World-Action-Button>    resource: {Icon-Resource "Photography UI/Sunny"} action-handler: {Action world-people toggle-participation})
       (<World-Action-Button>    resource: {Icon-Resource "Interface/No-Icon-Found"} action-handler: {Action world-people toggle-invite})
       (<World-Action-Button>    resource: {Icon-Resource "Symbol/Cultural-Symbol-Eight"} action-handler: {Action world-interface toggle-windowed-mode})
@@ -1301,6 +1302,7 @@
   (<Role-Trait>        name: user
     (<install>
       (<world-main!>
+        (<!>                 name: network-test               visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         @wait-having-news!
         (<!>                 name: view-news                  visible?: #t)
@@ -1376,6 +1378,7 @@
         (<!>                 name: graphics-options           visible?: #t)
         @version1 (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: network-test               visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
         @wait-having-news!
@@ -1477,6 +1480,7 @@
         (<!>                 name: graphics-options           visible?: #t)
         @version1 (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: network-test               visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
         @wait-having-news!
@@ -1701,6 +1705,7 @@
         (<!>                 name: graphics-options           visible?: #t)
         (<!>                 name: sound-options              visible?: #t)
         (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: network-test               visible?: #t)
         (<!>                 name: bindings-viewer            visible?: #t)
         (<!>                 name: unstuck-character          visible?: #t)
         @wait-having-news!

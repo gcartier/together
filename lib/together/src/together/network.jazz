@@ -53,22 +53,24 @@
 (class Network-Profile extends Object
   
   
-  (slot panel          getter generate)
-  (slot pulse-thread   getter generate)
-  (slot redraw-thread  getter generate)
-  (slot send-thread    getter generate)
-  (slot pace-thread    getter generate)
-  (slot user-data      getter generate)
-  (slot user-cleanup   getter generate)
+  (slot panel           getter generate)
+  (slot pulse-thread    getter generate)
+  (slot redraw-thread   getter generate)
+  (slot send-thread     getter generate)
+  (slot pace-thread     getter generate)
+  (slot duration-thread getter generate)
+  (slot user-data       getter generate)
+  (slot user-cleanup    getter generate)
   
   
-  (method override (initialize self panel pulse-thread redraw-thread send-thread pace-thread user-data user-cleanup)
+  (method override (initialize self panel pulse-thread redraw-thread send-thread pace-thread duration-thread user-data user-cleanup)
     (nextmethod self)
     (set! self.panel panel)
     (set! self.pulse-thread pulse-thread)
     (set! self.redraw-thread redraw-thread)
     (set! self.send-thread send-thread)
     (set! self.pace-thread pace-thread)
+    (set! self.duration-thread duration-thread)
     (set! self.user-data user-data)
     (set! self.user-cleanup user-cleanup)))
 
@@ -150,18 +152,18 @@
       (plot-callback surface))))
 
 
-(definition protected (profile-run name setup sender pacer (title: title "Profile"))
+(definition protected (profile-run name setup sender pacer (title: title "Profile") (duration: duration #f))
   (let ((interface (current-interface))
         (client (current-client))
         (udp (current-udp))
         (zone (current-zone))
         (me (current-me)))
-    (display-feedback (format "{a} {a} ..." title name) +inf.0)
+    (display-feedback (format "{a} {a}{? ({a}s)~}" title name duration) +inf.0)
     (start-profile client)
     (let ((pulse-period (/ 1. 10.))
           (redraw-period 1.25 @w (/ 1. 2.))
           (base (current-monotonic))
-          (panel (new Network-Timeline-Panel parent: interface location: (if (eq? (get-mode me) 'observer) '(center 172) '(center 56)) proportion: '((bounds -500) 120)))
+          (panel (new Network-Timeline-Panel parent: interface location: (if (eq? (get-mode me) 'participant) '(center 56) '(center 172)) proportion: '((bounds -500) 120)))
           (pulse-sent #f)
           (queue (and pacer (new Priorities-Queue 1))))
       (define (wait target)
@@ -236,29 +238,52 @@
                   (new-thread
                     (lambda ()
                       (pacer panel queue user-data))
-                    'profile-pace)))
+                    'profile-pace))
+                (duration-thread
+                  (and duration
+                       (new-thread
+                         (lambda ()
+                           (declare (proper-tail-calls))
+                           (let (loop (n duration))
+                             (if (<= n 0)
+                                 (delay-event
+                                   (lambda ()
+                                     (with-task-mutex
+                                       (lambda ()
+                                         (snapshot-profile title: "Test")))))
+                               (unless (= n duration)
+                                 (with-task-mutex
+                                   (lambda ()
+                                     (display-feedback (format "{a} {a}{? ({a}s)~}" title name n) +inf.0))))
+                               (sleep 1)
+                               (loop (- n 1)))))
+                         'profile-duration))))
             (thread-base-priority-set! pulse-thread profile-priority)
             (thread-base-priority-set! redraw-thread background-priority)
             (when send-thread
               (thread-base-priority-set! send-thread profile-priority))
             (when pace-thread
               (thread-base-priority-set! pace-thread profile-priority))
+            (when duration-thread
+              (thread-base-priority-set! duration-thread (+ profile-priority 1.)))
             (when send-thread
               (thread-start! send-thread))
             (when pace-thread
               (thread-start! pace-thread))
+            (when duration-thread
+              (thread-start! duration-thread))
             (thread-start! pulse-thread)
             (thread-start! redraw-thread)
             (acquire-focus panel)
-            (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread pace-thread user-data user-cleanup))))))))
+            (set! running-profile (new Network-Profile panel pulse-thread redraw-thread send-thread pace-thread duration-thread user-data user-cleanup))))))))
 
 
 (definition (display-feedback message (duration #f))
   (let ((world (current-world))
         (me (current-me)))
-    (if (eq? (get-mode me) 'observer)
-        (display-message world message duration: duration)
-      (display-status world message duration: duration))))
+    (if (eq? (get-mode me) 'participant)
+        (display-status world message duration: duration)
+      (display-message world message duration: duration))))
 
 
 (definition (setup-noack-waiter panel)
@@ -276,6 +301,20 @@
         (save-binary (new-file dir (add-extension (get-character-name client) "replay")) client-profile)
         (when view-profile?
           (view-replay-directory dir))))))
+
+
+(definition protected (snapshot-profile (title: title "Profile"))
+  (let ((client (current-client))
+        (world (current-world)))
+    (receive (server-profile client-profile) (retrieve-profiles client)
+      (terminate-profile)
+      (let ((dir {Directory Settings "work" "crashes"}))
+        (let ((server-file (timestamped-file dir "_server_profile" "snapshot"))
+              (client-file (timestamped-file dir (format "{a}_profile" (get-character-name client)) "snapshot")))
+          (create-directories dir)
+          (save-binary server-file server-profile)
+          (save-binary client-file client-profile)))
+      (display-feedback (format "{a} done" title)))))
 
 
 (definition protected (done-profile (title: title "Profile"))
@@ -301,11 +340,14 @@
           (redraw-thread (get-redraw-thread running-profile))
           (send-thread (get-send-thread running-profile))
           (pace-thread (get-pace-thread running-profile))
+          (duration-thread (get-duration-thread running-profile))
           (user-cleanup (get-user-cleanup running-profile)))
       (set-done? panel #t)
       (set-profile-ack-callback udp #f)
       (when pace-thread
         (thread-join! pace-thread))
+      (when duration-thread
+        (thread-join! duration-thread))
       (when send-thread
         (thread-join! send-thread))
       (stop-profile client)
@@ -609,4 +651,15 @@
 
 
 (definition protected (profile-bbr)
-  (profile-run "Network" setup-bbr send-bbr pace-bbr title: "BBR")))
+  (profile-run "BBR" setup-bbr send-bbr pace-bbr title: "Profile"))
+
+
+;;;
+;;;; Network
+;;;
+
+
+(hub close-main-menu2)
+(definition protected (profile-network)
+  (close-main-menu2 (current-world))
+  (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" duration: 10)))

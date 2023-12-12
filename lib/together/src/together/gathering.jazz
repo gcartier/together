@@ -227,6 +227,7 @@
   (<Trait>                   name: gathering
     (<install>
       (<world-main!>
+        (<!>                 name: network-test               active?: #t)
         (<!>                 name: bindings-viewer            active?: #t)
         (<!>                 name: view-news                  active?: #t)
         (<!>                 name: view-roadmap               active?: #t)
@@ -5295,6 +5296,11 @@
     (if running-profile
         (cancel-profile title: "BBR")
       (profile-bbr)))
+  
+  
+  (method (on-network-test self evt)
+    (when (not running-profile)
+      (profile-network)))
   
   
   (method (on-exibit-on self evt)
