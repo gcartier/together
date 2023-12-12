@@ -267,7 +267,7 @@
        (save-content options-settings)
        (need-restart))
       ((mfvideosrc)
-       (set-camera-mfvideosrc? value)
+       (update-camera-mfvideosrc? (current-client) value)
        (set-setting options-settings 'world.camera-mfvideosrc? value)
        (save-content options-settings))
       ((hardware)
