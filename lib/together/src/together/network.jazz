@@ -418,14 +418,15 @@
               (frequency (current-monotonic-frequency)))
           (tcp_init socket udp-mss base frequency)
           (bbr_init socket)
-          (record-event udp-id-bbr-init
-                        -1.
-                        -1.
-                        -1.
-                        -1.
-                        (fixnum->flonum udp-mss)
-                        (timestamp->flonum base)
-                        (timestamp->flonum frequency))))
+          (parameterize ((simulation-evolution (get-profile-evolution udp)))
+            (record-event udp-id-bbr-init
+                          -1.
+                          -1.
+                          -1.
+                          -1.
+                          (fixnum->flonum udp-mss)
+                          (timestamp->flonum base)
+                          (timestamp->flonum frequency)))))
       
       (define (receive-ack data)
         (unless (and ack-drop-percentage (< (random-real) ack-drop-percentage))
@@ -433,14 +434,22 @@
           (with-record profile-media-ack
             (let ((order (read-profile-media-ack-order data))
                   (srtt (get-round-trip-rate (get-profile-statistics udp)))
-                  (queue-empty? #f)
+                  (empty? #f)
                   (timer (current-monotonic-nanoseconds)))
-              (let ((info (ack-received state socket order srtt queue-empty? timer)))
+              (let ((info (ack-received state socket order srtt empty? timer #t)))
+                (record-event udp-id-bbr-acked
+                              -1.
+                              -1.
+                              -1.
+                              (if empty? 1. 0.)
+                              (fixnum->flonum order)
+                              srtt
+                              (timestamp->flonum timer))
                 (when info
                   (receive (skb data lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
-                    (let ((app-limited? (tcp_ack socket skb lost srtt queue-empty? timer rate-info)))
+                    (let ((app-limited? (tcp_ack socket skb lost srtt empty? timer rate-info)))
                       (free_skbuff skb)
                       (bbr-updated)
                       (record-state state socket order)
@@ -492,7 +501,17 @@
             (let ((sent (current-seconds))
                   (order (read-profile-media-order data)))
               (receive (skb segs) (packet-sent state sent order data)
-                (tcp_skb_sent socket skb #f order (current-monotonic-nanoseconds)))
+                (let ((empty? #f)
+                      (timer (current-monotonic-nanoseconds)))
+                  (tcp_skb_sent socket skb empty? order timer)
+                  (record-event udp-id-bbr-sent
+                                -1.
+                                -1.
+                                -1.
+                                (fixnum->flonum segs)
+                                (fixnum->flonum order)
+                                (if empty? 1. 0.)
+                                (timestamp->flonum timer))))
               (with-record media
                 (record-event udp-id-bbr-media
                               -1.
@@ -519,7 +538,17 @@
           (with-record profile-media-pulse
             (let ((order (read-profile-media-pulse-order data)))
               (receive (skb segs) (packet-sent state sent order data)
-                (tcp_skb_sent socket skb #f order (current-monotonic-nanoseconds)))
+                (let ((empty? #f)
+                      (timer (current-monotonic-nanoseconds)))
+                  (tcp_skb_sent socket skb empty? order timer)
+                  (record-event udp-id-bbr-pulsed
+                                -1.
+                                -1.
+                                -1.
+                                (fixnum->flonum segs)
+                                (fixnum->flonum order)
+                                (if empty? 1. 0.)
+                                (timestamp->flonum timer))))
               (record-event udp-id-bbr-pulse
                             -1.
                             -1.
