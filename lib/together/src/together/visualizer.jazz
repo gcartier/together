@@ -394,7 +394,7 @@
                                      ((udp-video) "video" @debug (format "video ({a})" channel-video))))))
       (when selection-description
         (draw-text surface 335 3 selection-description visualizer-text-color))
-      (right-widget 'metadata (format "{r precision: 1}x" visualizer-speed))))
+      (right-widget 'speed (format "{r precision: 1}x" visualizer-speed))))
   
   
   (method protected (render-video self)
@@ -535,8 +535,9 @@
          (cycle-streams panel (get-shift? evt)))
         ((media-kind)
          (cycle-media-kinds panel (get-shift? evt)))
-        ((metadata)
-         (pp (table-values (get-metadatas (get-replay panel)))))
+        ((speed)
+         (when (get-shift? evt)
+           (pp (table-values (get-metadatas (get-replay panel))))))
         (else
          (nextmethod self evt))))))
 
