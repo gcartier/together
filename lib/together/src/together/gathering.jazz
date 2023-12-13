@@ -3374,7 +3374,7 @@
       (set-sender-hook (child interface 'chat) (~ chat-sender self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))
-      (set-view-replay-directory (~ open/view-replay self))))
+      (set-view-replay-directory (~ open-replay self))))
   
   
   (method (uninstall-hooks self)
@@ -5139,7 +5139,7 @@
           (bind (name from to now) last-replay
             (let ((dir (new-directory {Directory Documents "replays"} name)))
               (if (exists? dir)
-                  (open/view-replay self dir from to now)
+                  (open-replay self dir from to now)
                 (bell))))
         (bell))))
   
@@ -5153,7 +5153,7 @@
               (bind (name from to now) last-replay
                 (let ((dir (new-directory {Directory Documents "replays"} name)))
                   (if (exists? dir)
-                      (open/view-replay self dir from to now)
+                      (open-replay self dir from to now)
                     (goto-replay self))))
             (goto-replay self))))))
   
@@ -5162,8 +5162,8 @@
     (goto-space self 'replay))
   
   
-  (method (open/view-replay self dir (from #f) (to #f) (now #f))
-    (let ((replay (open-replay dir)))
+  (method (open-replay self dir (from #f) (to #f) (now #f))
+    (let ((replay (load-replay dir)))
       (view-replay self replay from to now)
       (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
       (save-content options-settings)))

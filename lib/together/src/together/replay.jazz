@@ -254,7 +254,7 @@
   (slot highlighted-cells  initialize '() accessors generate))
 
 
-(definition public (open-replay dir)
+(definition public (load-replay dir)
   (let ((client (current-client)))
     (receive (names metadatas chronologies evolutions channels audios videos moments) (collect-replays dir)
       (define (determine-tier character-name)
