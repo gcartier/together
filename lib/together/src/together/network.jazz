@@ -503,24 +503,11 @@
                                       -1.
                                       -1.
                                       (fixnum->flonum order)
-                                      -1.
-                                      (fixnum->flonum (tcp_packets_in_flight socket))))
-                      (record-event udp-id-bbr-pacing
-                                    -1.
-                                    -1.
-                                    -1.
-                                    -1.
-                                    (fixnum->flonum order)
-                                    (bytes->mbps (tcp_pacing_rate socket))
-                                    (if app-limited? 1. 0.))
-                      (record-event udp-id-bbr-window
-                                    -1.
-                                    -1.
-                                    -1.
-                                    -1.
-                                    (fixnum->flonum order)
-                                    (fixnum->flonum (tcp_snd_cwnd socket))
-                                    (fixnum->flonum (tcp_packets_in_flight socket))))))))))))
+                                      (fixnum->flonum (tcp_packets_in_flight socket))
+                                      -1.))
+                      (record-pacing state socket order)
+                      (record-window state socket order)
+                      (record-limited state app-limited? order))))))))))
       
       (setup-pulse #f #f media-ack-received key-callback plot-callback)
       (init-bbr)
