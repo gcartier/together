@@ -31,7 +31,8 @@
         (world.settings)
         (world.simulation)
         (world.udp)
-        (world.video))
+        (world.video)
+        (together.bbr))
 
 
 (definition show-visualize?
@@ -56,43 +57,21 @@
 
 
 ;;;
-;;;; Ring
+;;;; Emulator
 ;;;
 
 
-(class Ring-Emulator extends Object
+(class Emulator extends Object
   
   
-  (slot call                      getter generate)
-  (slot origin                    getter generate)
-  (slot evolution                 getter generate)
-  (slot audio-no                  getter generate)
-  (slot video-no                  getter generate)
-  (slot audio-channel             getter generate)
-  (slot video-channel             getter generate)
-  (slot audio-ring                getter generate)
-  (slot video-ring                getter generate)
-  (slot audio-creates             getter generate)
-  (slot video-creates             getter generate)
-  (slot audio-adds                getter generate)
-  (slot video-adds                getter generate)
-  (slot audio-removes             getter generate)
-  (slot video-removes             getter generate)
-  (slot last-time   initialize #f accessors generate)
-  (slot last-event  initialize #f accessors generate)
+  (slot evolution                getter generate)
+  (slot last-time  initialize #f accessors generate)
+  (slot last-event initialize #f accessors generate)
   
   
-  (method override (initialize self call origin evolution audio-creates video-creates)
+  (method override (initialize self evolution)
     (nextmethod self)
-    (set! self.call call)
-    (set! self.origin origin)
-    (set! self.evolution evolution)
-    (set! self.audio-creates audio-creates)
-    (set! self.video-creates video-creates)
-    (set! self.audio-adds (make-table test: eqv?))
-    (set! self.video-adds (make-table test: eqv?))
-    (set! self.audio-removes (make-table test: eqv?))
-    (set! self.video-removes (make-table test: eqv?)))
+    (set! self.evolution evolution))
   
   
   (method protected (emulate self to-time playing?)
@@ -119,6 +98,42 @@
   
   (method protected virtual (emulate-event self n playing?)
     ))
+
+
+;;;
+;;;; Ring
+;;;
+
+
+(class Ring-Emulator extends Emulator
+  
+  
+  (slot call          getter generate)
+  (slot origin        getter generate)
+  (slot audio-no      getter generate)
+  (slot video-no      getter generate)
+  (slot audio-channel getter generate)
+  (slot video-channel getter generate)
+  (slot audio-ring    getter generate)
+  (slot video-ring    getter generate)
+  (slot audio-creates getter generate)
+  (slot video-creates getter generate)
+  (slot audio-adds    getter generate)
+  (slot video-adds    getter generate)
+  (slot audio-removes getter generate)
+  (slot video-removes getter generate)
+  
+  
+  (method override (initialize self call origin evolution audio-creates video-creates)
+    (nextmethod self evolution)
+    (set! self.call call)
+    (set! self.origin origin)
+    (set! self.audio-creates audio-creates)
+    (set! self.video-creates video-creates)
+    (set! self.audio-adds (make-table test: eqv?))
+    (set! self.video-adds (make-table test: eqv?))
+    (set! self.audio-removes (make-table test: eqv?))
+    (set! self.video-removes (make-table test: eqv?))))
 
 
 ;;;
@@ -181,10 +196,6 @@
 (class Sender-Emulator extends Retain-Emulator
   
   
-  (slot bbr-state  getter generate)
-  (slot tcp-socket getter generate)
-  
-  
   (method override (initialize self call tier origin evolution audio-creates video-creates channel-name channel-audio channel-video)
     (nextmethod self call origin evolution audio-creates video-creates)
     (set! self.audio-no channel-audio)
@@ -193,54 +204,7 @@
       (set! audio-channel (and audio-no (find-send-channel sender audio-no)))
       (set! video-channel (and video-no (find-send-channel sender video-no))))
     (set! self.audio-ring (and audio-channel (get-retain-ring audio-channel)))
-    (set! self.video-ring (and video-channel (get-retain-ring video-channel)))
-    (set! bbr-state (new BBR-State))
-    (set! tcp-socket (new_tcpsock)))
-  
-  
-  (method override (destroy self)
-    (free_tcpsock tcp-socket)
-    (set! tcp-socket #f)
-    (nextmethod self))
-  
-  
-  (method override (emulate-event self n playing?)
-    (let ((id (evolutionary-udp-id evolution n)))
-      (ecase id
-        ;; init
-        ((udp-id-bbr-init)
-         (let ((mss (flonum->fixnum (evolutionary-udp-data2 evolution n)))
-               (base (flonum->timestamp (evolutionary-udp-data3 evolution n)))
-               (frequency (flonum->timestamp (evolutionary-udp-data4 evolution n))))
-           (tcp_init tcp-socket mss base frequency)
-           (bbr_init tcp-socket)))
-        ;; sent / pulsed
-        ((udp-id-bbr-sent udp-id-bbr-pulsed)
-         (let ((segs (flonum->fixnum (evolutionary-udp-data1 evolution n)))
-               (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
-               (empty? (= (evolutionary-udp-data3 evolution n) 1.))
-               (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
-           (let ((skb (segs-sent bbr-state order segs)))
-             (tcp_skb_sent tcp-socket skb empty? order timer))))
-        ;; acked
-        ((udp-id-bbr-acked)
-         (let ((empty? (= (evolutionary-udp-data1 evolution n) 1.))
-               (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
-               (srtt (evolutionary-udp-data3 evolution n))
-               (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
-           (let ((info (ack-received bbr-state tcp-socket order srtt empty? timer #f)))
-             (when info
-               (receive (skb data lost) info
-                 (tcp_ack tcp-socket skb lost srtt empty? timer #f)))))))))
-  
-  
-  ;; for tests
-  (method protected (present-bbr self)
-    @w
-    (tell
-      'inflight (table-length (get-inflight-buffers bbr-state))
-      'window (tcpsock-snd_cwnd-ref tcp-socket)
-      'pacing (bytes->mbps (tcpsock-inet_conn.icsk_inet.sk.sk_pacing_rate-ref tcp-socket)))))
+    (set! self.video-ring (and video-channel (get-retain-ring video-channel)))))
 
 
 ;;;
@@ -475,4 +439,107 @@
               ((udp-id-paint-event udp-id-reshape-event udp-id-close-event udp-id-key-event udp-id-char-event udp-id-button-event udp-id-moved-event udp-id-wheel-event udp-id-file-event udp-id-drop-event udp-id-enter-event udp-id-leave-event udp-id-activate-event udp-id-deactivate-event udp-id-quit-event udp-id-user-event udp-id-other-event))
               ;; other
               (else
-               (terminal 'unemulated (evolution-id->abbrev id)))))))))))
+               (terminal 'unemulated (evolution-id->abbrev id))))))))))
+
+
+;;;
+;;;; Upload
+;;;
+
+
+(class Upload-Emulator extends Emulator
+  
+  
+  (slot bbr-state    getter generate)
+  (slot tcp-socket   getter generate)
+  (slot send-rate    getter generate)
+  (slot skbuff-info  getter generate)
+  (slot skbcb-info   getter generate)
+  (slot rate-info    getter generate)
+  (slot bbr-info     getter generate)
+  (slot bbrinfo-info getter generate)
+  (slot bbr-update   getter generate)
+  (slot statistics   getter generate)
+  (slot inited?      getter generate)
+  
+  
+  (method override (initialize self evolution)
+    (nextmethod self evolution)
+    (set! bbr-state (new BBR-State))
+    (set! tcp-socket (new_tcpsock))
+    (set! send-rate (new Local-Rate))
+    (set! skbuff-info (new_skbuff 0))
+    (set! skbcb-info (new_skbcb))
+    (set! rate-info (new_ratesample))
+    (set! bbr-info (socket->bbr tcp-socket))
+    (set! bbrinfo-info (new_bbrinfo))
+    (set! bbr-update 0)
+    (set! statistics (get-profile-statistics (current-udp)))
+    (set! inited? #f)
+    (set-upload-info bbr-state tcp-socket 'N/A 'N/A send-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info (~ get-bbr-update self) statistics)
+    (bbr-updated self))
+  
+  
+  (method override (destroy self)
+    (free_tcpsock tcp-socket)
+    (free_skbuff skbuff-info)
+    (free_skbcb skbcb-info)
+    (free_ratesample rate-info)
+    (free_bbrinfo bbrinfo-info)
+    (set! tcp-socket #f)
+    (set! skbuff-info #f)
+    (set! skbcb-info #f)
+    (set! rate-info #f)
+    (set! bbrinfo-info #f)
+    (nextmethod self))
+
+  
+  (method protected (bbr-updated self)
+    (increase! bbr-update))
+  
+  
+  (method override (emulate-event self n playing?)
+    (let ((id (evolutionary-udp-id evolution n)))
+      (define (uninited)
+        @w (terminal 'uninited (evolution-id->abbrev id)))
+      
+      (ecase id
+        ;; init
+        ((udp-id-bbr-init)
+         (let ((mss (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+               (base (flonum->timestamp (evolutionary-udp-data3 evolution n)))
+               (frequency (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+           (tcp_init tcp-socket mss base frequency)
+           (bbr_init tcp-socket))
+         (set! inited? #t))
+        ;; sent / pulsed
+        ((udp-id-bbr-sent udp-id-bbr-pulsed)
+         (if (not inited?)
+             (uninited)
+           (let ((segs (flonum->fixnum (evolutionary-udp-data1 evolution n)))
+                 (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+                 (empty? (= (evolutionary-udp-data3 evolution n) 1.))
+                 (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+             (let ((skb (segs-sent bbr-state order segs)))
+               (tcp_skb_sent tcp-socket skb empty? order timer)))))
+        ;; acked
+        ((udp-id-bbr-acked)
+         (if (not inited?)
+             (uninited)
+           (let ((empty? (= (evolutionary-udp-data1 evolution n) 1.))
+                 (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
+                 (srtt (evolutionary-udp-data3 evolution n))
+                 (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+             (let ((info (ack-received bbr-state tcp-socket order srtt empty? timer #f)))
+               (when info
+                 (receive (skb data lost) info
+                   (tcp_ack tcp-socket skb lost srtt empty? timer #f))))))))))
+  
+  
+  ;; for tests
+  (method protected (present-bbr self)
+    @w
+    (tell
+      'inflight (table-length (get-inflight-buffers bbr-state))
+      'window (tcpsock-snd_cwnd-ref tcp-socket)
+      'pacing (bytes->mbps (tcpsock-inet_conn.icsk_inet.sk.sk_pacing_rate-ref tcp-socket))))))

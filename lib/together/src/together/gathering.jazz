@@ -5188,6 +5188,7 @@
         (define (setup-visualizer-panel panel)
           (set-replay panel replay)
           (set-tier panel tier)
+          (set-mode panel (if profile? 'upload 'stream))
           (setup-visualizer panel)
           (invalidate-view panel))
         

@@ -60,6 +60,7 @@
         (world.udp)
         (world.video)
         (together)
+        (together.bbr)
         (together.emulation)
         (together.zone))
 
@@ -85,6 +86,7 @@
   
   (slot replay                initialize #f  accessors generate)
   (slot tier                  initialize #f  accessors generate)
+  (slot mode                  initialize 'stream getter generate)
   (slot origin-audio          initialize #f  getter generate)
   (slot origin-video          initialize #f  getter generate)
   (slot origin-evolution      initialize #f  getter generate)
@@ -111,6 +113,7 @@
   (slot sender-emulator       initialize #f  getter generate)
   (slot server-emulator       initialize #f  getter generate)
   (slot receiver-emulator     initialize #f  getter generate)
+  (slot upload-emulator       initialize #f  getter generate)
   (slot now                   initialize #f  getter generate)
   (slot widgets               initialize (new Widgets) getter generate)
   (slot last-now              initialize #f  accessors generate)
@@ -126,12 +129,14 @@
           (<Video-Visualizer>    name: video    position: {Point 218 26} size: {Dimension 182 104})
           (<Sender-Visualizer>   name: sender   position: {Point 18 26} size: {Dimension 552 24})
           (<Server-Visualizer>   name: server   position: {Point 18 66} size: {Dimension 552 24})
-          (<Receiver-Visualizer> name: receiver position: {Point 18 106} size: {Dimension 552 24})))))
+          (<Receiver-Visualizer> name: receiver position: {Point 18 106} size: {Dimension 552 24}))
+        (<Upload-Visualizer>     name: upload))))
   
   
   (method override (conclude self initargs)
     (nextmethod self initargs)
     (set-panel (locate self 'stream) self)
+    (set-panel (locate self 'upload) self)
     (set-panel (locate self 'video) self)
     (set-panel (locate self 'sender) self)
     (set-panel (locate self 'server) self)
@@ -324,29 +329,37 @@
       (set! server-emulator #f))
     (when receiver-emulator
       (close receiver-emulator)
-      (set! receiver-emulator #f)))
+      (set! receiver-emulator #f))
+    (when upload-emulator
+      (close upload-emulator)
+      (set! upload-emulator #f)))
   
   
   ;; quicky to setup everything again
   (method protected (reset-emulators self)
     (close-emulators self)
-    (if (not origin)
-        (begin
-          (set! call #f)
-          (set! receiver-emulator #f))
-      (set! call (simulate-udp-call (get-metadatas replay)))
-      (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates stream-name channel-audio channel-video))
-      (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates stream-name channel-audio channel-video))
-      (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
-      (set-emulator (locate self 'sender) sender-emulator)
-      (set-emulator (locate self 'server) server-emulator)
-      (set-emulator (locate self 'receiver) receiver-emulator)
-      (set! last-now #f)))
+    (case mode
+      ((stream)
+       (if (not origin)
+           (begin
+             (set! call #f)
+             (set! receiver-emulator #f))
+         (set! call (simulate-udp-call (get-metadatas replay)))
+         (set! sender-emulator (new Sender-Emulator call origin origin origin-evolution audio-creates video-creates stream-name channel-audio channel-video))
+         (set! server-emulator (new Server-Emulator call server-no origin server-evolution audio-creates video-creates stream-name channel-audio channel-video))
+         (set! receiver-emulator (new Receiver-Emulator call tier origin origin-audio channel-audio-codec channel-audio-caps origin-video channel-video-codec channel-video-caps origin-evolution receiver-evolution audio-creates video-creates stream-name channel-audio channel-video))
+         (set-emulator (locate self 'sender) sender-emulator)
+         (set-emulator (locate self 'server) server-emulator)
+         (set-emulator (locate self 'receiver) receiver-emulator)
+         (set! last-now #f)))
+      (else
+       (set! upload-emulator (new Upload-Emulator receiver-evolution))
+       (set! last-now #f))))
   
   
   (method protected (visualize-time self time playing?)
     (parameterize ((emulation? #t))
-      (when (and origin (or (not now) (/= time now)))
+      (when (and (or origin (eq? mode 'upload)) (or (not now) (/= time now)))
         (emulate-time self time playing?)
         (set! now time)
         (invalidate-view self)
@@ -357,14 +370,22 @@
   
   (method protected (emulate-time self time playing?)
     (cond ((and last-now (> time last-now))
-           (emulate-from-last sender-emulator time playing?)
-           (emulate-from-last server-emulator time playing?)
-           (emulate-from-last receiver-emulator time playing?))
+           (if (eq? mode 'upload)
+               (begin
+                 (emulate-from-last upload-emulator time playing?)
+                 (bbr-updated upload-emulator))
+             (emulate-from-last sender-emulator time playing?)
+             (emulate-from-last server-emulator time playing?)
+             (emulate-from-last receiver-emulator time playing?)))
           (else
            (reset-emulators self)
-           (emulate sender-emulator time playing?)
-           (emulate server-emulator time playing?)
-           (emulate receiver-emulator time playing?)))
+           (if (eq? mode 'upload)
+               (begin
+                 (emulate upload-emulator time playing?)
+                 (bbr-updated upload-emulator))
+             (emulate sender-emulator time playing?)
+             (emulate server-emulator time playing?)
+             (emulate receiver-emulator time playing?))))
     (set! last-now time))
   
   
@@ -379,22 +400,26 @@
       (define (right-widget name title)
         (let ((extent (get-text-extent surface title)))
           (let ((h (- right (get-width extent))))
-            (let ((width (draw-text surface h 3 title timeline-text-color)))
-              (add-widget widgets name (new Rect (- right width) 0 right 22))))))
+            (let ((width (draw-text surface h 3 title visualizer-text-color)))
+              (add-widget widgets name (new Rect (- right width) 0 right 22))
+              (set! right (- h 20))))))
       
       (reset widgets)
-      (if (not origin)
-          (left-widget 'origin "<no stream found>")
-        (left-widget 'origin (format "{a}" (name-ref replay origin)))
-        (if (not stream-label)
-            (left-widget 'stream "<no channel found>")
-          (left-widget 'stream stream-label)
-          (left-widget 'media-kind (ecase media-kind
-                                     ((udp-audio) "audio" @debug (format "audio ({a})" channel-audio))
-                                     ((udp-video) "video" @debug (format "video ({a})" channel-video))))))
+      (when (eq? mode 'stream)
+        (if (not origin)
+            (left-widget 'origin "<no stream found>")
+          (left-widget 'origin (format "{a}" (name-ref replay origin)))
+          (if (not stream-label)
+              (left-widget 'stream "<no channel found>")
+            (left-widget 'stream stream-label)
+            (left-widget 'media-kind (ecase media-kind
+                                       ((udp-audio) "audio" @debug (format "audio ({a})" channel-audio))
+                                       ((udp-video) "video" @debug (format "video ({a})" channel-video)))))))
       (when selection-description
         (draw-text surface 335 3 selection-description visualizer-text-color))
-      (right-widget 'speed (format "{r precision: 1}x" visualizer-speed))))
+      (right-widget 'mode (if (eq? mode 'stream) "Stream" "Upload"))
+      (when (eq? mode 'stream)
+        (right-widget 'speed (format "{r precision: 1}x" visualizer-speed)))))
   
   
   (method protected (render-video self)
@@ -415,6 +440,21 @@
         (set-visualizer-end timeline end))
       (when (get-plot-latency? timeline)
         (redraw timeline))))
+  
+  
+  (method protected (set-mode self mode)
+    (set! self.mode mode)
+    (reset-emulators self)
+    (set-visible? (locate self 'stream) (eq? mode 'stream))
+    (set-visible? (locate self 'upload) (eq? mode 'upload))
+    (set-bbr-display-mode (if (eq? mode 'stream) 'full 'compact)))
+  
+  
+  (method protected (cycle-modes self reversed?)
+    (set-mode self (if (eq? mode 'stream) 'upload 'stream))
+    (when now
+      (visualize-time self now #f))
+    (invalidate-view self))
   
   
   (method protected (cycle-origins self reversed?)
@@ -486,14 +526,22 @@
 
 
 ;;;
+;;;; Visualizer
+;;;
+
+
+(class Visualizer extends View
+  
+  
+  (slot panel initialize #f accessors generate))
+
+
+;;;
 ;;;; Stream
 ;;;
 
 
-(class Stream-Visualizer extends View
-  
-  
-  (slot panel initialize #f accessors generate)
+(class Stream-Visualizer extends Visualizer
   
   
   (method override (size-change self size)
@@ -538,6 +586,8 @@
         ((speed)
          (when (get-shift? evt)
            (pp (table-values (get-metadatas (get-replay panel))))))
+        ((mode)
+         (cycle-modes panel (get-shift? evt)))
         (else
          (nextmethod self evt))))))
 
@@ -1006,4 +1056,25 @@
               (ring (if (= media-kind udp-audio)
                         (get-audio-ring emulator)
                       (get-video-ring emulator))))
-          (visualizer-click self h ring)))))))
+          (visualizer-click self h ring))))))
+
+
+;;;
+;;;; Upload
+;;;
+
+
+(class Upload-Visualizer extends Visualizer
+  
+  
+  (method override (draw self surface context)
+    (draw-bbr surface 15 15))
+  
+  
+  (method override (mouse-up self evt)
+    (let ((widget (find-widget (get-widgets panel) (acquire panel self (get-position evt)))))
+      (case widget
+        ((mode)
+         (cycle-modes panel (get-shift? evt)))
+        (else
+         (nextmethod self evt)))))))
