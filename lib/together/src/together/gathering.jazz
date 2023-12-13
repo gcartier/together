@@ -5139,7 +5139,7 @@
           (bind (name from to now) last-replay
             (let ((dir (new-directory {Directory Documents "replays"} name)))
               (if (exists? dir)
-                  (open-replay self dir from to now)
+                  (open-replay self dir from: from to: to now: now)
                 (bell))))
         (bell))))
   
@@ -5153,7 +5153,7 @@
               (bind (name from to now) last-replay
                 (let ((dir (new-directory {Directory Documents "replays"} name)))
                   (if (exists? dir)
-                      (open-replay self dir from to now)
+                      (open-replay self dir from: from to: to now: now)
                     (goto-replay self))))
             (goto-replay self))))))
   
@@ -5162,14 +5162,14 @@
     (goto-space self 'replay))
   
   
-  (method (open-replay self dir (from #f) (to #f) (now #f))
+  (method (open-replay self dir (profile?: profile? #f) (from: from #f) (to: to #f) (now: now #f))
     (let ((replay (load-replay dir)))
-      (view-replay self replay from to now)
+      (view-replay self replay profile?: profile? from: from to: to now: now)
       (set-setting options-settings 'world.last-replay (list (get-name dir) (get-from replay) (get-to replay) (get-now replay)))
       (save-content options-settings)))
   
   
-  (method protected (view-replay self replay (from #f) (to #f) (now #f))
+  (method protected (view-replay self replay (profile?: profile? #f) (from: from #f) (to: to #f) (now: now #f))
     (let ((title (get-title replay))
           (tier (get-tier replay))
           (names (get-names replay))
