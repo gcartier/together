@@ -528,12 +528,11 @@
              (uninited)
            (let ((empty? (= (evolutionary-udp-data1 evolution n) 1.))
                  (order (flonum->fixnum (evolutionary-udp-data2 evolution n)))
-                 (srtt (evolutionary-udp-data3 evolution n))
-                 (timer (flonum->timestamp (evolutionary-udp-data4 evolution n))))
+                 (timer (flonum->timestamp (evolutionary-udp-data3 evolution n))))
              (let ((info (ack-received bbr-state tcp-socket order #f)))
                (when info
                  (receive (skb data lost) info
-                   (tcp_ack tcp-socket skb lost srtt empty? timer #f))))))))))
+                   (tcp_ack tcp-socket skb lost empty? timer #f))))))))))
   
   
   ;; for tests

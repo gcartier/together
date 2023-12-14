@@ -476,7 +476,6 @@
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media-ack
             (let ((order (read-profile-media-ack-order data))
-                  (srtt (get-round-trip-rate (get-profile-statistics udp)))
                   (empty? #f)
                   (timer (current-monotonic-nanoseconds)))
               (let ((info (ack-received state socket order #t)))
@@ -486,13 +485,13 @@
                               -1.
                               (if empty? 1. 0.)
                               (fixnum->flonum order)
-                              srtt
-                              (timestamp->flonum timer))
+                              (timestamp->flonum timer)
+                              -1.)
                 (when info
                   (receive (skb data lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
-                    (let ((app-limited? (tcp_ack socket skb lost srtt empty? timer rate-info)))
+                    (let ((app-limited? (tcp_ack socket skb lost empty? timer rate-info)))
                       (free_skbuff skb)
                       (bbr-updated)
                       (record-state state socket order)
