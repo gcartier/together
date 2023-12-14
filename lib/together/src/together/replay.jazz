@@ -68,7 +68,8 @@
         (set-to replay to)
         (when now
           (set-now replay now))
-        (set-highlighted-cells replay '())
+        (when update-evolution?
+          (set-highlighted-cells replay '()))
         (when now
           (let ((visualizer (child root 'visualizer)))
             (visualize-time visualizer now playing?))
