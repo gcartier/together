@@ -184,7 +184,18 @@
                     (let ((value (vector-ref user-data col)))
                       (set-now timeline value)
                       (redraw timeline)
-                      (now-update timeline))))))))))))
+                      (now-update timeline #f)
+                      (let ((now-row (get-now-row panel)))
+                        (when now-row
+                          (let ((line (row->line tree now-row))
+                                (data (get-child now-row 0)))
+                            (let ((cell (new Cell line 0)))
+                              (set-color data {Color World-Red})
+                              (invalidate-cell tree cell)))))
+                      (let ((data (get-cell-data tree cell)))
+                        (set-color data {Color Light-Gray})
+                        (invalidate-cell tree cell)
+                        (set-now-row panel row)))))))))))))
 
 
 @wait-old-behavior-of-highlighting
@@ -991,9 +1002,9 @@
       (timeline-view/now-update root from to #f)))
   
   
-  (method override (now-update self)
+  (method override (now-update self (update-evolution? #t))
     (let ((root parent))
-      (let ((update-evolution? (and (not visualize?) (not full-mode?))))
+      (let ((update-evolution? (and update-evolution? (not visualize?) (not full-mode?))))
         (timeline-view/now-update root from to now update-evolution? playing?)))))
 
 
