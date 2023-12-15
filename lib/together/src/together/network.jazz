@@ -527,7 +527,7 @@
         (update send-rate (u8vector-length data))
         (parameterize ((simulation-evolution (get-profile-evolution udp)))
           (with-record profile-media
-            (let ((sent (current-seconds))
+            (let ((sent (current-monotonic))
                   (order (read-profile-media-order data)))
               (receive (skb segs) (packet-sent state sent order data)
                 (let ((empty? #f)
@@ -589,7 +589,7 @@
         (bbr-updated)))
     
     (define (wait next-delivery-time)
-      (sleep (- next-delivery-time (current-seconds))))
+      (sleep (- next-delivery-time (current-monotonic))))
     
     (define (pace size)
       (/ (cast <fl> size) (or pacing_rate-override (tcp_pacing_rate socket))))
@@ -598,13 +598,13 @@
       @w (terminal-string str))
     
     (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size)))
-      (let (loop (next-delivery-time (current-seconds)))
+      (let (loop (next-delivery-time (current-monotonic)))
         (unless (get-done? panel)
           (mutex-lock! mutex)
           (cond ;; exceeding congestion window
                 ((> (+ (tcp_packets_in_flight socket) 1) (or snd_cwnd-override (tcp_snd_cwnd socket)))
                  (tcp_set_is_cwnd_limited socket #t)
-                 (let ((now (current-seconds)))
+                 (let ((now (current-monotonic)))
                    (cond ;; send pulse
                          ((>= now (+ (get-last-sent-time state) .1))
                           (show "@")
@@ -624,7 +624,7 @@
                  (show ">")
                  (wait next-delivery-time)
                  (send-packet)
-                 (let ((now (current-seconds)))
+                 (let ((now (current-monotonic)))
                    (let ((pace (pace payload-size)))
                      (let ((next (+ next-delivery-time pace))
                            ;; never send faster locally than pace / 2
