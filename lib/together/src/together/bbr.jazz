@@ -203,7 +203,7 @@
            @tlp (draw-property 'tcp "tlp_orig_data_app_limited" (tcpsock-tlp_orig_data_app_limited-ref sk))
            (draw-property 'tcp "is_cwnd_limited" (tcpsock-is_cwnd_limited-ref sk))
            @tcp (draw-property 'tcp "tcp_wstamp_ns" (tcpsock-tcp_wstamp_ns-ref sk))
-           (draw-property 'tcp "tcp_clock_cache" (tcpsock-tcp_clock_cache-ref sk))
+           @tcp (draw-property 'tcp "tcp_clock_cache" (tcpsock-tcp_clock_cache-ref sk))
            (draw-property 'tcp "tcp_mstamp" (tcpsock-tcp_mstamp-ref sk))
            (draw-property 'tcp "srtt_us" (tcpsock-srtt_us-ref sk) 'us)
            (draw-property 'tcp "rtt_min" (tcp_min_rtt sk) 'us)
