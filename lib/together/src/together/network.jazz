@@ -649,4 +649,4 @@
 (hub close-main-menu2)
 (definition protected (profile-network)
   (close-main-menu2 (current-world))
-  (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" duration: 10)))
+  (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" duration: 15)))
