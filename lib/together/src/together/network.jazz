@@ -457,7 +457,7 @@
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
-        (let ((base (current-monotonic-nanoseconds))
+        (let ((base (current-monotonic-jiffies))
               (frequency (current-monotonic-frequency)))
           (tcp_init socket udp-mss base frequency)
           (bbr_init socket)
@@ -477,7 +477,7 @@
           (with-record profile-media-ack
             (let ((order (read-profile-media-ack-order data))
                   (empty? #f)
-                  (timer (current-monotonic-nanoseconds)))
+                  (timer (current-monotonic-jiffies)))
               (let ((info (ack-received state socket order #t)))
                 (record-event udp-id-bbr-acked
                               -1.
@@ -531,7 +531,7 @@
                   (order (read-profile-media-order data)))
               (receive (skb segs) (packet-sent state sent order data)
                 (let ((empty? #f)
-                      (timer (current-monotonic-nanoseconds)))
+                      (timer (current-monotonic-jiffies)))
                   (tcp_skb_sent socket skb empty? order timer)
                   (record-event udp-id-bbr-sent
                                 -1.
@@ -568,7 +568,7 @@
             (let ((order (read-profile-media-pulse-order data)))
               (receive (skb segs) (packet-sent state sent order data)
                 (let ((empty? #f)
-                      (timer (current-monotonic-nanoseconds)))
+                      (timer (current-monotonic-jiffies)))
                   (tcp_skb_sent socket skb empty? order timer)
                   (record-event udp-id-bbr-pulsed
                                 -1.
