@@ -152,7 +152,7 @@
       (plot-callback surface))))
 
 
-(definition protected (profile-run name setup sender pacer (title: title "Profile") (duration: duration #f))
+(definition protected (profile-run name setup sender pacer (title: title "Profile") (parameters: parameters '()) (duration: duration #f) (duration-done: duration-done #f))
   (let ((interface (current-interface))
         (client (current-client))
         (udp (current-udp))
@@ -176,7 +176,7 @@
       (set-chronology panel (get-profile-chronology udp))
       (set-evolution panel (get-profile-evolution udp))
       (layout-view interface)
-      (receive (user-data user-cleanup) (if setup (setup panel) (values #f #f))
+      (receive (user-data user-cleanup) (if setup (setup panel parameters) (values #f #f))
         (let ((pulse-thread
                 (new-thread
                   (lambda ()
@@ -250,7 +250,7 @@
                                    (lambda ()
                                      (with-task-mutex
                                        (lambda ()
-                                         (snapshot-profile title: "Test")))))
+                                         (snapshot-profile title: "Test" proc: duration-done)))))
                                (unless (= n duration)
                                  (with-task-mutex
                                    (lambda ()
@@ -303,18 +303,20 @@
           (view-replay-directory dir))))))
 
 
-(definition protected (snapshot-profile (title: title "Profile"))
+(definition protected (snapshot-profile (title: title "Profile") (proc: proc #f))
   (let ((client (current-client))
         (world (current-world)))
     (receive (server-profile client-profile) (retrieve-profiles client)
       (terminate-profile)
-      (let ((dir {Directory Settings "work" "profiles"})
-            (timestamp (path-timestamp)))
-        (let ((server-file (new-file dir (format "_server_{a}.replay" timestamp)))
-              (client-file (new-file dir (format "{a}_{a}.replay" (get-character-name client) timestamp))))
-          (create-directories dir)
-          (save-binary server-file server-profile)
-          (save-binary client-file client-profile)))
+      (if proc
+          (proc server-profile client-profile)
+        (let ((dir {Directory Settings "work" "profiles"})
+              (timestamp (path-timestamp)))
+          (let ((server-file (new-file dir (format "_server_{a}.replay" timestamp)))
+                (client-file (new-file dir (format "{a}_{a}.replay" (get-character-name client) timestamp))))
+            (create-directories dir)
+            (save-binary server-file server-profile)
+            (save-binary client-file client-profile))))
       (display-feedback (format "{a} done" title)))))
 
 
@@ -372,7 +374,7 @@
 ;;;
 
 
-(definition (setup-bbr panel)
+(definition (setup-bbr panel parameters)
   (let ((udp (current-udp))
         (mutex (make-mutex 'bbr))
         (state (new BBR-State))
@@ -404,7 +406,7 @@
       (set-plot-latency? panel #f)
       (set-upload-info state socket 'N/A 'N/A moving-rate skbuff-info skbcb-info rate-info bbr-info bbrinfo-info get-bbr-update statistics)
       (bbr-updated)
-      (values (list udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload)
+      (values (list parameters udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload)
         (lambda ()
           (free_tcpsock socket)
           (free_skbuff skbuff-info)
@@ -416,7 +418,7 @@
 
 (definition (send-bbr panel setup-pulse wait queue user-data)
   (declare (proper-tail-calls))
-  (bind (udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
+  (bind (parameters udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
     (let ((world (current-world)))
       (define (media-ack-received data)
         (mutex-lock! mutex)
@@ -524,122 +526,140 @@
 
 (definition (pace-bbr panel queue user-data)
   (declare (proper-tail-calls))
-  (bind (udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
-    (define (send-packet)
-      (let ((data (send-profile-media udp payload)))
-        (update local-rate (u8vector-length data))
-        (update moving-rate (u8vector-length data))
-        (parameterize ((simulation-evolution (get-profile-evolution udp)))
-          (with-record profile-media
-            (let ((sent (current-monotonic))
-                  (order (read-profile-media-order data)))
-              (receive (skb segs) (packet-sent state sent order data)
-                (let ((empty? #f)
-                      (timer (current-monotonic-jiffies)))
-                  (tcp_skb_sent socket skb empty? order timer)
-                  (record-event udp-id-bbr-sent
+  (bind (parameters udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
+    (bind-keywords ((dummy? #f) (window #f) (pacing #f)) parameters
+      (let ()
+        (define (send-packet)
+          (let ((data (send-profile-media udp payload)))
+            (update local-rate (u8vector-length data))
+            (update moving-rate (u8vector-length data))
+            (parameterize ((simulation-evolution (get-profile-evolution udp)))
+              (with-record profile-media
+                (let ((sent (current-monotonic))
+                      (order (read-profile-media-order data)))
+                  (receive (skb segs) (packet-sent state sent order data)
+                    (let ((empty? #f)
+                          (timer (current-monotonic-jiffies)))
+                      (tcp_skb_sent socket skb empty? order timer)
+                      (record-event udp-id-bbr-sent
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum segs)
+                                    (fixnum->flonum order)
+                                    (if empty? 1. 0.)
+                                    (timestamp->flonum timer))))
+                  (with-record media
+                    (record-event udp-id-bbr-media
+                                  -1.
+                                  -1.
+                                  -1.
+                                  -1.
+                                  (fixnum->flonum order)
+                                  -1.
+                                  -1.))
+                  (record-event udp-id-send-rate
                                 -1.
                                 -1.
                                 -1.
-                                (fixnum->flonum segs)
+                                -1.
                                 (fixnum->flonum order)
-                                (if empty? 1. 0.)
-                                (timestamp->flonum timer))))
-              (with-record media
-                (record-event udp-id-bbr-media
-                              -1.
-                              -1.
-                              -1.
-                              -1.
-                              (fixnum->flonum order)
-                              -1.
-                              -1.))
+                                (bytes->mbps (get-average moving-rate))
+                                -1.))))
+            (bbr-updated)))
+        
+        (define (send-pulse sent)
+          (let ((data (send-profile-media-pulse udp)))
+            (update local-rate (u8vector-length data))
+            (update moving-rate (u8vector-length data))
+            (parameterize ((simulation-evolution (get-profile-evolution udp)))
+              (with-record profile-media-pulse
+                (let ((order (read-profile-media-pulse-order data)))
+                  (receive (skb segs) (packet-sent state sent order data)
+                    (let ((empty? #f)
+                          (timer (current-monotonic-jiffies)))
+                      (tcp_skb_sent socket skb empty? order timer)
+                      (record-event udp-id-bbr-pulsed
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum segs)
+                                    (fixnum->flonum order)
+                                    (if empty? 1. 0.)
+                                    (timestamp->flonum timer))))
+                  (record-event udp-id-bbr-pulse
+                                -1.
+                                -1.
+                                -1.
+                                -1.
+                                (fixnum->flonum order)
+                                -1.
+                                -1.))))
+            (bbr-updated)))
+        
+        (define (send-dummy)
+          (let ((data (send-profile-dummy udp payload)))
+            (update local-rate (u8vector-length data))
+            (update moving-rate (u8vector-length data))
+            (parameterize ((simulation-evolution (get-profile-evolution udp)))
               (record-event udp-id-send-rate
                             -1.
                             -1.
                             -1.
                             -1.
-                            (fixnum->flonum order)
+                            -1.
                             (bytes->mbps (get-average moving-rate))
                             -1.))))
-        (bbr-updated)))
-    
-    (define (send-pulse sent)
-      (let ((data (send-profile-media-pulse udp)))
-        (update local-rate (u8vector-length data))
-        (update moving-rate (u8vector-length data))
-        (parameterize ((simulation-evolution (get-profile-evolution udp)))
-          (with-record profile-media-pulse
-            (let ((order (read-profile-media-pulse-order data)))
-              (receive (skb segs) (packet-sent state sent order data)
-                (let ((empty? #f)
-                      (timer (current-monotonic-jiffies)))
-                  (tcp_skb_sent socket skb empty? order timer)
-                  (record-event udp-id-bbr-pulsed
-                                -1.
-                                -1.
-                                -1.
-                                (fixnum->flonum segs)
-                                (fixnum->flonum order)
-                                (if empty? 1. 0.)
-                                (timestamp->flonum timer))))
-              (record-event udp-id-bbr-pulse
-                            -1.
-                            -1.
-                            -1.
-                            -1.
-                            (fixnum->flonum order)
-                            -1.
-                            -1.))))
-        (bbr-updated)))
-    
-    (define (wait local-delivery-time)
-      (sleep (- local-delivery-time (current-monotonic))))
-    
-    (define (pace size)
-      (/ (cast <fl> size) (or pacing_rate-override (tcp_pacing_rate socket))))
-    
-    (define (show str)
-      @w (terminal-string str))
-    
-    (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size))
-          (now (current-monotonic)))
-      (let (loop (local-delivery-time now) (next-delivery-time now))
-        (unless (get-done? panel)
-          (mutex-lock! mutex)
-          (set-box! behind (- local-delivery-time next-delivery-time))
-          (cond ;; exceeding congestion window
-                ((> (+ (tcp_packets_in_flight socket) 1) (or snd_cwnd-override (tcp_snd_cwnd socket)))
-                 (tcp_set_is_cwnd_limited socket #t)
-                 (let ((now (current-monotonic)))
-                   (cond ;; send pulse
-                         ((>= now (+ (get-last-sent-time state) .1))
-                          (show "@")
-                          (wait local-delivery-time)
-                          (send-pulse now)
-                          (mutex-unlock! mutex)
-                          (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001)))
-                         ;; do nothing
-                         (else
-                          (show "$")
-                          (wait local-delivery-time)
-                          (mutex-unlock! mutex)
-                          (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001))))))
-                ;; send packet
-                (else
-                 (tcp_set_is_cwnd_limited socket #f)
-                 (show ">")
-                 (wait local-delivery-time)
-                 (send-packet)
-                 (let ((now (current-monotonic)))
-                   (let ((pace (pace payload-size)))
-                     (let ((next (+ next-delivery-time pace))
-                           ;; never send faster locally than pace / 2
-                           (smallest-next (+ now (/ pace 2.))))
-                       (let ((local-delivery-time (max next smallest-next))
-                             (next-delivery-time (+ next-delivery-time pace)))
-                         (mutex-unlock! mutex)
-                         (loop local-delivery-time next-delivery-time))))))))))))
+        
+        (define (wait local-delivery-time)
+          (sleep (- local-delivery-time (current-monotonic))))
+        
+        (define (pace size)
+          (/ (cast <fl> size) (or pacing pacing_rate-override (tcp_pacing_rate socket))))
+        
+        (define (show str)
+          @w (terminal-string str))
+        
+        (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size))
+              (now (current-monotonic)))
+          (let (loop (local-delivery-time now) (next-delivery-time now))
+            (unless (get-done? panel)
+              (mutex-lock! mutex)
+              (set-box! behind (- local-delivery-time next-delivery-time))
+              (cond ;; exceeding congestion window
+                    ((and (not dummy?) (> (+ (tcp_packets_in_flight socket) 1) (or window snd_cwnd-override (tcp_snd_cwnd socket))))
+                     (tcp_set_is_cwnd_limited socket #t)
+                     (let ((now (current-monotonic)))
+                       (cond ;; send pulse
+                             ((>= now (+ (get-last-sent-time state) .1))
+                              (show "@")
+                              (wait local-delivery-time)
+                              (send-pulse now)
+                              (mutex-unlock! mutex)
+                              (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001)))
+                             ;; do nothing
+                             (else
+                              (show "$")
+                              (wait local-delivery-time)
+                              (mutex-unlock! mutex)
+                              (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001))))))
+                    ;; send packet
+                    (else
+                     (tcp_set_is_cwnd_limited socket #f)
+                     (show ">")
+                     (wait local-delivery-time)
+                     (if dummy?
+                         (send-dummy)
+                       (send-packet))
+                     (let ((now (current-monotonic)))
+                       (let ((pace (pace payload-size)))
+                         (let ((next (+ next-delivery-time pace))
+                               ;; never send faster locally than pace / 2
+                               (smallest-next (+ now (/ pace 2.))))
+                           (let ((local-delivery-time (max next smallest-next))
+                                 (next-delivery-time (+ next-delivery-time pace)))
+                             (mutex-unlock! mutex)
+                             (loop local-delivery-time next-delivery-time))))))))))))))
 
 
 (proclaim (not warn optimizations))
@@ -655,6 +675,6 @@
 
 
 (hub close-main-menu2)
-(definition protected (profile-network)
+(definition protected (profile-network (parameters: parameters '()) (duration: duration #f) (duration-done: duration-done #f))
   (close-main-menu2 (current-world))
-  (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" duration: 15)))
+  (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" parameters: parameters duration: (or duration 15) duration-done: duration-done)))
