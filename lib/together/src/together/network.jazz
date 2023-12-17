@@ -592,8 +592,8 @@
                             -1.))))
         (bbr-updated)))
     
-    (define (wait next-delivery-time)
-      (sleep (- next-delivery-time (current-monotonic))))
+    (define (wait local-delivery-time)
+      (sleep (- local-delivery-time (current-monotonic))))
     
     (define (pace size)
       (/ (cast <fl> size) (or pacing_rate-override (tcp_pacing_rate socket))))
@@ -601,8 +601,9 @@
     (define (show str)
       @w (terminal-string str))
     
-    (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size)))
-      (let (loop (next-delivery-time (current-monotonic)))
+    (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size))
+          (now (current-monotonic)))
+      (let (loop (local-delivery-time now) (next-delivery-time now))
         (unless (get-done? panel)
           (mutex-lock! mutex)
           (cond ;; exceeding congestion window
@@ -612,30 +613,31 @@
                    (cond ;; send pulse
                          ((>= now (+ (get-last-sent-time state) .1))
                           (show "@")
-                          (wait next-delivery-time)
+                          (wait local-delivery-time)
                           (send-pulse now)
                           (mutex-unlock! mutex)
-                          (loop (+ next-delivery-time .0001)))
+                          (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001)))
                          ;; do nothing
                          (else
                           (show "$")
-                          (wait next-delivery-time)
+                          (wait local-delivery-time)
                           (mutex-unlock! mutex)
-                          (loop (+ next-delivery-time .0001))))))
+                          (loop (+ local-delivery-time .0001) (+ next-delivery-time .0001))))))
                 ;; send packet
                 (else
                  (tcp_set_is_cwnd_limited socket #f)
                  (show ">")
-                 (wait next-delivery-time)
+                 (wait local-delivery-time)
                  (send-packet)
                  (let ((now (current-monotonic)))
                    (let ((pace (pace payload-size)))
                      (let ((next (+ next-delivery-time pace))
                            ;; never send faster locally than pace / 2
                            (smallest-next (+ now (/ pace 2.))))
-                       (let ((next-delivery-time (max next smallest-next)))
+                       (let ((local-delivery-time (max next smallest-next))
+                             (next-delivery-time (+ next-delivery-time pace)))
                          (mutex-unlock! mutex)
-                         (loop next-delivery-time))))))))))))
+                         (loop local-delivery-time next-delivery-time))))))))))))
 
 
 (proclaim (not warn optimizations))
