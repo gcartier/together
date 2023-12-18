@@ -527,10 +527,11 @@
 (definition (pace-bbr panel queue user-data)
   (declare (proper-tail-calls))
   (bind (parameters udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
-    (bind-keywords ((window #f) (pacing #f) (speedup #f) (dummy? #f)) parameters
+    (bind-keywords ((window #f) (pacing #f) (speedup #f) (size #f) (dummy? #f)) parameters
       (let ((window (if (unspecified? window) #f window))
             (pacing (if (unspecified? pacing) #f (mbps->bytes pacing)))
             (speedup (if (unspecified? speedup) 2. (exact->inexact speedup)))
+            (dummy-payload (make-u8vector (- (if (unspecified? size) 1404 size) (recordsize profile-dummy) udp-code-size)))
             (dummy? (if (unspecified? dummy?) #f dummy?)))
         (define (send-packet)
           (let ((data (send-profile-media udp payload)))
@@ -601,7 +602,7 @@
             (bbr-updated)))
         
         (define (send-dummy)
-          (let ((data (send-profile-dummy udp payload)))
+          (let ((data (send-profile-dummy udp dummy-payload)))
             (update local-rate (u8vector-length data))
             (update moving-rate (u8vector-length data))
             (parameterize ((simulation-evolution (get-profile-evolution udp)))
