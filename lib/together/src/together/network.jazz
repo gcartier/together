@@ -527,8 +527,11 @@
 (definition (pace-bbr panel queue user-data)
   (declare (proper-tail-calls))
   (bind (parameters udp mutex state socket skbuff-info skbcb-info rate-info bbr-info bbrinfo-info bbr-updated local-rate moving-rate behind payload) user-data
-    (bind-keywords ((dummy? #f) (window #f) (pacing #f)) parameters
-      (let ()
+    (bind-keywords ((window #f) (pacing #f) (speedup #f) (dummy? #f)) parameters
+      (let ((window (if (unspecified? window) #f window))
+            (pacing (if (unspecified? pacing) #f (mbps->bytes pacing)))
+            (speedup (if (unspecified? speedup) 2. speedup))
+            (dummy? (if (unspecified? dummy?) #f dummy?)))
         (define (send-packet)
           (let ((data (send-profile-media udp payload)))
             (update local-rate (u8vector-length data))
@@ -651,15 +654,17 @@
                      (if dummy?
                          (send-dummy)
                        (send-packet))
-                     (let ((now (current-monotonic)))
-                       (let ((pace (pace payload-size)))
-                         (let ((next (+ next-delivery-time pace))
-                               ;; never send faster locally than pace / 2
-                               (smallest-next (+ now (/ pace 2.))))
-                           (let ((local-delivery-time (max next smallest-next))
-                                 (next-delivery-time (+ next-delivery-time pace)))
-                             (mutex-unlock! mutex)
-                             (loop local-delivery-time next-delivery-time))))))))))))))
+                     (let ((pace (pace payload-size)))
+                       (let ((next (+ next-delivery-time pace)))
+                         (if (= speedup -1.)
+                             (begin
+                               (mutex-unlock! mutex)
+                               (loop next next))
+                           ;; never send faster locally than pace / speedup
+                           (let ((smallest-local (+ (current-monotonic) (/ pace speedup))))
+                             (let ((local-delivery-time (max next smallest-local)))
+                               (mutex-unlock! mutex)
+                               (loop local-delivery-time next)))))))))))))))
 
 
 (proclaim (not warn optimizations))
