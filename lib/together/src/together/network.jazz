@@ -605,6 +605,16 @@
             (update local-rate (u8vector-length data))
             (update moving-rate (u8vector-length data))
             (parameterize ((simulation-evolution (get-profile-evolution udp)))
+              (with-record profile-dummy
+                (let ((order (read-profile-dummy-order data)))
+                  (record-event udp-id-dummy-send
+                                -1.
+                                -1.
+                                -1.
+                                -1.
+                                (fixnum->flonum order)
+                                -1.
+                                -1.)))
               (record-event udp-id-send-rate
                             -1.
                             -1.
