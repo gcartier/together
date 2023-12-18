@@ -530,7 +530,7 @@
     (bind-keywords ((window #f) (pacing #f) (speedup #f) (dummy? #f)) parameters
       (let ((window (if (unspecified? window) #f window))
             (pacing (if (unspecified? pacing) #f (mbps->bytes pacing)))
-            (speedup (if (unspecified? speedup) 2. speedup))
+            (speedup (if (unspecified? speedup) 2. (exact->inexact speedup)))
             (dummy? (if (unspecified? dummy?) #f dummy?)))
         (define (send-packet)
           (let ((data (send-profile-media udp payload)))
