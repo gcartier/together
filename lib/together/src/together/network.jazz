@@ -453,12 +453,12 @@
                 (smoothed-rtt (get-round-trip-rate statistics))
                 (cwnd (or snd_cwnd-override (tcp_snd_cwnd socket)))
                 (pacing-rate (or pacing_rate-override (tcp_pacing_rate socket)))
-                (local-rate (get-average local-rate))
-                (moving-rate (get-average moving-rate))
+                (local-rate (average-mbps local-rate))
+                (moving-rate (average-mbps moving-rate))
                 (upload-drop (get-upload-drop statistics))
                 (limited? (ratesample-is_app_limited-ref rate-info)))
             (when upload-drop
-              (let ((title (format "MinRTT: {r precision: 3}s, RTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Local: {r precision: 1}Mbps, Moving: {r precision: 1}Mbps, Behind: {r precision: 3}s, Drop: {r precision: 1}%, Limited: {a}" min-rtt smoothed-rtt cwnd (bytes->mbps pacing-rate) (bytes->mbps local-rate) (bytes->mbps moving-rate) (unbox behind) upload-drop (if limited? "true" "false"))))
+              (let ((title (format "MinRTT: {r precision: 3}s, RTT: {r precision: 3}s, CWnd {a}, Pacing: {r precision: 1}Mbps, Local: {r precision: 1}Mbps, Moving: {r precision: 1}Mbps, Behind: {r precision: 3}s, Drop: {r precision: 1}%, Limited: {a}" min-rtt smoothed-rtt cwnd (bytes->mbps pacing-rate) local-rate moving-rate (unbox behind) upload-drop (if limited? "true" "false"))))
                 (draw-text surface 5 3 title {Color Light-Gray}))))))
       
       (define (init-bbr)
@@ -568,7 +568,7 @@
                                 -1.
                                 -1.
                                 (fixnum->flonum order)
-                                (bytes->mbps (get-average moving-rate))
+                                (average-mbps moving-rate)
                                 -1.))))
             (bbr-updated)))
         
@@ -622,7 +622,7 @@
                                 -1.
                                 -1.
                                 (fixnum->flonum order)
-                                (bytes->mbps (get-average moving-rate))
+                                (average-mbps moving-rate)
                                 -1.))))))
         
         (define (wait local-delivery-time)
