@@ -634,7 +634,7 @@
         (define (show str)
           @w (terminal-string str))
         
-        (let ((payload-size (+ (calculate-profile-media-size payload) udp-code-size))
+        (let ((payload-size (+ (calculate-profile-media-size (if dummy? dummy-payload payload)) udp-code-size))
               (now (current-monotonic)))
           (let (loop (local-delivery-time now) (next-delivery-time now))
             (unless (get-done? panel)
