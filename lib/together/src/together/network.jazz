@@ -181,7 +181,7 @@
                 (new-thread
                   (lambda ()
                     (declare (proper-tail-calls))
-                    (let (loop (n 0))
+                    (let (loop (n 1))
                       (let ((data (send-profile-pulse udp)))
                         (when pulse-sent
                           (pulse-sent data)))
@@ -192,7 +192,7 @@
                 (new-thread
                   (lambda ()
                     (declare (proper-tail-calls))
-                    (let (loop (n 0))
+                    (let (loop (n 1))
                       (delay-event
                         (lambda ()
                           (with-task-mutex
