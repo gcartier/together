@@ -364,8 +364,8 @@
         (set! now time)
         (invalidate-view self)
         ;; for tests
-        (when sender-emulator
-          (present-bbr sender-emulator)))))
+        (when upload-emulator
+          (present-bbr upload-emulator)))))
   
   
   (method protected (emulate-time self time playing?)
