@@ -174,7 +174,7 @@
           (<Combo-Option>   name: scale-option                                position: {Point 140 80} size: {Dimension 250 19} visible?: #f option: scale)
           (<Boolean-Option> name: multisampling-option title: "Multisampling" position: {Point 0 160} size: {Dimension 250 16} option: multisampling)
           (<Boolean-Option> name: hardware-option      title: "Hardware Acceleration" position: {Point 0 170} size: {Dimension 300 16} visible?: #f option: hardware)
-          (<Boolean-Option> name: mfvideosrc-option    title: "Use MFVideoSrc (experimental camera improvement)" position: {Point 0 170} size: {Dimension 320 15} visible?: #f option: mfvideosrc)))))
+          (<Boolean-Option> name: ksvideosrc-option    title: "Use KSVideoSrc (try if camera is not working)" position: {Point 0 170} size: {Dimension 320 15} visible?: #f option: ksvideosrc)))))
   
   
   (method override (install self rest)
@@ -192,7 +192,7 @@
        (set-visible? (locate self 'scale-label) #t)
        (set-visible? (locate self 'scale-option) #t)
        (set-position (locate self 'multisampling-option) {Point 0 140})
-       (set-visible? (locate self 'mfvideosrc-option) #t))
+       (set-visible? (locate self 'ksvideosrc-option) #t))
       (else)))
   
   
@@ -238,8 +238,8 @@
                             (list 2. "200%")))
              (choice (world-setting 'world.application-scale 1.)))
          (values choices choice)))
-      ((mfvideosrc)
-       (world-setting 'world.camera-mfvideosrc? #f))
+      ((ksvideosrc)
+       (world-setting 'world.camera-ksvideosrc? #f))
       ((hardware)
        (world-setting 'world.video-hardware? #f))))
   
@@ -266,9 +266,9 @@
        (set-setting options-settings 'world.application-scale value)
        (save-content options-settings)
        (need-restart))
-      ((mfvideosrc)
-       (update-camera-mfvideosrc? (current-client) value)
-       (set-setting options-settings 'world.camera-mfvideosrc? value)
+      ((ksvideosrc)
+       (update-camera-ksvideosrc? (current-client) value)
+       (set-setting options-settings 'world.camera-ksvideosrc? value)
        (save-content options-settings))
       ((hardware)
        (set-video-hardware? value)
