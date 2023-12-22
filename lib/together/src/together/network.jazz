@@ -483,7 +483,7 @@
             (let ((order (read-profile-media-ack-order data))
                   (empty? #f)
                   (timer (current-monotonic-jiffies)))
-              (let ((info (ack-received state socket order #t)))
+              (let ((info (ack-received state socket order)))
                 (record-event udp-id-bbr-acked
                               -1.
                               -1.
