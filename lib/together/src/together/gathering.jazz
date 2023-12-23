@@ -3596,13 +3596,12 @@
             (with-bin-mutex
               (lambda ()
                 (let ((threads (and (neq? show-media 'bbr) (current-process-threads))))
-                  (cond-expand
-                    (mac
-                     (when threads
-                       (receive (main gstreamer other) (process-threads-cpu threads)
-                         (let ((total (+ main gstreamer other)))
-                           (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red})))))
-                    (else))
+                  (when threads
+                    (receive (main gstreamer other) (process-threads-cpu threads)
+                      (let ((total (+ main gstreamer other)))
+                        (cond-expand
+                          (windows (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (other)" (* total 100.) (* main 100.) (* other 100.)) {Color World-Red}))
+                          (else (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red}))))))
                   (case show-media
                     ((energy)
                      (cond-expand
