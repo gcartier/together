@@ -165,10 +165,10 @@
       (<caption~>                                      title: "Video Options")
       (<content~>                                                             layout-type: center
         (<View>                                                               size: {Dimension 390 184}
-          (<Option-Label>                              title: "Quality"       position: {Point 0 1})
-          (<Combo-Option>                                                     position: {Point 140 0} size: {Dimension 250 19} option: quality)
-          (<Option-Label>   name: camera-label         title: "Camera"        position: {Point 0 51})
-          (<Combo-Option>   name: camera-option                               position: {Point 140 50} size: {Dimension 250 19} option: camera)
+          (<Option-Label>   name: camera-label         title: "Camera"        position: {Point 0 1})
+          (<Combo-Option>   name: camera-option                               position: {Point 140 0} size: {Dimension 250 19} option: camera)
+          (<Option-Label>                              title: "Video Quality" position: {Point 0 51})
+          (<Combo-Option>                                                     position: {Point 140 50} size: {Dimension 250 19} option: quality)
           (<Boolean-Option> name: retina-option        title: "Retina"        position: {Point 0 110} size: {Dimension 250 16} visible?: #f option: retina)
           (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 81} visible?: #f)
           (<Combo-Option>   name: scale-option                                position: {Point 140 80} size: {Dimension 250 19} visible?: #f option: scale)
