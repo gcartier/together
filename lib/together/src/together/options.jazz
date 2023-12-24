@@ -167,8 +167,8 @@
         (<View>                                                               size: {Dimension 390 184}
           (<Option-Label>   name: camera-label         title: "Camera"        position: {Point 0 1})
           (<Combo-Option>   name: camera-option                               position: {Point 140 0} size: {Dimension 250 19} option: camera)
-          (<Option-Label>                              title: "Video Quality" position: {Point 0 51})
-          (<Combo-Option>                                                     position: {Point 140 50} size: {Dimension 250 19} option: quality)
+          (<Option-Label>   name: quality-label        title: "Video Quality" position: {Point 0 51})
+          (<Combo-Option>   name: quality-option                              position: {Point 140 50} size: {Dimension 250 19} option: quality)
           (<Boolean-Option> name: retina-option        title: "Retina"        position: {Point 0 110} size: {Dimension 250 16} visible?: #f option: retina)
           (<Option-Label>   name: scale-label          title: "Scale"         position: {Point 0 81} visible?: #f)
           (<Combo-Option>   name: scale-option                                position: {Point 140 80} size: {Dimension 250 19} visible?: #f option: scale)
@@ -187,8 +187,8 @@
        (set-visible? (locate self 'hardware-option) #t)
        (set-position (locate self 'multisampling-option) {Point 0 140}))
       (windows
-       (set-position (locate self 'camera-label) {Point 0 41})
-       (set-position (locate self 'camera-option) {Point 140 40})
+       (set-position (locate self 'quality-label) {Point 0 41})
+       (set-position (locate self 'quality-option) {Point 140 40})
        (set-visible? (locate self 'scale-label) #t)
        (set-visible? (locate self 'scale-option) #t)
        (set-position (locate self 'multisampling-option) {Point 0 140})
