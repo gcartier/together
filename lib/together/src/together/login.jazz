@@ -68,12 +68,6 @@
         (together.zone))
 
 
-(definition (present-problem obj)
-  (cond ((is? obj Invalid-Code) "Together needs to be restarted")
-        ((string? obj) obj)
-        (else "Unable to connect to server")))
-
-
 ;;;
 ;;;; Login
 ;;;
@@ -284,7 +278,7 @@
                   (when (is? tier Client-Tier)
                     (upload-assets tier 'world)
                     (upload-assets tier 'zone))))
-            (let ((title (present-problem obj)))
+            (let ((title (present-login-problem obj)))
               (report-exception title obj)
               (check-invalid-key-exception self title)))))))
   
@@ -687,7 +681,7 @@
             (working-progress world "Preparing your personal key" #f)
             (clear-exception)
             (catch (problem? obj
-                     (let ((title (present-problem obj)))
+                     (let ((title (present-login-problem obj)))
                        (report-exception title obj)))
               (let ((invitation-word (extract-word self))
                     (name (extract-name self)))

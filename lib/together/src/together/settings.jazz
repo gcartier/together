@@ -20,6 +20,7 @@
         (jazz.debuggee)
         (jazz.io)
         (jazz.platform)
+        (jazz.presence.transmission)
         (jazz.settings)
         (jazz.stream)
         (world)
@@ -79,6 +80,12 @@
 ;;;
 
 
+(definition protected (present-login-problem obj)
+  (cond ((is? obj Invalid-Code) "Together needs to be restarted")
+        ((string? obj) obj)
+        (else "Unable to connect to server")))
+
+
 (definition protected (open-login-zone)
   (when (current-together)
     (together-exit (current-together)))
@@ -95,7 +102,7 @@
           (start-delayed-tasks obj)
           (prepare-skybox obj)
           (enter-together auto-enter))
-      (let ((title (if (string? obj) obj "Unable to connect to server"))
+      (let ((title (present-login-problem obj))
             (zone (if from-login? (current-zone) (open-login-zone))))
         (world.interface.exception:report-exception title obj)
         (check-invalid-key-exception zone title)
