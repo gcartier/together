@@ -250,7 +250,7 @@
                                    (lambda ()
                                      (with-task-mutex
                                        (lambda ()
-                                         (snapshot-profile title: "Test" proc: duration-done)))))
+                                         (store-profile title: "Test" proc: duration-done)))))
                                (unless (= n duration)
                                  (with-task-mutex
                                    (lambda ()
@@ -303,20 +303,27 @@
           (view-replay-directory dir))))))
 
 
-(definition protected (snapshot-profile (title: title "Profile") (proc: proc #f))
+(definition protected (store-profile (title: title "Profile") (proc: proc #f))
+  (define (determine-affix name)
+    (let ((pos (find name #\space)))
+      (if (not pos)
+          (downcase name)
+        (downcase (substring name 0 pos)))))
+  
   (let ((client (current-client))
         (world (current-world)))
     (receive (server-profile client-profile) (retrieve-profiles client)
       (terminate-profile)
       (if proc
           (proc server-profile client-profile)
-        (let ((dir {Directory Settings "work" "profiles"})
-              (timestamp (path-timestamp)))
-          (let ((server-file (new-file dir (format "_server_{a}.replay" timestamp)))
-                (client-file (new-file dir (format "{a}_{a}.replay" (get-character-name client) timestamp))))
-            (create-directories dir)
-            (save-binary server-file server-profile)
-            (save-binary client-file client-profile))))
+        (let ((name (get-character-name client))
+              (parent {Directory Documents "profiles"}))
+          (let ((dir (timestamped-directory parent "profile" (string-append "_" (determine-affix name)))))
+            (let ((server-file (new-file dir "_server.replay"))
+                  (client-file (new-file dir (add-extension name "replay"))))
+              (create-directories dir)
+              (save-binary server-file server-profile)
+              (save-binary client-file client-profile)))))
       (display-feedback (format "{a} done" title)))))
 
 
