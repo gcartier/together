@@ -112,6 +112,7 @@
         (world.profile)
         (world.profiling)
         (world.render)
+        (world.report)
         (world.ring)
         (world.screenshot)
         (world.script.asset)
@@ -2142,6 +2143,7 @@
   
   
   (method (together-exit self)
+    (send-reports)
     (together-destroy self))
   
   
