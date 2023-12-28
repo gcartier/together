@@ -317,7 +317,7 @@
       (if proc
           (proc server-profile client-profile)
         (let ((name (get-character-name client))
-              (parent {Directory Documents "profiles"}))
+              (parent {Directory Settings "work" "reports"}))
           (let ((dir (timestamped-directory parent "profile" (string-append "_" (determine-affix name)))))
             (let ((server-file (new-file dir "_server.replay"))
                   (client-file (new-file dir (add-extension name "replay"))))
