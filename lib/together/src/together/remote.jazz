@@ -38,12 +38,13 @@
 (definition local-repository
   #f)
 
-(definition (open-local-repository)
+(definition protected (open-local-repository)
   (or local-repository
       (let ((dir (new Directory (tokenise-filename kernel-root))))
         (let ((repo (new Associative-Repository dir)))
           (set! local-repository repo)
           repo))))
+
 
 (definition protected (have-set-locally? set)
   (some? (lambda (entry)
