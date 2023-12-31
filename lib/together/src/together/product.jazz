@@ -34,9 +34,9 @@
   
   (let ((project-dir {Directory Together})
         (resources-dir (resources-dir)))
-    (define (install-filename path)
-      (let ((src (new-file project-dir path))
-            (dst (new-file resources-dir path)))
+    (define (install-filename path (src #f) (dst #f))
+      (let ((src (new-file project-dir (or src path)))
+            (dst (new-file resources-dir (or dst path))))
         (install-file src dst
           feedback: (lambda (action pathname)
                       (build-feedback "; {a} {a}..." action (get-name pathname))))))
@@ -66,12 +66,18 @@
     (define (copy-templates)
       (install-dirname '("devel" "templates")))
     
+    (define (copy-curl)
+      (cond-expand
+        (windows (install-filename #f '("foreign" "curl.exe") '("curl.exe")))
+        (else)))
+    
     (build-product-descriptor descriptor unit: unit skip-references?: skip-references? force?: force?)
     (initialize-aliases)
     (generate-build-metadata ".together")
     (copy-info)
     (copy-assets)
-    (copy-templates)))
+    (copy-templates)
+    (copy-curl)))
 
 
 ;;;
@@ -149,7 +155,7 @@
     gstreamer?: #t
     files: (cond-expand
              (mac '()) ;; already installed in resources
-             (windows '("README" "Together-Worker.exe"))
+             (windows '("README" "Together-Worker.exe" "curl.exe"))
              (else '("README")))
     directories: (cond-expand
                    (mac '()) ;; already installed in resources
