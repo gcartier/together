@@ -22,6 +22,7 @@
         (jazz.graphic)
         (jazz.handler)
         (jazz.markup)
+        (jazz.moment)
         (jazz.outline)
         (jazz.platform)
         (jazz.resource)
@@ -1634,24 +1635,19 @@
               (else
                {Color World-Blue})))
       
-      
-      
-      
       (iterate-table moments
         (lambda (tier moments)
           (iterate-table moments
             (lambda (id moment)
-              (let ((entry (vector (get-property moment 'time)
+              (let ((entry (vector (get-time moment)
                                    tier
                                    id
-                                   (get-property moment 'domain)
-                                   (get-property moment 'level)
-                                   (get-property moment 'category)
-                                   (get-property moment 'function)
-                                   (get-property moment 'message))))
+                                   (get-domain moment)
+                                   (get-level moment)
+                                   (get-category moment)
+                                   (get-function moment)
+                                   (get-message moment))))
                 (enqueue entries entry))))))
-      
-      
       
       ;; gather neighborhood
       (let ((entries (queue-list entries)))
