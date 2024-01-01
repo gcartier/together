@@ -5319,7 +5319,7 @@
         (let ((text (locate panel '(console text))))
           (show-admin self)
           (acquire-focus text)
-          (insert-string text "request evolution all")
+          (insert-string text "request evolution group")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
@@ -5331,7 +5331,7 @@
         (let ((text (locate panel '(console text))))
           (show-admin self)
           (acquire-focus text)
-          (insert-string text "request replay all")
+          (insert-string text "request replay group")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
@@ -5343,7 +5343,7 @@
         (let ((text (locate panel '(console text))))
           (show-admin self)
           (acquire-focus text)
-          (insert-string text "request retrieve all")
+          (insert-string text "request retrieve group")
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
