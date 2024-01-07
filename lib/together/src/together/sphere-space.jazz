@@ -70,6 +70,10 @@
   
   
   (method (on-toggle-people self evt)
+    (toggle-people self))
+  
+  
+  (method package (toggle-people self)
     (let ((interface (current-interface))
           (world (current-world)))
       (toggle-visible? (child interface 'people-label))
@@ -81,6 +85,10 @@
   
   
   (method (on-toggle-streams self evt)
+    (toggle-streams self))
+  
+  
+  (method package (toggle-streams self)
     (let ((interface (current-interface))
           (world (current-world)))
       (set-visible? (child interface 'people-label) #f)

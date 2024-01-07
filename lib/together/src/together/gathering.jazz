@@ -2375,6 +2375,10 @@
   
   
   (method (on-toggle-participation self evt)
+    (toggle-participation self))
+  
+  
+  (method package (toggle-participation self)
     (let ((interface (current-interface))
           (client (current-client))
           (zone (current-zone)))
@@ -2392,6 +2396,10 @@
   
   
   (method (on-toggle-invite self evt)
+    (toggle-invite self))
+  
+  
+  (method package (toggle-invite self)
     (let ((interface (current-interface)))
       (let ((frame (find-component interface 'invitations)))
         (if frame
@@ -2542,6 +2550,10 @@
   
   
   (method (on-toggle-microphone self evt)
+    (toggle-microphone self))
+  
+  
+  (method package (toggle-microphone self)
     (let ((client (current-client))
           (world (current-world)))
       (if (and (not current-circle-name)
@@ -2647,6 +2659,10 @@
   
   
   (method (on-toggle-camera self evt)
+    (toggle-camera self))
+  
+  
+  (method package (toggle-camera self)
     (let ((client (current-client))
           (video (current-video))
           (world (current-world)))
@@ -3255,7 +3271,7 @@
           (setup-visibility mainbar)))))
   
   
-  (method (leave-circle self)
+  (method package (leave-circle self)
     (let ((tier (current-client))
           (window (current-window))
           (interface (current-interface))
@@ -4548,7 +4564,7 @@
       (display-message world "Free")))
   
   
-  (method (avatar-mode self (feedback?: feedback? #t))
+  (method package (avatar-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'avatar)
         (change-circle-mode self 'avatar feedback?: feedback?)
@@ -4561,7 +4577,7 @@
         (focus-world))))
   
   
-  (method (presence-mode self (feedback?: feedback? #t))
+  (method package (presence-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'presence)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
@@ -4573,7 +4589,7 @@
             (disable-autotrack world))))))
   
   
-  (method (focus-mode self (feedback?: feedback? #t))
+  (method package (focus-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'focus)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
@@ -4584,7 +4600,7 @@
             (disable-autotrack world))))))
   
   
-  (method (gallery-mode self (feedback?: feedback? #t))
+  (method package (gallery-mode self (feedback?: feedback? #t))
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'gallery)
         (let ((from-avatar? (eq? current-circle-mode 'avatar)))
@@ -4923,6 +4939,10 @@
   
   
   (method (on-toggle-debug-bbr self evt)
+    (toggle-debug-bbr self))
+  
+  
+  (method package (toggle-debug-bbr self)
     (let ((udp (current-udp)))
       (cond ((eq? show-media 'bbr)
              (set-show-debug? #f)
@@ -4936,6 +4956,10 @@
   
   
   (method (on-toggle-debug-media self evt)
+    (toggle-debug-media self))
+  
+  
+  (method package (toggle-debug-media self)
     (let ((video (current-video)))
       (set-debug-stream (if (eq? debug-stream 'media)
                             #f
@@ -4946,6 +4970,10 @@
   
   
   (method (on-toggle-debug-upload self evt)
+    (toggle-debug-upload self))
+  
+  
+  (method package (toggle-debug-upload self)
     (let ((video (current-video)))
       (set-debug-upload? (not debug-upload?))
       (invalidate-outputs video)))
@@ -5009,6 +5037,10 @@
   
   
   (method (on-toggle-evolution self evt)
+    (toggle-evolution self))
+  
+  
+  (method package (toggle-evolution self)
     (let ((interface (current-interface))
           (world (current-world))
           (client (current-client))
@@ -5445,7 +5477,7 @@
         (toggle-window-share self))))
   
   
-  (method (toggle-window-share self)
+  (method package (toggle-window-share self)
     (let ((world (current-world))
           (client (current-client))
           (udp (current-udp)))
@@ -5491,7 +5523,7 @@
     (capture-window self))
   
   
-  (method (capture-window self)
+  (method package (capture-window self)
     (let ((world (current-world)))
       (let ((file (timestamped-file {Directory Documents "screenshots"} "together" "png")))
         (create-directories file)
@@ -5511,6 +5543,10 @@
   
   
   (method (on-toggle-hide self evt)
+    (toggle-hide self))
+  
+  
+  (method package (toggle-hide self)
     (let ((space (current-space)))
       (when (is? space Circle-Space)
         (toggle-hide space))))
