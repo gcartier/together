@@ -183,20 +183,21 @@
       (save-content options-settings))))
 
 
+(definition plugins-subdir
+  (cond-expand
+    (mac '("Contents" "Libraries" "gstreamer" "lib" "gstreamer-1.0"))
+    (else '("gstreamer" "lib" "gstreamer-1.0"))))
+
+(definition plugins-subpath
+  (cond-expand
+    (mac "Contents/Libraries/gstreamer/lib/gstreamer-1.0/")
+    (else "gstreamer/lib/gstreamer-1.0/")))
+
+
 (definition check-gstreamer-plugins
   (let ((checked? #f))
     (lambda ()
       (define (check-plugins)
-        (define plugins-subdir
-          (cond-expand
-            (mac '("Contents" "Libraries" "gstreamer" "lib" "gstreamer-1.0"))
-            (else '("gstreamer" "lib" "gstreamer-1.0"))))
-        
-        (define plugins-subpath
-          (cond-expand
-            (mac "Contents/Libraries/gstreamer/lib/gstreamer-1.0/")
-            (else "gstreamer/lib/gstreamer-1.0/")))
-        
         (define (collect-working dir)
           (let ((queue (new-queue)))
             (iterate-directory dir
@@ -232,6 +233,18 @@
       (unless checked?
         (check-plugins)
         (set! checked? #t)))))
+
+
+(definition protected (verify-gstreamer-plugins)
+  (let ((repo (open-local-repository)))
+    (let ((diff (working-status repo dirpath: plugins-subpath ignore-set?: #t)))
+      (values plugins-subpath diff))))
+
+
+(definition protected (repair-gstreamer-plugins)
+  (let ((repo (open-local-repository)))
+    (let ((diff (discard repo dirpath: plugins-subpath ignore-set?: #t)))
+      (values plugins-subpath diff))))
 
 
 (definition preload-gstreamer-audio
