@@ -111,6 +111,7 @@
 
 
 (definition protected (enter-together auto-enter)
+  @obsoleted?
   (when remote-repository?
     (check-gstreamer-plugins))
   (preload-gstreamer-audio)
