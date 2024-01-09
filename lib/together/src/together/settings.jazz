@@ -247,6 +247,18 @@
       (values plugins-subpath diff))))
 
 
+(definition protected (verify-together)
+  (let ((repo (open-local-repository)))
+    (let ((diff (working-status repo ignore-set?: #t)))
+      (values #f diff))))
+
+
+(definition protected (repair-together)
+  (let ((repo (open-local-repository)))
+    (let ((diff (discard repo ignore-set?: #t)))
+      (values #f diff))))
+
+
 (definition preload-gstreamer-audio
   (let ((preloaded? #f))
     (lambda ()
