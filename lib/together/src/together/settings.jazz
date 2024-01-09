@@ -183,15 +183,22 @@
       (save-content options-settings))))
 
 
-(definition plugins-subdir
+(definition gstreamer-subdir
   (cond-expand
-    (mac '("Contents" "Libraries" "gstreamer" "lib" "gstreamer-1.0"))
-    (else '("gstreamer" "lib" "gstreamer-1.0"))))
+    (mac '("Contents" "Libraries" "gstreamer"))
+    (else '("gstreamer"))))
+
+(definition gstreamer-subpath
+  (cond-expand
+    (mac "Contents/Libraries/gstreamer/")
+    (else "gstreamer/")))
+
+
+(definition plugins-subdir
+  (append gstreamer-subdir '("lib" "gstreamer-1.0")))
 
 (definition plugins-subpath
-  (cond-expand
-    (mac "Contents/Libraries/gstreamer/lib/gstreamer-1.0/")
-    (else "gstreamer/lib/gstreamer-1.0/")))
+  (string-append gstreamer-subpath "lib/gstreamer-1.0/"))
 
 
 (definition check-gstreamer-plugins
@@ -245,6 +252,18 @@
   (let ((repo (open-local-repository)))
     (let ((diff (discard repo dirpath: plugins-subpath ignore-set?: #t)))
       (values plugins-subpath diff))))
+
+
+(definition protected (verify-gstreamer)
+  (let ((repo (open-local-repository)))
+    (let ((diff (working-status repo dirpath: gstreamer-subpath ignore-set?: #t)))
+      (values gstreamer-subpath diff))))
+
+
+(definition protected (repair-gstreamer)
+  (let ((repo (open-local-repository)))
+    (let ((diff (discard repo dirpath: gstreamer-subpath ignore-set?: #t)))
+      (values gstreamer-subpath diff))))
 
 
 (definition protected (verify-together)
