@@ -27,7 +27,4 @@ cd ..
 
 # Sign
 /usr/bin/xattr -r -c -s $APP.app
-for filename in $APP.app/Contents/Libraries/*.dylib; do
-    /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $filename
-done
 /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $APP.app
