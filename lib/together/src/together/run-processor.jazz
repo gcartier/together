@@ -43,7 +43,6 @@
   (register-domain-names)
   (register-kernel-properties)
   (register-platform-properties)
-  (setup-build ".together-processor")
   (setup-presence))
 
 
@@ -82,6 +81,7 @@
   (initialize-aliases)
   (prepare-processor)
   (prepare-settings)
+  (setup-build-metadata ".together-processor")
   (load-unit 'world.profiling)
   (load-unit 'world.work)
   (load-unit 'together.boot-processor)
