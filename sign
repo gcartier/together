@@ -1,0 +1,33 @@
+#! /bin/sh
+
+TOGETHER=~/Devel/together
+INSTALL=$TOGETHER/install
+NOTARY=$TOGETHER/notary
+
+if [[ "$(arch)" == "arm64" ]]; then
+  APP=together-prod-silicon
+else
+  APP=together-prod-mac
+fi
+
+# Bail out
+set -e
+
+# Setup
+echo Copying...
+cd $NOTARY
+rm -rf $APP.app
+cp -R $INSTALL/$APP $APP.app
+cd $APP.app
+rm -rf .jas
+jas init -open
+jas add .
+mv .jas Contents/Resources
+cd ..
+
+# Sign
+/usr/bin/xattr -r -c -s $APP.app
+for filename in $APP.app/Contents/Libraries/*.dylib; do
+    /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $filename
+done
+/usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $APP.app

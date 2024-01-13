@@ -1,0 +1,25 @@
+#! /bin/sh
+
+TOGETHER=~/Devel/together
+INSTALL=$TOGETHER/install
+NOTARY=$TOGETHER/notary
+
+if [[ "$(arch)" == "arm64" ]]; then
+  APP=together-prod-silicon
+else
+  APP=together-prod-mac
+fi
+
+# Bail out
+set -e
+
+# Notarize
+cd $NOTARY
+/usr/bin/ditto -c -k --keepParent $APP.app $APP.zip
+/usr/bin/xcrun altool --notarize-app -f $APP.zip --primary-bundle-id com.togethersphere.Together -u gucartier@gmail.com -p @keychain:Together --output-format xml
+# /usr/bin/xcrun altool --notarization-info <key-returned-from-previous-command> -u gucartier@gmail.com -p @keychain:Together
+# /usr/bin/xcrun stapler staple -v $APP.app
+# rm $APP.zip
+
+# Notes
+# - if the notarization fails, there will be a LogFileURL that can be pasted into a browser to have a full log
