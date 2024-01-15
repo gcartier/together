@@ -142,6 +142,17 @@
   (create-directories {Directory Documents "streams"}))
 
 
+(definition (install-writable?)
+  (if (cond-expand
+        (mac (directory-writable? kernel-bundle-install))
+        (else #t))
+      #t
+    (system-message (format "Please drag & drop Together on the Applications icon")
+                    type: 'problem
+                    title: "Together")
+    #f))
+
+
 (definition (already-running?)
   (if (cond-expand
         ((or devel stable) #f)
@@ -173,6 +184,7 @@
 
 
 (definition protected (run-together)
-  (unless (already-running?)
-    (load-together)
-    (boot-together))))
+  (when (install-writable?)
+    (unless (already-running?)
+      (load-together)
+      (boot-together)))))
