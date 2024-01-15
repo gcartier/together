@@ -18,4 +18,5 @@
     (<*>                    tag-reference: {File :context "jiri" ".project"})
     (<*>                    tag-reference: {File :context "gaea" ".project"})
     (<*>                    tag-reference: {File :context "world" ".project"})
+    (<*>                    tag-reference: {File :context "update" ".project"})
     (<*>                    tag-reference: {File :context "lib" ".project"}))))

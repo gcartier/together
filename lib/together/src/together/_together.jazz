@@ -125,7 +125,8 @@
                       (windows (list 'Build))
                       (mac (get-list (get-parent {Directory Build})))
                       (else (list 'Build)))))
-  (register-resources-alias 'Together))
+  (unless (find-alias 'Resources)
+    (register-resources-alias 'Together)))
 
 
 ;;;

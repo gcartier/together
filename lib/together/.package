@@ -26,6 +26,7 @@
                               together.exception
                               together.experiment
                               together.gathering
+                              together.load
                               together.login
                               together.network
                               together.options
@@ -53,6 +54,7 @@
                               together.simulation
                               together.simulator
                               together.sphere-space
+                              together.update
                               together.validate
                               together.visualizer
                               together.window
@@ -70,7 +72,8 @@
                                     gaea
                                     world
                                     world.client
-                                    world.server))
+                                    world.server
+                                    update))
             (together-processor (title "Processor")
                                 (prefix "Processor")
                                 (run together.run-processor)

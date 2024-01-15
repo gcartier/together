@@ -14,7 +14,8 @@
 (module together.run-base jazz
 
 
-(import (jazz.associative)
+(import (jazz.settings)
+        (jazz.associative)
         (jazz.associative.client)
         (together.remote))
 
@@ -41,7 +42,9 @@
         (with-connected-client
           (lambda (client)
             (install-outline client unit-name))))))
-  (together.run:run-together descriptor))
+  (if (equal? (string-argument "called-from" #f) "sirius")
+      (together.run:run-together)
+    (together.update:update-together)))
 
 
 (register-product-run 'together

@@ -17,17 +17,19 @@
 (import (jazz.associative)
         (jazz.associative.client)
         (jazz.io)
-        (jazz.settings))
+        (jazz.settings)
+        (jiri.connection)
+        (jiri.section)
+        (jiri.settings)
+        (update.settings))
 
-
-(definition remote-host
-  (string-argument "remote-host" #f))
-
-(definition remote-path
-  (string-argument "remote-path" #f))
 
 (definition protected remote-repository?
-  (and remote-host remote-path))
+  (cond-expand
+    ((or devel stable)
+     #f)
+    (else
+     #t)))
 
 
 ;;;
@@ -41,9 +43,11 @@
 (definition protected (open-local-repository)
   (or local-repository
       (let ((dir (new Directory (tokenise-filename kernel-root))))
-        (let ((repo (new Associative-Repository dir)))
-          (set! local-repository repo)
-          repo))))
+        (let ((directory (cond-expand (mac (new-directory dir '("Contents" "Resources")))
+                                      (else #f))))
+          (let ((repo (new Associative-Repository dir directory: directory)))
+            (set! local-repository repo)
+            repo)))))
 
 
 (definition protected (have-set-locally? set)
@@ -69,8 +73,9 @@
 
 (definition (connect-client feedback)
   (or connected-client
-      (let ((repo (open-local-repository)))
-        (let ((client (new Jas-Client repo remote-host remote-path 'read feedback: feedback)))
+      (let ((connection (get-connection (jiri-app-section)))
+            (repo (open-local-repository)))
+        (let ((client (new Jas-Client repo (get-host connection) (get-path connection) 'read feedback: feedback)))
           (connect client)
           (set! connected-client client)
           client))))

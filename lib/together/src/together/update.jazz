@@ -1,0 +1,215 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Together Update
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module together.update jazz
+
+
+(import (jazz.application)
+        (jazz.component)
+        (jazz.event)
+        (jazz.io)
+        (jazz.markup)
+        (jazz.opengl.frame)
+        (jazz.platform)
+        (jazz.process)
+        (jazz.settings)
+        (jazz.view)
+        (jazz.window)
+        (jazz.workspace)
+        (jiri.appl)
+        (jiri.connection)
+        (jiri.manager)
+        (jiri.monitor)
+        (jiri.pane)
+        (jiri.remote)
+        (jiri.section)
+        (jiri.settings)
+        (jiri.structure)
+        (jiri.task)
+        (jiri.update)
+        (jiri.view)
+        (jiri.window)
+        (jiri.work)
+        (update.settings)
+        (together.run))
+
+
+;;;
+;;;; Application
+;;;
+
+
+(class Update-Application extends Jiri-Application
+  
+  
+  (method override (new-toplevel self)
+    (let ((toplevel (new Update-Toplevel)))
+      (set! update-toplevel toplevel)
+      toplevel))
+  
+  
+  (method override (finish-process self)
+    (nextmethod self)
+    (set-title (current-frame) "Update"))
+
+  
+  (method override (initialize-settings self)
+    (register-resources-alias 'Together))
+  
+  
+  (method override (quit-process self (status 0))
+    ;; quicky to completely disable quit
+    (quit-callback)))
+
+
+;;;
+;;;; Toplevel
+;;;
+
+
+(definition update-toplevel
+  #f)
+
+(definition protected (close-update-toplevel)
+  (close update-toplevel)
+  (set! update-toplevel #f))
+
+
+(class Update-Toplevel extends Jiri-Toplevel
+
+
+  (form
+    (<install> caption-base: "Together"))
+  
+  
+  (method override (effective-title self)
+    "Together"))
+
+
+;;;
+;;;; Boot
+;;;
+
+
+(class Update-Done extends Signal)
+
+
+(definition protected (update-together)
+  (catch (Update-Done exc
+           (close update-toplevel)
+           (reset-current-stage)
+           (boot-together))
+    (boot-environment (new Update-Application))))
+
+
+;;;
+;;;; Update
+;;;
+
+
+(definition (update-at-together)
+  (current-root-dir kernel-root)
+  (set-first-install? (or (not (file-exists? (update-dir)))
+                          (not (file-exists? (data-dir)))))
+  (setup-stage-view (string-append "Updating " (jiri-title)))
+  (update-crashes-view-color)
+  (let ((thread
+          (new-thread
+            (lambda ()
+              (send-crash-reports (jiri-installer-crashes) #f)
+              (send-crash-reports (jiri-application-crashes) #t)
+              (catch-jiri-exception
+                (lambda ()
+                  (pull-repository (jiri-update-section) (update-dir)
+                    (lambda (new-content?)
+                      (pull-repository (jiri-data-section) (data-dir)
+                        (lambda (new-data-content?)
+                          (delegate-update (current-root-dir) "together" first-install?))))))))
+            'update)))
+    (thread-base-priority-set! thread update-priority)
+    (thread-start! thread)))
+
+
+(definition (update-done new-content?)
+  (declare (proper-tail-calls))
+  (set-cursor :arrow)
+  (set-work-done? #t)
+  (let ((port (open-vector)))
+    (load-feedback-setup port)
+    (let ((thread
+            (new-thread
+              (lambda ()
+                (load-together)
+                (load-feedback-done))
+              'load)))
+      (thread-base-priority-set! thread update-priority)
+      (thread-start! thread))
+    (update-splash new-content? port
+      (lambda ()
+        (delay-event
+          (lambda ()
+            (signal (new Update-Done))))))))
+
+
+(definition (update-splash new-content? port cont)
+  (declare (proper-tail-calls))
+  (let ((section (jiri-splash-section)))
+    (bind (task) (get-tasks section)
+      (let ((total (jiri-splash-end)))
+        (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
+        (set-status task "Lauching together")
+        (set-remaining task total)
+        (set-range task (new Range 0 total))
+        (let ((last-step #f))
+          (let (loop (loaded 0))
+            (let ((unit-name (read port)))
+              (cond ((eof-object? unit-name)
+                     (error "Unable to launch together"))
+                    ((equal? unit-name '(done))
+                     (set-remaining task 0)
+                     (set-done task)
+                     (cont))
+                    (else
+                     (let ((loaded (+ loaded 1)))
+                       (let ((remaining (max 0 (- total loaded))))
+                         ;; give more feedback near the end of launch
+                         (let ((factor (cond ((<= remaining 10.) 1000.)
+                                             ((<= remaining 50) 200.)
+                                             (else 50.))))
+                           (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
+                             (when (or (not last-step)
+                                       (> step last-step))
+                               (set! last-step step)
+                               (set-pos task loaded)
+                               (set-remaining task remaining)))))
+                       (loop loaded)))))))))))
+
+
+;;;
+;;;; Init
+;;;
+
+
+(jiri-background {File Resources "lib" "together" "assets" "background.png"})
+
+(jiri-splash-end 410)
+
+
+(set-jiri-init
+  (lambda ()
+    (jiri-layout)))
+
+
+(set-jiri-startup
+  (lambda ()
+    (update-at-together))))

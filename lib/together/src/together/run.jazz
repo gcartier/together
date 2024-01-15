@@ -198,16 +198,25 @@
     #f))
 
 
-(definition protected (run-together descriptor)
+(definition protected (load-together)
+  (prepare-limits)
+  (prepare-logger)
+  (prepare-together)
+  (prepare-settings)
+  (setup-build-metadata ".together")
+  (load-unit 'world.profiling)
+  (create-documents)
+  (load-unit 'world.work)
+  (load-unit 'together.boot)
+  (load-unit 'together.load))
+
+
+(definition protected (boot-together)
+  (boot-process))
+
+
+(definition protected (run-together)
   (when (install-valid?)
     (unless (already-running?)
-      (prepare-limits)
-      (prepare-logger)
-      (prepare-together)
-      (prepare-settings)
-      (setup-build-metadata ".together")
-      (load-unit 'world.profiling)
-      (create-documents)
-      (load-unit 'world.work)
-      (load-unit 'together.boot)
-      (boot-process)))))
+      (load-together)
+      (boot-together)))))

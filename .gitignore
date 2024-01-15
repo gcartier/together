@@ -6,6 +6,7 @@
 /gaea
 /jiri
 /world
+/update
 /*.patch
 .configuration
 .jaz
