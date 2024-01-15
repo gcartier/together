@@ -42,7 +42,8 @@
         (with-connected-client
           (lambda (client)
             (install-outline client unit-name))))))
-  (if (equal? (string-argument "called-from" #f) "sirius")
+  (if (or (not remote-repository?)
+          (equal? (string-argument "called-from" #f) "sirius"))
       (together.run:run-together)
     (together.update:update-together)))
 
