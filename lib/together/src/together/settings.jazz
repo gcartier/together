@@ -111,9 +111,6 @@
 
 
 (definition protected (enter-together auto-enter)
-  @obsoleted?
-  (when remote-repository?
-    (check-gstreamer-plugins))
   (preload-gstreamer-audio)
   (if (current-together)
       (together-enter (current-together) auto-enter)
@@ -183,63 +180,13 @@
       (save-content options-settings))))
 
 
-(definition gstreamer-subdir
-  (cond-expand
-    (mac '("Contents" "Libraries" "gstreamer"))
-    (else '("gstreamer"))))
-
 (definition gstreamer-subpath
   (cond-expand
     (mac "Contents/Libraries/gstreamer/")
     (else "gstreamer/")))
 
-
-(definition plugins-subdir
-  (append gstreamer-subdir '("lib" "gstreamer-1.0")))
-
 (definition plugins-subpath
   (string-append gstreamer-subpath "lib/gstreamer-1.0/"))
-
-
-(definition check-gstreamer-plugins
-  (let ((checked? #f))
-    (lambda ()
-      (define (check-plugins)
-        (define (collect-working dir)
-          (let ((queue (new-queue)))
-            (iterate-directory dir
-              (lambda (path kind)
-                (enqueue queue (join path "/")))
-              full?: #f
-              files?: #t
-              directories?: #f
-              recursive?: #t)
-            (queue-list queue)))
-        
-        (define (collect-indexed index subpath)
-          (let ((queue (new-queue))
-                (start (string-length subpath)))
-            (iterate-table (get-paths index)
-              (lambda (entry-path entry)
-                (when (starts-with? entry-path subpath ignore-case?: #t)
-                  (enqueue queue (substring entry-path start (string-length entry-path))))))
-            (queue-list queue)))
-        
-        (let ((repo (open-local-repository)))
-          (let ((plugins (new-directory (get-working repo) plugins-subdir)))
-            (let ((working (collect-working plugins))
-                  (indexed (collect-indexed (get-index repo) plugins-subpath)))
-              (let ((extraneous (difference working indexed test: filename=?)))
-                (when (not-null? extraneous)
-                  (snapshot-problem "Found extraneous gstreamer plugins")
-                  (for-each (lambda (name)
-                              (let ((file (new-file plugins name)))
-                                (delete file)))
-                            extraneous)))))))
-      
-      (unless checked?
-        (check-plugins)
-        (set! checked? #t)))))
 
 
 (definition protected (verify-gstreamer-plugins)
