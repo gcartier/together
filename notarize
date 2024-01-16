@@ -17,9 +17,9 @@ set -e
 cd $NOTARY
 /usr/bin/ditto -c -k --keepParent $APP.app $APP.zip
 /usr/bin/xcrun altool --notarize-app -f $APP.zip --primary-bundle-id com.togethersphere.Together -u gucartier@gmail.com -p @keychain:Together --output-format xml
-# /usr/bin/xcrun altool --notarization-info <key-returned-from-previous-command> -u gucartier@gmail.com -p @keychain:Together
-# /usr/bin/xcrun stapler staple -v $APP.app
-# rm $APP.zip
+echo /usr/bin/xcrun altool --notarization-info key-returned-from-previous-command -u gucartier@gmail.com -p @keychain:Together
+echo /usr/bin/xcrun stapler staple -v $NOTARY/$APP.app
+echo rm $NOTARY/$APP.zip
 
 # Notes
 # - if the notarization fails, there will be a LogFileURL that can be pasted into a browser to have a full log
