@@ -49,7 +49,7 @@
 
 
 (definition url-parameters
-  (let ((url (string-argument "url" #f)))
+  (let ((url (or (launch-url) (string-argument "url" #f))))
     (and url
          (receive (scheme parameters) (parse-url url)
            parameters))))
