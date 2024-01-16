@@ -128,35 +128,7 @@
                                       (cons (new Asset assets path) (estimate-asset-size path))))
                                (critical-assets avatar))))
         (let ((assets-total (apply + (map cdr critical))))
-          (let ((gstreamer-total (retrieve-gstreamer assets-total)))
-            (let ((total (+ gstreamer-total assets-total)))
-              (retrieve-critical-assets critical gstreamer-total total))))))))
-
-
-(definition protected (retrieve-gstreamer assets-total)
-  (let ((world (current-world)))
-    (if (or (not remote-repository?)
-            (have-set-locally? 'gstreamer))
-        0
-      (let ((gstreamer-total #f)
-            (total 0)
-            (downloaded 0)
-            (estimated-size 400))
-        (define (feedback stage . rest)
-          (case stage
-            ((progress)
-             (when (not gstreamer-total)
-               (set! gstreamer-total (* (car rest) estimated-size))
-               (set! total (+ gstreamer-total assets-total)))
-             (increase! downloaded estimated-size)
-             (working-progress world "Downloading assets" (percentage downloaded total)))))
-        
-        (working-progress world "Downloading assets" 0.)
-        (with-connected-client
-          (lambda (client)
-            (download-sets client '(gstreamer)))
-          feedback: feedback)
-        (or gstreamer-total 0)))))
+          (retrieve-critical-assets critical 0 assets-total))))))
 
 
 (definition protected (retrieve-critical-assets critical downloaded total)
@@ -254,7 +226,6 @@
                 (and config (not (get-character-avatar config)))
                 (and config (not (get-character-dye config)))
                 (world-setting 'together.login? #f)
-                (and remote-repository? (not (have-set-locally? 'gstreamer)))
                 (not (world-setting 'together.critical-assets? #f))
                 (shift-down?))
             (open-login-zone)

@@ -50,12 +50,6 @@
             repo)))))
 
 
-(definition protected (have-set-locally? set)
-  (some? (lambda (entry)
-           (eq? (get-set entry) set))
-         (get-entries (get-index (open-local-repository)))))
-
-
 ;;;
 ;;;; Remote
 ;;;
