@@ -242,7 +242,7 @@
 
 (definition protected (find-world)
   (define (determine-world)
-    (if remote-repository?
+    (if (and (client?) remote-repository?)
         (let ((dir (cond-expand
                      (mac "Contents/Worlds")
                      (else "worlds")))
