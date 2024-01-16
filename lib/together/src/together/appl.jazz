@@ -300,12 +300,6 @@
       ((icon)
        ;; we rely on the caller image doing the caching
        (retrieve-file (require-asset (current-world) (format "icon/world/{a}.png" name))))
-      ((image)
-       (let ((file (nextmethod self type name)))
-         (if (exists? file)
-             file
-           (install-image name)
-           file)))
       (else
        (nextmethod self type name))))
 

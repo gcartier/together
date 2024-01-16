@@ -15,33 +15,10 @@
 
 
 (import (jazz.settings)
-        (jazz.associative)
-        (jazz.associative.client)
         (together.remote))
 
 
-(definition (install-unit client unit-name)
-  (let ((path (require-unit-path client unit-name)))
-    (download-file client path #t)))
-
-
-(definition (install-outline client unit-name)
-  (install-unit client unit-name)
-  (download-sets client '(outline)))
-
-
 (definition (run-together-base descriptor)
-  (when remote-repository?
-    (set-unit-not-found-hook
-      (lambda (unit-name)
-        (with-connected-client
-          (lambda (client)
-            (install-unit client unit-name)))))
-    (set-outline-not-found-hook
-      (lambda (unit-name)
-        (with-connected-client
-          (lambda (client)
-            (install-outline client unit-name))))))
   (if (or (not remote-repository?)
           (equal? (string-argument "called-from" #f) "sirius"))
       (together.run:run-together)

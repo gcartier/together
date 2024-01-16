@@ -17,11 +17,7 @@
 (import (jazz.associative)
         (jazz.associative.client)
         (jazz.io)
-        (jazz.settings)
-        (jiri.connection)
-        (jiri.section)
-        (jiri.settings)
-        (update.settings))
+        (jazz.settings))
 
 
 (definition protected remote-repository?
@@ -47,112 +43,4 @@
                                       (else #f))))
           (let ((repo (new Associative-Repository dir directory: directory)))
             (set! local-repository repo)
-            repo)))))
-
-
-;;;
-;;;; Remote
-;;;
-
-
-(definition deconnect-waiter
-  (make-waiter 'deconnect))
-
-(definition deconnect-delay
-  5)
-
-
-(definition connected-client
-  #f)
-
-(definition (connect-client feedback)
-  (or connected-client
-      (let ((connection (get-connection (jiri-app-section)))
-            (repo (open-local-repository)))
-        (let ((client (new Jas-Client repo (get-host connection) (get-path connection) 'read feedback: feedback)))
-          (connect client)
-          (set! connected-client client)
-          client))))
-
-(definition (deconnect-client)
-  (mutex-lock! connected-client-mutex)
-  (when connected-client
-    (deconnect connected-client)
-    (set! connected-client #f))
-  (mutex-unlock! connected-client-mutex))
-
-
-(definition connected-client-mutex
-  (make-mutex 'connected-client))
-
-(definition protected (with-connected-client proc (feedback: feedback #f))
-  (mutex-lock! connected-client-mutex)
-  (unwind-protect (let ((client (connect-client feedback)))
-                    (proc client)
-                    (in deconnect-waiter deconnect-delay
-                      (lambda (again)
-                        (deconnect-client))))
-    (mutex-unlock! connected-client-mutex)))
-
-
-;;;
-;;;; Unit
-;;;
-
-
-(definition unit-paths
-  #f)
-
-(definition (build-unit-paths client)
-  (let ((paths (make-table test: eq?)))
-    (let ((index (get-remote-index client))
-          (o1 ".o1")
-          (src "/src/"))
-      (for-each (lambda (entry)
-                  (let ((path (get-path entry)))
-                    (when (ends-with? path o1)
-                      (let ((pos (search path src)))
-                        (let ((unit-path (substring path (+ pos (string-length src)) (- (string-length path) (string-length o1)))))
-                          (let ((parts (split unit-path "/")))
-                            (let ((last-part (last parts)))
-                              (let ((name-parts (if (starts-with? last-part "_")
-                                                    (butlast parts)
-                                                  parts)))
-                                (let ((unit-name (string->symbol (join name-parts "."))))
-                                  (table-set! paths unit-name path))))))))))
-                (get-entries index)))
-    paths))
-
-(definition (require-unit-paths client)
-  (or unit-paths
-      (let ((paths (build-unit-paths client)))
-        (set! unit-paths paths)
-        paths)))
-
-(definition protected (require-unit-path client unit-name)
-  (table-ref (require-unit-paths client) unit-name))
-
-
-;;;
-;;;; Resource
-;;;
-
-
-(definition (require-image-path client name)
-  (let ((index (get-remote-index client))
-        (path-suffix (format "lib/jazz.resources/resources/images/{a}.png" name)))
-    (continuation-capture
-      (lambda (return)
-        (for-each (lambda (entry)
-                    (let ((path (get-path entry)))
-                      (when (ends-with? path path-suffix)
-                        (continuation-return return path))))
-                  (get-entries index))
-        (error "Unable to find image path for {a}" name)))))
-
-
-(definition protected (install-image name)
-  (with-connected-client
-    (lambda (client)
-      (let ((path (require-image-path client name)))
-        (download-file client path #t))))))
+            repo))))))
