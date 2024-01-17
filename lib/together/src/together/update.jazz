@@ -105,7 +105,7 @@
 
 (definition protected (update-together)
   (catch (Update-Done exc
-           (close update-toplevel)
+           (close-update-toplevel)
            (reset-current-stage)
            (boot-together))
     (boot-environment (new Update-Application))))
