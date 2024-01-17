@@ -68,7 +68,6 @@
   
   
   (method override (quit-process self (status 0))
-    ;; quicky to completely disable quit
     (quit-callback)))
 
 
