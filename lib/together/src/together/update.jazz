@@ -126,8 +126,8 @@
   (let ((thread
           (new-thread
             (lambda ()
-              (send-crash-reports (jiri-installer-crashes) #f)
-              (send-crash-reports (jiri-application-crashes) #t)
+              (send-crash-reports (jiri-installer-crashes))
+              (send-crash-reports (jiri-application-crashes))
               (catch-jiri-exception
                 (lambda ()
                   (pull-repository (jiri-update-section) (update-dir)
