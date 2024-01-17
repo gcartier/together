@@ -166,7 +166,6 @@
 
 
 (definition (update-splash new-content? port cont)
-  (declare (proper-tail-calls))
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
@@ -174,29 +173,7 @@
         (set-status task "Launching together")
         (set-remaining task total)
         (set-range task (new Range 0 total))
-        (let ((last-step #f))
-          (let (loop (loaded 0))
-            (let ((unit-name (read port)))
-              (cond ((eof-object? unit-name)
-                     (error "Unable to launch together"))
-                    ((equal? unit-name '(done))
-                     (set-remaining task 0)
-                     (set-done task)
-                     (cont))
-                    (else
-                     (let ((loaded (+ loaded 1)))
-                       (let ((remaining (max 0 (- total loaded))))
-                         ;; give more feedback near the end of launch
-                         (let ((factor (cond ((<= remaining 10.) 1000.)
-                                             ((<= remaining 50) 200.)
-                                             (else 50.))))
-                           (let ((step (fxceiling (* (/ (cast <fl> loaded) (cast <fl> total)) factor))))
-                             (when (or (not last-step)
-                                       (> step last-step))
-                               (set! last-step step)
-                               (set-pos task loaded)
-                               (set-remaining task remaining)))))
-                       (loop loaded)))))))))))
+        (launch-feedback "together" task total port cont)))))
 
 
 ;;;
