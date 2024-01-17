@@ -171,7 +171,7 @@
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
         (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
-        (set-status task "Lauching together")
+        (set-status task "Launching together")
         (set-remaining task total)
         (set-range task (new Range 0 total))
         (let ((last-step #f))
