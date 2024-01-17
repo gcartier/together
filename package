@@ -1,53 +1,7 @@
 #! /bin/sh
 
-TOGETHER=~/Devel/together
-NOTARY=$TOGETHER/notary
-PACKAGE=$TOGETHER/package
-MOUNT="/Volumes/Together"
-
-if [[ "$(arch)" == "arm64" ]]; then
-  APP="together-prod-silicon"
-  TEMPLATE_DMG="TogetherTemplateSilicon.dmg"
-  TOGETHER_DMG="Together Apple Silicon.dmg"
-else
-  APP="together-prod-mac"
-  TEMPLATE_DMG="TogetherTemplate.dmg"
-  TOGETHER_DMG="Together.dmg"
-fi
-
-# Bail out
-set -e
-
-cd $PACKAGE
-
-# Setup
-if [ -d "$MOUNT" ]; then
-	hdiutil detach -quiet "$MOUNT"
-fi
-
-if [ -f "$TEMPLATE_DMG" ]; then
-	rm "$TEMPLATE_DMG"
-fi
-
-if [ -f "$TOGETHER_DMG" ]; then
-	rm "$TOGETHER_DMG"
-fi
-
-# Create and attach template
-hdiutil create -quiet -volname Together -fs HFS+ -size 400m -attach "$TEMPLATE_DMG"
-
-# Copy files
-cp -R $NOTARY/$APP.app $MOUNT/Together.app
-cp -R background $MOUNT/.background
-ln -s /Applications $MOUNT/Applications
-
-# Prettify
-/usr/bin/osascript Prettify
-
-# Detach and compress
-hdiutil detach -quiet $MOUNT
-hdiutil convert "$TEMPLATE_DMG" -quiet -format UDZO -o "$TOGETHER_DMG"
-rm "$TEMPLATE_DMG"
+./package-pre
+./package-post
 
 # Test
 # Mount dmg and check that it worked
