@@ -14,15 +14,42 @@
 (module together.run-base jazz
 
 
-(import (jazz.settings)
+(import (jazz.platform)
+        (jazz.settings)
         (together.remote))
 
 
+(definition (already-running?)
+  (if (cond-expand
+        ((or devel stable) #f)
+        (else (process-already-running?)))
+      (begin
+        (system-message (string-append "Together is already running")
+                        type: 'message
+                        title: "Together")
+        (load-feedback-done)
+        #t)
+    #f))
+
+
+(definition (install-writable?)
+  (if (cond-expand
+        (mac (directory-writable? kernel-bundle-install))
+        (else #t))
+      #t
+    (system-message (format "Please drag & drop Together on the Applications icon")
+                    type: 'problem
+                    title: "Together")
+    #f))
+
+
 (definition (run-together-base descriptor)
-  (if (or (not remote-repository?)
-          (equal? (string-argument "called-from" #f) "sirius"))
-      (together.run:run-together)
-    (together.update:update-together)))
+  (unless (already-running?)
+    (if (or (not remote-repository?)
+            (equal? (string-argument "called-from" #f) "sirius"))
+        (together.run:run-together)
+      (when (install-writable?)
+        (together.update:update-together)))))
 
 
 (register-product-run 'together
