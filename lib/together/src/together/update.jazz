@@ -120,12 +120,13 @@
   (current-root-dir kernel-root)
   (set-first-install? (or (not (file-exists? (update-dir)))
                           (not (file-exists? (data-dir)))))
+  (setup-stage-view)
   (let ((thread
           (new-thread
             (lambda ()
               (send-crash-reports (jiri-installer-crashes))
               (send-crash-reports (jiri-application-crashes))
-              (setup-stage-view (string-append "Updating " (jiri-title)))
+              (set-stage-view-updating)
               (catch-jiri-exception
                 (lambda ()
                   (pull-repository (jiri-update-section) (update-dir)
@@ -167,7 +168,7 @@
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
       (let ((total (jiri-splash-end)))
-        (setup-stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
+        (set-title stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
         (set-status task "Launching together")
         (set-remaining task total)
         (set-range task (new Range 0 total))
