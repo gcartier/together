@@ -3259,7 +3259,8 @@
                            (append! (map third streams) (list (get-stream-no self-output))))))
               (reorder-outputs video order)))
           (set! preserved-eye? #f)
-          (space-refresh space)
+          (when space
+            (space-refresh space))
           @admin-request
           (start-captures)
           (setup-visibility mainbar)
