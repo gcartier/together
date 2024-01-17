@@ -120,13 +120,12 @@
   (current-root-dir kernel-root)
   (set-first-install? (or (not (file-exists? (update-dir)))
                           (not (file-exists? (data-dir)))))
-  (setup-stage-view (string-append "Updating " (jiri-title)))
-  (update-crashes-view-color)
   (let ((thread
           (new-thread
             (lambda ()
               (send-crash-reports (jiri-installer-crashes))
               (send-crash-reports (jiri-application-crashes))
+              (setup-stage-view (string-append "Updating " (jiri-title)))
               (catch-jiri-exception
                 (lambda ()
                   (pull-repository (jiri-update-section) (update-dir)
