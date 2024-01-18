@@ -162,7 +162,9 @@
 
 
 (definition load-expected-direct
-  455)
+  (cond-expand
+    (windows 445)
+    (else 455)))
 
 
 (definition (update-done new-content?)
