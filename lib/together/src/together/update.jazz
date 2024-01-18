@@ -98,8 +98,9 @@
   #f)
 
 (definition protected (close-update-toplevel)
-  (close update-toplevel)
-  (set! update-toplevel #f))
+  (when update-toplevel
+    (close update-toplevel)
+    (set! update-toplevel #f)))
 
 
 (class Update-Toplevel extends Jiri-Toplevel
@@ -123,7 +124,6 @@
 
 (definition protected (update-together)
   (catch (Update-Done exc
-           (close-update-toplevel)
            (reset-current-stage)
            (delayed-boot))
     (boot-environment (new Update-Application))))
