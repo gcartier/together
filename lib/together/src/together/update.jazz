@@ -142,8 +142,8 @@
   (let ((thread
           (new-thread
             (lambda ()
-              (send-crash-reports (jiri-installer-crashes))
-              (send-crash-reports (jiri-application-crashes))
+              (send-snapshot-reports (jiri-installer-snapshots))
+              (send-snapshot-reports (jiri-application-snapshots))
               (set-stage-view-updating)
               (catch-jiri-exception
                 (lambda ()

@@ -93,7 +93,7 @@
   (prepare-settings)
   (setup-build-metadata ".together-server")
   (load-unit 'world.profiling)
-  (send-crash-reports)
+  (send-snapshot-reports)
   (load-unit 'world.work)
   (load-unit 'together.boot-server)
   (boot-process))
