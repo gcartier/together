@@ -40,8 +40,26 @@
         (jiri.view)
         (jiri.window)
         (jiri.work)
-        (update.settings)
-        (together.run))
+        (update.settings))
+
+
+;;;
+;;;; Delayed
+;;;
+
+
+;; it is critical that only jiri code be loaded
+;; when the together repository is not uptodate
+;; to minimize to jiri code the danger of not
+;; being able to update out of a bug
+
+
+(definition (delayed-load)
+  (together.run:load-together))
+
+
+(definition (delayed-boot)
+  (together.run:boot-together))
 
 
 ;;;
@@ -107,7 +125,7 @@
   (catch (Update-Done exc
            (close-update-toplevel)
            (reset-current-stage)
-           (boot-together))
+           (delayed-boot))
     (boot-environment (new Update-Application))))
 
 
@@ -152,7 +170,7 @@
     (let ((thread
             (new-thread
               (lambda ()
-                (load-together)
+                (delayed-load)
                 (load-feedback-done))
               'load)))
       (thread-base-priority-set! thread update-priority)
