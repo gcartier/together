@@ -161,12 +161,16 @@
     (thread-start! thread)))
 
 
+(definition load-expected-direct
+  455)
+
+
 (definition (update-done new-content?)
   (declare (proper-tail-calls))
   (set-cursor :arrow)
   (set-work-done? #t)
   (let ((port (open-vector)))
-    (load-feedback-setup port)
+    (load-feedback-setup port load-expected-direct)
     (let ((thread
             (new-thread
               (lambda ()
@@ -185,12 +189,9 @@
 (definition (update-splash new-content? port cont)
   (let ((section (jiri-splash-section)))
     (bind (task) (get-tasks section)
-      (let ((total (jiri-splash-end)))
-        (set-title stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
-        (set-status task "Launching together")
-        (set-remaining task total)
-        (set-range task (new Range 0 total))
-        (launch-feedback "together" task total port cont)))))
+      (set-title stage-view (if new-content? (jiri-splash-updated) (jiri-splash-uptodate)))
+      (set-status task "Launching together")
+      (launch-feedback "together" task port cont))))
 
 
 ;;;
@@ -199,8 +200,6 @@
 
 
 (jiri-background {File Resources "lib" "together" "assets" "background.png"})
-
-(jiri-splash-end 410)
 
 
 (set-jiri-init
