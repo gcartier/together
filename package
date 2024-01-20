@@ -12,7 +12,9 @@
 
 # Push
 # Copy $TOGETHER_DMG to website/limited
-# commit and push
+# cd to website/limited
+# jas sync
+# jas upload
 # go to montreal
-# cd /var/www/together
-# sudo git pull
+# cd /var/www/together/limited
+# sudo jas download
