@@ -2923,7 +2923,7 @@
     (let ((client (current-client))
           (me (current-me)))
       (set-current-mode 'visitor)
-      (mode-change me 'visitor)
+      (set-mode me 'visitor)
       (visit-to-server client)
       (add-snapshot-property 'live.player-mode current-mode)))
   
@@ -2934,7 +2934,7 @@
           (me (current-me)))
       (let ((old-mode current-mode))
         (set-current-mode 'observer)
-        (mode-change me 'observer)
+        (set-mode me 'observer)
         (observe-to-server client)
         (when (eq? old-mode 'visitor)
           (view-distance-reload zone))
@@ -2946,7 +2946,7 @@
           (zone (current-zone))
           (me (current-me)))
       (set-current-mode 'participant)
-      (mode-change me 'participant)
+      (set-mode me 'participant)
       (participate-to-server client)
       (add-snapshot-property 'live.player-mode current-mode)))
   
