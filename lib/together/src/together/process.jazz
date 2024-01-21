@@ -60,7 +60,7 @@
 ;;;
 
 
-;; quicky to rethink after sejour
+;; quicky to rethink
 (import (jazz.command)
         (jazz.document)
         (jazz.editor.jazz)
