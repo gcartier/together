@@ -4188,15 +4188,14 @@
   
   
   (method (teleport-to self path position sight)
-    (let ((observer? (observer?)))
-      (load/wait-zone path "Teleport in progress"
-        (lambda ()
-          (let ((zone (current-zone))
-                (position (vertex+ position (vertex-scalar* sight 3.)))
-                (sight (vertex-negate sight)))
-            (when observer?
-              (enter-zone self))
-            (teleport zone position sight))))))
+    (load/wait-zone path "Teleport in progress"
+      (lambda ()
+        (let ((zone (current-zone))
+              (position (vertex+ position (vertex-scalar* sight 3.)))
+              (sight (vertex-negate sight)))
+          (unless (participant?)
+            (enter-zone self))
+          (teleport zone position sight)))))
   
   
   ;;;
