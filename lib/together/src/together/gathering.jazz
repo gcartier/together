@@ -4202,8 +4202,7 @@
         (let ((zone (current-zone))
               (position (vertex+ position (vertex-scalar* sight 3.)))
               (sight (vertex-negate sight)))
-          (unless (participant?)
-            (enter-zone self))
+          (enter-zone self)
           (teleport zone position sight)))))
   
   
