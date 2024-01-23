@@ -2951,6 +2951,15 @@
       (add-snapshot-property 'live.player-mode current-mode)))
   
   
+  (method package (refresh-mode self)
+    (let ((space (current-space)))
+      (if (is? space Gathering-Space)
+          (if selected-zone?
+              (observer-mode self)
+            (visitor-mode self))
+        (participant-mode self))))
+  
+  
   (method package (exit-zone self)
     (let ((client (current-client))
           (interface (current-interface))
