@@ -67,8 +67,7 @@
                   (let ((error (change-zone client path)))
                     (if (string? error)
                         (display-error world error)
-                      (unless (eq? path 'start)
-                        (set! active-zone path))
+                      (set! active-zone path)
                       (thunk))))))))))))
 
 
