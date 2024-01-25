@@ -2945,10 +2945,13 @@
     (let ((client (current-client))
           (zone (current-zone))
           (me (current-me)))
-      (set-current-mode 'participant)
-      (set-mode me 'participant)
-      (participate-to-server client)
-      (add-snapshot-property 'live.player-mode current-mode)))
+      (let ((old-mode current-mode))
+        (set-current-mode 'participant)
+        (set-mode me 'participant)
+        (participate-to-server client)
+        (when (eq? old-mode 'visitor)
+          (view-distance-reload zone))
+        (add-snapshot-property 'live.player-mode current-mode))))
   
   
   (method package (refresh-mode self)
