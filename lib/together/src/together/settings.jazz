@@ -294,7 +294,29 @@
            world))))
 
 
-(set-world-finder find-world)
+(definition found-world
+  (find-world))
+
+
+(set-world-finder
+  (lambda ()
+    found-world))
+
+
+;;;
+;;;; Restricted
+;;;
+
+
+(filesystem-authorize "/dev/tty")
+(filesystem-authorize (parse (jas-settings)))
+(filesystem-authorize (parse {Directory Settings}))
+(filesystem-authorize (parse {Directory Documents}))
+(filesystem-authorize (parse found-world))
+
+(for-each (lambda (repo)
+            (filesystem-authorize (repository-directory repo)))
+          (repositories-get))
 
 
 ;;;
