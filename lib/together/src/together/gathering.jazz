@@ -4467,7 +4467,7 @@
   (method (command-escape self command)
     (let ((world (current-world))
           (space (current-space)))
-      (when (or (is? space Zone-Space) (is? space Circle-Space))
+      (when (or (is? space Zone-Space) (and (is? space Circle-Space) (is-not? space Presence-Space)))
         (hide-command world))))
   
   
