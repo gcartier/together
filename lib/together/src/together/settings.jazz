@@ -308,7 +308,8 @@
 ;;;
 
 
-(filesystem-authorize "/dev/tty")
+(filesystem-authorize-terminal)
+
 (filesystem-authorize (parse (jas-settings)))
 (filesystem-authorize (parse {Directory Settings}))
 (filesystem-authorize (parse {Directory Documents}))
