@@ -318,6 +318,11 @@
             (filesystem-authorize (repository-directory repo)))
           (repositories-get))
 
+(filesystem-restrictable)
+
+(when (get-controller-debugger)
+  (filesystem-restrict))
+
 
 ;;;
 ;;;; Skybox
