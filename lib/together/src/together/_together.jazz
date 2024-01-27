@@ -66,14 +66,14 @@
                   (trial  '(Home "Together" "trial"))
                   (else   '(Home "Together" "devel"))))
     (windows
-     (let ((dir (get-special-folder CSIDL_PERSONAL)))
-       (cond-expand (prod   (list dir "Together" "prod"))
-                    (stage  (list dir "Together" "stage"))
-                    (stable (list dir "Together" "stable"))
-                    (triage (list dir "Together" "triage"))
-                    (test   (list dir "Together" "test"))
-                    (trial  (list dir "Together" "trial"))
-                    (else   (list dir "Together" "devel")))))
+     (let ((dir (tokenise-filename (pathname-normalize (get-special-folder CSIDL_PERSONAL)))))
+       (cond-expand (prod   (append dir '("Together" "prod")))
+                    (stage  (append dir '("Together" "stage")))
+                    (stable (append dir '("Together" "stable")))
+                    (triage (append dir '("Together" "triage")))
+                    (test   (append dir '("Together" "test")))
+                    (trial  (append dir '("Together" "trial")))
+                    (else   (append dir '("Together" "devel"))))))
     (else
      '(Settings))))
 
