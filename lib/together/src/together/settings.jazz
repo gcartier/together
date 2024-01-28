@@ -308,22 +308,23 @@
 ;;;
 
 
-(filesystem-authorize-terminal)
-
-(filesystem-authorize (parse (jas-settings)))
-(filesystem-authorize (parse {Directory Settings}))
-(filesystem-authorize (parse {Directory Documents}))
-(filesystem-authorize kernel-root)
-(filesystem-authorize (parse found-world))
-
-(for-each (lambda (repo)
-            (filesystem-authorize (repository-directory repo)))
-          (repositories-get))
-
-(filesystem-restrictable)
-
-(when (get-controller-debugger)
-  (filesystem-restrict))
+(when (client?)
+  (filesystem-authorize-terminal)
+  
+  (filesystem-authorize (parse (jas-settings)))
+  (filesystem-authorize (parse {Directory Settings}))
+  (filesystem-authorize (parse {Directory Documents}))
+  (filesystem-authorize kernel-root)
+  (filesystem-authorize (parse found-world))
+  
+  (for-each (lambda (repo)
+              (filesystem-authorize (repository-directory repo)))
+            (repositories-get))
+  
+  (filesystem-restrictable)
+  
+  (when (get-controller-debugger)
+    (filesystem-restrict)))
 
 
 ;;;
