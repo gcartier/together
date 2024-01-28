@@ -589,9 +589,9 @@
     (let ((together (current-together))
           (client (current-client))
           (interface (current-interface))
-          (world (current-world)))
+          (world (current-world))
+          (zone (current-zone)))
       (let ((selected-zone? (get-selected-zone? together))
-            (selected-zone (get-selected-zone together))
             (selected-group (get-selected-group together))
             (selected-owner (get-selected-owner together))
             (selected-zoom? (get-selected-zoom? together))
@@ -602,7 +602,7 @@
         (define (enter-visible flag)
           (let ((layout (child root 'enter)))
             (when flag
-              (set-title (child layout 'label) (present-zone together selected-zone))
+              (set-title (child layout 'label) (present-zone together (get-path zone)))
               (layout-view layout))
             (set-visible? layout flag)))
         
@@ -2038,7 +2038,6 @@
   (slot space               initialize #f getter generate)
   (slot configuration       initialize #f getter generate)
   (slot selected-zone?      initialize #f getter generate)
-  (slot selected-zone       initialize 'start getter generate)
   (slot selected-group      initialize #f getter generate)
   (slot selected-data       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
@@ -2109,7 +2108,6 @@
           (let ((row (user-data-row tree zone test: equal?)))
             (when row
               (set-single-selection tree (row->line tree row) generate-event?: #f)
-              (set! selected-zone zone)
               (set! selected-data zone)
               (set! message-recipient zone)
               (set-path (current-zone) zone)))))
@@ -2860,7 +2858,6 @@
   (method package (autoenter-zone self)
     (let ((zone (current-zone)))
       (let ((path (get-path zone)))
-        (set! selected-zone path)
         (set! selected-data path)
         (enter-zone self))))
   
@@ -4032,10 +4029,9 @@
         
         (define (select data (zone? #f))
           (bind (kind . rest) data
-            (define (select zone group owner stone zoom? link description player)
+            (define (select group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
               (set! selected-zone? zone?)
-              (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)
@@ -4049,10 +4045,9 @@
             (case kind
               ((group zoom-group)
                (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
-                 (select zone group owner stone zoom? link description #f)))
+                 (select group owner stone zoom? link description #f)))
               ((zone)
-               (let ((zone (get-path (current-zone))))
-                 (select zone #f #f #f #f #f #f #f))))))
+               (select #f #f #f #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
