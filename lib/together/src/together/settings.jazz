@@ -314,12 +314,17 @@
   (filesystem-authorize (parse (jas-settings)))
   (filesystem-authorize (parse {Directory Settings}))
   (filesystem-authorize (parse {Directory Documents}))
-  (filesystem-authorize kernel-root)
-  (filesystem-authorize (parse found-world))
   
-  (for-each (lambda (repo)
-              (filesystem-authorize (repository-directory repo)))
-            (repositories-get))
+  (when kernel-source-root
+    (filesystem-authorize kernel-source-root))
+  
+  (filesystem-authorize kernel-root)
+  
+  (let ((repository (build-repository-get)))
+    (when repository
+      (filesystem-authorize (repository-directory repository))))
+  
+  (filesystem-authorize (parse found-world))
   
   (filesystem-restrictable)
   
