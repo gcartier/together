@@ -2039,7 +2039,6 @@
   (slot configuration       initialize #f getter generate)
   (slot selected-zone?      initialize #f getter generate)
   (slot selected-group      initialize #f getter generate)
-  (slot selected-data       initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
   (slot created-zoom-circle initialize #f getter generate)
@@ -2108,7 +2107,6 @@
           (let ((row (user-data-row tree zone test: equal?)))
             (when row
               (set-single-selection tree (row->line tree row) generate-event?: #f)
-              (set! selected-data zone)
               (set! message-recipient zone)
               (set-path (current-zone) zone)))))
       
@@ -2857,9 +2855,7 @@
   
   (method package (autoenter-zone self)
     (let ((zone (current-zone)))
-      (let ((path (get-path zone)))
-        (set! selected-data path)
-        (enter-zone self))))
+      (enter-zone self)))
   
   
   (method package (enter-zone self)
@@ -4033,7 +4029,6 @@
               (set-circle-vista (and stone (second stone)))
               (set! selected-zone? zone?)
               (set! selected-group group)
-              (set! selected-data data)
               (set! selected-owner owner)
               (set! selected-zoom? zoom?)
               (if selected-zone?
