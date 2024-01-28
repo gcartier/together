@@ -3933,14 +3933,14 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-zone)
-                (let ((title (present-zone self active-zone)))
+                (let ((title (present-zone self (get-path zone))))
                   (add-row tree
                            state: 'expanded
                            children: (list (new Tree-Node
                                              title: title
                                              font: {Font Label-User}
                                              color: zone-color))
-                           user-data: (list 'zone active-zone))
+                           user-data: (list 'zone #f))
                   (added #f)))
               
               (define (add-circles circles)
@@ -4034,19 +4034,15 @@
           (bind (kind . rest) data
             (define (select zone group owner stone zoom? link description player)
               (set-circle-vista (and stone (second stone)))
-              (unless (eqv? zone? selected-zone?)
-                (set! selected-zone? zone?)
-                (let ((effective-zone (if zone? zone 'start)))
-                  (unless (equal? effective-zone selected-zone)
-                    (set! selected-zone effective-zone)
-                    (load/wait-zone effective-zone #f (lambda ()))))
-                (if selected-zone?
-                    (observer-mode self)
-                  (visitor-mode self)))
+              (set! selected-zone? zone?)
+              (set! selected-zone zone)
               (set! selected-group group)
               (set! selected-data data)
               (set! selected-owner owner)
               (set! selected-zoom? zoom?)
+              (if selected-zone?
+                  (observer-mode self)
+                (visitor-mode self))
               (reinstall-vista)
               (update-center-interface space))
             
@@ -4055,7 +4051,7 @@
                (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
                  (select zone group owner stone zoom? link description #f)))
               ((zone)
-               (bind (zone) rest
+               (let ((zone (get-path (current-zone))))
                  (select zone #f #f #f #f #f #f #f))))))
         
         (define (select-row row)
