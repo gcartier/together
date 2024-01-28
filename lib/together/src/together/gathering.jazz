@@ -4018,14 +4018,14 @@
     (when (and (verified?) (is? space Gathering-Space))
       (let ((tree (people-tree self)))
         (define (select-gathering)
-          (select (list 'group #f #f #f #f #f #f 'start #f #f #f #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #f)))
         
         (define (select-zoom)
-          (select (list 'group #f #f #f #f #f #f 'start #f #t #f #f)))
+          (select (list 'group #f #f #f #f #f #f 'start #f #t)))
         
-        (define (select data (zone? #f))
+        (define (select data)
           (bind (kind . rest) data
-            (define (select group owner stone zoom? link description player)
+            (define (select zone? group owner stone zoom?)
               (set-circle-vista (and stone (second stone)))
               (set! selected-zone? zone?)
               (set! selected-group group)
@@ -4039,10 +4039,10 @@
             
             (case kind
               ((group zoom-group)
-               (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom? link description) rest
-                 (select group owner stone zoom? link description #f)))
+               (bind (group owner persistent? invite-only? require-microphone? require-camera? zone stone zoom?) rest
+                 (select #f group owner stone zoom?)))
               ((zone)
-               (select #f #f #f #f #f #f #f)))))
+               (select #t #f #f #f #f)))))
         
         (define (select-row row)
           (if (not row)
@@ -4057,9 +4057,7 @@
                         (select-gathering)
                       (if (eq? kind 'player)
                           (select-row (get-father row))
-                        (if (eq? kind 'zone)
-                            (select data #t)
-                          (select data))))))))))
+                        (select data)))))))))
         
         (select-row (get-selected-row tree)))))
   
