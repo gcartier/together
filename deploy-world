@@ -1,20 +1,17 @@
 #!/bin/sh
 
 if [ -f ".jaz" ]; then
-    . "$(pwd)/.jaz"
+  . "$(pwd)/.jaz"
+else
+  echo ".jaz not found"
+  exit 1
 fi
 
-if [ -z "$1" ]; then
-  # echo "No environment parameter"
-  # exit 1
-  if [ -z "$JAZCONF" ]; then
-    ENVIRONMENT="test"
-  else
-    ENVIRONMENT="$JAZCONF"
-  fi
+if [ -z "$JAZCONF" ]; then
+  echo "JAZCONF not set"
+  exit 1
 else
-  ENVIRONMENT="$1"
-  shift
+  ENVIRONMENT="$JAZCONF"
 fi
 
 ./jaz deploy "together-world@$ENVIRONMENT" "$@" -debug
