@@ -5,15 +5,15 @@
 	<key>CFBundleExecutable</key>
 	<string>Together</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Together</string>
+	<string>Together Test</string>
 	<key>CFBundleIconFile</key>
 	<string>together.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.togethersphere.Together</string>
+	<string>com.togethersphere.TogetherTest</string>
 	<key>CFBundleName</key>
-	<string>Together</string>
+	<string>Together Test</string>
 	<key>CFBundleDisplayName</key>
-	<string>Together</string>
+	<string>Together Test</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
    <key>CFBundleDocumentTypes</key>
