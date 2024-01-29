@@ -4,10 +4,24 @@ TOGETHER=~/Devel/together
 INSTALL=$TOGETHER/install
 NOTARY=$TOGETHER/notary
 
-if [[ "$(arch)" == "arm64" ]]; then
-  APP=together-prod-silicon
+if [ -f ".jaz" ]; then
+  . "$(pwd)/.jaz"
 else
-  APP=together-prod-mac
+  echo ".jaz not found"
+  exit 1
+fi
+
+if [ -z "$JAZCONF" ]; then
+  echo "JAZCONF not set"
+  exit 1
+else
+  ENVIRONMENT="$JAZCONF"
+fi
+
+if [[ "$(arch)" == "arm64" ]]; then
+  APP=together-$ENVIRONMENT-silicon
+else
+  APP=together-$ENVIRONMENT-mac
 fi
 
 # Bail out
