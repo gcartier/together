@@ -135,7 +135,8 @@
 
 
 (set-default-server-host
-  "togethersphere.com")
+  (cond-expand (test "34.116.114.191")
+               (else "togethersphere.com")))
 
 
 ;;;
