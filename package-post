@@ -5,14 +5,34 @@ NOTARY=$TOGETHER/notary
 PACKAGE=$TOGETHER/package
 MOUNT="/Volumes/Together"
 
-if [[ "$(arch)" == "arm64" ]]; then
-  APP="together-prod-silicon"
-  TEMPLATE_DMG="TogetherTemplateSilicon.dmg"
-  TOGETHER_DMG="Together Apple Silicon.dmg"
+if [ -f ".jaz" ]; then
+  . "$(pwd)/.jaz"
 else
-  APP="together-prod-mac"
+  echo ".jaz not found"
+  exit 1
+fi
+
+if [ -z "$JAZCONF" ]; then
+  echo "JAZCONF not set"
+  exit 1
+else
+  ENVIRONMENT="$JAZCONF"
+fi
+
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  SUFFIX=""
+else
+  SUFFIX=" Test"
+fi
+
+if [[ "$(arch)" == "arm64" ]]; then
+  APP="together-$ENVIRONMENT-silicon"
+  TEMPLATE_DMG="TogetherTemplateSilicon.dmg"
+  TOGETHER_DMG="Together$SUFFIX Apple Silicon.dmg"
+else
+  APP="together-$ENVIRONMENT-mac"
   TEMPLATE_DMG="TogetherTemplate.dmg"
-  TOGETHER_DMG="Together.dmg"
+  TOGETHER_DMG="Together$SUFFIX.dmg"
 fi
 
 # Bail out
@@ -26,7 +46,7 @@ cp -R background $MOUNT/.background
 ln -s /Applications $MOUNT/Applications
 
 # Prettify
-/usr/bin/osascript Prettify
+/usr/bin/osascript "Prettify$SUFFIX"
 
 # Detach and compress
 hdiutil detach -quiet $MOUNT
