@@ -3046,8 +3046,6 @@
                                 (set-checked? require-camera #t)
                                 (circle-join self name group-info/exception #t #f))))))
                       (lambda ()
-                        (when (eq? current-mode 'visitor)
-                          (view-distance-reload (current-zone)))
                         (vista-motion world position))))))))))))
   
   
@@ -3180,10 +3178,7 @@
               (else
                (load/wait-zone effective-zone "Joining circle"
                  (lambda ()
-                   (setup-circle self name #t #t group-info/exception))
-                 (lambda ()
-                   (when (eq? current-mode 'visitor)
-                     (view-distance-reload (current-zone)))))
+                   (setup-circle self name #t #t group-info/exception)))
                (paint-mainbar (current-space)))))))
   
   
