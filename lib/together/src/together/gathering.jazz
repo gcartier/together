@@ -4643,28 +4643,6 @@
   
   
   ;;;
-  ;;;; Zone
-  ;;;
-  
-  
-  (method (load-zone self path)
-    (let ((client (current-client)))
-      (load-zone client path)))
-  
-  
-  (method (change-zone self path)
-    (let ((client (current-client))
-          (world (current-world))
-          (zone (current-zone)))
-      (unless (equal? path (get-path zone))
-        (let ((info (change-zone client path)))
-          (if (string? info)
-              (display-error world (format "{a}" info))
-            (uninstall-vista zone)
-            (install-vista))))))
-  
-  
-  ;;;
   ;;;; Group
   ;;;
   
