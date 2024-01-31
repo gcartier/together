@@ -177,8 +177,8 @@
     (nextmethod self))
   
   
-  (method override (void? self)
-    #t)
+  (method override (updates? self)
+    #f)
   
   
   ;; kind of poor man solution for the moment as this will
