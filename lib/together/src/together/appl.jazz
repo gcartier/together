@@ -236,11 +236,11 @@
         (application-activate space)
         ;; wakeup render
         (let ((task (get-render-task zone)))
-          (when task
+          (when (and task (started? task))
             (task-wakeup task)))
         ;; wakeup tick
         (let ((task (get-tick-task zone)))
-          (when task
+          (when (and task (started? task))
             (task-wakeup task)))
         ;; super mega quicky
         @version1
