@@ -3044,9 +3044,7 @@
                                 (set-string-content text "")
                                 (content-changed view)
                                 (set-checked? require-camera #t)
-                                (circle-join self name group-info/exception #t #f))))))
-                      (lambda ()
-                        (vista-motion world position))))))))))))
+                                (circle-join self name group-info/exception #t #f))))))))))))))))
   
   
   (method package (create-zoom-circle self)
