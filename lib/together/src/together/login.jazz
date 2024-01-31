@@ -271,7 +271,6 @@
                   (lambda ()
                     (retrieve-critical)))
                 (set-critical-retrieved? #t)
-                (start-delayed-tasks obj)
                 (prepare-skybox obj)
                 (enter-together #f)
                 (let ((tier (current-tier)))

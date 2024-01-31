@@ -100,7 +100,6 @@
         (begin
           (retrieve-critical)
           (set-critical-retrieved? #t)
-          (start-delayed-tasks obj)
           (prepare-skybox obj)
           (enter-together auto-enter))
       (let ((title (present-login-problem obj))
