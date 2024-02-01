@@ -3550,7 +3550,7 @@
   
   
   (method (draw-debug self surface)
-    ;; YOWNU quick hack
+    ;; quick hack
     (when (client?)
     (let ((client (current-client)))
       (let ((udp-client (get-udp-client client)))

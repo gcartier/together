@@ -54,7 +54,7 @@
       (else (nextmethod self form))))
   
   
-  @YOWNU-get-asset-not-in-creature
+  @yownu-get-asset-not-in-creature
   (method override (edited-update self)
     (define (present-edited edited)
       (let ((path (get-path (get-asset edited))))
