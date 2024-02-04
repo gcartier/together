@@ -47,21 +47,21 @@
                 (let ((loaded (make-mutex 'loaded))
                       (before (current-seconds)))
                   (set-zone-loaded-hook client (lambda (path info)
-                                                 (let ((elapse (- (current-seconds) before)))
-                                                   (sleep (- min-delay elapse)))
                                                  (mutex-unlock! loaded)
                                                  (mutex-unlock! loaded)))
-                  (working world
+                  (task-working world
                     (lambda ()
                       (when message
                         (working-progress world message #f))
                       (load-zone client path)
                       (mutex-lock! loaded)
-                      (mutex-lock! loaded)))
-                  (let ((error (change-zone client path)))
-                    (if (string? error)
-                        (display-error world error)
-                      (thunk))))))))))))
+                      (mutex-lock! loaded)
+                      (let ((error (change-zone client path)))
+                        (if (string? error)
+                            (display-error world error)
+                          (thunk)
+                          (let ((elapse (- (current-seconds) before)))
+                            (sleep (- min-delay elapse))))))))))))))))
 
 
 (definition package (check-rune rune)
