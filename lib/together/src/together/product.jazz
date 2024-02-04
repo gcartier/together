@@ -163,8 +163,7 @@
     metadata: '(".together"
                 ".together-worker")
     ignored-macosx: '("together-server.app"
-                      "together-processor.app"
-                      "together-worker.app")))
+                      "together-processor.app")))
 
 
 ;;;
