@@ -49,7 +49,7 @@
                   (set-zone-loaded-hook client (lambda (path info)
                                                  (mutex-unlock! loaded)
                                                  (mutex-unlock! loaded)))
-                  (task-working world
+                  (working world
                     (lambda ()
                       (when message
                         (working-progress world message #f))

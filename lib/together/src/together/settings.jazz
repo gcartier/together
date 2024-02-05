@@ -94,12 +94,10 @@
 
 
 (definition protected (open-client-enter remote-file (auto-enter: auto-enter #f) (from-login?: from-login? #f))
-  (set-critical-retrieved? #f)
   (let ((obj (open-client remote-file auto-enter: auto-enter)))
     (if (is? obj Zone)
         (begin
           (retrieve-critical)
-          (set-critical-retrieved? #t)
           (prepare-skybox obj)
           (enter-together auto-enter))
       (let ((title (present-login-problem obj))
@@ -133,18 +131,17 @@
 (definition protected (retrieve-critical-assets critical downloaded total)
   (let ((world (current-world)))
     (unless (world-setting 'together.critical-assets? #f)
-      (parameterize ((inhibit-working? #t))
-        (let ((blocks (new-queue)))
-          (for-each (lambda (info)
-                      (bind (asset . size) info
-                        (enqueue blocks (cons (request-file asset) size))))
-                    critical)
-          (for-each (lambda (info)
-                      (bind (block . size) info
-                        (working-progress world "Downloading assets" (percentage downloaded total))
-                        (increase! downloaded size)
-                        (block)))
-                    (queue-list blocks))))
+      (let ((blocks (new-queue)))
+        (for-each (lambda (info)
+                    (bind (asset . size) info
+                      (enqueue blocks (cons (request-file asset) size))))
+                  critical)
+        (for-each (lambda (info)
+                    (bind (block . size) info
+                      (working-progress world "Downloading assets" (percentage downloaded total))
+                      (increase! downloaded size)
+                      (block)))
+                  (queue-list blocks)))
       (working-progress world "Downloading assets" 100.)
       (sleep .1)
       (set-setting options-settings 'together.critical-assets? #t)
