@@ -134,7 +134,9 @@
       (let ((blocks (new-queue)))
         (for-each (lambda (info)
                     (bind (asset . size) info
-                      (enqueue blocks (cons (request-file asset) size))))
+                      (let ((block/file (request-file asset)))
+                        (when (procedure? block/file)
+                          (enqueue blocks (cons block/file size))))))
                   critical)
         (for-each (lambda (info)
                     (bind (block . size) info
