@@ -866,7 +866,7 @@
       (<Name-Label>             name: name                location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
       (<Circle-Label>           name: circle-name         location: tail size: {Dimension 200 40} auto-size?: #t font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: center)
       (<World-Separator>        name: name-separator      location: tail size: {Dimension 10 0})
-      (<Profile-Label>          name: profile             location: tail size: {Dimension 100 40} font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: (tail head))
+      (<Profile-Label>          name: profile             location: tail size: {Dimension 100 40} auto-size?: height font: {Font font-name: tahoma point-size: 15.5 shadow: thin} justification: (tail head))
       (<World-Separator>        name: power-separator     location: tail size: {Dimension 40 0})
       (<Microphone-Power>       name: microphone-power    location: tail size: {Dimension 65 20})
       (<World-Separator>                                  location: tail size: {Dimension 18 0})))
