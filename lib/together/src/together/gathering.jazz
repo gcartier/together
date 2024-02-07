@@ -237,6 +237,8 @@
       (<world-interface!>
         (<!>                 name: toggle-interface           active?: #t)
         (<!>                 name: toggle-windowed-mode       active?: #t))
+      (<world-zone!>
+        (<!>                 name: zone-open                  active?: #t))
       (<world-people!>
         (<!>                 name: toggle-participation       active?: #t)
         (<!>                 name: toggle-invite              active?: #t))
@@ -475,6 +477,7 @@
     (append (list (find-actions 'together-menu)
                   (find-actions 'world-main)
                   (find-actions 'world-interface)
+                  (find-actions 'world-zone)
                   (find-actions 'world-people)
                   (find-actions 'world-chat)
                   (find-actions 'world-script)
@@ -1032,6 +1035,7 @@
         (<!>                 name: toggle-ambience            active?: #t)
         (<!>                 name: toggle-sound               active?: #t))
       (<world-zone!>
+        (<!>                 name: zone-open                  active?: #t)
         (<!>                 name: zone-reload                active?: #t)
         (<!>                 name: zone-regenerate            active?: #t))
       (<world-movement!>

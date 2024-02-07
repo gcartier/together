@@ -1732,6 +1732,7 @@
         (<!>                 name: toggle-windowed-mode       visible?: #t)
         (<!>                 name: toggle-user                visible?: #t))
       (<world-zone!>
+        (<!>                 name: zone-open                  visible?: #t)
         (<!>                 name: zone-reload                visible?: #t)
         (<!>                 name: zone-regenerate            visible?: #t))
       (<world-movement!>
