@@ -160,10 +160,20 @@
     directories: (cond-expand
                    (mac '()) ;; already installed in resources
                    (else '("devel")))
-    metadata: '(".together"
-                ".together-worker")
+    metadata: '(".together")
     ignored-macosx: '("together-server.app"
-                      "together-processor.app")))
+                      "together-processor.app"
+                      "together-worker.app"))
+  ;; apps
+  (cond-expand
+    (mac
+     (let ((app-dir (new-directory install-dir install-name)))
+       (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "together-worker.app"))
+         feedback: (lambda (action pathname)
+                     (build-feedback "; {a} {a}..." action (get-name pathname))))
+       (install-file {File Build ".together-worker"} (new-file app-dir '("Contents" "together-worker.app" "Contents" "Resources" ".together-worker")))
+       (build-feedback "; {a} {a}..." 'copying ".together-worker")))
+    (else)))
 
 
 ;;;
