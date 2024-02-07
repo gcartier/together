@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>together-server</string>
+	<string>Together-Server</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Together-Server</string>
 	<key>CFBundleIconFile</key>

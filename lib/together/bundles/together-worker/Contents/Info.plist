@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>together-worker</string>
+	<string>Together-Worker</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Together-Worker</string>
 	<key>CFBundleIconFile</key>
