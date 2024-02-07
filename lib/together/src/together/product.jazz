@@ -161,9 +161,9 @@
                    (mac '()) ;; already installed in resources
                    (else '("devel")))
     metadata: '(".together")
-    ignored-macosx: '("together-server.app"
-                      "together-processor.app"
-                      "together-worker.app"))
+    ignored-contents: '("together-server.app"
+                        "together-processor.app"
+                        "together-worker.app"))
   ;; apps
   (cond-expand
     (mac
