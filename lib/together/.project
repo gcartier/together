@@ -74,7 +74,6 @@
         (<Jazz-File>       name: record            source: {File :context "src" "together" "record.jazz"})
         (<Jazz-File>       name: zoom              source: {File :context "src" "together" "zoom.jazz"})
         (<Jazz-File>       name: organize          source: {File :context "src" "together" "organize.jazz"})
-        (<Jazz-File>       name: portal            source: {File :context "src" "together" "portal.jazz"})
         (<Jazz-File>       name: bbr               source: {File :context "src" "together" "bbr.jazz"})
         (<Jazz-File>       name: update            source: {File :context "src" "together" "update.jazz"})
         (<Jazz-File>       name: load              source: {File :context "src" "together" "load.jazz"}))
