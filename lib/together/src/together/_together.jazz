@@ -106,7 +106,7 @@
                 (test together-code)
                 (triage together-code)
                 (stable together-code)
-                (else together-code @wait build-digest))))
+                (else build-digest))))
     (set-udp-code code)
     (set-presence-code code)
     (set-presence-version together-version)))
