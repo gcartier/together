@@ -64,6 +64,7 @@
   (register-domain-names)
   (register-kernel-properties)
   (register-platform-properties)
+  (setup-build-metadata ".together")
   (setup-presence))
 
 
@@ -147,7 +148,6 @@
   (prepare-logger)
   (prepare-together)
   (prepare-settings)
-  (setup-build-metadata ".together")
   (load-unit 'world.profiling)
   (create-documents)
   (load-unit 'world.work)

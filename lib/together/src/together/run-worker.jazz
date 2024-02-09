@@ -37,6 +37,7 @@
   (set-valid-roles '(user builder developer))
   (register-domain-names)
   (initialize-aliases)
+  (setup-build-metadata ".together-worker")
   (setup-presence))
 
 
@@ -65,7 +66,6 @@
   (prepare-worker)
   (prepare-presence)
   (prepare-settings)
-  (setup-build-metadata ".together-worker")
   (load-unit 'together.boot-worker)
   (boot-process))
 

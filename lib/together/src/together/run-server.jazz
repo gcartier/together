@@ -53,6 +53,7 @@
   (register-domain-names)
   (register-kernel-properties)
   (register-platform-properties)
+  (setup-build-metadata ".together-server")
   (setup-presence))
 
 
@@ -91,7 +92,6 @@
   (logger "Start server")
   (prepare-server)
   (prepare-settings)
-  (setup-build-metadata ".together-server")
   (load-unit 'world.profiling)
   (send-snapshot-reports)
   (load-unit 'world.work)
