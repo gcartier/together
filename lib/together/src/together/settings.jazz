@@ -324,6 +324,12 @@
   
   (filesystem-authorize (parse found-world))
   
+  (let ((authorized (world-setting 'together.authorized #f)))
+    (when authorized
+      (for-each (lambda (dir)
+                  (filesystem-authorize (parse dir)))
+                authorized)))
+  
   (filesystem-restrictable)
   
   (when (get-controller-debugger)
