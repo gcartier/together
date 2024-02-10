@@ -1010,7 +1010,11 @@
   (<Trait>                   name: avatar
     (<install>
       (<together-circle!>
-        (<!>                 name: avatar-mode                active?: #t)))))
+        (<!>                 name: avatar-mode                active?: #t))
+      (<world-zone!>
+        (<!>                 name: zone-open                  active?: #t)
+        (<!>                 name: zone-reload                active?: #t)
+        (<!>                 name: zone-regenerate            active?: #t)))))
 
 
 (define-trait zone-free-bindings Bindings
