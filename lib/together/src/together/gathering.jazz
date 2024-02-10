@@ -604,7 +604,7 @@
         (define (enter-visible flag)
           (let ((layout (child root 'enter)))
             (when flag
-              (set-title (child layout 'label) (present-zone together (get-path zone)))
+              (set-title (child layout 'label) (present-zone (get-path zone)))
               (layout-view layout))
             (set-visible? layout flag)))
         
@@ -2892,12 +2892,6 @@
       (delay-enable-autotrack self)))
   
   
-  (method package (present-zone self zone)
-    (if (eq? zone 'start)
-        "World"
-      (last zone)))
-  
-  
   (method (teleport-circle self position)
     (let ((zone (current-zone)))
       (let ((sight (random-horizon)))
@@ -3903,7 +3897,7 @@
                                          (asleep? (format "{a} (offline)" player-title))
                                          ((not verified?) (format "{a} (unverified)" player-title))
                                          (mobile? (format "{a} (Web)" player-title))
-                                         ((eq? mode 'participant) (format "{a} ({a})" player-title (present-zone self zone)))
+                                         ((eq? mode 'participant) (format "{a} ({a})" player-title (present-zone zone)))
                                          (else player-title)))
                             (font {Font Label-User})
                             (color (cond ((or disconnected? asleep?)
@@ -3924,7 +3918,7 @@
                       (set-disconnected? player disconnected?)))))
               
               (define (add-zone)
-                (let ((title (present-zone self (get-path zone))))
+                (let ((title (present-zone (get-path zone))))
                   (add-row tree
                            state: 'expanded
                            children: (list (new Tree-Node
