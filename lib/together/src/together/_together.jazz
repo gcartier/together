@@ -135,7 +135,7 @@
 
 
 (set-default-server-host
-  (cond-expand (test "34.116.114.191")
+  (cond-expand @sydney (test "34.116.114.191")
                (else "togethersphere.com")))
 
 
