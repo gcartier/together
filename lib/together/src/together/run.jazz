@@ -59,7 +59,6 @@
   (set-server-filename (determine-server-filename))
   (set-worker-filename (determine-worker-filename))
   (set-action-item-visibility #f)
-  (set-translucent-players? #t)
   (snapshot-prefix "Together")
   (register-domain-names)
   (register-kernel-properties)
