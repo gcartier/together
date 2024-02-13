@@ -68,10 +68,7 @@
 
 
 (definition (setup-settings settings)
-  (for-each-property (lambda (property value)
-                       (set-setting settings property value))
-                     '(;; configure
-                       world.start-time 9000)))
+  )
 
 
 (definition (override-settings settings)

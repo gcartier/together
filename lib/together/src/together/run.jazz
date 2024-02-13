@@ -101,9 +101,7 @@
 (definition (setup-settings settings)
   (for-each-property (lambda (property value)
                        (set-setting settings property value))
-                     '(;; configure
-                       world.start-time            9000
-                       ;; render
+                     '(;; render
                        world.tick-rate-inactive    .75
                        world.message-rate-inactive 5.
                        ;; support
