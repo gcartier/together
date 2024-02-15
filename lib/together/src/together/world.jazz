@@ -38,10 +38,6 @@
 (class Together-World extends World
   
   
-  (method override (floor-level self)
-    0.)
-  
-  
   (method override (prepare-sounds self)
     (nextmethod self)
     (register-sound 'message "together/message")
