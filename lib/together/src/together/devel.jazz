@@ -172,6 +172,7 @@
         (world.renderers)
         (world.ring)
         (world.screenshot)
+        (world.scripting)
         (world.scripts)
         (world.script.asset)
         (world.section)

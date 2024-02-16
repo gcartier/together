@@ -20,6 +20,7 @@
         (world.context)
         (world.processor.tier)
         (world.region)
+        (world.scripting)
         (world.section)
         (world.settings)
         (world.task)
