@@ -91,13 +91,17 @@
   
   
   (method override (content-changed self range strings undo-range undo-strings)
+    ;; quicky
+    (unless (is? edited-entity world.block:Block-Entity)
     (if (is? edited-entity world.script.asset:Asset-Entity)
         (let ((manager (find-ascendant self Script-Manager)))
           (edited-update manager))
-      (nextmethod self range strings undo-range undo-strings)))
+      (nextmethod self range strings undo-range undo-strings))))
   
   
   (method override (evaluate-selection self)
+    ;; quicky
+    (unless (is? edited-entity world.block:Block-Entity)
     (if (is? edited-entity world.script.asset:Asset-Entity)
         (let ((interface (current-interface))
               (world (current-world)))
@@ -122,4 +126,4 @@
                   (let ((entity (new Entity)))
                     (let ((script (new Script parent: entity text: (get-string-content self))))
                       (run-task entity script))))))))
-      (nextmethod self)))))
+      (nextmethod self))))))
