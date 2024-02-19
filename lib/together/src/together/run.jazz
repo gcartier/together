@@ -60,6 +60,7 @@
   (set-worker-filename (determine-worker-filename))
   (set-action-item-visibility #f)
   (snapshot-prefix "Together")
+  (cond-expand-features-add! 'client)
   (register-domain-names)
   (register-kernel-properties)
   (register-platform-properties)

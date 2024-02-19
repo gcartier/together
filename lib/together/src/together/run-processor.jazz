@@ -40,6 +40,7 @@
   (set-aliases-setup setup-aliases)
   (set-valid-roles '(user builder developer))
   (set-worker-filename (determine-worker-filename))
+  (cond-expand-features-add! 'server)
   (register-domain-names)
   (register-kernel-properties)
   (register-platform-properties)
