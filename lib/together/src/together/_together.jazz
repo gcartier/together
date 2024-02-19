@@ -182,28 +182,4 @@
 
 (definition public (set-current-together together)
   (set! *current-together* together)
-  (set-?g together))
-
-
-;;;
-;;;; Devel
-;;;
-
-
-@buggy-probably-use-t&trun
-(cond-expand
-  (devel
-   (when (not tier-kind)
-     (set-window? #f)
-     (set-tier-title "Together")
-     (set-tier-kind 'client)
-     (set-process-kind 'application)
-     (set-settings-alias 'Resources)
-     (set-settings-root (determine-settings-root))
-     (set-documents-root (determine-documents-root))
-     (set-universe-root (determine-universe-root))
-     (set-aliases-setup setup-aliases)
-     (set-valid-roles '(user developer))
-     (set-server-filename (determine-server-filename))
-     (set-worker-filename (determine-worker-filename))))
-  (else)))
+  (set-?g together)))
