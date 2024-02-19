@@ -1844,6 +1844,7 @@
         (<!>                 name: run-script                 visible?: #t)
         (<!>                 name: run-last-script            visible?: #t)
         (<!>                 name: view-script                visible?: #t)
+        (<!>                 name: view-toolbar               visible?: #t)
         (<!>                 name: view-workspace             visible?: #t)
         (<!>                 name: view-console               visible?: #t)
         (<!>                 name: view-debugger              visible?: #t)
