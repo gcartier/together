@@ -75,7 +75,6 @@
         (world.group)
         (world.hierarchy)
         (world.history)
-        (world.id)
         (world.interface)
         (world.interface.actions)
         (world.interface.bindings)
