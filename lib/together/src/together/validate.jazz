@@ -25,7 +25,7 @@
         (world.evolution)
         (world.format)
         (world.interface.timeline)
-        (world.record (phase syntax))
+        (world.record-syntax (phase syntax))
         (world.settings)
         (world.simulation)
         (world.udp)

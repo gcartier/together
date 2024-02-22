@@ -35,7 +35,7 @@
         (world.interface.evolution)
         (world.interface.timeline)
         (world.profile)
-        (world.record (phase syntax))
+        (world.record-syntax (phase syntax))
         (world.server.udp)
         (world.settings)
         (world.simulate)

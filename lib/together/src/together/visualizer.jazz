@@ -51,7 +51,7 @@
         (world.interface.timeline)
         (world.interface.widgets)
         (world.manager)
-        (world.record (phase syntax))
+        (world.record-syntax (phase syntax))
         (world.settings)
         (world.simulation)
         (world.time)

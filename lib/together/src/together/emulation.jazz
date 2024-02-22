@@ -26,7 +26,7 @@
         (world.evolution)
         (world.client.udp)
         (world.format)
-        (world.record (phase syntax))
+        (world.record-syntax (phase syntax))
         (world.server.udp)
         (world.settings)
         (world.simulation)
