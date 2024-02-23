@@ -155,10 +155,6 @@
   ;; copy-pasted from IDE
   (method override (install-process self)
     (nextmethod self)
-    ;; quick hack for starting two togethers locally
-    (unless (and local-developer?
-                 (world-setting 'world.inhibit-empty-fifos? #f))
-      (empty-fifo-directory feedback?: local-developer?))
     (when local-developer?
       (start-debuggers self)))
   
