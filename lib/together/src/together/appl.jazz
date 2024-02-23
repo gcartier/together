@@ -164,6 +164,7 @@
     (set-safe-explore-action 'ignore)
     (set-exceeds-tooltips? #f)
     (set-shortcut-hook self (~ call-shortcut-hook self))
+    @wait-fix-the-noticable-jam-when-invoked
     (set-setup-catalogs-hook (~ setup-catalogs self))
     @wait
     ;; this takes a lot of memory and thus has a large
