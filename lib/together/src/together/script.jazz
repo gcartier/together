@@ -51,21 +51,7 @@
   (method override (form-model self form)
     (case (get-name form)
       ((script) Together-Script-View)
-      (else (nextmethod self form))))
-  
-  
-  @yownu-get-asset-not-in-creature
-  (method override (edited-update self)
-    (define (present-edited edited)
-      (let ((path (get-path (get-asset edited))))
-        (let ((name (filename-base (last path)))
-              (path (butlast path))
-              (modified? (script-modified? self)))
-          (format "{a}{?: *~} ~{{l detail: :human}~}" name modified? path))))
-    
-    (when edited
-      (let ((toplevel (current-toplevel)))
-        (set-caption toplevel (present-edited edited))))))
+      (else (nextmethod self form)))))
 
 
 ;;;
@@ -91,9 +77,7 @@
   
   
   (method override (content-changed self range strings undo-range undo-strings)
-    (if (is? edited-entity world.script.asset:Asset-Entity)
-        (let ((manager (find-ascendant self Script-Manager)))
-          (edited-update manager))
+    (unless (is? edited-entity world.script.asset:Asset-Entity)
       (nextmethod self range strings undo-range undo-strings)))
   
   

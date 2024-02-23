@@ -5096,9 +5096,7 @@
             (require-cataloguer)
             (let ((text (locate manager '(script text))))
               (if edited-entity
-                  (begin
-                    (recolorize-syntax text)
-                    (edited-update manager))
+                  (recolorize-syntax text)
                 (when edited-script
                   (let ((script (find-script world edited-script)))
                     (when script
