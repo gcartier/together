@@ -171,7 +171,7 @@
        (install-directory {Directory Build "together-worker.app"} (new-directory app-dir '("Contents" "together-worker.app"))
          feedback: (lambda (action pathname)
                      (build-feedback "; {a} {a}..." action (get-name pathname))))
-       (install-file {File Build ".together-worker"} (new-file app-dir '("Contents" "together-worker.app" "Contents" "Resources" ".together-worker")))
+       (install-file {File Build ".together-worker"} (new-file app-dir '("Contents" "Resources" ".together-worker")))
        (build-feedback "; {a} {a}..." 'copying ".together-worker")))
     (else)))
 
