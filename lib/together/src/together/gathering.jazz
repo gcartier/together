@@ -1134,7 +1134,7 @@
       (restore-visible? (child interface 'command-to) #f)
       (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter panel)))
       (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter panel)))
-      (set-proportion (child interface 'chat) '(400 150))
+      (set-proportion (child interface 'chat) '(400 147))
       (set-proportion (child interface 'command) '(400 19))
       (set-location (child interface 'command-to) '(10 -182))
       (set-size (child interface 'command-to) {Dimension 406 32})
@@ -4207,8 +4207,10 @@
   ;;;
   
   
-  (method (chat-displayed self chat)
-    (show-chat self)
+  (method (chat-displayed self chat what)
+    (if (eq? what 'chat-only)
+        (show-chat-only self)
+      (show-chat self))
     #f)
   
   
@@ -4251,6 +4253,13 @@
                 (set! previous-command (get-string-content text))
                 (set-string-content text previous)
                 (set-caret text (text-ending text)))))))))
+  
+  
+  (method package (show-chat-only self)
+    (let ((interface (current-interface))
+          (world (current-world)))
+      (set-visible? (child interface 'chat) #t)
+      (update-parameter world 'chat)))
   
   
   (method package (show-chat self)
