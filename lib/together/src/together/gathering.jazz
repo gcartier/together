@@ -2869,8 +2869,6 @@
   (method package (enter-zone self)
     (let ((client (current-client)))
       (startup-gstreamer)
-      @not-save/retrieve-camera
-      (retrieve-camera client)
       (reset-chronology)
       (uninstall-vista)
       (avatar-prepare self)
@@ -2964,13 +2962,8 @@
   
   
   (method package (exit-zone self)
-    (let ((client (current-client))
-          (interface (current-interface))
-          (world (current-world))
-          (zone (current-zone)))
+    (let ((world (current-world)))
       (reset-selection world)
-      @not-save/retrieve-camera
-      (save-to-processor client)
       (if selected-zone?
           (observer-mode self)
         (visitor-mode self))
