@@ -125,7 +125,7 @@
   
   (method override (prepare self rest)
     (nextmethod self rest)
-    (set! origin (get-client-no (current-client)))
+    (set! origin (get-tier-no (current-client)))
     (set! rtt-scale (* 82. graph-scale))
     (set! quality (new Network-Quality))
     (set! statistics (get-profile-statistics (current-udp)))
