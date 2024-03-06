@@ -21,7 +21,7 @@
 
 (definition (already-running?)
   (if (cond-expand
-        ((or devel stable) #f)
+        ((or devel stable test) #f)
         (else (process-already-running?)))
       (begin
         (system-message (string-append "Together is already running")
