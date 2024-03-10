@@ -46,7 +46,7 @@
   (set-settings-setup setup-settings)
   (set-settings-override override-settings)
   (set-aliases-setup setup-aliases)
-  (set-valid-roles '(user builder developer))
+  (set-valid-roles '(user builder scripter developer))
   (set-default-server "Together")
   (set-processor-filename (determine-processor-filename))
   (set-worker-filename (determine-worker-filename))

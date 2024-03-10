@@ -47,7 +47,7 @@
   (7 ("Circler : You can create and join circles" 0))
   (7 ("Explorer : You can explore the world" 0))
   (7 ("Builder : You can shape the world" 0))
-  (7 ("Developer : You can script the world" 0))
+  (7 ("Scripter : You can script the world" 0))
   (5)
   (5 ("Your Participation is currently %participation%" 20))
   (5)

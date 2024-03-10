@@ -722,6 +722,7 @@
           ((user) `(,user-bindings ,@admin ,@platform))
           ((explorer) `(,explorer-bindings ,@admin ,@platform))
           ((builder) `(,builder-bindings ,@admin ,@platform))
+          ((scripter) `(,scripter-bindings ,@admin ,@platform))
           ((developer) `(,developer-bindings ,@admin ,@platform))
           (else (nextmethod self))))))
   
@@ -1631,6 +1632,268 @@
 
 
 ;;;
+;;;; Scripter
+;;;
+
+
+(define-trait scripter-bindings Bindings
+  (<Role-Trait>              name: scripter
+    (<install>
+      (<application!>
+        (<!>                 name: backward-history           visible?: #t)
+        (<!>                 name: forward-history            visible?: #t))
+      (<view!>
+        (<!>                 name: select-all                 visible?: #t shortcut: {Shortcut :control :alt #\A}))
+      (<text!>
+        (<!>                 name: move-backward-word         visible?: #t)
+        (<!>                 name: extend-backward-word       visible?: #t)
+        (<!>                 name: move-forward-word          visible?: #t)
+        (<!>                 name: extend-forward-word        visible?: #t)
+        (<!>                 name: move-upward                visible?: #t)
+        (<!>                 name: extend-upward              visible?: #t)
+        (<!>                 name: move-downward              visible?: #t)
+        (<!>                 name: extend-downward            visible?: #t)
+        (<!>                 name: delete-char                visible?: #t)
+        (<!>                 name: delete-word                visible?: #t)
+        (<!>                 name: home                       visible?: #t)
+        (<!>                 name: extend-home                visible?: #t)
+        (<!>                 name: end                        visible?: #t)
+        (<!>                 name: extend-end                 visible?: #t)
+        (<!>                 name: document-home              visible?: #t alternate-shortcut: {Shortcut :meta Up})
+        (<!>                 name: document-end               visible?: #t alternate-shortcut: {Shortcut :meta Down})
+        (<!>                 name: paste&next                 visible?: #t)
+        (<!>                 name: paste-cycle-ring           visible?: #t shortcut: {Shortcut :alt #\V})
+        (<!>                 name: paste-cycle-ring-reversed  visible?: #t shortcut: {Shortcut :alt :shift #\V})
+        (<!>                 name: kill-line                  visible?: #t)
+        (<!>                 name: center-caret               visible?: #t)
+        (<!>                 name: top-caret                  visible?: #t)
+        (<!>                 name: one/no-space               visible?: #t))
+      (<code-text!>
+        (<!>                 name: evaluate                   visible?: #t)
+        (<!>                 name: backward-outline           visible?: #t)
+        (<!>                 name: forward-outline            visible?: #t))
+      (<lisp-text!>
+        (<!>                 name: tabulate                   visible?: #t)
+        (<!>                 name: highlight-declaration      visible?: #t)
+        (<!>                 name: remove-highlights          visible?: #t))
+      (<script-text!>
+        (<Action-Item>       name: search-forward-mode        visible?: #t action-handler: {Event-Handler :focus on-search-forward-mode} shortcut: {Shortcut :control #\S})
+        (<Action-Item>       name: search-backward-mode       visible?: #t action-handler: {Event-Handler :focus on-search-backward-mode} shortcut: {Shortcut :control #\R})
+        (<Action-Item>       name: search-current             visible?: #t action-handler: {Event-Handler :focus on-search-current} shortcut: {Shortcut :alt #\S})
+        (<Action-Item>       name: select-outer               visible?: #t action-handler: {Event-Handler :focus on-select-outer} shortcut: {Shortcut :control Space}))
+      (<search-mode!>
+        (<!>                 name: whole-words                visible?: #t)
+        (<!>                 name: ignore-case                visible?: #t)
+        (<!>                 name: regexp                     visible?: #t)
+        (<!>                 name: forward                    visible?: #t)
+        (<!>                 name: backward                   visible?: #t)
+        (<!>                 name: current                    visible?: #t)
+        (<!>                 name: widen                      visible?: #t)
+        (<!>                 name: center-caret               visible?: #t)
+        (<!>                 name: home                       visible?: #t)
+        (<!>                 name: end                        visible?: #t)
+        (<!>                 name: highlight                  visible?: #t)
+        (<!>                 name: finish                     visible?: #t)
+        (<!>                 name: cancel                     visible?: #t))
+      (<highlight-mode!>
+        (<!>                 name: highlight                  visible?: #t))
+      (<world-main!>
+        (<!>                 name: graphics-options           visible?: #t)
+        (<!>                 name: sound-options              visible?: #t)
+        (<!>                 name: interface-options          visible?: #t)
+        (<!>                 name: network-test               visible?: #t)
+        (<!>                 name: bindings-viewer            visible?: #t)
+        (<!>                 name: unstuck-character          visible?: #t)
+        @wait-having-news!
+        (<!>                 name: view-news                  visible?: #t)
+        (<!>                 name: view-roadmap               visible?: #t)
+        (<!>                 name: view-help                  visible?: #t)
+        (<!>                 name: open-about                 visible?: #t)
+        (<!>                 name: open-welcome               visible?: #t)
+        (<!>                 name: quit-world                 visible?: #t))
+      (<world-graphics!>
+        (<!>                 name: toggle-occlusion           visible?: #t)
+        (<!>                 name: toggle-wireframe           visible?: #t)
+        (<!>                 name: toggle-x-rays              visible?: #t)
+        (<!>                 name: toggle-redstone-x-rays     visible?: #t)
+        (<!>                 name: toggle-draw-me             visible?: #t)
+        (<!>                 name: toggle-blocks              visible?: #t)
+        (<!>                 name: toggle-models              visible?: #t)
+        (<!>                 name: toggle-multisampling       visible?: #t))
+      (<world-sound!>
+        (<!>                 name: toggle-music               visible?: #t)
+        (<!>                 name: change-music               visible?: #t)
+        (<!>                 name: display-music              visible?: #t)
+        (<!>                 name: toggle-ambience            visible?: #t)
+        (<!>                 name: toggle-sound               visible?: #t))
+      (<world-interface!>
+        (<!>                 name: toggle-interface           visible?: #t)
+        (<!>                 name: toggle-windowed-mode       visible?: #t))
+      (<world-movement!>
+        (<!>                 name: rotate-player              visible?: #t)
+        (<!>                 name: move-forward               visible?: #t)
+        (<!>                 name: move-backward              visible?: #t)
+        (<!>                 name: move-left                  visible?: #t)
+        (<!>                 name: move-right                 visible?: #t)
+        (<!>                 name: toggle-run                 visible?: #t))
+      (<world-camera!>
+        (<!>                 name: rotate-camera              visible?: #t)
+        (<!>                 name: zoom-in/out                visible?: #t)
+        (<!>                 name: move-up                    visible?: #t)
+        (<!>                 name: move-down                  visible?: #t)
+        (<!>                 name: person-motion              visible?: #t)
+        (<!>                 name: orbit-motion               visible?: #t)
+        (<!>                 name: free-motion                visible?: #t)
+        @needs-a-lot-more-work
+        (<!>                 name: toggle-camera-smoothing    visible?: #t)
+        (<!>                 name: toggle-autotrack-mode      visible?: #t))
+      (<world-game!>
+        (<!>                 name: jump                       visible?: #t)
+        (<!>                 name: action                     visible?: #t)
+        (<!>                 name: toggle-ride                visible?: #t)
+        (<!>                 name: toggle-fly                 visible?: #t)
+        (<!>                 name: toggle-vehicle             visible?: #t)
+        (<!>                 name: toggle-glow                visible?: #t)
+        (<!>                 name: compass-panel              visible?: #t)
+        (<!>                 name: map-panel                  visible?: #t)
+        (<!>                 name: combat-panel               visible?: #t)
+        (<!>                 name: character-panel            visible?: #t)
+        (<!>                 name: bag-panel                  visible?: #t)
+        (<!>                 name: belt-panel                 visible?: #t))
+      (<world-spell!>
+        @wait
+        (<!>                 name: bullet                     visible?: #t)
+        @wait
+        (<!>                 name: arrow                      visible?: #t)
+        @wait
+        (<!>                 name: rapid-fire                 visible?: #t)
+        (<!>                 name: sprint                     visible?: #t)
+        (<!>                 name: warp                       visible?: #t)
+        (<!>                 name: dash                       visible?: #t))
+      (<world-people!>
+        (<!>                 name: toggle-people              visible?: #t)
+        (<!>                 name: toggle-participation       visible?: #t)
+        (<!>                 name: toggle-invite              visible?: #t))
+      (<world-chat!>
+        (<!>                 name: toggle-chat                visible?: #t)
+        (<!>                 name: command-message            visible?: #t)
+        (<!>                 name: command-slash              visible?: #t)
+        (<!>                 name: repeat-previous            visible?: #t))
+      (<world-showcase!>
+        (<!>                 name: showcase-menu              visible?: #t)
+        (<!>                 name: no-showcase                visible?: #t)
+        (<!>                 name: blocks-showcase            visible?: #t)
+        (<!>                 name: models-showcase            visible?: #t)
+        (<!>                 name: paintings-showcase         visible?: #t)
+        (<!>                 name: gadgets-showcase           visible?: #t)
+        (<!>                 name: tiles-showcase             visible?: #t)
+        (<!>                 name: shaders-showcase           visible?: #t)
+        (<!>                 name: animations-showcase        visible?: #t)
+        (<!>                 name: meshes-showcase            visible?: #t)
+        (<!>                 name: textures-showcase          visible?: #t)
+        (<!>                 name: skyboxes-showcase          visible?: #t))
+      (<world-build!>
+        (<!>                 name: add-element                visible?: #t)
+        (<!>                 name: remove-element             visible?: #t)
+        (<!>                 name: change-element             visible?: #t)
+        (<!>                 name: select-target              visible?: #t)
+        (<!>                 name: delete-target              visible?: #t)
+        (<!>                 name: toggle-grid                visible?: #t)
+        (<!>                 name: toggle-grid-z              visible?: #t)
+        (<!>                 name: toggle-grid-y              visible?: #t)
+        (<!>                 name: toggle-grid-x              visible?: #t)
+        (<!>                 name: move-grid                  visible?: #t)
+        (<!>                 name: decrease-grid              visible?: #t)
+        (<!>                 name: increase-grid              visible?: #t)
+        (<!>                 name: change-editor-mode         visible?: #t))
+      (<world-target!>
+        (<!>                 name: select-target-mode         visible?: #t)
+        (<!>                 name: move-target-mode           visible?: #t)
+        (<!>                 name: rotate-target-mode         visible?: #t)
+        (<!>                 name: scale-target-mode          visible?: #t)
+        (<!>                 name: skeleton-target-mode       visible?: #t))
+      (<world-script!>
+        (<!>                 name: run-script                 visible?: #t)
+        (<!>                 name: run-last-script            visible?: #t)
+        (<!>                 name: look-at                    visible?: #t)
+        (<!>                 name: target-script              visible?: #t)
+        (<!>                 name: view-script                visible?: #t)
+        (<!>                 name: view-toolbar               visible?: #t)
+        (<!>                 name: view-workspace             visible?: #t)
+        (<!>                 name: view-console               visible?: #t)
+        (<!>                 name: view-debugger              visible?: #t)
+        (<!>                 name: view-toolbox               visible?: #t)
+        (<!>                 name: cycle-panes                visible?: #t)
+        (<!>                 name: zoom-horizontally          visible?: #t)
+        (<!>                 name: zoom-vertically            visible?: #t)
+        (<!>                 name: zoom-fullscreen            visible?: #t)
+        (<!>                 name: run-selected-script        visible?: #t)
+        (<!>                 name: clear-console              visible?: #t)
+        (<!>                 name: clear-terminal             visible?: #t))
+      (<world-debug!>
+        (<!>                 name: toggle-info                visible?: #t)
+        (<!>                 name: toggle-target              visible?: #t)
+        (<!>                 name: toggle-axes                visible?: #t)
+        (<!>                 name: toggle-orientation         visible?: #t))
+      (<together-menu!>
+        (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: create-circle              visible?: #t)
+        (<!>                 name: leave-group                visible?: #t)
+        (<!>                 name: leave-circle               visible?: #t)
+        (<!>                 name: goto-login                 visible?: #t))
+      (<together-audio!>
+        (<!>                 name: toggle-microphone          visible?: #t)
+        (<!>                 name: toggle-push-to-talk        visible?: #t)
+        (<!>                 name: talk                       visible?: #t)
+        @wait-live-change (<!>                 name: toggle-echo-cancel         visible?: #t)
+        @wait-live-change (<!>                 name: toggle-noise-suppress      visible?: #t)
+        (<!>                 name: toggle-rndenoise           visible?: #t)
+        (<!>                 name: audio-options              visible?: #t))
+      (<together-video!>
+        (<!>                 name: toggle-camera              visible?: #t)
+        (<!>                 name: change-quality             visible?: #t)
+        (<!>                 name: video-options              visible?: #t))
+      (<together-circle!>
+        (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: presence-mode              visible?: #t)
+        (<!>                 name: focus-mode                 visible?: #t)
+        (<!>                 name: gallery-mode               visible?: #t)
+        (<!>                 name: bring-to-front             visible?: #t)
+        (<!>                 name: backspace-press            visible?: #t)
+        (<!>                 name: enter-press                visible?: #t)
+        (<!>                 name: left-press                 visible?: #t)
+        (<!>                 name: right-press                visible?: #t)
+        (<!>                 name: up-press                   visible?: #t)
+        (<!>                 name: down-press                 visible?: #t)
+        (<!>                 name: tab-press                  visible?: #t)
+        (<!>                 name: number-press               visible?: #t)
+        (<!>                 name: organize-circle            visible?: #t)
+        (<!>                 name: circle-options             visible?: #t))
+      (<together-view!>
+        (<!>                 name: toggle-paused              visible?: #t)
+        (<!>                 name: seek-backward              visible?: #t)
+        (<!>                 name: seek-forward               visible?: #t))
+      (<together-share!>
+        (<!>                 name: toggle-streams             visible?: #t)
+        (<!>                 name: add-image                  visible?: #t)
+        (<!>                 name: add-video                  visible?: #t)
+        (<!>                 name: add-music                  visible?: #t)
+        (<!>                 name: remove-stream              visible?: #t)
+        (<!>                 name: toggle-screen-share        visible?: #t)
+        (<!>                 name: toggle-window-share        visible?: #t)
+        (<!>                 name: capture-window             visible?: #t))
+      (<together-experiment!>
+        (<!>                 name: toggle-experiment          visible?: #t)
+        (<!>                 name: run-experiment7            visible?: #t)
+        (<!>                 name: run-experiment8            visible?: #t)
+        (<!>                 name: run-experiment9            visible?: #t)
+        (<!>                 name: run-experiment0            visible?: #t))
+      (<together-debug!>
+        (<!>                 name: toggle-mode                visible?: #t)
+        (<!>                 name: toggle-hide                visible?: #t)))))
+
+
+;;;
 ;;;; Developer
 ;;;
 
@@ -1713,6 +1976,7 @@
       (<world-graphics!>
         (<!>                 name: toggle-occlusion           visible?: #t)
         (<!>                 name: toggle-wireframe           visible?: #t)
+        @wait-buggy
         (<!>                 name: toggle-fog                 visible?: #t)
         (<!>                 name: toggle-gadgets             visible?: #t)
         (<!>                 name: toggle-normals             visible?: #t)
@@ -1772,7 +2036,9 @@
         (<!>                 name: bag-panel                  visible?: #t)
         (<!>                 name: belt-panel                 visible?: #t))
       (<world-spell!>
+        @wait
         (<!>                 name: bullet                     visible?: #t)
+        @wait
         (<!>                 name: arrow                      visible?: #t)
         @wait
         (<!>                 name: rapid-fire                 visible?: #t)
