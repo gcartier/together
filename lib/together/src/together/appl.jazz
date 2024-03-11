@@ -1136,6 +1136,8 @@
       (<World-Action-Item> name: request-captures          title: "Request captures" shortcut: {Shortcut :alt :shift #\K} action-handler: {Event-Handler :together on-request-captures} description: "Request captures.")
       (<World-Action-Item> name: show-captures             title: "Show captures" shortcut: {Shortcut :alt :shift #\J} action-handler: {Event-Handler :together on-show-captures} description: "Show captures.")
       (<World-Action-Item> name: add-bookmark              title: "Add bookmark" action-handler: {Event-Handler :application on-add-bookmark} shortcut: {Shortcut :alt #\B} description: "Add bookmark.")
+      (<World-Action-Item> name: attach-debugger           title: "Attach Debugger" shortcut: {Shortcut :control :alt :shift #\A} action-handler: {Event-Handler :together on-attach-debugger} description: "Attach Debugger.")
+      (<World-Action-Item> name: detach-debugger           title: "Detach Debugger" shortcut: {Shortcut :control :alt :shift #\D} action-handler: {Event-Handler :together on-detach-debugger} description: "Detach Debugger.")
       (<World-Action-Item> name: test                      title: "Test" action-handler: {Event-Handler :application on-test} shortcut: {Shortcut :control #\T} description: "Test."))))
 
 
@@ -2232,6 +2234,8 @@
         (<!>                 name: toggle-evolution           visible?: #t)
         (<!>                 name: toggle-stress              visible?: #t)
         (<!>                 name: add-bookmark               visible?: #t)
+        (<!>                 name: attach-debugger            visible?: #t)
+        (<!>                 name: detach-debugger            visible?: #t)
         (<!>                 name: test                       visible?: #t)))))
 
 

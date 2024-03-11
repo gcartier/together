@@ -294,6 +294,8 @@
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-stress              active?: #t)
+        (<!>                 name: attach-debugger            active?: #t)
+        (<!>                 name: detach-debugger            active?: #t)
         (<!>                 name: test                       active?: #t))
       (<together-experiment!>
         (<!>                 name: toggle-experiment          active?: #t)
@@ -985,6 +987,8 @@
         (<!>                 name: request-captures           active?: #t)
         (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: attach-debugger            active?: #t)
+        (<!>                 name: detach-debugger            active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
 
@@ -1106,6 +1110,8 @@
         (<!>                 name: request-captures           active?: #t)
         (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: attach-debugger            active?: #t)
+        (<!>                 name: detach-debugger            active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
 
@@ -1595,6 +1601,8 @@
         (<!>                 name: request-captures           active?: #t)
         (<!>                 name: show-captures              active?: #t)
         (<!>                 name: add-bookmark               active?: #t)
+        (<!>                 name: attach-debugger            active?: #t)
+        (<!>                 name: detach-debugger            active?: #t)
         (<!>                 name: test                       active?: #t)))))
 
 
@@ -5353,6 +5361,16 @@
           (console-return text
             (lambda ()
               (console-evaluate text)))))))
+  
+  
+  (method (on-attach-debugger self evt)
+    (let ((client (current-client)))
+      (attach-debugger client)))
+  
+  
+  (method (on-detach-debugger self evt)
+    (let ((client (current-client)))
+      (detach-debugger client)))
   
   
   (method (on-show-captures self evt)
