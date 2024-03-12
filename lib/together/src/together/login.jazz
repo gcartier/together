@@ -273,7 +273,7 @@
                     (enter-together #f)
                     (let ((tier (current-tier)))
                       (when (is? tier Client-Tier)
-                        (upload-assets tier 'world)
+                        (upload-assets tier 'sphere)
                         (upload-assets tier 'zone))))
                 (let ((title (present-login-problem obj)))
                   (report-exception title obj)
