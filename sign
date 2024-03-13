@@ -41,5 +41,4 @@ cd ..
 
 # Sign
 /usr/bin/xattr -r -c -s $APP.app
-/usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $APP.app/Contents/together-worker.app
 /usr/bin/codesign --force --options runtime --entitlements Entitlements.plist --timestamp --verbose=4 -s "Developer ID Application: Guillaume Cartier (R74FF3EJWG)" $APP.app
