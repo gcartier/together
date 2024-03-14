@@ -15,6 +15,7 @@
 
 
 (import (jazz.io)
+        (jazz.product)
         (together.product-base))
 
 
@@ -69,9 +70,53 @@
 
 
 ;;;
+;;;; Deploy
+;;;
+
+
+(definition install-dir
+  (cond-expand
+    (mac
+     {Directory Home "Devel" "together" "install"})))
+
+
+(definition install-name
+  (cond-expand
+    (silicon (cond-expand
+               (test "together-worker-test-silicon")
+               (triage "together-worker-triage-silicon")
+               (stage "together-worker-stage-silicon")
+               (prod "together-worker-prod-silicon")))
+    (mac (cond-expand
+           (test "together-worker-test-mac")
+           (triage "together-worker-triage-mac")
+           (stage "together-worker-stage-mac")
+           (prod "together-worker-prod-mac")))))
+
+
+(definition (deploy descriptor)
+  (cond-expand
+    (mac
+     (initialize-aliases)
+     (let ((src {Directory Build "together-worker.app"})
+           (dst (new-directory install-dir install-name)))
+       ;; install
+       (feedback "Installing worker")
+       (let ((src-contents (new-directory src "Contents"))
+             (dst-contents (new-directory dst "Contents")))
+         (install-directory src-contents dst-contents
+           feedback: (lambda (action pathname)
+                       (build-feedback "; {a} {a}..." action (get-name pathname)))))
+       ;; deploy
+       (deploy-jas "worker" dst)))
+    (else)))
+
+
+;;;
 ;;;; Register
 ;;;
 
 
 (register-product 'together-worker
-  build: build))
+  build: build
+  deploy: deploy))
