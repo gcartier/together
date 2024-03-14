@@ -958,6 +958,7 @@
   
   (form
     (<install>                  title: "Circle"
+      (<World-Parameter-Button> resource: {Icon-Resource "Logogram/Star"} action-handler: {Action together-share toggle-streams} parameter: streams)
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Circles-Symbol-Twelve"} action-handler: {Action together-share toggle-screen-share} parameter: screen-share)
       (<World-Parameter-Button> resource: {Icon-Resource "Symbol/Solar-Symbol"} action-handler: {Action together-share toggle-window-share} parameter: window-share)
       (<World-Action-Button>    resource: {Icon-Resource "Network/Medium-WiFi"} action-handler: {Action together-audio audio-options})
@@ -1047,11 +1048,11 @@
     (<install>                                        title: "Share"
       (<World-Action-Item> name: preprocess-streams   title: "Preprocess streams" shortcut: {Shortcut :control :shift #\P} action-handler: {Event-Handler :together on-preprocess-streams} description: "Preprocess streams.")
       (<World-Action-Item> name: preprocess-qualities title: "Preprocess qualities" shortcut: {Shortcut :control :shift #\O} action-handler: {Event-Handler :together on-preprocess-qualities} description: "Preprocess qualities.")
-      (<World-Action-Item> name: toggle-streams       title: "Streams" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
       (<World-Action-Item> name: add-image            title: "Add image" shortcut: {Shortcut :alt :shift #\7} action-handler: {Event-Handler :together on-add-image} description: "Add image.")
       (<World-Action-Item> name: add-video            title: "Add video" shortcut: {Shortcut :alt :shift #\8} action-handler: {Event-Handler :together on-add-video} description: "Add video.")
       (<World-Action-Item> name: add-music            title: "Add music" shortcut: {Shortcut :alt :shift #\9} action-handler: {Event-Handler :together on-add-music} description: "Add music.")
       (<World-Action-Item> name: remove-stream        title: "Remove stream" shortcut: {Shortcut :alt :shift #\0} action-handler: {Event-Handler :together on-remove-stream} description: "Remove stream.")
+      (<World-Action-Item> name: toggle-streams       title: "Share stream" shortcut: {Shortcut :alt :shift #\T} action-handler: {Event-Handler :space on-toggle-streams} description: "Toggle streams.")
       (<World-Action-Item> name: toggle-screen-share  title: "Share screen" shortcut: {Shortcut :alt :shift #\Y} action-handler: {Event-Handler :together on-toggle-screen-share} description: "Toggle screen share.")
       (<World-Action-Item> name: toggle-window-share  title: "Share window" shortcut: {Shortcut :alt :shift #\U} action-handler: {Event-Handler :together on-toggle-window-share} description: "Toggle window share.")
       (<World-Action-Item> name: capture-window       title: "Capture window" shortcut: {Shortcut :alt :shift #\I} action-handler: {Event-Handler :together on-capture-window} description: "Capture window to file."))))
