@@ -77,7 +77,9 @@
 (definition install-dir
   (cond-expand
     (mac
-     {Directory Home "Devel" "together" "install"})))
+     {Directory Home "Devel" "together" "install"})
+    (else
+     #f)))
 
 
 (definition install-name
@@ -86,12 +88,15 @@
                (test "together-worker-test-silicon")
                (triage "together-worker-triage-silicon")
                (stage "together-worker-stage-silicon")
-               (prod "together-worker-prod-silicon")))
+               (prod "together-worker-prod-silicon")
+               (else #f)))
     (mac (cond-expand
            (test "together-worker-test-mac")
            (triage "together-worker-triage-mac")
            (stage "together-worker-stage-mac")
-           (prod "together-worker-prod-mac")))))
+           (prod "together-worker-prod-mac")
+           (else #f)))
+    (else #f)))
 
 
 (definition (deploy descriptor)
