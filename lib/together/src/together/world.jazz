@@ -102,5 +102,7 @@
        (check-circle-stone (current-together) element))
       ((Player)
        (check-invite-player (current-together) element))
+      ((Entity)
+       (check-script-action (current-together) element))
       (else
        (nextmethod self element))))))

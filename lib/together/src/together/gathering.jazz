@@ -2863,6 +2863,23 @@
                            (focus-command-text self))))))))))))
   
   
+  (method package (check-script-action self entity)
+    (let ((world (current-world)))
+      (let ((script (get-script entity)))
+        (and script
+             (let ((message-handler (registered-handler script 'action-message))
+                   (handler (registered-handler script 'action)))
+               (and message-handler
+                    handler
+                    (begin
+                      (display-action world (format "E : {a}" (message-handler entity))
+                        (lambda ()
+                          (with-cursor :wait
+                            (lambda ()
+                              (enqueue-event script 'action)))))
+                      #t)))))))
+  
+  
   (method (avatar-prepare self)
     (unless avatar-prepared?
       @work-in-progess
