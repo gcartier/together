@@ -116,6 +116,7 @@
         (world.ring)
         (world.screenshot)
         (world.script.asset)
+        (world.scriptum)
         (world.section)
         (world.settings)
         (world.skybox)
@@ -2871,8 +2872,9 @@
                    (handler (registered-handler script 'action)))
                (and message-handler
                     handler
-                    (begin
-                      (display-action world (format "E : {a}" (message-handler entity))
+                    (let ((message (parameterize ((%%current-event (new Message-Event entity (current-seconds) #f)))
+                                     (message-handler entity))))
+                      (display-action world (format "E : {a}" message)
                         (lambda ()
                           (with-cursor :wait
                             (lambda ()
