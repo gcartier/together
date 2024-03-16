@@ -2873,8 +2873,12 @@
                (and message-handler
                     handler
                     (let ((message (parameterize ((%%current-event (new Message-Event entity (current-seconds) #f)))
-                                     (message-handler entity))))
-                      (display-action world (format "E : {a}" message)
+                                     (with-exception-catcher
+                                       (lambda (exc)
+                                         (exception-reason exc))
+                                       (lambda ()
+                                         (format "E : {a}" (message-handler entity)))))))
+                      (display-action world message
                         (lambda ()
                           (with-cursor :wait
                             (lambda ()
