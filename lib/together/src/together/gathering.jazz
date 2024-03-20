@@ -2884,13 +2884,15 @@
                                        (lambda (exc)
                                          (exception-reason exc))
                                        (lambda ()
-                                         (format "E : {a}" (message-handler entity)))))))
-                      (display-action world message
-                        (lambda ()
-                          (with-cursor :wait
-                            (lambda ()
-                              (enqueue-event script 'action)))))
-                      #t)))))))
+                                         (message-handler entity))))))
+                      (if (not message)
+                          #f
+                        (display-action world message
+                          (lambda ()
+                            (with-cursor :wait
+                              (lambda ()
+                                (enqueue-event script 'action)))))
+                        #t))))))))
   
   
   (method (avatar-prepare self)
