@@ -2265,7 +2265,7 @@
         (install-skybox zone (cache-together-skybox)))))
   
   
-  (method protected (cleanup-group/circle self)
+  (method protected (leave-group/circle self)
     (cond ((circling?)
            (leave-circle self))
           ((grouped?)
@@ -2816,8 +2816,15 @@
   
   
   (method (leave-group self)
-    (let ((tier (current-client)))
-      (client-leave tier)))
+    (let ((client (current-client))
+          (world (current-world)))
+      (let ((group-deleted? (leave-group/circle client)))
+        (let ((udp-client (get-udp-client client)))
+          (stop udp-client)
+          (close-live-stream client)
+          (close-send-streams udp-client)
+          (close-receive-streams udp-client)
+          (group-leave self)))))
   
   
   (method (on-leave-circle self evt)
@@ -3110,7 +3117,7 @@
     (let ((tier (current-client))
           (world (current-world))
           (zone (current-zone)))
-      (let ((group-info/exception (join-group tier name 'participant)))
+      (let ((group-info/exception (join-circle tier name 'participant)))
         (if (string? group-info/exception)
             (display-error world group-info/exception)
           (circle-join self name group-info/exception from-create-random? #f)))))
@@ -3213,7 +3220,7 @@
   (method (acquire-circle self name)
     (let ((tier (current-client)))
       (if (auto-live?)
-          (let ((requirements/err (group-requirements tier name)))
+          (let ((requirements/err (circle-requirements tier name)))
             (if (string? requirements/err)
                 requirements/err
               (bind (require-microphone? require-camera?) requirements/err
@@ -3317,8 +3324,8 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
-      (let ((removed? (leave-group tier current-circle-name)))
-        (unless removed?
+      (let ((circle-deleted? (leave-group/circle tier)))
+        (unless circle-deleted?
           (let ((stone (find-circle-stone tier current-circle-name)))
             (when stone
               (show-circle-stone self stone)))))
@@ -4367,7 +4374,7 @@
                          (show-panel-message (get-character-name tier) 'show (format "Invite {a}" recipient)))))))
                (values #f #f #f #f))
               ((equal? (trim-trailing-whitespace content) "/leave")
-               (let ((error (client-leave tier)))
+               (let ((error (leave-group/circle self)))
                  (if error
                      (show-panel-message (get-character-name tier) 'show error)
                    (show-panel-message (get-character-name tier) 'show "Left group")))
@@ -5696,7 +5703,7 @@
   
   (method override (mouse-up self evt)
     (let ((together (current-together)))
-      (cleanup-group/circle together)
+      (leave-group/circle together)
       (clear-together-skybox)
       (open-login-zone))))
 
