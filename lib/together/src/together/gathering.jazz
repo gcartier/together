@@ -52,6 +52,7 @@
         (time)
         (gaea.dye)
         (gaea.geometry)
+        (gaea.lookat)
         (gaea.math)
         (world)
         (world.asset)
