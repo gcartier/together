@@ -2065,11 +2065,8 @@
   (slot chat-wide?          initialize #f getter generate)
   (slot chat-was-hidden?    initialize #f getter generate)
   (slot previous-command    initialize #f getter generate)
-  
-  (cond-expand
-    (windows
-     (slot hide-last-mouse initialize #f accessors generate))
-    (else))
+  ;; windows only
+  (slot hide-last-mouse     initialize #f accessors generate)
   
   
   (method override (initialize self)
