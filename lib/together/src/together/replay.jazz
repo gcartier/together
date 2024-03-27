@@ -26,6 +26,7 @@
         (jazz.outline)
         (jazz.platform)
         (jazz.resource)
+        (jazz.settings)
         (jazz.stream)
         (jazz.text)
         (jazz.tree)
@@ -35,6 +36,7 @@
         (gaea.geometry)
         (gaea.math)
         (world)
+        (world.autoload)
         (world.chronology)
         (world.circle)
         (world.client.udp)
@@ -330,7 +332,7 @@
     (update-visualizer self))
   
   
-  (method protected (update-visualizer self)
+  (method package (update-visualizer self)
     (let ((visualizer (find-component self 'visualizer)))
       (when visualizer
         (let ((video-visualizer (locate-component visualizer 'video)))

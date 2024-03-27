@@ -17,6 +17,7 @@
 (import (jazz.io)
         (jazz.platform)
         (jazz.snapshot)
+        (jazz.version)
         (world)
         (world.build)
         (world.server.presence)

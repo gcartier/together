@@ -18,6 +18,7 @@
         (jazz.logger)
         (jazz.platform)
         (jazz.snapshot)
+        (jazz.version)
         (world)
         (world.build)
         (world.server.presence)

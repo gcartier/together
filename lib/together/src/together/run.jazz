@@ -22,6 +22,7 @@
         (jazz.platform)
         (jazz.settings)
         (jazz.snapshot)
+        (jazz.version)
         (world)
         (world.build)
         (world.foreign)

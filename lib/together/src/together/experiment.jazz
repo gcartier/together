@@ -18,6 +18,7 @@
         (jazz.stream)
         (jazz.syntax (phase syntax))
         (world)
+        (world.autoload)
         (world.client.tier)
         (world.context)
         (world.task)

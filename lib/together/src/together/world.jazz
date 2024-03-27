@@ -14,7 +14,8 @@
 (module together.world jazz
 
 
-(import (gaea.geometry)
+(import (jazz.component)
+        (gaea.geometry)
         (world)
         (world.autoload)
         (world.circle)
@@ -22,6 +23,7 @@
         (world.context)
         (world.foreign)
         (world.interface)
+        (world.interface.panel)
         (world.interface.sheet)
         (world.portal)
         (world.rune)

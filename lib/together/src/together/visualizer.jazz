@@ -36,6 +36,7 @@
         (gaea.math)
         (world)
         (world.audio)
+        (world.autoload)
         (world.chronology)
         (world.client.tier)
         (world.client.udp)
@@ -149,7 +150,7 @@
     (nextmethod self))
   
   
-  (method protected (setup-visualizer self)
+  (method package (setup-visualizer self)
     (setup-origins self)
     (setup-streams self)
     (setup-channels self)
@@ -320,7 +321,7 @@
     (set! selection-description #f))
   
   
-  (method protected (close-emulators self)
+  (method package (close-emulators self)
     (when sender-emulator
       (close sender-emulator)
       (set! sender-emulator #f))
@@ -357,7 +358,7 @@
        (set! last-now #f))))
   
   
-  (method protected (visualize-time self time playing?)
+  (method package (visualize-time self time playing?)
     (parameterize ((emulation? #t))
       (when (and (or origin (eq? mode 'upload)) (or (not now) (/= time now)))
         (emulate-time self time playing?)
@@ -659,7 +660,7 @@
                 (display-on/off world "Full mode" full-mode?))))))))
   
   
-  (method protected (update-video-output self)
+  (method package (update-video-output self)
     (let ((world (current-world)))
       (when panel
         (let ((emulator (get-receiver-emulator panel))

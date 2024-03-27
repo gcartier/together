@@ -18,6 +18,7 @@
         (jazz.math)
         (jazz.stream)
         (world)
+        (world.autoload)
         (world.chronology)
         (world.client.udp)
         (world.context)

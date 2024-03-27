@@ -37,6 +37,7 @@
         (jazz.platform)
         (jazz.process)
         (jazz.resource)
+        (jazz.settings)
         (jazz.snapshot)
         (jazz.stream)
         (jazz.stream.syntax (phase syntax))
@@ -45,6 +46,7 @@
         (jazz.text)
         (jazz.tree)
         (jazz.ui)
+        (jazz.version)
         (jazz.view)
         (jazz.window)
         (time)
@@ -99,6 +101,7 @@
         (world.live)
         (world.logging)
         (world.manager)
+        (world.model)
         (world.moment)
         (world.moment.syntax (phase syntax))
         (world.motion)
@@ -135,6 +138,7 @@
         (world.window)
         (world.zone)
         (together)
+        (together.autoload)
         (together.bbr)
         (together.experiment)
         (together.network)
@@ -209,14 +213,6 @@
 
 (definition protected (set-show-media what)
   (set! show-media what))
-
-
-;; quicky
-(cond-expand
-  (windows
-   (hub get-hide-last-mouse)
-   (hub set-hide-last-mouse))
-  (else))
 
 
 ;;;
@@ -572,14 +568,10 @@
                  (enter-zone together)))))))
   
   
-  ;; quicky
-  (hub chat-message)
   (method (on-command-message self evt)
     (chat-message (together:current-together)))
   
   
-  ;; quicky
-  (hub chat-slash)
   (method (on-command-slash self evt)
     (chat-slash (together:current-together)))
   
@@ -2101,7 +2093,7 @@
           space)))
   
   
-  (method (together-enter self auto-enter)
+  (method package (together-enter self auto-enter)
     (let ((client (current-client)))
       (define (enter-gathering)
         (set! space (need-space self 'gathering))
@@ -2159,7 +2151,7 @@
       (player-ready)))
   
   
-  (method (together-exit self)
+  (method package (together-exit self)
     (send-reports)
     (together-destroy self))
   
@@ -2209,7 +2201,7 @@
       (set! configuration (instantiate (read-form file)))))
   
   
-  (method (install-zone self)
+  (method package (install-zone self)
     (let ((interface (current-interface)))
       ;; common
       (new People-Label name: 'people-label parent: interface title: "People" location: '(10 64) size: {Dimension 220 40} font: {Font font-name: tahoma point-size: 16 shadow: thin} justification: 'center visible?: #f)
@@ -2244,7 +2236,7 @@
       (update-profile-label)))
   
   
-  (method (uninstall-zone self)
+  (method package (uninstall-zone self)
     (let ((interface (current-interface)))
       (close (child interface 'people-label))
       (close (child interface 'people))
@@ -3383,7 +3375,7 @@
         (update-parameter world 'streams))))
   
   
-  (method (goto-space self what)
+  (method package (goto-space self what)
     (space-deactivate (current-space))
     (space-uninstall (current-space))
     (set! space (need-space self what))
@@ -3853,7 +3845,7 @@
       (locate (child interface 'people) '(people people))))
   
   
-  (method (refresh-hierarchy self)
+  (method package (refresh-hierarchy self)
     (let ((tier (current-tier)))
       (let ((hierarchy (list-hierarchy tier)))
         (register-hierarchy hierarchy)
@@ -5218,7 +5210,7 @@
       (save-content options-settings)))
   
   
-  (method protected (view-replay self replay (profile?: profile? #f) (from: from #f) (to: to #f) (now: now #f))
+  (method package (view-replay self replay (profile?: profile? #f) (from: from #f) (to: to #f) (now: now #f))
     (let ((title (get-title replay))
           (tier (get-tier replay))
           (names (get-names replay))

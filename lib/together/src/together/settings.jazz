@@ -25,7 +25,6 @@
         (jazz.stream)
         (world)
         (world.asset)
-        (world.assets)
         (world.audio)
         (world.autoload)
         (world.client)
@@ -39,6 +38,7 @@
         (world.tier)
         (world.urgency)
         (together)
+        (together.autoload)
         (together.exception)
         (together.remote))
 
@@ -103,7 +103,7 @@
       (let ((title (present-login-problem obj))
             (zone (if from-login? (current-zone) (open-login-zone))))
         (world.interface.exception:report-exception title obj)
-        (check-invalid-key-exception zone title)
+        (together.login:check-invalid-key-exception zone title)
         zone))))
 
 

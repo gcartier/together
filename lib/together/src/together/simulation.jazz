@@ -25,6 +25,7 @@
         (gaea.math)
         (world)
         (world.audio)
+        (world.autoload)
         (world.chronology)
         (world.client.udp)
         (world.context)

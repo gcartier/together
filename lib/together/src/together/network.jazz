@@ -23,6 +23,7 @@
         (jazz.time)
         (jazz.view)
         (world)
+        (world.autoload)
         (world.bbr)
         (world.bbr.state)
         (world.client.tier)
@@ -698,7 +699,6 @@
 ;;;
 
 
-(hub close-main-menu2)
 (definition protected (profile-network (parameters: parameters '()) (duration: duration #f) (duration-done: duration-done #f))
   (close-main-menu2 (current-world))
   (profile-run "Test" setup-bbr send-bbr pace-bbr title: "Network" parameters: parameters duration: (or duration 15) duration-done: duration-done)))

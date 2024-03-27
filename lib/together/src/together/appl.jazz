@@ -55,7 +55,7 @@
         (world)
         (world.appl)
         (world.asset)
-        (world.assets)
+        (world.autoload)
         (world.build)
         (world.capabilities)
         (world.circle)
@@ -72,6 +72,7 @@
         (world.interface.history)
         (world.interface.mainbar)
         (world.interface.menu)
+        (world.interface.panel)
         (world.interface.timeline)
         (world.io)
         (world.parameters)
@@ -870,7 +871,7 @@
       (<World-Separator>                                  location: tail size: {Dimension 18 0})))
   
   
-  (method protected (setup-visibility self)
+  (method package (setup-visibility self)
     (let ((space (current-space)))
       (for-each (lambda (child)
                   (when (is? child World-Action-Button)

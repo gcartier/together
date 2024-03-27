@@ -76,6 +76,7 @@
         (<Jazz-File>       name: organize          source: {File :context "src" "together" "organize.jazz"})
         (<Jazz-File>       name: bbr               source: {File :context "src" "together" "bbr.jazz"})
         (<Jazz-File>       name: update            source: {File :context "src" "together" "update.jazz"})
-        (<Jazz-File>       name: load              source: {File :context "src" "together" "load.jazz"}))
+        (<Jazz-File>       name: load              source: {File :context "src" "together" "load.jazz"})
+        (<Jazz-File>       name: autoload          source: {File :context "src" "together" "autoload.jazz"}))
       (<Jazz-File>         name: t                 source: {File :context "src" "t.jazz"})
       (<Jazz-File>         name: trun              source: {File :context "src" "trun.jazz"})))))

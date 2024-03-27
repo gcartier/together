@@ -46,6 +46,7 @@
         (world.interface.templates)
         (world.io)
         (world.music)
+        (world.scene)
         (world.settings)
         (world.skybox)
         (world.space)
@@ -138,7 +139,7 @@
             (set-visible? (brother self option-view) (not action-invalid)))))))
   
   
-  (method protected virtual (name-invalid self)
+  (method package virtual (name-invalid self)
     (let ((text (locate self 'text)))
       (let ((name (trim-whitespace (get-string-content text))))
         (cond ((empty-string? name)

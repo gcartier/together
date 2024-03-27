@@ -19,10 +19,11 @@
         (jazz.window)
         (world)
         (world.asset)
-        (world.assets)
+        (world.autoload)
         (world.context)
         (world.entity)
         (world.interface.script)
+        (world.script.asset)
         (world.scripter))
 
 

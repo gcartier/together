@@ -23,19 +23,6 @@
 
 
 ;;;
-;;;; Hubs
-;;;
-
-
-(hub get-in-circle?)
-(hub get-replay)
-(hub goto-space)
-(hub together-enter)
-(hub together-exit)
-(hub check-invalid-key-exception)
-
-
-;;;
 ;;;; Settings
 ;;;
 

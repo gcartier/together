@@ -41,6 +41,7 @@
         (world.camera)
         (world.client)
         (world.context)
+        (world.entity)
         (world.interface)
         (world.interface.avatars)
         (world.interface.color)
@@ -193,7 +194,7 @@
   
   (method override (escape-press self)
     (select-avatar self)
-    (goto-space zone 'key)
+    (together.login:goto-space zone 'key)
     #t)
   
   
@@ -224,8 +225,8 @@
               (dye (get-color entity)))
           (set-character-avatar (get-configuration zone) avatar)
           (set-character-dye (get-configuration zone) dye)
-          (save-configuration zone)
-          (goto-space zone 'key))))))
+          (together.login:save-configuration zone)
+          (together.login:goto-space zone 'key))))))
 
 
 ;;;

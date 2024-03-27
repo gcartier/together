@@ -74,11 +74,11 @@
     (set! self.evolution evolution))
   
   
-  (method protected (emulate self to-time playing?)
+  (method package (emulate self to-time playing?)
     (emulate-from self #f to-time playing?))
   
   
-  (method protected (emulate-from-last self to-time playing?)
+  (method package (emulate-from-last self to-time playing?)
     (emulate-from self (and last-event (+ last-event 1)) to-time playing?))
   
   
@@ -494,7 +494,7 @@
     (nextmethod self))
 
   
-  (method protected (bbr-updated self)
+  (method package (bbr-updated self)
     (increase! bbr-update))
   
   
@@ -536,7 +536,7 @@
   
   
   ;; for tests
-  (method protected (present-bbr self)
+  (method package (present-bbr self)
     @w
     (tell
       'inflight (table-length (get-inflight-buffers bbr-state))

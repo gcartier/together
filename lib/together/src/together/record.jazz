@@ -16,6 +16,7 @@
 
 (import (jazz.io)
         (world)
+        (world.autoload)
         (world.context)
         (world.recording)
         (world.streaming))

@@ -17,6 +17,7 @@
 (import (jazz.debugger)
         (jazz.debugger.jazz)
         (world)
+        (world.autoload)
         (world.context))
 
 

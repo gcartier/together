@@ -29,6 +29,7 @@
         (jazz.view)
         (world)
         (world.audio)
+        (world.autoload)
         (world.circle)
         (world.client.tier)
         (world.context)

@@ -22,6 +22,7 @@
         (jazz.view)
         (world)
         (world.audio)
+        (world.client.tier)
         (world.client.udp)
         (world.configure)
         (world.context)
@@ -36,7 +37,8 @@
         (world.task)
         (world.udp)
         (world.video)
-        (together))
+        (together)
+        (together.autoload))
 
 
 (definition protected preprocess-denoise?
@@ -60,7 +62,7 @@
   ;;;
   
   
-  (method protected virtual (show-interface self hide-interface?)
+  (method package virtual (show-interface self hide-interface?)
     )
   
   
@@ -109,14 +111,10 @@
     )
   
   
-  ;; quicky
-  (hub chat-message)
   (method (on-command-message self evt)
     (chat-message (together:current-together)))
   
   
-  ;; quicky
-  (hub chat-slash)
   (method (on-command-slash self evt)
     (chat-slash (together:current-together)))
   
