@@ -15,7 +15,8 @@
 
 
 (import (jazz.io)
-        (jazz.platform))
+        (jazz.platform)
+        (jazz.syntax (phase syntax)))
 
 
 ;;;
