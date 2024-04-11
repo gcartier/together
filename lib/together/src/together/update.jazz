@@ -68,6 +68,8 @@
 (definition protected (update-together base)
   (initialize-aliases)
   
+  (register-resources-alias 'Together)
+  
   (jiri-prepare)
   (jiri-finish)
   
