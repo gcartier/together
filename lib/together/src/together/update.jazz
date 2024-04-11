@@ -14,23 +14,14 @@
 (module together.update jazz
 
 
-(import (jazz.application)
-        (jazz.component)
-        (jazz.event)
+(import (jazz.appl)
         (jazz.io)
-        (jazz.markup)
-        (jazz.opengl.frame)
-        (jazz.platform)
-        (jazz.process)
         (jazz.settings)
-        (jazz.view)
-        (jazz.window)
-        (jazz.workspace)
-        (jiri.appl)
+        (jazz.splash)
+        (jiri)
         (jiri.connection)
         (jiri.manager)
         (jiri.monitor)
-        (jiri.pane)
         (jiri.remote)
         (jiri.section)
         (jiri.settings)
@@ -63,70 +54,47 @@
 
 
 ;;;
-;;;; Application
-;;;
-
-
-(class Update-Application extends Jiri-Application
-  
-  
-  (method override (new-toplevel self)
-    (let ((toplevel (new Update-Toplevel)))
-      (set! update-toplevel toplevel)
-      toplevel))
-  
-  
-  (method override (finish-process self)
-    (nextmethod self)
-    (set-title (current-frame) "Update"))
-
-  
-  (method override (initialize-settings self)
-    (register-resources-alias 'Together))
-  
-  
-  (method override (quit-process self (status 0))
-    (quit-callback)))
-
-
-;;;
-;;;; Toplevel
-;;;
-
-
-(definition update-toplevel
-  #f)
-
-(definition protected (close-update-toplevel)
-  (when update-toplevel
-    (close update-toplevel)
-    (set! update-toplevel #f)))
-
-
-(class Update-Toplevel extends Jiri-Toplevel
-
-
-  (form
-    (<install> caption-base: "Together"))
-  
-  
-  (method override (effective-title self)
-    "Together"))
-
-
-;;;
 ;;;; Boot
 ;;;
 
 
-(class Update-Done extends Signal)
+(definition splash-thread
+  #f)
+
+(definition splash-done?
+  #f)
 
 
-(definition protected (update-together)
-  (catch (Update-Done exc
-           (reset-current-stage)
-           (delayed-boot))
-    (boot-environment (new Update-Application))))
+(definition protected (update-together base)
+  (initialize-aliases)
+  
+  (jiri-prepare)
+  (jiri-finish)
+  
+  (applInit)
+  (splashInit)
+  
+  (let ((thread
+          (new-thread
+            (lambda ()
+              (declare (proper-tail-calls))
+              (let (loop)
+                (poll-events)
+                (sleep .01)
+                (if splash-done?
+                    (splashTerminate)
+                  (loop))))
+            'event)))
+    (set! splash-thread thread)
+    (set! splash-done? #f)
+    (thread-start! thread))
+  
+  (update-at-together base))
+
+
+(definition protected (close-update-toplevel)
+  (set! splash-done? #t)
+  (thread-join! splash-thread))
 
 
 ;;;
@@ -134,60 +102,51 @@
 ;;;
 
 
-(definition (update-at-together)
+(definition (update-at-together base)
   (current-root-dir kernel-root)
   (set-first-install? (or (not (file-exists? (update-dir)))
                           (not (file-exists? (data-dir)))))
   (setup-stage-view)
-  (let ((thread
-          (new-thread
-            (lambda ()
-              (send-snapshot-reports (jiri-installer-snapshots))
-              (send-snapshot-reports (jiri-application-snapshots))
-              (set-stage-view-updating)
-              (catch-jiri-exception
-                (lambda ()
-                  (pull-repository-if (jiri-worker-section) (worker-dir)
-                    (lambda (new-content?)
-                      (pull-repository (jiri-update-section) (update-dir)
-                        (lambda (new-content?)
-                          (if (repository-uptodate? (jiri-app-section) (app-dir) directory: (app-directory))
-                              (begin
-                                (set-done (get-download-task (get-connection (jiri-app-section))))
-                                (pull-repository (jiri-data-section) (data-dir)
-                                  (lambda (new-data-content?)
-                                    (update-done new-data-content?))))
-                            (delegate-update (current-root-dir) "together" first-install?)))))))))
-            'update)))
-    (thread-base-priority-set! thread update-priority)
-    (thread-start! thread)))
+  (send-snapshot-reports (jiri-installer-snapshots))
+  (send-snapshot-reports (jiri-application-snapshots))
+  (set-stage-view-updating)
+  (catch-jiri-exception
+    (lambda ()
+      (pull-repository-if (jiri-worker-section) (worker-dir)
+        (lambda (new-content?)
+          (pull-repository (jiri-update-section) (update-dir)
+            (lambda (new-content?)
+              (if (repository-uptodate? (jiri-app-section) (app-dir) directory: (app-directory))
+                  (begin
+                    (set-done (get-download-task (get-connection (jiri-app-section))))
+                    (pull-repository (jiri-data-section) (data-dir)
+                      (lambda (new-data-content?)
+                        (continuation-graft base
+                          (lambda ()
+                            (update-done new-data-content?))))))
+                (delegate-update (current-root-dir) "together" first-install?)))))))))
 
 
 (definition load-expected-direct
   (cond-expand
-    (windows 445)
-    (else 455)))
+    (windows 679)
+    (else 689)))
 
 
 (definition (update-done new-content?)
-  (declare (proper-tail-calls))
-  (set-cursor :arrow)
+  (splash-set-cursor :arrow)
   (set-work-done? #t)
   (let ((port (open-vector)))
     (load-feedback-setup port load-expected-direct)
-    (let ((thread
-            (new-thread
-              (lambda ()
-                (delayed-load)
-                (load-feedback-done))
-              'load)))
-      (thread-base-priority-set! thread update-priority)
-      (thread-start! thread))
-    (update-splash new-content? port
-      (lambda ()
-        (delay-event
-          (lambda ()
-            (signal (new Update-Done))))))))
+    (thread-start!
+      (new-thread
+        (lambda ()
+          (update-splash new-content? port
+            (lambda ()
+              (load-feedback-done))))
+        'splash)))
+  (delayed-load)
+  (delayed-boot))
 
 
 (definition (update-splash new-content? port cont)
@@ -208,9 +167,4 @@
 
 (set-jiri-init
   (lambda ()
-    (jiri-layout)))
-
-
-(set-jiri-startup
-  (lambda ()
-    (update-at-together))))
+    (jiri-layout))))

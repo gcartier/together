@@ -14,7 +14,8 @@
 (module together.settings jazz
 
 
-(import (jazz.associative)
+(import (jazz.appl)
+        (jazz.associative)
         (jazz.associative.client)
         (jazz.component)
         (jazz.debuggee)

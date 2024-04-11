@@ -63,12 +63,14 @@
                               together.zone
                               together.zoom)
                       (dependencies gambit.walk
+                                    jazz.appl
                                     jazz.editor.commonlisp
                                     jazz.editor.jazz
                                     jazz.fonts
                                     (cond
                                       ((or mac windows) jiri))
                                     jazz.platform
+                                    jazz.splash
                                     gaea
                                     world
                                     world.client

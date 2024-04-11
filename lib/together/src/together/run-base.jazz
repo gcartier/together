@@ -49,7 +49,9 @@
             (equal? (string-argument "called-from" #f) "sirius"))
         (together.run:run-together)
       (when (install-writable?)
-        (together.update:update-together)))))
+        (continuation-capture
+          (lambda (base)
+            (together.update:update-together base)))))))
 
 
 (register-product-run 'together
