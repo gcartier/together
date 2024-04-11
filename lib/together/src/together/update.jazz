@@ -95,8 +95,10 @@
 
 
 (definition protected (close-update-toplevel)
-  (set! splash-done? #t)
-  (thread-join! splash-thread))
+  (when splash-thread
+    (set! splash-done? #t)
+    (thread-join! splash-thread)
+    (set! splash-thread #f)))
 
 
 ;;;
