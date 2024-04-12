@@ -64,5 +64,5 @@
             (launch.update:update-together base)))))))
 
 
-(register-product-run 'together
+(register-product-run 'launch
   launch-together))

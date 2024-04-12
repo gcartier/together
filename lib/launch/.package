@@ -8,6 +8,7 @@
   (products (launch (title "Launch")
                     (prefix "Launch")
                     (run launch.run)
+                    (build (launch executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
                     (update launch.run
                             launch.update)
                     (dependencies jazz)))
