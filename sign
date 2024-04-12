@@ -31,9 +31,49 @@ set -e
 echo Copying...
 cd $NOTARY
 rm -rf $APP.app
-cp -R $INSTALL/$APP $APP.app
+mkdir $APP.app
 cd $APP.app
-rm -rf .jas
+mkdir Contents
+cp $INSTALL/$APP/Contents/Info.plist Contents
+cp -r $INSTALL/$APP/Contents/MacOS Contents
+cp -r $INSTALL/$APP/Contents/Resources Contents
+cp -r $INSTALL/$APP/Contents/_CodeSignature Contents
+mkdir Contents/Libraries
+cp $INSTALL/$APP/Contents/Libraries/libcairo.2.dylib Contents/Libraries
+cp $INSTALL/$APP/Contents/Libraries/libfontconfig.1.dylib Contents/Libraries
+cp $INSTALL/$APP/Contents/Libraries/libfreetype.6.dylib Contents/Libraries
+cp $INSTALL/$APP/Contents/Libraries/libpixman-1.0.dylib Contents/Libraries
+cp $INSTALL/$APP/Contents/Libraries/libpng16.16.dylib Contents/Libraries
+mkdir Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/foundation Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/gambit Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/contrib.irregex Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.appl Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.associative Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.cairo Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.event Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.exemplar Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.fontconfig Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.foreign Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.freetype Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.graphic Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.io Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.math Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.network Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.platform Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.product Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.settings Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.splash Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.time Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.version Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.window Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.zlib Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/jiri Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/scheme Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/srfi-19 Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/together Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/update Contents/Libraries/lib
 jas init -open
 jas add .
 mv .jas Contents/Resources
