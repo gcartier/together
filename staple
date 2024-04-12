@@ -27,10 +27,6 @@ fi
 # Bail out
 set -e
 
-# Notarize
+# Staple
 cd $NOTARY
-ditto -c -k --keepParent $APP.app $APP.zip
-xcrun notarytool submit $APP.zip --apple-id gucartier@gmail.com --team-id R74FF3EJWG --keychain-profile Together --wait
-
-# Notes
-# - if the notarization fails, there will be a LogFileURL that can be pasted into a browser to have a full log
+xcrun stapler staple -v $APP.app
