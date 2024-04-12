@@ -57,4 +57,4 @@ fi
 hdiutil create -quiet -volname Together -fs HFS+ -size 400m -attach "$TEMPLATE_DMG"
 
 # Copy files
-# cp -R $NOTARY/$APP.app $MOUNT/Together$SUFFIX.app
+cp -R $NOTARY/$APP.app $MOUNT/Together$SUFFIX.app
