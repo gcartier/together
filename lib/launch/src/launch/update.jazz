@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module together.update jazz
+(module launch.update jazz
 
 
 (import (jazz.appl)
@@ -90,7 +90,7 @@
     (set! splash-thread thread)
     (set! splash-done? #f)
     (thread-start! thread))
-  
+
   (update-at-together base))
 
 

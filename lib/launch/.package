@@ -1,0 +1,14 @@
+(package launch
+  
+  (title "Launch")
+  (description "Together Launch")
+  (authors "Guillaume Cartier")
+  (stage alpha)
+  (root "src")
+  (products (launch (title "Launch")
+                    (prefix "Launch")
+                    (run launch.run)
+                    (update launch.run
+                            launch.update)
+                    (dependencies jazz)))
+  (project ".project"))

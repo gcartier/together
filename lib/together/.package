@@ -7,7 +7,7 @@
   (root "src")
   (products (together (title "Together")
                       (prefix "Together")
-                      (run together.run-base)
+                      (run launch.run)
                       (product together.product)
                       (build (together executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
                       (update together
@@ -42,7 +42,6 @@
                               together.replay
                               together.replay-space
                               together.run
-                              together.run-base
                               together.run-processor
                               together.run-server
                               together.script
@@ -54,7 +53,6 @@
                               together.simulation
                               together.simulator
                               together.sphere-space
-                              together.update
                               together.validate
                               together.visualizer
                               together.window
@@ -75,6 +73,7 @@
                                     world
                                     world.client
                                     world.server
+                                    launch
                                     update))
             (together-processor (title "Processor")
                                 (prefix "Processor")

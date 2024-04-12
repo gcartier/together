@@ -15,4 +15,5 @@
 
 (form
   (<Project> name: lib
+    (<*>               tag-reference: {File :context "launch" ".project"})
     (<*>               tag-reference: {File :context "together" ".project"}))))

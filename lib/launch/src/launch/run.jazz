@@ -2,7 +2,7 @@
 ;;;  Together
 ;;;============
 ;;;
-;;;; Together Run Base
+;;;; Together Launch
 ;;;
 ;;;  The Initial Developer of the Original Code is Guillaume Cartier.
 ;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
@@ -11,15 +11,15 @@
 ;;;  Contributor(s):
 
 
-(module together.run-base jazz
+(module launch.run jazz
 
 
-(import (jazz.platform)
-        (jazz.settings)
-        (together.remote))
+(import (jazz.settings))
 
 
 (definition (already-running?)
+  #f
+  @splashoo
   (if (cond-expand
         ((or devel stable test) #f)
         (else (process-already-running?)))
@@ -33,6 +33,8 @@
 
 
 (definition (install-writable?)
+  #t
+  @splashoo
   (if (cond-expand
         (mac (directory-writable? kernel-bundle-install))
         (else #t))
@@ -43,7 +45,15 @@
     #f))
 
 
-(definition (run-together-base descriptor)
+(definition remote-repository?
+  (cond-expand
+    ((or devel stable)
+     #f)
+    (else
+     #t)))
+
+
+(definition (launch-together descriptor)
   (unless (already-running?)
     (if (or (not remote-repository?)
             (equal? (string-argument "called-from" #f) "sirius"))
@@ -51,8 +61,8 @@
       (when (install-writable?)
         (continuation-capture
           (lambda (base)
-            (together.update:update-together base)))))))
+            (launch.update:update-together base)))))))
 
 
 (register-product-run 'together
-  run-together-base))
+  launch-together))
