@@ -7,9 +7,11 @@
   (root "src")
   (products (launch (title "Launch")
                     (prefix "Launch")
+                    (product launch.product)
                     (run launch.run)
                     (build (launch executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
                     (update launch.run
                             launch.update)
-                    (dependencies jazz)))
+                    (dependencies jazz
+                                  together)))
   (project ".project"))

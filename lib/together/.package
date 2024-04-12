@@ -7,7 +7,6 @@
   (root "src")
   (products (together (title "Together")
                       (prefix "Together")
-                      (product together.product)
                       (update together
                               together.appl
                               together.autoload
@@ -71,7 +70,6 @@
                                     world
                                     world.client
                                     world.server
-                                    launch
                                     update))
             (together-processor (title "Processor")
                                 (prefix "Processor")
