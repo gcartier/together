@@ -57,7 +57,6 @@ cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.foreign Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.freetype Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.io Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.math Contents/Libraries/lib
-cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.network Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.product Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.settings Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.splash Contents/Libraries/lib
@@ -67,7 +66,7 @@ cp -r $INSTALL/$APP/Contents/Libraries/lib/jazz.zlib Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/jiri Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/scheme Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/srfi-19 Contents/Libraries/lib
-cp -r $INSTALL/$APP/Contents/Libraries/lib/together Contents/Libraries/lib
+cp -r $INSTALL/$APP/Contents/Libraries/lib/launch Contents/Libraries/lib
 cp -r $INSTALL/$APP/Contents/Libraries/lib/update Contents/Libraries/lib
 jas init -open
 jas add .
