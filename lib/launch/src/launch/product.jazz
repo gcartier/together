@@ -186,7 +186,7 @@
   ;; appl
   (deploy-application descriptor
                       (new-directory install-dir install-name)
-                      make: 'together-all
+                      make: 'launch
                       install: 'launch))
 
 
