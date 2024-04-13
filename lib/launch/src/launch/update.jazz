@@ -75,30 +75,23 @@
   
   (applInit)
   (splashInit)
+  (splashStart)
   
-  (let ((thread
-          (new-thread
-            (lambda ()
-              (declare (proper-tail-calls))
-              (let (loop)
-                (poll-events)
-                (sleep .01)
-                (if splash-done?
-                    (splashTerminate)
-                  (loop))))
-            'event)))
-    (set! splash-thread thread)
-    (set! splash-done? #f)
-    (thread-start! thread))
+  (let ((environment (table-copy (get-environment-table))))
+    (iterate-table environment
+      (lambda (name loaded)
+        (when (ends-with? (symbol->string name) ".install")
+          (table-clear environment name))))
+    @w
+    (for-each tell (sort nu<? (table-keys environment)))
+    (tell (table-length environment) 'loaded 'in (- (current-seconds) kernel-boot)))
 
   (update-at-together base))
 
 
 (definition protected (close-update-toplevel)
-  (when splash-thread
-    (set! splash-done? #t)
-    (thread-join! splash-thread)
-    (set! splash-thread #f)))
+  (splashStop)
+  (splashTerminate))
 
 
 ;;;
