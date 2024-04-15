@@ -76,15 +76,6 @@
   (applInit)
   (splashInit)
   (splashStart)
-  
-  (let ((environment (table-copy (get-environment-table))))
-    (iterate-table environment
-      (lambda (name loaded)
-        (when (ends-with? (symbol->string name) ".install")
-          (table-clear environment name))))
-    @w
-    (for-each tell (sort nu<? (table-keys environment)))
-    (tell (table-length environment) 'loaded 'in (- (current-seconds) kernel-boot)))
 
   (update-at-together base))
 
