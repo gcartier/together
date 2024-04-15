@@ -24,6 +24,12 @@ else
   APP=together-$ENVIRONMENT-mac
 fi
 
+if [[ "$(arch)" == "arm64" ]]; then
+  BUILD=$TOGETHER/app/prod/binaries/prod/Libraries/lib
+else
+  BUILD=$TOGETHER/app/prod-x86/binaries/prod/Libraries/lib
+fi
+
 # Bail out
 set -e
 

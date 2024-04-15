@@ -1,0 +1,60 @@
+;;;============
+;;;  Together
+;;;============
+;;;
+;;;; Setup Product
+;;;
+;;;  The Initial Developer of the Original Code is Guillaume Cartier.
+;;;  Portions created by the Initial Developer are Copyright (C) 2012-2018
+;;;  the Initial Developer. All Rights Reserved.
+;;;
+;;;  Contributor(s):
+
+
+(module setup.product jazz
+
+
+(import (jazz.io)
+        (jazz.product))
+
+
+;;;
+;;;; Deploy
+;;;
+
+
+(definition (deploy descriptor)
+  (initialize-aliases)
+  (set-link-options '(libraries))
+  (build-product 'foundation)
+  (build-product 'gambit)
+  (build-product 'contrib.irregex)
+  (build-product 'jazz)
+  (build-product 'jazz.appl)
+  (build-product 'jazz.associative)
+  (build-product 'jazz.cairo)
+  (build-product 'jazz.fontconfig)
+  (build-product 'jazz.foreign)
+  (build-product 'jazz.freetype)
+  (build-product 'jazz.io)
+  (build-product 'jazz.math)
+  (build-product 'jazz.product)
+  (build-product 'jazz.settings)
+  (build-product 'jazz.splash)
+  (build-product 'jazz.time)
+  (build-product 'jazz.version)
+  (build-product 'jazz.zlib)
+  (build-product 'jiri)
+  (build-product 'scheme)
+  (build-product 'srfi-19)
+  (build-product 'launch)
+  (build-product 'update))
+
+
+;;;
+;;;; Register
+;;;
+
+
+(register-product 'setup
+  deploy: deploy))
