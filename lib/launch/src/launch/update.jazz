@@ -122,7 +122,6 @@
 
 
 (definition (update-done new-content?)
-  (splash-set-cursor :arrow)
   (set-work-done? #t)
   (let ((port (open-vector)))
     (load-feedback-setup port load-expected-direct)
