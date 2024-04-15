@@ -73,16 +73,16 @@
   (jiri-prepare)
   (jiri-finish)
   
-  (applInit)
-  (splashInit)
-  (splashStart)
+  (appl-init)
+  (splash-init)
+  (splash-start)
 
   (update-at-together base))
 
 
 (definition protected (close-update-toplevel)
-  (splashStop)
-  (splashTerminate))
+  (splash-stop)
+  (splash-terminate))
 
 
 ;;;
