@@ -148,9 +148,4 @@
 ;;;
 
 
-(jiri-background {File Resources "lib" "together" "assets" "background.png"})
-
-
-(set-jiri-init
-  (lambda ()
-    (jiri-layout))))
+(jiri-background {File Resources "lib" "together" "assets" "background.png"}))
