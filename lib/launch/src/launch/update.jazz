@@ -122,7 +122,6 @@
 
 
 (definition (update-done new-content?)
-  (set-work-done? #t)
   (let ((port (open-vector)))
     (load-feedback-setup port load-expected-direct)
     (thread-start!
