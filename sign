@@ -68,10 +68,13 @@ copylib jazz.cairo
 copylib jazz.fontconfig
 copylib jazz.foreign
 copylib jazz.freetype
+copylib jazz.inspector
 copylib jazz.io
 copylib jazz.math
+copylib jazz.moment
 copylib jazz.product
 copylib jazz.settings
+copylib jazz.snapshot
 copylib jazz.splash
 copylib jazz.time
 copylib jazz.version
