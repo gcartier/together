@@ -14,7 +14,7 @@
 (module together.exception jazz
 
 
-(import (jazz.platform)
+(import (jazz.appl)
         (jazz.snapshot)
         (world.io)
         (world.task))

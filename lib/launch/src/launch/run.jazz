@@ -14,7 +14,8 @@
 (module launch.run jazz
 
 
-(import (jazz.settings))
+(import (jazz.appl)
+        (jazz.settings))
 
 
 (definition (already-running?)
