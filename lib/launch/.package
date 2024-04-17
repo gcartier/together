@@ -14,6 +14,6 @@
                             launch.product
                             launch.update)
                     (dependencies jazz
-                                  together))
+                                  together-all))
             (setup (product setup.product)))
   (project ".project"))
