@@ -34,8 +34,6 @@
 
 
 (definition (install-writable?)
-  #t
-  @splashoo
   (if (cond-expand
         (mac (directory-writable? kernel-bundle-install))
         (else #t))
