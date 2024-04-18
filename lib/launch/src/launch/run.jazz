@@ -19,8 +19,6 @@
 
 
 (definition (already-running?)
-  #f
-  @splashoo
   (if (cond-expand
         ((or devel stable test) #f)
         (else (process-already-running?)))
