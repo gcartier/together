@@ -148,6 +148,8 @@
   ;; appl
   (install-application descriptor install-dir
     name: install-name
+    executable-name: (cond-expand (windows "Together.exe")
+                                  (else #f))
     scriptable?: #t
     platform?: #t
     opengl?: #t
