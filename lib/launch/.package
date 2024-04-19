@@ -15,5 +15,5 @@
                             launch.update)
                     (dependencies jazz
                                   together-all))
-            (setup (product setup.product)))
+            (prepare (product prepare.product)))
   (project ".project"))
