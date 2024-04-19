@@ -56,7 +56,7 @@ mkdir Contents/Libraries/lib
 copylib() {
     mkdir Contents/Libraries/lib/$1
     cp $BUILD/$1/.package Contents/Libraries/lib/$1
-    cp $BUILD//$1/$1.l1 Contents/Libraries/lib/$1
+    cp $BUILD/$1/$1.l1 Contents/Libraries/lib/$1
 }
 copylib foundation
 copylib gambit
