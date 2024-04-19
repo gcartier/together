@@ -1,0 +1,76 @@
+#! /bin/sh
+
+TOGETHER=/c/Home/together
+INSTALL=$TOGETHER/install
+SETUP=$TOGETHER/setup
+
+if [ -f ".jaz" ]; then
+  . "$(pwd)/.jaz"
+else
+  echo ".jaz not found"
+  exit 1
+fi
+
+if [ -z "$JAZCONF" ]; then
+  echo "JAZCONF not set"
+  exit 1
+else
+  ENVIRONMENT="$JAZCONF"
+fi
+
+APP=together-$ENVIRONMENT
+
+BUILD=$TOGETHER/app/prod/binaries/prod/lib
+
+# Bail out
+set -e
+
+# Setup
+echo Copying...
+cd $SETUP
+rm -rf $APP
+mkdir $APP
+cd $APP
+cp $INSTALL/$APP/Together.exe .
+cp $INSTALL/$APP/libcairo-2.dll .
+cp $INSTALL/$APP/libfontconfig-1.dll .
+cp $INSTALL/$APP/libfreetype-6.dll .
+cp $INSTALL/$APP/libgcc_s_seh-1.dll .
+cp $INSTALL/$APP/libpng16-16.dll .
+mkdir lib
+mkdir lib/together
+mkdir lib/together/assets
+cp $INSTALL/$APP/lib/together/assets/background.png lib/together/assets
+copylib() {
+    mkdir lib/$1
+    cp $BUILD/$1/.package lib/$1
+    cp $BUILD/$1/$1.l1 lib/$1
+}
+copylib foundation
+copylib gambit
+copylib contrib.irregex
+copylib jazz
+copylib jazz.appl
+copylib jazz.associative
+copylib jazz.cairo
+copylib jazz.fontconfig
+copylib jazz.foreign
+copylib jazz.freetype
+copylib jazz.inspector
+copylib jazz.io
+copylib jazz.math
+copylib jazz.moment
+copylib jazz.product
+copylib jazz.settings
+copylib jazz.snapshot
+copylib jazz.splash
+copylib jazz.time
+copylib jazz.version
+copylib jazz.zlib
+copylib jiri
+copylib scheme
+copylib srfi-19
+copylib launch
+copylib update
+jas init -open
+jas add .
