@@ -50,9 +50,12 @@
 
 
   ;; MINGW
-  ;; - need to use the version of MinGW-w64 that is on Zathras
+  ;; - use the version of MinGW-w64 that is on Zathras
   ;;   https://github.com/jazzscheme/mingw64.git
-  ;; - add C:\mingw64\bin to PATH environment variable
+  ;; - note that i was able to build successfully with a newer
+  ;;   version x86_64-13.2.0-release-posix-seh-msvcrt-rt_v11-rev1
+  ;;   but the build time was so atrocious i had to revert back
+  ;; - add C:\mingw64\bin to the PATH environment variable
 
 
   ;; CLONE
