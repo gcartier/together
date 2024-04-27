@@ -1,5 +1,7 @@
 #! /bin/sh
 
+./prepare
+
 TOGETHER=~/Devel/together
 INSTALL=$TOGETHER/install
 NOTARY=$TOGETHER/notary

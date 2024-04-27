@@ -1,5 +1,7 @@
 #! /bin/sh
 
+./prepare
+
 TOGETHER=/c/Home/together
 INSTALL=$TOGETHER/install
 SETUP=$TOGETHER/setup
