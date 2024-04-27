@@ -32,11 +32,17 @@ rm -rf $APP
 mkdir $APP
 cd $APP
 cp $INSTALL/$APP/Together.exe .
+cp $INSTALL/$APP/curl.exe .
+cp $INSTALL/$APP/bz2.dll .
 cp $INSTALL/$APP/libcairo-2.dll .
+cp $INSTALL/$APP/libexpat-1.dll .
 cp $INSTALL/$APP/libfontconfig-1.dll .
 cp $INSTALL/$APP/libfreetype-6.dll .
 cp $INSTALL/$APP/libgcc_s_seh-1.dll .
 cp $INSTALL/$APP/libpng16-16.dll .
+cp $INSTALL/$APP/libwinpthread-1.dll .
+cp $INSTALL/$APP/pixman-1-0.dll .
+cp $INSTALL/$APP/z-1.dll .
 mkdir lib
 mkdir lib/together
 mkdir lib/together/assets
