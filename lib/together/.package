@@ -58,6 +58,7 @@
                               together.zoom)
                       (dependencies gambit.walk
                                     jazz.appl
+                                    jazz.core
                                     jazz.editor.commonlisp
                                     jazz.editor.jazz
                                     jazz.fonts
