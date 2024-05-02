@@ -1,0 +1,20 @@
+;;;==============
+;;;  JazzScheme
+;;;==============
+;;;
+;;;; Project
+;;;
+
+
+(data jazz.ide.data.project
+
+
+(import (jazz.project)
+        (jazz.editor.jazz))
+
+
+(form
+  (<Project>               name: prepare description-file: {File :context ".package"}
+    (<Project-Directory>                 directory: {Directory :context "src"}
+      (<Project-Directory>               directory: {Directory :context "src" "together"}
+        (<Jazz-File>       name: prepare source: {File :context "src" "together" "prepare.jazz"}))))))

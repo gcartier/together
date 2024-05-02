@@ -1,0 +1,10 @@
+(package together.prepare
+  
+  (title "Together")
+  (description "Together Prepare")
+  (authors "Guillaume Cartier")
+  (stage alpha)
+  (root "src")
+  (products (together.prepare (alias prepare)
+                              (product together.prepare)))
+  (project ".project"))

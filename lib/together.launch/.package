@@ -1,0 +1,19 @@
+(package together.launch
+  
+  (title "Together")
+  (description "Together Launch")
+  (authors "Guillaume Cartier")
+  (stage alpha)
+  (root "src")
+  (products (together.launch (alias launch)
+                             (title "Launch")
+                             (prefix "Launch")
+                             (product together.product)
+                             (run together.launch)
+                             (build (launch executable: "Together" minimum-heap: 500000 bundle: "together" resources: "resources/together"))
+                             (update together.launch
+                                     together.product
+                                     together.update)
+                             (dependencies jazz
+                                           together-all)))
+  (project ".project"))

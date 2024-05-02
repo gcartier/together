@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module launch.run jazz
+(module together.launch jazz
 
 
 (import (jazz.appl)
@@ -58,8 +58,8 @@
       (when (install-writable?)
         (continuation-capture
           (lambda (base)
-            (launch.update:update-together base)))))))
+            (together.update:update-together base)))))))
 
 
-(register-product-run 'launch
+(register-product-run 'together.launch
   launch-together))

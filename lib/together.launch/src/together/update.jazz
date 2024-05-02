@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module launch.update jazz
+(module together.update jazz
 
 
 (import (jazz.appl)

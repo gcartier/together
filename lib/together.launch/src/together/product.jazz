@@ -11,7 +11,7 @@
 ;;;  Contributor(s):
 
 
-(module launch.product jazz
+(module together.product jazz
 
 
 (import (jazz.io)
@@ -197,7 +197,7 @@
 ;;;
 
 
-(register-product 'launch
+(register-product 'together.launch
   build: build
   install: install
   deploy: deploy))
