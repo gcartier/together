@@ -79,7 +79,7 @@ copylib jazz.zlib
 copylib jiri
 copylib scheme
 copylib srfi-19
-copylib launch
+copylib together.launch
 copylib update
 jas init -open
 jas add .
