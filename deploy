@@ -14,4 +14,4 @@ else
   ENVIRONMENT="$JAZCONF"
 fi
 
-./jaz deploy "launch@$ENVIRONMENT" "$@" -debug
+./jaz deploy "together.launch@$ENVIRONMENT" "$@" -debug
