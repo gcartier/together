@@ -106,8 +106,6 @@
                      '(;; render
                        world.tick-rate-inactive    .75
                        world.message-rate-inactive 5.
-                       ;; support
-                       world.block-pumps?          #t
                        ;; test
                        world.init-script           #f
                        world.test-script           #f
