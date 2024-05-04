@@ -1,18 +1,31 @@
 #! /bin/sh
 
-TOGETHER=~/Devel/together
-PACKAGE=$TOGETHER/package
-WEBSITE=$TOGETHER/website
-
-if [[ "$(arch)" == "arm64" ]]; then
-  PLATFORM=silicon
-elif [[ "$(arch)" == "i386" ]]; then
-  PLATFORM=mac
-else
-  PLATFORM=unknown
-fi
-
-REPOSITORY="togethersphere.com/together-website-$PLATFORM"
+case "$(uname -s)" in
+  Linux* )
+      PLATFORM=linux
+      ;;
+  Darwin* )
+      TOGETHER=~/Devel/together
+      PACKAGE=$TOGETHER/package
+      WEBSITE=$TOGETHER/website
+      if [[ "$(arch)" == "arm64" ]]; then
+        PLATFORM=silicon
+      elif [[ "$(arch)" == "i386" ]]; then
+        PLATFORM=mac
+      else
+        PLATFORM=unknown
+      fi
+      ;;
+  MINGW* )
+      TOGETHER=/c/Home/together
+      SETUP=$TOGETHER/setup
+      WEBSITE=$TOGETHER/website
+      PLATFORM=windows
+      ;;
+  * )
+      PLATFORM=unknown
+      ;;
+esac
 
 case "$PLATFORM" in
   "mac" )
@@ -24,6 +37,12 @@ case "$PLATFORM" in
   "silicon" )
       cd "$WEBSITE/limited/silicon"
       cp "$PACKAGE/Together Apple Silicon.dmg" .
+      jas sync
+      jas upload
+      ;;
+  "windows" )
+      cd "$WEBSITE/limited/windows"
+      cp "$SETUP/Together Setup.exe" .
       jas sync
       jas upload
       ;;
