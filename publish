@@ -1,0 +1,33 @@
+#! /bin/sh
+
+TOGETHER=~/Devel/together
+PACKAGE=$TOGETHER/package
+WEBSITE=$TOGETHER/website
+
+if [[ "$(arch)" == "arm64" ]]; then
+  PLATFORM=silicon
+elif [[ "$(arch)" == "i386" ]]; then
+  PLATFORM=mac
+else
+  PLATFORM=unknown
+fi
+
+REPOSITORY="togethersphere.com/together-website-$PLATFORM"
+
+case "$PLATFORM" in
+  "mac" )
+      cd "$WEBSITE/limited/mac"
+      cp "$PACKAGE/Together.dmg" .
+      jas sync
+      jas upload
+      ;;
+  "silicon" )
+      cd "$WEBSITE/limited/silicon"
+      cp "$PACKAGE/Together Apple Silicon.dmg" .
+      jas sync
+      jas upload
+      ;;
+  * )
+      echo "Unknown platform $PLATFORM"
+      ;;
+esac
