@@ -22,7 +22,7 @@ fi
 
 APP=together-$ENVIRONMENT
 
-BUILD=$TOGETHER/app/prod/binaries/prod/lib
+BUILD=$TOGETHER/app/$ENVIRONMENT/binaries/$ENVIRONMENT/lib
 
 # Bail out
 set -e
