@@ -1,5 +1,25 @@
 #! /bin/sh
 
+if [ -f ".jaz" ]; then
+  . "$(pwd)/.jaz"
+else
+  echo ".jaz not found"
+  exit 1
+fi
+
+if [ -z "$JAZCONF" ]; then
+  echo "JAZCONF not set"
+  exit 1
+else
+  ENVIRONMENT="$JAZCONF"
+fi
+
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  SUFFIX=""
+else
+  SUFFIX=" Test"
+fi
+
 case "$(uname -s)" in
   Linux* )
       PLATFORM=linux
@@ -30,19 +50,19 @@ esac
 case "$PLATFORM" in
   "mac" )
       cd "$WEBSITE/limited/mac"
-      cp "$PACKAGE/Together.dmg" .
+      cp "$PACKAGE/Together$SUFFIX.dmg" .
       jas sync
       jas upload
       ;;
   "silicon" )
       cd "$WEBSITE/limited/silicon"
-      cp "$PACKAGE/Together Apple Silicon.dmg" .
+      cp "$PACKAGE/Together$SUFFIX Apple Silicon.dmg" .
       jas sync
       jas upload
       ;;
   "windows" )
       cd "$WEBSITE/limited/windows"
-      cp "$SETUP/Together Setup.exe" .
+      cp "$SETUP/Together$SUFFIX Setup.exe" .
       jas sync
       jas upload
       ;;

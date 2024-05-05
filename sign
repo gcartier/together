@@ -27,9 +27,9 @@ else
 fi
 
 if [[ "$(arch)" == "arm64" ]]; then
-  BUILD=$TOGETHER/app/prod/binaries/prod/Libraries/lib
+  BUILD=$TOGETHER/app/$ENVIRONMENT/binaries/$ENVIRONMENT/Libraries/lib
 else
-  BUILD=$TOGETHER/app/prod-x86/binaries/prod/Libraries/lib
+  BUILD=$TOGETHER/app/$ENVIRONMENT-x86/binaries/$ENVIRONMENT/Libraries/lib
 fi
 
 # Bail out
