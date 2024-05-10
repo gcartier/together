@@ -2175,6 +2175,7 @@
     (when (window?)
       (let ((world (current-world))
             (client (current-client)))
+        (stop-debugging)
         (stop-gc-monitor)
         (stop-log-listener)
         (let ((udp-client (get-udp-client client)))
