@@ -16,9 +16,6 @@
 (form
   (<Project>               name: together          description-file: {File :context ".package"}
     (<*>                                           tag-reference: {File :context "together.project"})
-    (<*>                                           tag-reference: {File :context "together-server.project"})
-    (<*>                                           tag-reference: {File :context "together-processor.project"})
-    (<*>                                           tag-reference: {File :context "together-worker.project"})
     (<Project-Directory>                           directory: {Directory :context "src"}
       (<Project-Directory>                         directory: {Directory :context "src" "together"}
         (<Jazz-File>       name: _together         source: {File :context "src" "together" "_together.jazz"})
