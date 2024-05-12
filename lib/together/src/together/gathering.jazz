@@ -1014,8 +1014,7 @@
         (<!>                 name: avatar-mode                active?: #t))
       (<world-zone!>
         (<!>                 name: zone-open                  active?: #t)
-        (<!>                 name: zone-reload                active?: #t)
-        (<!>                 name: zone-regenerate            active?: #t)))))
+        (<!>                 name: zone-reload                active?: #t)))))
 
 
 (define-trait zone-free-bindings Bindings
@@ -1041,8 +1040,7 @@
         (<!>                 name: toggle-sound               active?: #t))
       (<world-zone!>
         (<!>                 name: zone-open                  active?: #t)
-        (<!>                 name: zone-reload                active?: #t)
-        (<!>                 name: zone-regenerate            active?: #t))
+        (<!>                 name: zone-reload                active?: #t))
       (<world-movement!>
         (<!>                 name: rotate-player              active?: #t)
         (<!>                 name: move-forward               active?: #t)

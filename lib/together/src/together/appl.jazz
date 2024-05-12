@@ -2003,8 +2003,7 @@
         (<!>                 name: toggle-user                visible?: #t))
       (<world-zone!>
         (<!>                 name: zone-open                  visible?: #t)
-        (<!>                 name: zone-reload                visible?: #t)
-        (<!>                 name: zone-regenerate            visible?: #t))
+        (<!>                 name: zone-reload                visible?: #t))
       (<world-movement!>
         (<!>                 name: rotate-player              visible?: #t)
         (<!>                 name: move-forward               visible?: #t)
