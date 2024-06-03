@@ -2138,6 +2138,7 @@
         (<!>                 name: toggle-history             visible?: #t)
         (<!>                 name: all-chronology             visible?: #t)
         (<!>                 name: toggle-monitor             visible?: #t)
+        (<!>                 name: track-memory               visible?: #t)
         (<!>                 name: toggle-target              visible?: #t)
         (<!>                 name: toggle-gc-sound            visible?: #t)
         (<!>                 name: toggle-axes                visible?: #t)
