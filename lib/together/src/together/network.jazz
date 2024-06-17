@@ -502,7 +502,7 @@
                               (timestamp->flonum timer)
                               -1.)
                 (when info
-                  (receive (skb data lost) info
+                  (receive (skb lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
                     (let ((app-limited? (tcp_ack socket skb lost empty? timer rate-info)))
