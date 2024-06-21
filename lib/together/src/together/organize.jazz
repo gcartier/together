@@ -93,7 +93,7 @@
             (group-info/exception (circle-information tier current-circle-name)))
         (if (string? group-info/exception)
             (display-error world group-info/exception)
-          (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+          (bind (no profiling? require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
             (remove-every-row tree)
             (with-update-locked self
               (lambda ()

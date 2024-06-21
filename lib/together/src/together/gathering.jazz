@@ -981,6 +981,7 @@
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: toggle-stress              active?: #t)
+        (<!>                 name: toggle-profiling           active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
@@ -1102,6 +1103,7 @@
         (<!>                 name: toggle-debug-bbr           active?: #t)
         (<!>                 name: toggle-admin               active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
+        (<!>                 name: toggle-profiling           active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
@@ -1596,6 +1598,7 @@
         (<!>                 name: toggle-evolution           active?: #t)
         (<!>                 name: toggle-visualizer          active?: #t)
         (<!>                 name: toggle-stress              active?: #t)
+        (<!>                 name: toggle-profiling           active?: #t)
         (<!>                 name: request-evolutions         active?: #t)
         (<!>                 name: request-replays            active?: #t)
         (<!>                 name: request-captures           active?: #t)
@@ -3202,7 +3205,7 @@
   
   
   (method (circle-join self name group-info/exception from-create-random? from-invite?)
-    (bind (no require-microphone? require-camera? duration zone stone shape) group-info/exception
+    (bind (no profiling? require-microphone? require-camera? duration zone stone shape) group-info/exception
       (let ((effective-zone (if (user?) 'start zone)))
         (cond (from-create-random?
                (setup-circle self name #t #t group-info/exception)
@@ -3249,7 +3252,8 @@
           (udp (current-udp))
           (world (current-world))
           (video (current-video)))
-      (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+      (bind (no profiling? require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+        (change-profiling world profiling?)
         (let ((circle-mode (cond ((participant?)
                                   'avatar)
                                  ((world-setting 'world.presence-mode? #f)
@@ -3327,6 +3331,7 @@
         (close-live-stream tier)
         (close-send-streams udp-client)
         (close-receive-streams udp-client))
+      (change-profiling world #f)
       (let ((circle-deleted? (leave-group/circle tier)))
         (unless circle-deleted?
           (let ((stone (find-circle-stone tier current-circle-name)))
@@ -3361,11 +3366,13 @@
   
   
   (method (rejoin-group self group-no)
-    (let ((tier (current-client)))
+    (let ((tier (current-client))
+          (world (current-world)))
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+          (bind (no profiling? require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+            (change-profiling world profiling?)
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
               (require-live-stream tier audio-only?: (not require-camera?))
@@ -5360,6 +5367,16 @@
   
   (method (on-exibit-off self evt)
     (exibit-off))
+  
+  
+  (method (on-toggle-profiling self evt)
+    (let ((client (current-client))
+          (world (current-world)))
+      (let ((profiling? (not being-profiled?)))
+        (display-on/off world "Profiling" profiling?)
+        (let ((err (change-profiling client profiling?)))
+          (when err
+            (display-error world err))))))
   
   
   (method (on-request-evolutions self evt)

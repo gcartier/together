@@ -97,6 +97,7 @@
         (world.dyes)
         (world.element)
         (world.entity)
+        (world.event)
         (world.evolution)
         (world.external.blender)
         (world.external.milkshape)
