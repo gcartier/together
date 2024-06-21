@@ -1774,7 +1774,10 @@
                         (when power?
                           (with-task-mutex
                             (lambda ()
-                              (set-power view (microphone-power-level))))
+                              (when (and (microphone-on? client)
+                                         (get-visible? mainbar-pane)
+                                         (not (equal? (get-fade mainbar-pane) 0.)))
+                                (set-power view (microphone-power-level)))))
                           (sleep .04)
                           (loop))))
                     'power)))
@@ -2580,6 +2583,9 @@
                     (display-problem unable-to-acquire-microphone)
                   (require-live-stream client)
                   (toggle-microphone client)
+                  (when microphone-on?
+                    (let ((view (child mainbar 'microphone-power)))
+                      (set-power view 0.)))
                   (update-parameter world 'microphone)))))))))
   
   
