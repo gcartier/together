@@ -169,6 +169,7 @@
         (world.renderer)
         (world.renderers)
         (world.ring)
+        (world.scene)
         (world.screenshot)
         (world.scripter)
         (world.scripting)
