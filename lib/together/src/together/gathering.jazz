@@ -3839,7 +3839,7 @@
         (updating-3d-audio position sight
           (lambda ()
             (let ((udp-client (get-udp-client (current-client))))
-              (iterate-table (get-receive-streams udp-client)
+              (table-iterate-safe (get-receive-streams udp-client)
                 (lambda (stream-no stream)
                   (let ((audio-channel (locate-stream-audio-channel stream)))
                     (when audio-channel

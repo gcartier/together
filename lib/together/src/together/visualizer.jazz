@@ -752,7 +752,7 @@
       
       (when (and ring now)
         (let ((drawn (make-table test: eqv?)))
-          (iterate-table removes
+          (table-iterate-safe removes
             (lambda (sequence info)
               (bind (packet time complete?) info
                 (let ((full .015))
