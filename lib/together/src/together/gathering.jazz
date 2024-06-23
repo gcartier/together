@@ -1472,8 +1472,10 @@
   
   (method override (space-install self)
     (nextmethod self)
-    (let ((interface (current-interface)))
-      (set-visible? (child interface 'chat-label) #f)))
+    (let ((together (current-together))
+          (interface (current-interface)))
+      (set-visible? (child interface 'chat-label) #f)
+      (participant-mode together)))
 
   
   (method override (space-bindings self)
@@ -1657,6 +1659,7 @@
         (delay-hide-interface self #t))
       (show root)
       (send-to-back root)
+      (visitor-mode together)
       (if (admin?)
           (unless (eq? (active-focus) (locate (child interface 'admin) '(console text)))
             (focus-world))
@@ -3269,8 +3272,6 @@
               (play-microphone tier))
             (when (and (auto-video?) require-camera?)
               (play-camera tier)))
-          (unless (participant?)
-            (activate-zone self))
           (clear-message world)
           (uninstall-vista)
           (cond-expand
@@ -3361,8 +3362,9 @@
         (let ((frame (find-type interface Circle-Options)))
           (when frame
             (close frame)))
-        (when (or (circler?) (and from-gathering? (neq? circle-mode 'avatar)))
-          (exit-zone self)))))
+        (if (or (circler?) (and from-gathering? (neq? circle-mode 'avatar)))
+            (exit-zone self)
+          (participant-mode self)))))
   
   
   (method (rejoin-group self group-no)
