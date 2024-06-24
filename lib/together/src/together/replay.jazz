@@ -580,7 +580,7 @@
 
 (definition protected (record-events-lexicon)
   (let ((queue (new-queue)))
-    (table-iterate-safe event-looks
+    (table-iterate event-looks
       (lambda (id look)
         (let ((id (fixnum->flonum id)))
           (enqueue queue id))))
@@ -645,7 +645,7 @@
   
   (method (client-evolutions self)
     (let ((queue (new-queue)))
-      (table-iterate-safe evolutions
+      (table-iterate evolutions
         (lambda (no evolution)
           (when (and (/= no server-no)
                      (not (empty? evolution)))
@@ -1637,9 +1637,9 @@
               (else
                {Color World-Blue})))
       
-      (table-iterate-safe moments
+      (table-iterate moments
         (lambda (tier moments)
-          (table-iterate-safe moments
+          (table-iterate moments
             (lambda (id moment)
               (let ((entry (vector (get-time moment)
                                    tier
@@ -1711,7 +1711,7 @@
             (total 0))
         (receive (sorted-column sorted-direction) (determine-sorted)
           ;; scan
-          (table-iterate-safe moments
+          (table-iterate moments
             (lambda (id <fx> moments <table>)
               @w
               (define filters
