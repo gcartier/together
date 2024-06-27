@@ -504,7 +504,7 @@
                                 (timestamp->flonum timer)
                                 -1.))
                 (when info
-                  (receive (skb lost) info
+                  (bind-values (skb lost) info
                     (skbuff_get_info skb skbuff-info)
                     (skbcb_get_info skb skbcb-info)
                     (let ((app-limited? (tcp_ack socket skb lost empty? timer rate-info)))
@@ -553,7 +553,7 @@
               (with-record profile-media
                 (let ((sent (current-monotonic))
                       (order (read-profile-media-order data)))
-                  (receive (skb segs) (packet-sent state sent order data)
+                  (bind-values (skb segs) (packet-sent state sent order data)
                     (let ((empty? #f)
                           (timer (current-monotonic-jiffies)))
                       (tcp_skb_sent socket skb empty? order timer)
@@ -593,7 +593,7 @@
             (parameterize ((simulation-evolution (get-profile-evolution udp)))
               (with-record profile-media-pulse
                 (let ((order (read-profile-media-pulse-order data)))
-                  (receive (skb segs) (packet-sent state sent order data)
+                  (bind-values (skb segs) (packet-sent state sent order data)
                     (let ((empty? #f)
                           (timer (current-monotonic-jiffies)))
                       (tcp_skb_sent socket skb empty? order timer)
