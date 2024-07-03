@@ -1037,9 +1037,9 @@
   
   (form
     (<install>                                        title: "Record"
-      (<World-Action-Item> name: start-recording      title: "Start recording" shortcut: {Shortcut :alt #\8} action-handler: {Event-Handler :together on-start-recording} description: "Start recording.")
-      (<World-Action-Item> name: stop-recording       title: "Stop recording" shortcut: {Shortcut :alt #\9} action-handler: {Event-Handler :together on-stop-recording} description: "Stop recording.")
-      (<World-Action-Item> name: process-recording    title: "Process recording" shortcut: {Shortcut :alt #\0} action-handler: {Event-Handler :together on-process-recording} description: "Process recording."))))
+      (<World-Action-Item> name: start-recording      title: "Start recording" @wait shortcut: @wait {Shortcut :alt #\8} action-handler: {Event-Handler :together on-start-recording} description: "Start recording.")
+      (<World-Action-Item> name: stop-recording       title: "Stop recording" @wait shortcut: @wait {Shortcut :alt #\9} action-handler: {Event-Handler :together on-stop-recording} description: "Stop recording.")
+      (<World-Action-Item> name: process-recording    title: "Process recording" @wait shortcut: @wait {Shortcut :alt #\0} action-handler: {Event-Handler :together on-process-recording} description: "Process recording."))))
 
 
 (class Together-Share-Actions extends World-Actions
@@ -2139,6 +2139,7 @@
         (<!>                 name: toggle-history             visible?: #t)
         (<!>                 name: all-chronology             visible?: #t)
         (<!>                 name: toggle-monitor             visible?: #t)
+        (<!>                 name: toggle-monitor-detail      visible?: #t)
         (<!>                 name: track-memory               visible?: #t)
         (<!>                 name: toggle-target              visible?: #t)
         (<!>                 name: toggle-gc-sound            visible?: #t)
@@ -2266,6 +2267,7 @@
         (<!>                 name: test0                      visible?: #t))
       (<world-debug!>
         (<!>                 name: toggle-monitor             visible?: #t)
+        (<!>                 name: toggle-monitor-detail      visible?: #t)
         (<!>                 name: track-memory               visible?: #t)
         (<!>                 name: toggle-gc-sound            visible?: #t)
         (<!>                 name: garbage-collect            visible?: #t))
