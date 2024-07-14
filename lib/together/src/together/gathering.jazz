@@ -55,6 +55,7 @@
         (gaea.lookat)
         (gaea.math)
         (world)
+        (world.actor)
         (world.asset)
         (world.audio)
         (world.autoload)
@@ -4487,6 +4488,7 @@
         (let ((me (current-me)))
           (when (find-animation (cache-model me) emote)
             (set-animation-continuous me emote)
+            (reset-stable me)
             (if chat-was-hidden?
                 (begin
                   (hide-chat self)
