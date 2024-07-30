@@ -20,6 +20,7 @@
         (jazz.io)
         (jazz.logger)
         (jazz.platform)
+        (jazz.presence)
         (jazz.settings)
         (jazz.snapshot)
         (jazz.version)
@@ -131,6 +132,13 @@
                        world.ambience?             #f)))
 
 
+(definition (prepare-stack)
+  (thread-add-stack (primordial-thread) stack-size)
+  (set-presence-execute-runner
+    (lambda (thunk name)
+      (make-thread-with-stack stack-size thunk name))))
+
+
 (definition (create-documents)
   (create-directories {Directory Documents "assets"})
   (create-directories {Directory Documents "assets" "model"})
@@ -145,6 +153,7 @@
   (prepare-logger)
   (prepare-together)
   (prepare-settings)
+  (prepare-stack)
   (load-unit 'world.profiling)
   (create-documents)
   (load-unit 'world.work)

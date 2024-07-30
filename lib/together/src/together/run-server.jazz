@@ -86,11 +86,16 @@
   )
 
 
+(definition (prepare-stack)
+  (thread-add-stack (primordial-thread) stack-size))
+
+
 (definition (run-server descriptor)
   (prepare-logger)
   (logger "Start server")
   (prepare-server)
   (prepare-settings)
+  (prepare-stack)
   (load-unit 'world.profiling)
   (send-snapshot-reports)
   (load-unit 'world.work)

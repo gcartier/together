@@ -77,10 +77,15 @@
   )
 
 
+(definition (prepare-stack)
+  (thread-add-stack (primordial-thread) stack-size))
+
+
 (definition (run-processor descriptor)
   (initialize-aliases)
   (prepare-processor)
   (prepare-settings)
+  (prepare-stack)
   (load-unit 'world.profiling)
   (load-unit 'world.work)
   (load-unit 'together.boot-processor)
