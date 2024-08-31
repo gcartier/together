@@ -250,7 +250,7 @@
                              (let ((file (new-file {Directory Documents} (tokenise-filename location))))
                                (let ((preprocess-thread (preprocess-stream self file)))
                                  (let ((stream-thread
-                                         (new-thread
+                                         (make-thread-with-stack stack-size
                                            (lambda ()
                                              (when (thread-join! preprocess-thread)
                                                (with-task-mutex
@@ -270,7 +270,7 @@
   
   (method (preprocess-stream self file)
     (let ((thread
-            (new-thread
+            (make-thread-with-stack stack-size
               (lambda ()
                 (with-task-mutex
                   (lambda ()
