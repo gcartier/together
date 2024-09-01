@@ -89,12 +89,14 @@
                (triage "together-worker-triage-silicon")
                (stage "together-worker-stage-silicon")
                (prod "together-worker-prod-silicon")
+               (live "together-worker-live-silicon")
                (else #f)))
     (mac (cond-expand
            (test "together-worker-test-mac")
            (triage "together-worker-triage-mac")
            (stage "together-worker-stage-mac")
            (prod "together-worker-prod-mac")
+           (live "together-worker-live-mac")
            (else #f)))
     (else #f)))
 

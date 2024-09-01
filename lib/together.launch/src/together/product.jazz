@@ -110,7 +110,9 @@
                   (stage
                    "together-stage-silicon")
                   (prod
-                   "together-prod-silicon")))
+                   "together-prod-silicon")
+                  (live
+                   "together-live-silicon")))
     (mac
      (cond-expand (devel
                    "together-devel-mac")
@@ -125,7 +127,9 @@
                   (stage
                    "together-stage-mac")
                   (prod
-                   "together-prod-mac")))
+                   "together-prod-mac")
+                  (live
+                   "together-live-mac")))
     (else
      (cond-expand (devel
                    "together-devel")
@@ -140,7 +144,9 @@
                   (stage
                    "together-stage")
                   (prod
-                   "together-prod")))))
+                   "together-prod")
+                  (live
+                   "together-live")))))
 
 
 (definition (install descriptor)

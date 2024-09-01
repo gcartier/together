@@ -102,7 +102,9 @@
                (stage
                 "togetherserver-stage")
                (prod
-                "togetherserver-prod")))
+                "togetherserver-prod")
+               (live
+                "togetherserver-live")))
 
 
 (definition (install descriptor)

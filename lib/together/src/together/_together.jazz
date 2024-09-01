@@ -28,7 +28,8 @@
 
 
 (definition protected (determine-settings-root)
-  (cond-expand (prod   {Directory Home ".together" "prod"})
+  (cond-expand (live   {Directory Home ".together" "live"})
+               (prod   {Directory Home ".together" "prod"})
                (stage  {Directory Home ".together" "stage"})
                (stable {Directory Home ".together" "stable"})
                (triage {Directory Home ".together" "triage"})
@@ -45,7 +46,8 @@
 (definition protected (determine-documents-root)
   (cond-expand
     (mac
-     (cond-expand (prod   '(Home "Together" "prod"))
+     (cond-expand (live   '(Home "Together" "live"))
+                  (prod   '(Home "Together" "prod"))
                   (stage  '(Home "Together" "stage"))
                   (stable '(Home "Together" "stable"))
                   (triage '(Home "Together" "triage"))
@@ -54,7 +56,8 @@
                   (else   '(Home "Together" "devel"))))
     (windows
      (let ((dir (tokenise-filename (pathname-normalize (get-special-folder CSIDL_PERSONAL)))))
-       (cond-expand (prod   (append dir '("Together" "prod")))
+       (cond-expand (live   (append dir '("Together" "live")))
+                    (prod   (append dir '("Together" "prod")))
                     (stage  (append dir '("Together" "stage")))
                     (stable (append dir '("Together" "stable")))
                     (triage (append dir '("Together" "triage")))
