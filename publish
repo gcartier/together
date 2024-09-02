@@ -16,6 +16,8 @@ fi
 
 if [[ "$ENVIRONMENT" == "prod" ]]; then
   SUFFIX=""
+elif [[ "$ENVIRONMENT" == "live" ]]; then
+  SUFFIX=" Live"
 else
   SUFFIX=" Test"
 fi
