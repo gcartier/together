@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>Together</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Together Live</string>
+	<key>CFBundleIconFile</key>
+	<string>together.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.togethersphere.TogetherLive</string>
+	<key>CFBundleName</key>
+	<string>Together Live</string>
+	<key>CFBundleDisplayName</key>
+	<string>Together Live</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>com.togethersphere.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>togethersphere</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>*</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>All Files</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Together requires access to your Camera.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Together requires access to your Microphone.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Together requires access to your Documents.</string>
+</dict>
+</plist>
