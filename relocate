@@ -5,7 +5,7 @@ if [ -f ".jaz" ]; then
 fi
 
 GSTREAMER=/Library/Frameworks/GStreamer.framework/Versions/1.0
-LIB=jazz/lib/jazz.stream/foreign/mac/gstreamer/gstreamer
+LIB=jazz/foreign/jazz.stream/silicon/gstreamer
 DEST=$JAZDEST/Libraries/gstreamer
 
 relocate() {
@@ -24,10 +24,9 @@ cpshared() {
     cp $LIB/$1 $DEST/$1
 }
 
-#cpplugin lib/gstreamer-1.0/libgstaudiorate.dylib
-#cpplugin lib/gstreamer-1.0/libgstwavenc.dylib
-#cpplugin lib/gstreamer-1.0/libgstrsvg.dylib
-#cpplugin lib/gstreamer-1.0/libgstwebrtcdsp.dylib
+cpplugin lib/gstreamer-1.0/libgstflv.dylib
+cpplugin lib/gstreamer-1.0/libgstrtmp.dylib
 
-#cpshared lib/libgstbadaudio-1.0.0.dylib
-#cpshared lib/libwebrtc_audio_processing.0.dylib
+cpshared lib/libcrypto.1.1.dylib
+cpshared lib/libssl.1.1.dylib
+cpshared lib/librtmp.1.dylib
