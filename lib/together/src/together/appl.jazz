@@ -979,6 +979,7 @@
   (form
     (<install>                                        title: "Together"
       (<World-Action-Item> name: central-menu         title: "Central menu" shortcut: {Shortcut "Esc"} action-handler: {Event-Handler :together on-central-menu} description: "Central menu.")
+      (<World-Action-Item> name: live-streaming       title: "Live streaming" shortcut: {Shortcut :control :alt #\L} action-handler: {Event-Handler :together on-live-streaming} description: "Live streaming.")
       (<World-Action-Item> name: create-circle        title: "New circle" action-handler: {Event-Handler :together on-create-circle} shortcut: {Shortcut :alt #\N} description: "Create and join a new circle.")
       (<World-Action-Item> name: leave-group          title: "Leave" action-handler: {Event-Handler :together on-leave-group} shortcut: {Shortcut :alt #\L} description: "Leave group.")
       (<World-Action-Item> name: leave-circle         title: "Leave" action-handler: {Event-Handler :together on-leave-circle} shortcut: {Shortcut :alt #\L} description: "Leave circle.")
@@ -1324,6 +1325,7 @@
         (<!>                 name: repeat-previous            visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: live-streaming             visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1420,6 +1422,7 @@
         (<!>                 name: toggle-info                visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: live-streaming             visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1589,6 +1592,7 @@
         @version1 (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: live-streaming             visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -1843,6 +1847,7 @@
         (<!>                 name: toggle-orientation         visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: live-streaming             visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)
@@ -2152,6 +2157,7 @@
         (<!>                 name: explore-interface          visible?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               visible?: #t)
+        (<!>                 name: live-streaming             visible?: #t)
         (<!>                 name: create-circle              visible?: #t)
         (<!>                 name: leave-group                visible?: #t)
         (<!>                 name: leave-circle               visible?: #t)

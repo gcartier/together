@@ -1012,6 +1012,7 @@
       (<world-main!>
         (<!>                 name: open-welcome               active?: #t))
       (<together-menu!>
+        (<!>                 name: live-streaming             active?: #t)
         (<!>                 name: create-circle              active?: #t)))))
 
 
@@ -2711,6 +2712,12 @@
     (let ((world (current-world)))
       (toggle-radial-menu world)
       (done-menu world)))
+  
+  
+  (method (on-live-streaming self evt)
+    (with-cursor :wait
+      (lambda ()
+        (live-streaming))))
   
   
   (method (on-create-circle self evt)
