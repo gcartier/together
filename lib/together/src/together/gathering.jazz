@@ -278,7 +278,8 @@
         (<!>                 name: toggle-debug-sections      active?: #t)
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
-        (<!>                 name: central-menu               active?: #t))
+        (<!>                 name: central-menu               active?: #t)
+        (<!>                 name: live-streaming             active?: #t))
       (<together-audio!>
         (<!>                 name: audio-options              active?: #t))
       (<together-video!>
@@ -1998,6 +1999,7 @@
   (<Trait>                   name: circling
     (<install>
       (<together-menu!>
+        (<!>                 name: live-streaming             active?: #t)
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
         (<!>                 name: toggle-microphone          active?: #t)
