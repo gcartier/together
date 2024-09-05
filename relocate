@@ -13,13 +13,13 @@ relocate() {
 }
 
 cpplugin() {
-    cp $GSTREAMER/$1 $LIB/$1
+    lipo -extract arm64 $GSTREAMER/$1 -output $LIB/$1
     relocate $LIB $1
     cp $LIB/$1 $DEST/$1
 }
 
 cpshared() {
-    cp $GSTREAMER/$1 $LIB/$1
+    lipo -extract arm64 $GSTREAMER/$1 -output $LIB/$1
     relocate $LIB $1
     cp $LIB/$1 $DEST/$1
 }
