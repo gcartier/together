@@ -101,6 +101,7 @@
         (world.interface.tooltip)
         (world.io)
         (world.live)
+        (world.live.streaming)
         (world.logging)
         (world.manager)
         (world.model)
