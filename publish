@@ -16,10 +16,13 @@ fi
 
 if [[ "$ENVIRONMENT" == "prod" ]]; then
   SUFFIX=""
+  LIMITED="limited"
 elif [[ "$ENVIRONMENT" == "live" ]]; then
   SUFFIX=" Live"
+  LIMITED="live"
 else
   SUFFIX=" Test"
+  LIMITED="limited"
 fi
 
 case "$(uname -s)" in
@@ -51,19 +54,19 @@ esac
 
 case "$PLATFORM" in
   "mac" )
-      cd "$WEBSITE/limited/mac"
+      cd "$WEBSITE/$LIMITED/mac"
       cp "$PACKAGE/Together$SUFFIX.dmg" .
       jas sync
       jas upload
       ;;
   "silicon" )
-      cd "$WEBSITE/limited/silicon"
+      cd "$WEBSITE/$LIMITED/silicon"
       cp "$PACKAGE/Together$SUFFIX Apple Silicon.dmg" .
       jas sync
       jas upload
       ;;
   "windows" )
-      cd "$WEBSITE/limited/windows"
+      cd "$WEBSITE/$LIMITED/windows"
       cp "$SETUP/Together$SUFFIX Setup.exe" .
       jas sync
       jas upload
