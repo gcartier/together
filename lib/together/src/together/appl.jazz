@@ -387,6 +387,10 @@
   
   
   (method (on-test self evt)
+    (let ((command-line (format "lldb -p {a}" (current-process-id))))
+      (jazz.clipboard:set-clipboard-text command-line)
+      (display-message (current-world) "Command line put to clipboard"))
+    @w
     (dispatch-to 'world.test-script "test/test"))
   
   
