@@ -50,12 +50,16 @@ cp $INSTALL/$APP/Contents/Resources/together.icns Contents/Resources
 cp -r $INSTALL/$APP/Contents/Resources/lib Contents/Resources
 mkdir Contents/Libraries
 cp $INSTALL/$APP/Contents/Libraries/libcairo.2.dylib Contents/Libraries
-cp $INSTALL/$APP/Contents/Libraries/libcrypto.1.1.dylib Contents/Libraries
+if [ -f $INSTALL/$APP/Contents/Libraries/libcrypto.1.1.dylib ]; then
+  cp $INSTALL/$APP/Contents/Libraries/libcrypto.1.1.dylib Contents/Libraries
+fi
 cp $INSTALL/$APP/Contents/Libraries/libfontconfig.1.dylib Contents/Libraries
 cp $INSTALL/$APP/Contents/Libraries/libfreetype.6.dylib Contents/Libraries
 cp $INSTALL/$APP/Contents/Libraries/libpixman-1.0.dylib Contents/Libraries
 cp $INSTALL/$APP/Contents/Libraries/libpng16.16.dylib Contents/Libraries
-cp $INSTALL/$APP/Contents/Libraries/libssl.1.1.dylib Contents/Libraries
+if [ -f $INSTALL/$APP/Contents/Libraries/libssl.1.1.dylib ]; then
+  cp $INSTALL/$APP/Contents/Libraries/libssl.1.1.dylib Contents/Libraries
+fi
 mkdir Contents/Libraries/lib
 copylib() {
     mkdir Contents/Libraries/lib/$1
