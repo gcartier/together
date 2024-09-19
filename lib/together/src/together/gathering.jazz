@@ -3664,24 +3664,24 @@
                   "N/A"
                 (format "{r precision: 1}s (evolution)" duration)))))
         
-        (let ((rank 0))
+        (let ((rank 0)
+              (top 65))
           (define (draw text color)
             (let ((h 20)
-                  (v (+ 80 (* rank 28))))
+                  (v (+ top (* rank 28))))
               (draw-text surface h v text color))
             (increase! rank))
           
           (when show-debug?
             (set-font surface {Font font-name: tahoma point-size: 18 hint-style: slight hint-metrics: on})
-            (unless (eq? show-media 'bbr)
+            (unless show-media
               (when current-circle-started
                 (draw (format "{a}" (present-duration (- (current-seconds) current-circle-started))) {Color World-Ochre}))
-              (unless (eq? show-media 'energy)
-                (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
-                (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
-                (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
-                (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red})))
-            (with-bin-mutex
+              (draw (format "Upload: {a}" (throttle-rate)) {Color World-Red})
+              (draw (format "Drop: {a} {a}" (upload-drop) (download-drop)) {Color World-Red})
+              (draw (format "Traffic: {a} {a}" (upload-rate) (download-rate)) {Color World-Red})
+              (draw (format "Replay: {a} {a}" (present-chronology-duration) (present-evolution-duration)) {Color World-Red}))
+            (with-bins-mutex
               (lambda ()
                 (let ((threads (and (neq? show-media 'bbr) (current-process-threads))))
                   (when threads
@@ -3695,11 +3695,11 @@
                      (cond-expand
                        (mac
                         (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                        (draw-energy self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28))))
+                        (draw-energy self surface 'horizontal (or threads '()) 20 (+ top (* rank 28))))
                        (else)))
                     ((audio video stream)
                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
-                     (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))
+                     (draw-streams self surface 'horizontal (or threads '()) 20 (+ top (* rank 28)) #f))
                     ((bbr)
                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
                      (draw-bbr surface 20 235))))))
@@ -3731,11 +3731,11 @@
       
       (bind (main . rest) threads
         (for-each (lambda (thread)
-                    (bind (fullname percentage) thread
+                    (bind (id fullname percentage) thread
                       (let ((fullname (or fullname "")))
                         (let ((gstreamer? (gstreamer-thread? fullname)))
                           (let ((name (cond (gstreamer?
-                                             (gstreamer-streaming-name fullname))
+                                             (gstreamer-streaming-name id fullname))
                                             ((empty-string? fullname)
                                              "unknown")
                                             (else
@@ -3748,7 +3748,7 @@
                               (if gstreamer?
                                   (draw text color)
                                 (draw-other text color))))))))
-                  (sort > rest key: second)))))
+                  (sort > rest key: third)))))
   
   
   (method protected (draw-streams self surface direction threads start-h start-v type?)
@@ -3758,26 +3758,23 @@
         (let ((h (+ base-h padding))
               (v (+ base-v 17)))
           (draw-text surface h v text color))
-        (increase! base-v 20))
+        (increase! base-v 20)
+        (when (> base-v 880)
+          (increase! base-h 200)
+          (set! base-v (+ start-v 20))))
       
       (define (draw-property name value)
         (draw (format "{a}: {a}" name value) {Color World-Orange} 20))
       
       (let ((threads
               (collect (lambda (thread)
-                         (bind (fullname percentage) thread
-                           (and (and fullname (find fullname #\:))
+                         (bind (id fullname percentage) thread
+                           (and (and fullname (gstreamer-thread? fullname))
                                 (bind (name pad) (split-string fullname #\:)
-                                  (let ((split (split-string name #\%)))
-                                    (if (= (length split) 1)
-                                        (begin
-                                          (format :terminal "Streaming thread {a} is missing an explicit name{%}" name)
-                                          #f)
-                                      (bind (element id) split
-                                        (let ((bin (id->bin (string->number id))))
-                                          (and bin
-                                               (let ((bin-name (gst_object_get_name bin)))
-                                                 (list bin bin-name element pad percentage)))))))))))
+                                  (let ((bin (find-streaming-bin id name pad)))
+                                    (and bin
+                                         (let ((bin-name (gst_object_get_name bin)))
+                                           (list bin bin-name name pad percentage))))))))
                        threads))
             (bins (sort nu<? (collect-bins) key: gst_object_get_name))
             (pipeline-color {Color World-Green})
@@ -3786,41 +3783,34 @@
             (element-color {Color White}))
         (for-each (lambda (bin)
                     (let ((bin-name (gst_object_get_name bin)))
-                      (when (case show-media
-                              ((audio) (starts-with? bin-name "audio"))
-                              ((video) (starts-with? bin-name "video")))
+                      (when (and bin-name
+                                 (case show-media
+                                   ((audio) (starts-with? bin-name "audio"))
+                                   ((video) (starts-with? bin-name "video"))
+                                   ((stream) #t)))
                         (draw (format "<{a}>" bin-name) pipeline-color)
                         (with-unref ((elements (gst_bin_elements_sorted bin)))
                           (for-each (lambda (elem)
-                                      (define (parse-name name)
-                                        (let ((parts (split-string name #\%)))
-                                          (if (= (length parts) 1)
-                                              (list name #f)
-                                            parts)))
-                                      
                                       (let ((name (gst_object_get_name elem))
                                             (class (g_object_class_name elem)))
                                         (let ((type (if type? (format "{a} " class) ""))
                                               (color element-color))
-                                          (bind (element id) (parse-name name)
-                                            (let ((element (if (starts-with? element "capsfilter")
-                                                               "caps"
-                                                             element)))
-                                              (if (not id)
+                                          (let ((element (if (starts-with? name "capsfilter")
+                                                             "caps"
+                                                           name)))
+                                            (let ((thread (find-if (lambda (thread)
+                                                                     (and (eq? (first thread) bin)
+                                                                          (equal? (third thread) element)))
+                                                                   threads)))
+                                              (if (not thread)
                                                   (draw (format "{a}{a}" type element) color)
-                                                (let ((thread (find-if (lambda (thread)
-                                                                         (and (eq? (first thread) bin)
-                                                                              (equal? (third thread) element)))
-                                                                       threads)))
-                                                  (if (not thread)
-                                                      (draw (format "{a}{a}" type element) color)
-                                                    (bind (bin bin-name element pad percentage) thread
-                                                      (draw (format "{a}{a}:{a} {r precision: 1}%"
-                                                                    type
-                                                                    element
-                                                                    pad
-                                                                    (* percentage 100.))
-                                                            thread-color))))))))
+                                                (bind (bin bin-name element pad percentage) thread
+                                                  (draw (format "{a}{a}:{a} {r precision: 1}%"
+                                                                type
+                                                                element
+                                                                pad
+                                                                (* percentage 100.))
+                                                        thread-color))))))
                                         (cond ((equal? class "GstQueue")
                                                (draw-property "current-level-buffers" (format "{a}" (g_object_get_uint elem "current-level-buffers")))
                                                (draw-property "current-level-bytes" (format "{r precision: 1}k" (/ (cast <fl> (g_object_get_uint elem "current-level-bytes")) 1024.)))
