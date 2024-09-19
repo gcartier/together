@@ -977,6 +977,7 @@
         (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
+        (<!>                 name: toggle-debug-stream        active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
@@ -1102,6 +1103,7 @@
         (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
+        (<!>                 name: toggle-debug-stream        active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
@@ -1598,6 +1600,7 @@
         (<!>                 name: toggle-debug-energy        active?: #t)
         (<!>                 name: toggle-debug-audio         active?: #t)
         (<!>                 name: toggle-debug-video         active?: #t)
+        (<!>                 name: toggle-debug-stream        active?: #t)
         (<!>                 name: toggle-debug-media         active?: #t)
         (<!>                 name: toggle-debug-upload        active?: #t)
         (<!>                 name: toggle-debug-flow          active?: #t)
@@ -3694,7 +3697,7 @@
                         (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
                         (draw-energy self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28))))
                        (else)))
-                    ((audio video)
+                    ((audio video stream)
                      (set-font surface {Font font-name: tahoma point-size: 14 hint-style: slight hint-metrics: on shadow: thin})
                      (draw-streams self surface 'horizontal (or threads '()) 20 (+ 80 (* rank 28)) #f))
                     ((bbr)
@@ -4980,6 +4983,16 @@
           (else
            (set-show-debug? #t)
            (set-show-media 'video)))
+    (invalidate-interface))
+  
+  
+  (method (on-toggle-debug-stream self evt)
+    (cond ((eq? show-media 'stream)
+           (set-show-debug? #f)
+           (set-show-media #f))
+          (else
+           (set-show-debug? #t)
+           (set-show-media 'stream)))
     (invalidate-interface))
   
   
