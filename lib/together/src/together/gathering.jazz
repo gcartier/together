@@ -3777,6 +3777,14 @@
             (draw-property "current-level-bytes" (format "{r precision: 1}k" (/ (cast <fl> bytes) 1024.)) color)
             (draw-property "current-level-time" (format "{r precision: 2}s" (timestamp->flonum time)) color))))
       
+      (define (draw-sink elem)
+        (let ((stats (gst_base_sink_get_stats elem))
+              (color sink-property-color))
+          (draw-property "rate" (gst_structure_get_double stats "average-rate") color)
+          (draw-property "dropped" (gst_structure_get_uint64 stats "dropped") color)
+          (draw-property "rendered" (gst_structure_get_uint64 stats "rendered") color)
+          (gst_structure_free stats)))
+      
       (let ((threads
               (collect (lambda (thread)
                          (bind (id fullname percentage) thread
@@ -3833,12 +3841,11 @@
                                                (draw-property "add" (g_object_get_uint64 elem "add"))
                                                (draw-property "drop" (g_object_get_uint64 elem "drop")))
                                               ((gst_is_base_sink elem)
-                                               (let ((stats (gst_base_sink_get_stats elem))
-                                                     (color sink-property-color))
-                                                 (draw-property "rate" (gst_structure_get_double stats "average-rate") color)
-                                                 (draw-property "dropped" (gst_structure_get_uint64 stats "dropped") color)
-                                                 (draw-property "rendered" (gst_structure_get_uint64 stats "rendered") color)
-                                                 (gst_structure_free stats))))))
+                                               (draw-sink elem))
+                                              ((equal? class "GstInterSink")
+                                               (with-unref ((appsink (gst_bin_get_by_name elem "appsink")))
+                                                 (when appsink
+                                                   (draw-sink appsink)))))))
                                     (reverse elements)))
                         (case direction
                           ((horizontal)
