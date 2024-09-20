@@ -3787,7 +3787,7 @@
                                          (let ((bin-name (gst_object_get_name bin)))
                                            (list bin bin-name name pad percentage))))))))
                        threads))
-            (bins (sort nu<? (collect-bins) key: gst_object_get_name))
+            (bins (sort nu<? (collect-bins) key: (lambda (bin) (or (gst_object_get_name bin) "unknown"))))
             (pipeline-color {Color World-Green})
             (thread-color {Color World-Blue})
             (info-color {Color White})
