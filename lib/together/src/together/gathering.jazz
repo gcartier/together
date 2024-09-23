@@ -3803,10 +3803,12 @@
         (for-each (lambda (bin)
                     (let ((bin-name (gst_object_get_name bin)))
                       (when (and bin-name
-                                 (case show-media
-                                   ((audio) (starts-with? bin-name "audio"))
-                                   ((video) (starts-with? bin-name "video"))
-                                   ((stream) #t)))
+                                 (let ((audio? (starts-with? bin-name "audio"))
+                                       (video? (starts-with? bin-name "video")))
+                                   (case show-media
+                                     ((audio) audio?)
+                                     ((video) video?)
+                                     ((stream) (and (not audio?) (not video?))))))
                         (draw (format "<{a}>" bin-name) pipeline-color)
                         (with-unref ((elements (gst_bin_elements_sorted bin)))
                           (for-each (lambda (elem)
