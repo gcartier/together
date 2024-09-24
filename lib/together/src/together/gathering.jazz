@@ -3686,10 +3686,11 @@
                 (let ((threads (and (neq? show-media 'bbr) (current-process-threads))))
                   (when threads
                     (receive (main gstreamer other) (process-threads-cpu threads)
-                      (let ((total (+ main gstreamer other)))
+                      (let ((total (+ main gstreamer other))
+                            (color (if show-media {Color World-Ochre} {Color World-Red})))
                         (cond-expand
-                          (windows (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (other)" (* total 100.) (* main 100.) (* other 100.)) {Color World-Red}))
-                          (else (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) {Color World-Red}))))))
+                          (windows (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (other)" (* total 100.) (* main 100.) (* other 100.)) color))
+                          (else (draw (format "CPU%: {r precision: 1} (total) {r precision: 1} (main) {r precision: 1} (gstreamer) {r precision: 1} (other)" (* total 100.) (* main 100.) (* gstreamer 100.) (* other 100.)) color))))))
                   (case show-media
                     ((energy)
                      (cond-expand
