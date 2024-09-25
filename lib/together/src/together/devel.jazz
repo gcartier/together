@@ -141,6 +141,7 @@
         (world.light)
         (world.lighting)
         (world.live)
+        (world.live.streaming)
         (world.log)
         (world.manager)
         (world.mark)
