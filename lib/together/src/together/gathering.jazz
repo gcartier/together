@@ -280,7 +280,8 @@
         (<!>                 name: garbage-collect            active?: #t))
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t)
-        (<!>                 name: live-streaming             active?: #t))
+        (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-chat                  active?: #t))
       (<together-audio!>
         (<!>                 name: audio-options              active?: #t))
       (<together-video!>
@@ -1016,6 +1017,7 @@
         (<!>                 name: open-welcome               active?: #t))
       (<together-menu!>
         (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-chat                  active?: #t)
         (<!>                 name: create-circle              active?: #t)))))
 
 
@@ -2004,6 +2006,7 @@
     (<install>
       (<together-menu!>
         (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-chat                  active?: #t)
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
         (<!>                 name: toggle-microphone          active?: #t)
@@ -2326,6 +2329,8 @@
                       (equal? name current-circle-name))
                  recipient
                #f))
+            ((live)
+             recipient)
             (else
              #f)))))
     
@@ -2387,6 +2392,12 @@
               ((group)
                (set-title to name)
                (set-color to group-color)
+               (set-visible? invite #f)
+               (set-visible? verify #f)
+               (set-visible? teleport #f))
+              ((live)
+               (set-title to name)
+               (set-color to live-color)
                (set-visible? invite #f)
                (set-visible? verify #f)
                (set-visible? teleport #f))))))))
@@ -2724,6 +2735,16 @@
     (with-cursor :wait
       (lambda ()
         (live-streaming))))
+  
+  
+  (method (on-live-chat self evt)
+    (live-chat self))
+  
+  
+  (method (live-chat self)
+    (if (not live-streaming?)
+        (display-error (current-world) "You are not live streaming")
+      (chat-recipient self (list 'live "Live"))))
   
   
   (method (on-create-circle self evt)
@@ -3459,7 +3480,7 @@
       (set-refresh-interface-hook (~ refresh-hook self))
       (set-matrix-hook (get-eye world) (~ eye-matrix self))
       (set-displayed-hook (child interface 'chat) (~ chat-displayed self))
-      (set-sender-hook (child interface 'chat) (~ chat-sender self))
+      (set-recipient-hook (child interface 'chat) (~ chat-recipient self))
       (set-return-handler (child interface 'command) (~ command-return self))
       (set-escape-handler (child interface 'command) (~ command-escape self))
       (set-view-replay-directory (~ open-replay self))))
@@ -3485,7 +3506,7 @@
       (set-refresh-interface-hook #f)
       (set-matrix-hook (get-eye world) #f)
       (set-displayed-hook (child interface 'chat) #f)
-      (set-sender-hook (child interface 'chat) #f)
+      (set-recipient-hook (child interface 'chat) #f)
       (set-return-handler (child interface 'command) #f)
       (set-escape-handler (child interface 'command) #f)
       (reset-view-replay-directory)))
@@ -4300,11 +4321,9 @@
     #f)
   
   
-  (method (chat-sender self sender (user-origin? #t))
+  (method (chat-recipient self recipient (user-origin? #t))
     (when user-origin?
-      (update-message-recipient self (if (not sender)
-                                         #f
-                                       (list 'player sender)))
+      (update-message-recipient self recipient)
       (show-chat self)
       (focus-command-text self)))
   
@@ -4482,6 +4501,8 @@
               ((player)
                (show-panel-whisper name message)
                (values 'whisper name message #f))
+              ((live)
+               (values 'live name message #f))
               (else
                (values 'group name message #f))))))
       
@@ -4529,11 +4550,13 @@
             (set! previous-command content)
             (receive (kind recipient message cont) (parse-content content)
               (when kind
-                (let ((error (client-message tier kind recipient message)))
-                  (if error
-                      (show-panel-message (get-character-name tier) 'show error)
-                    (when cont
-                      (cont)))))
+                (if (eq? kind 'live)
+                    (send-chat-message message)
+                  (let ((error (client-message tier kind recipient message)))
+                    (if error
+                        (show-panel-message (get-character-name tier) 'show error)
+                      (when cont
+                        (cont))))))
               (set-string-content text "")))))))
   
   
