@@ -1025,7 +1025,8 @@
   (<Trait>                   name: avatar
     (<install>
       (<together-circle!>
-        (<!>                 name: avatar-mode                active?: #t))
+        (<!>                 name: avatar-mode                active?: #t)
+        (<!>                 name: streaming-mode             active?: #t))
       (<world-zone!>
         (<!>                 name: zone-open                  active?: #t)
         (<!>                 name: zone-reload                active?: #t)))))
@@ -1490,12 +1491,11 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((avatar? (avatar-mode?)))
-        `(,zone-bindings
-          ,circling-bindings
-          ,zone-circling-bindings
-          ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())
-          ,zone-free-bindings))))
+      `(,zone-bindings
+        ,circling-bindings
+        ,zone-circling-bindings
+        ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())
+        ,zone-free-bindings)))
   
   
   (method override (panel-stack-change self)
@@ -1517,6 +1517,52 @@
       (when (get-autotrack-mode?)
         (disable-autotrack world)))))
 
+
+;;;
+;;;; Streaming-Space
+;;;
+
+
+(class Streaming-Space extends Avatar-Space
+  
+  
+  (method override (space-name self)
+    'streaming)
+  
+  
+  (method override (space-install self)
+    (nextmethod self)
+    (let ((together (current-together))
+          (interface (current-interface))
+          (world (current-world))
+          (video (current-video)))
+      (hide-compass world)
+      (set-proportion (child interface 'people) '(220 (bounds -324)))
+      (restore-visible? (child interface 'people-label) #f)
+      (restore-visible? (child interface 'people) #f)
+      (set-proportion (child interface 'streams) '(300 (bounds -324)))
+      (restore-visible? (child interface 'streams-label) #f)
+      (restore-visible? (child interface 'streams) #f)
+      (set-visible? (child interface 'chat-label) #f)
+      (restore-visible? (child interface 'chat) #f)
+      (restore-visible? (child interface 'command) #f)
+      (restore-visible? (child interface 'command-to) #f)
+      (set-layouter (child interface 'chat) (lambda (panel) (chat-panel-layouter-streaming panel)))
+      (set-layouter (child interface 'command) (lambda (panel) (command-bar-layouter-streaming panel)))
+      (set-proportion (child interface 'chat) '(272 150))
+      (set-proportion (child interface 'command) '(272 19))
+      (set-location (child interface 'command-to) '(-4 -182))
+      (set-size (child interface 'command-to) {Dimension 272 32})
+      (set-position (child interface '(command-to invite)) {Point 380 9})
+      (set-position (child interface '(command-to verify)) {Point 380 9})
+      (set-position (child interface '(command-to teleport)) {Point 358 9})
+      (layout-interface)))
+  
+  
+  (method override (show-me? self)
+    (let ((world (current-world)))
+      (> (get-width world) 280.))))
+  
 
 ;;;
 ;;;; Presence-Space
@@ -1732,11 +1778,10 @@
   
   (method override (space-bindings self)
     (let ((together (current-together)))
-      (let ((avatar? (avatar-mode?)))
-        `(,presence-bindings
-          ,circling-bindings
-          ,zone-circling-bindings
-          ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '())))))
+      `(,presence-bindings
+        ,circling-bindings
+        ,zone-circling-bindings
+        ,@(if (eq? current-circle-mode 'presence) (list circle-bindings) '()))))
   
   
   (method override (show-me? self)
@@ -1750,11 +1795,13 @@
   (method override (draw-world? self)
     (and (not (2d?))
          (or (eq? current-circle-mode 'avatar)
+             (eq? current-circle-mode 'streaming)
              (eq? current-circle-mode 'presence))))
   
   
   (method override (draw-skybox? self)
     (or (eq? current-circle-mode 'avatar)
+        (eq? current-circle-mode 'streaming)
         (eq? current-circle-mode 'presence)))
   
   
@@ -2109,6 +2156,7 @@
                        ((gathering) (new Gathering-Space))
                        ((zone) (new Zone-Space))
                        ((avatar) (new Avatar-Space))
+                       ((streaming) (new Streaming-Space))
                        ((presence) (new Presence-Space))
                        ((script) (new Script-Space))
                        ((replay) (new Replay-Space))
@@ -4648,6 +4696,10 @@
     (avatar-mode self))
   
   
+  (method (on-streaming-mode self evt)
+    (streaming-mode self))
+  
+  
   (method (on-presence-mode self evt)
     (presence-mode self)
     (set-setting options-settings 'world.presence-mode? #t)
@@ -4676,6 +4728,19 @@
     (let ((world (current-world)))
       (unless (eq? current-circle-mode 'avatar)
         (change-circle-mode self 'avatar feedback?: feedback?)
+        (restore-eye self)
+        (unbind-camera)
+        (maybe-enable-autotrack world)
+        (person-motion world feedback?: #f)
+        (restore-distance self)
+        (avatar-prepare self)
+        (focus-world))))
+  
+  
+  (method package (streaming-mode self (feedback?: feedback? #t))
+    (let ((world (current-world)))
+      (unless (eq? current-circle-mode 'streaming)
+        (change-circle-mode self 'streaming feedback?: feedback?)
         (restore-eye self)
         (unbind-camera)
         (maybe-enable-autotrack world)
@@ -4723,20 +4788,22 @@
     (let ((world (current-world))
           (video (current-video)))
       (set-current-circle-mode mode)
-      (unless (if (eq? mode 'avatar)
-                  (is? (current-space) Avatar-Space)
-                (is? (current-space) Presence-Space))
-        (let ((new-space (if (eq? mode 'avatar) 'avatar 'presence)))
+      (let ((new-space (case mode
+                         ((avatar) 'avatar)
+                         ((streaming) 'streaming)
+                         (else 'presence))))
+        (unless (eq? new-space (space-name (current-space)))
           (goto-space self new-space)))
-      (goto-layout video (if (memq? mode '(avatar presence)) 'circle mode))
+      (goto-layout video (if (memq? mode '(avatar presence)) 'circle (if (eq? mode 'streaming) 'sidebar mode)))
       (when (eq? video-layout 'focus)
         (goto-focused self))
-      (set-draw-players? world (eq? mode 'avatar))
+      (set-draw-players? world (or (eq? mode 'avatar) (eq? mode 'streaming)))
       (reset-looked-at-output)
       (space-refresh (current-space))
       (show-interface (current-space) #t)
       (update-mode/focused)
       (update-parameter world 'avatar-mode)
+      (update-parameter world 'streaming-mode)
       (update-parameter world 'presence-mode)
       (update-parameter world 'focus-mode)
       (update-parameter world 'gallery-mode)

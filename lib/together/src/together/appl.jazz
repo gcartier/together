@@ -819,6 +819,12 @@
       (avatar-mode?))))
 
 
+(define-parameter streaming-mode
+  (new World-Parameter
+    (lambda ()
+      (streaming-mode?))))
+
+
 (define-parameter presence-mode
   (new World-Parameter
     (lambda ()
@@ -856,6 +862,7 @@
       (<World-Parameter-Button> name: toggle-camera       resource: {Icon-Resource "Logogram/Seeker"} action-handler: {Action together-video toggle-camera} parameter: camera)
       (<World-Separator>)
       (<World-Parameter-Button> name: avatar-mode         resource: {Icon-Resource "Logogram/Logogram-Five"} action-handler: {Action together-circle avatar-mode} parameter: avatar-mode)
+      (<World-Parameter-Button> name: streaming-mode      resource: {Icon-Resource "Logogram/Moons"} action-handler: {Action together-circle streaming-mode} parameter: streaming-mode)
       (<World-Parameter-Button> name: presence-mode       resource: {Icon-Resource "Logogram/Sunset"} action-handler: {Action together-circle presence-mode} parameter: presence-mode)
       (<World-Parameter-Button> name: focus-mode          resource: {Icon-Resource "Logogram/Logogram-Shapes-Three"} action-handler: {Action together-circle focus-mode} parameter: focus-mode)
       (<World-Parameter-Button> name: gallery-mode        resource: {Icon-Resource "Logogram/Circular-Logogram"} action-handler: {Action together-circle gallery-mode} parameter: gallery-mode)
@@ -1022,6 +1029,7 @@
     (<install>                                        title: "Circle"
       (<World-Action-Item> name: circle-menu          title: "Circle menu" action-handler: {Event-Handler :world on-radial-menu radial: circle-menu} description: ("Circle menu."))
       (<World-Action-Item> name: avatar-mode          title: "Avatar" action-handler: {Event-Handler :together on-avatar-mode} shortcut: {Shortcut :alt #\A} description: "Avatar mode.")
+      (<World-Action-Item> name: streaming-mode       title: "Streaming" action-handler: {Event-Handler :together on-streaming-mode} shortcut: {Shortcut :alt #\S} description: "Streaming mode.")
       (<World-Action-Item> name: presence-mode        title: "Presence" action-handler: {Event-Handler :together on-presence-mode} shortcut: {Shortcut :alt #\D} description: "Presence mode.")
       (<World-Action-Item> name: focus-mode           title: "Focus" action-handler: {Event-Handler :together on-focus-mode} shortcut: {Shortcut :alt #\F} description: "Focus mode.")
       (<World-Action-Item> name: gallery-mode         title: "Gallery" action-handler: {Event-Handler :together on-gallery-mode} shortcut: {Shortcut :alt #\G} description: "Gallery mode.")
@@ -1449,6 +1457,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: streaming-mode             visible?: #t)
         (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
@@ -1620,6 +1629,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: streaming-mode             visible?: #t)
         (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
@@ -1876,6 +1886,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: streaming-mode             visible?: #t)
         (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)
@@ -2187,6 +2198,7 @@
         (<!>                 name: video-options              visible?: #t))
       (<together-circle!>
         (<!>                 name: avatar-mode                visible?: #t)
+        (<!>                 name: streaming-mode             visible?: #t)
         (<!>                 name: presence-mode              visible?: #t)
         (<!>                 name: focus-mode                 visible?: #t)
         (<!>                 name: gallery-mode               visible?: #t)

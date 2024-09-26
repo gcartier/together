@@ -62,7 +62,9 @@
                    (get-layouter panel)))
         (let ((view (find-component interface 'command-to)))
           (when view
-            (command-to-layouter view)))))
+            (if (is? (current-space) Streaming-Space)
+                (command-to-layouter-streaming view)
+              (command-to-layouter view))))))
     (nextmethod self))
   
   
@@ -87,7 +89,8 @@
     (or (nextmethod self from-activate?)
         (is-not? (current-space) together.sphere-space:Sphere-Space)
         (and (circling?)
-             (not (avatar-mode?)))))
+             (not (avatar-mode?))
+             (not (streaming-mode?)))))
   
   
   (method override (effective-independent-camera? self)
