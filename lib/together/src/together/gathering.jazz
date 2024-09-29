@@ -2095,6 +2095,10 @@
         (<!>                 name: stop-recording             active?: #t))
       (<together-share!>
         (<!>                 name: toggle-streams             active?: #t)
+        (<!>                 name: toggle-music               active?: #t)
+        (<!>                 name: music-quieter              active?: #t)
+        (<!>                 name: music-louder               active?: #t)
+        (<!>                 name: music-pause                active?: #t)
         (<!>                 name: add-image                  active?: #t)
         (<!>                 name: add-video                  active?: #t)
         (<!>                 name: add-music                  active?: #t)
@@ -5663,6 +5667,18 @@
               'preprocess)))
       (thread-base-priority-set! thread background-priority)
       (thread-start! thread)))
+  
+  
+  (method (on-music-quieter self evt)
+    (music-quieter))
+  
+  
+  (method (on-music-louder self evt)
+    (music-louder))
+  
+  
+  (method (on-music-pause self evt)
+    (music-pause))
   
   
   (method (on-toggle-window-share self evt)

@@ -27,6 +27,7 @@
         (world.configure)
         (world.context)
         (world.live)
+        (world.live.streaming)
         (world.preprocess)
         (world.profile)
         (world.settings)
@@ -49,6 +50,9 @@
 
 
 (class Sphere-Space extends Space
+  
+  
+  (slot streams-music? initialize #f getter generate)
   
   
   (method override (space-activate self)
@@ -87,16 +91,32 @@
   
   
   (method (on-toggle-streams self evt)
-    (toggle-streams self))
+    (let ((interface (current-interface)))
+      (let ((force-visible? streams-music?))
+        (set! streams-music? #f)
+        (set-title (child interface 'streams-label) "Streams")
+        (toggle-streams self force-visible?))))
   
   
-  (method package (toggle-streams self)
+  (method (on-toggle-music self evt)
+    (let ((interface (current-interface)))
+      (let ((force-visible? (not streams-music?)))
+        (set! streams-music? #t)
+        (set-title (child interface 'streams-label) "Music")
+        (toggle-streams self force-visible?))))
+  
+  
+  (method package (toggle-streams self force-visible?)
     (let ((interface (current-interface))
           (world (current-world)))
       (set-visible? (child interface 'people-label) #f)
       (set-visible? (child interface 'people) #f)
-      (toggle-visible? (child interface 'streams-label))
-      (toggle-visible? (child interface 'streams))
+      (cond (force-visible?
+             (set-visible? (child interface 'streams-label) #t)
+             (set-visible? (child interface 'streams) #t))
+            (else
+             (toggle-visible? (child interface 'streams-label))
+             (toggle-visible? (child interface 'streams))))
       (when (get-visible? (child interface 'streams))
         (view-streams self))
       (update-parameter world 'people)
@@ -147,10 +167,11 @@
                               (bind (base . files) partition
                                 (receive (kind location files profiles title color) (streaming-information udp-client base files audio-extensions video-profiles preprocess-extensions)
                                   (when kind
-                                    (add-row tree
-                                             father: father
-                                             children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
-                                             user-data: (list kind base location files profiles))))))
+                                    (unless (and streams-music? (eq? kind 'image))
+                                      (add-row tree
+                                               father: father
+                                               children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
+                                               user-data: (list kind base location files profiles)))))))
                             (partition files key: get-base test: filename=?)))
                 (iterate-directory dir
                   add
@@ -166,8 +187,10 @@
                                            children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
                       (iterate dir father)))))
               
-              (iterate-stream-directories iterate)
-              (add {Directory Documents "screenshots"})))))))
+              (if streams-music?
+                  (iterate {Directory Documents "music"})
+                (iterate-stream-directories iterate)
+                (add {Directory Documents "screenshots"}))))))))
   
   
   (method package (streams-action self)
@@ -237,13 +260,13 @@
                                  (delay-stream stream))))
                             ((audio)
                              (let ((name (unicode->ascii (filename-name location))))
-                               (let ((stream (stream-audio location name)))
+                               (let ((stream (stream-audio location name music?: streams-music?)))
                                  (update stream)
                                  (delay-stream stream))))
                             ((video)
                              (let ((name (unicode->ascii (filename-name location)))
                                    (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
-                               (let ((stream (stream-video location name audio?: audio-file?)))
+                               (let ((stream (stream-video location name audio?: audio-file? music?: streams-music?)))
                                  (update stream)
                                  (delay-stream stream))))
                             ((preprocess)
