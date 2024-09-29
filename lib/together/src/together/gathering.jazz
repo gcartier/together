@@ -1301,6 +1301,11 @@
 (class Circle-Space extends Sphere-Space
   
   
+  (slot power?      initialize #f getter generate)
+  (slot hide-ring   initialize #f getter generate)
+  (slot hide-thread initialize #f getter generate)
+  
+  
   (method override (space-name self)
     'circle)
   
@@ -1341,6 +1346,9 @@
       (set-position (child interface '(command-to verify)) {Point 380 9})
       (set-position (child interface '(command-to teleport)) {Point 358 9})
       (layout-interface)
+      (when auto-hide?
+        (install-hider self)
+        (delay-hide-interface self #t))
       (no-showcase world)))
   
   
@@ -1361,7 +1369,9 @@
       (hide-compass world)
       (hide-evolution world)
       (remember-interface)
-      (reset-panel-stack)))
+      (reset-panel-stack)
+      (when auto-hide?
+        (uninstall-hider self))))
   
   
   (method override (space-actions self)
@@ -1425,20 +1435,6 @@
     (maybe-fade-mainbar self))
   
   
-  (method override (mouse-moved self x y)
-    (nextmethod self x y)
-    (let ((world (current-world)))
-      (unless (get-central-menu world)
-        (fade-mainbar (new Point$fl$ x y)))))
-  
-  
-  (method protected virtual (toggle-hide self)
-    (let ((world (current-world)))
-      (set! auto-hide? (not auto-hide?))
-      (set-video-interface? (not auto-hide?))
-      (display-on/off world "Show names" (not auto-hide?))))
-  
-  
   (method override (toggle-chat self)
     (let ((interface (current-interface))
           (world (current-world)))
@@ -1450,7 +1446,210 @@
              (set-visible? (child interface 'chat) #t)
              (set-visible? (child interface 'command-to) #t)
              (set-visible? (child interface 'command) #t)))
-      (update-parameter world 'chat))))
+      (update-parameter world 'chat)))
+  
+  
+  ;;;
+  ;;;; Events
+  ;;;
+  
+  
+  (method protected (toggle-hide self)
+    (let ((world (current-world)))
+      (set! auto-hide? (not auto-hide?))
+      (if auto-hide?
+          (begin
+            (install-hider self)
+            (show-interface self #t))
+        (show-interface self #f))
+      (display-on/off world "Auto hide" auto-hide?)))
+  
+  
+  ;;;
+  ;;;; Mainbar
+  ;;;
+  
+  
+  (method override (mainbar-show self)
+    (install-power self)
+    (nextmethod self))
+  
+  
+  (method override (mainbar-hide self)
+    (uninstall-power self)
+    (nextmethod self))
+  
+  
+  ;;;
+  ;;;; Power
+  ;;;
+  
+  
+  (method (install-power self)
+    (let ((client (current-client)))
+      (unless power?
+        (install-microphone-power-probe)
+        (let ((view (child mainbar 'microphone-power)))
+          (let ((thread
+                  (new-thread
+                    (lambda ()
+                      (declare (proper-tail-calls))
+                      (let (loop)
+                        (when power?
+                          (with-task-mutex
+                            (lambda ()
+                              (when (and (microphone-on? client)
+                                         (get-visible? mainbar-pane)
+                                         (not (equal? (get-fade mainbar-pane) 0.)))
+                                (set-power view (microphone-power-level)))))
+                          (sleep .04)
+                          (loop))))
+                    'power)))
+            (set! power? #t)
+            (thread-start! thread))))))
+  
+  
+  (method (uninstall-power self)
+    (let ((client (current-client)))
+      (when power?
+        (uninstall-microphone-power-probe)
+        (set! power? #f))))
+  
+  
+  ;;;
+  ;;;; Hide
+  ;;;
+  
+  
+  (method override (mouse-moved self x y)
+    (nextmethod self x y)
+    (let ((together (current-together))
+          (world (current-world)))
+      (unless (get-central-menu world)
+        (fade-mainbar (new Point$fl$ x y)))
+      (when application-active?
+        (unless (script-visible? self)
+          (cond-expand
+            (windows
+             (let ((point (new Point$fl$ x y)))
+               ;; quick hack around windows sending
+               ;; mouse-moved every second even with
+               ;; the mouse not moving at all
+               (when (or (not (get-hide-last-mouse together))
+                         (nu/=? (get-hide-last-mouse together) point))
+                 (show-interface self #t)
+                 (set-hide-last-mouse together point))))
+            (else
+             (show-interface self #t)))))))
+  
+  
+  (method override (mouse-down self h v)
+    (nextmethod self h v)
+    (mouse-activity self #f))
+  
+  
+  (method override (mouse-up self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (mouse-action self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (double-click self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method override (multiple-click self h v)
+    (nextmethod self h v)
+    (mouse-activity self))
+  
+  
+  (method (mouse-activity self (hide-interface? #t))
+    (when application-active?
+      (unless (script-visible? self)
+        (show-interface self hide-interface?))))
+  
+  
+  (method (script-visible? self)
+    (let ((interface (current-interface)))
+      (let ((panel (child interface 'script)))
+        (get-visible? panel))))
+  
+  
+  (method (install-hider self)
+    (unless hide-thread
+      (let ((thread (new-thread
+                      (lambda ()
+                        (declare (proper-tail-calls))
+                        (let (loop)
+                          (let ((proc (wait hide-ring)))
+                            (when proc
+                              (delay-event
+                                (lambda ()
+                                  (proc)))
+                              (loop)))))
+                      'hider)))
+        (set! hide-ring (new Time-Ring 1))
+        (set! hide-thread thread)
+        (thread-base-priority-set! thread event-priority)
+        (thread-start! thread))))
+  
+  
+  (method (uninstall-hider self)
+    (when hide-thread
+      (terminate hide-ring)
+      (thread-join! hide-thread)
+      (set! hide-ring #f)
+      (set! hide-thread #f)))
+  
+  
+  ;; we probably need a tolerance so moving
+  ;; only 1 pixel doesn't show the interface
+  (method override (show-interface self hide-interface?)
+    (let ((together (current-together))
+          (window (current-window))
+          (interface (current-interface))
+          (video (current-video)))
+      (unless video-interface?
+        @wait-buggy
+        (show-cursor window)
+        (for-each (lambda (child)
+                    (when (and (is? child World-Actionbar)
+                               (get-auto-show/hide? child))
+                      (set-visible? child #t)))
+                  (get-children interface))
+        (set-video-interface? #t))
+      (delay-hide-interface self hide-interface?)))
+  
+  
+  (method (delay-hide-interface self hide-interface?)
+    (when auto-hide?
+      (let ((hide-time (+ (current-seconds) 2.)))
+        (empty hide-ring)
+        (when hide-interface?
+          (insert hide-ring hide-time (lambda ()
+                                        (with-task-mutex
+                                          (lambda ()
+                                            (let ((window (current-window))
+                                                  (interface (current-interface))
+                                                  (world (current-world))
+                                                  (video (current-video)))
+                                              (when (and auto-hide?
+                                                         video-interface?
+                                                         (not (current-tooltip-context))
+                                                         (not (get-central-menu world)))
+                                                @wait-buggy
+                                                (hide-cursor window)
+                                                (for-each (lambda (child)
+                                                            (when (and (is? child World-Actionbar)
+                                                                       (get-auto-show/hide? child))
+                                                              (set-visible? child #f)))
+                                                          (get-children interface))
+                                                (set-video-interface? #f))))))))))))
 
 
 ;;;
@@ -1683,11 +1882,6 @@
 (class Presence-Space extends Circle-Space
   
   
-  (slot power?      initialize #f getter generate)
-  (slot hide-ring   initialize #f getter generate)
-  (slot hide-thread initialize #f getter generate)
-  
-  
   (method override (space-name self)
     'presence)
   
@@ -1725,9 +1919,6 @@
       (set-position (child interface '(command-to teleport)) {Point 178 9})
       (layout-view interface)
       (layout-view root)
-      (when auto-hide?
-        (install-hider self)
-        (delay-hide-interface self #t))
       (show root)
       (send-to-back root)
       (visitor-mode together)
@@ -1751,9 +1942,7 @@
       (restore-fov)
       (uninstall-push-to-talk)
       (circle-uninstall-camera)
-      (hide root)
-      (when auto-hide?
-        (uninstall-hider self))))
+      (hide root)))
   
   
   (method override (space-actions self)
@@ -1825,65 +2014,8 @@
   
   
   ;;;
-  ;;;; Mainbar
-  ;;;
-  
-  
-  (method override (mainbar-show self)
-    (install-power self)
-    (nextmethod self))
-  
-  
-  (method override (mainbar-hide self)
-    (uninstall-power self)
-    (nextmethod self))
-  
-  
-  (method (install-power self)
-    (let ((client (current-client)))
-      (unless power?
-        (install-microphone-power-probe)
-        (let ((view (child mainbar 'microphone-power)))
-          (let ((thread
-                  (new-thread
-                    (lambda ()
-                      (declare (proper-tail-calls))
-                      (let (loop)
-                        (when power?
-                          (with-task-mutex
-                            (lambda ()
-                              (when (and (microphone-on? client)
-                                         (get-visible? mainbar-pane)
-                                         (not (equal? (get-fade mainbar-pane) 0.)))
-                                (set-power view (microphone-power-level)))))
-                          (sleep .04)
-                          (loop))))
-                    'power)))
-            (set! power? #t)
-            (thread-start! thread))))))
-  
-  
-  (method (uninstall-power self)
-    (let ((client (current-client)))
-      (when power?
-        (uninstall-microphone-power-probe)
-        (set! power? #f))))
-  
-  
-  ;;;
   ;;;; Events
   ;;;
-  
-  
-  (method override (toggle-hide self)
-    (let ((world (current-world)))
-      (set! auto-hide? (not auto-hide?))
-      (if auto-hide?
-          (begin
-            (install-hider self)
-            (show-interface self #t))
-        (show-interface self #f))
-      (display-on/off world "Auto hide" auto-hide?)))
   
   
   (method override (toggle-chat self)
@@ -1919,141 +2051,7 @@
                                (when (member? (get-extension pathname) image-extensions test: extension=?)
                                  (let ((stream (stream-image-file pathname)))
                                    (delay-stream stream))))))
-                      pathnames)))))
-  
-  
-  ;;;
-  ;;;; Mouse
-  ;;;
-  
-  
-  (method override (mouse-moved self x y)
-    (nextmethod self x y)
-    (when application-active?
-      (unless (script-visible? self)
-        (cond-expand
-          (windows
-           (let ((together (current-together)))
-             (let ((point (new Point$fl$ x y)))
-               ;; quick hack around windows sending
-               ;; mouse-moved every second even with
-               ;; the mouse not moving at all
-               (when (or (not (get-hide-last-mouse together))
-                         (nu/=? (get-hide-last-mouse together) point))
-                 (show-interface self #t)
-                 (set-hide-last-mouse together point)))))
-          (else
-           (show-interface self #t))))))
-  
-  
-  (method override (mouse-down self h v)
-    (nextmethod self h v)
-    (mouse-activity self #f))
-  
-  
-  (method override (mouse-up self h v)
-    (nextmethod self h v)
-    (mouse-activity self))
-  
-  
-  (method override (mouse-action self h v)
-    (nextmethod self h v)
-    (mouse-activity self))
-  
-  
-  (method override (double-click self h v)
-    (nextmethod self h v)
-    (mouse-activity self))
-  
-  
-  (method override (multiple-click self h v)
-    (nextmethod self h v)
-    (mouse-activity self))
-  
-  
-  (method (mouse-activity self (hide-interface? #t))
-    (when application-active?
-      (unless (script-visible? self)
-        (show-interface self hide-interface?))))
-  
-  
-  (method (script-visible? self)
-    (let ((interface (current-interface)))
-      (let ((panel (child interface 'script)))
-        (get-visible? panel))))
-  
-  
-  (method (install-hider self)
-    (unless hide-thread
-      (let ((thread (new-thread
-                      (lambda ()
-                        (declare (proper-tail-calls))
-                        (let (loop)
-                          (let ((proc (wait hide-ring)))
-                            (when proc
-                              (delay-event
-                                (lambda ()
-                                  (proc)))
-                              (loop)))))
-                      'hider)))
-        (set! hide-ring (new Time-Ring 1))
-        (set! hide-thread thread)
-        (thread-base-priority-set! thread event-priority)
-        (thread-start! thread))))
-  
-  
-  (method (uninstall-hider self)
-    (when hide-thread
-      (terminate hide-ring)
-      (thread-join! hide-thread)
-      (set! hide-ring #f)
-      (set! hide-thread #f)))
-  
-  
-  ;; we probably need a tolerance so moving
-  ;; only 1 pixel doesn't show the interface
-  (method override (show-interface self hide-interface?)
-    (let ((together (current-together))
-          (window (current-window))
-          (interface (current-interface))
-          (video (current-video)))
-      (unless video-interface?
-        @wait-buggy
-        (show-cursor window)
-        (for-each (lambda (child)
-                    (when (and (is? child World-Actionbar)
-                               (get-auto-show/hide? child))
-                      (set-visible? child #t)))
-                  (get-children interface))
-        (set-video-interface? #t))
-      (delay-hide-interface self hide-interface?)))
-  
-  
-  (method (delay-hide-interface self hide-interface?)
-    (when auto-hide?
-      (let ((hide-time (+ (current-seconds) 2.)))
-        (empty hide-ring)
-        (when hide-interface?
-          (insert hide-ring hide-time (lambda ()
-                                        (with-task-mutex
-                                          (lambda ()
-                                            (let ((window (current-window))
-                                                  (interface (current-interface))
-                                                  (world (current-world))
-                                                  (video (current-video)))
-                                              (when (and (is? (current-space) Presence-Space)
-                                                         auto-hide?
-                                                         video-interface?
-                                                         (not (current-tooltip-context))
-                                                         (not (get-central-menu world)))
-                                                @wait-buggy
-                                                (hide-cursor window)
-                                                (for-each (lambda (child)
-                                                            (when (and (is? child World-Actionbar)
-                                                                       (get-auto-show/hide? child))
-                                                              (set-visible? child #f)))
-                                                          (get-children interface))
-                                                (set-video-interface? #f))))))))))))
+                      pathnames))))))
 
 
 ;;;
