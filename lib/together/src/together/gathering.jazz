@@ -281,6 +281,10 @@
       (<together-menu!>
         (<!>                 name: central-menu               active?: #t)
         (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-start                 active?: #t)
+        (<!>                 name: live-pause                 active?: #t)
+        (<!>                 name: live-resume                active?: #t)
+        (<!>                 name: live-end                   active?: #t)
         (<!>                 name: live-chat                  active?: #t))
       (<together-audio!>
         (<!>                 name: audio-options              active?: #t))
@@ -1018,6 +1022,10 @@
         (<!>                 name: open-welcome               active?: #t))
       (<together-menu!>
         (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-start                 active?: #t)
+        (<!>                 name: live-pause                 active?: #t)
+        (<!>                 name: live-resume                active?: #t)
+        (<!>                 name: live-end                   active?: #t)
         (<!>                 name: live-chat                  active?: #t)
         (<!>                 name: create-circle              active?: #t)))))
 
@@ -2064,6 +2072,10 @@
     (<install>
       (<together-menu!>
         (<!>                 name: live-streaming             active?: #t)
+        (<!>                 name: live-start                 active?: #t)
+        (<!>                 name: live-pause                 active?: #t)
+        (<!>                 name: live-resume                active?: #t)
+        (<!>                 name: live-end                   active?: #t)
         (<!>                 name: live-chat                  active?: #t)
         (<!>                 name: leave-circle               active?: #t))
       (<together-audio!>
@@ -2798,6 +2810,30 @@
     (with-cursor :wait
       (lambda ()
         (live-streaming))))
+  
+  
+  (method (on-live-start self evt)
+    (with-cursor :wait
+      (lambda ()
+        (live-start))))
+  
+  
+  (method (on-live-pause self evt)
+    (with-cursor :wait
+      (lambda ()
+        (live-pause))))
+  
+  
+  (method (on-live-resume self evt)
+    (with-cursor :wait
+      (lambda ()
+        (live-resume))))
+  
+  
+  (method (on-live-end self evt)
+    (with-cursor :wait
+      (lambda ()
+        (live-end))))
   
   
   (method (on-live-chat self evt)
