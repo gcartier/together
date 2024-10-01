@@ -240,6 +240,7 @@
                     (let ((streaming (find-streaming udp-client location)))
                       (if streaming
                           (begin
+                            (stop-live-music streaming)
                             (close-send-stream udp-client streaming)
                             (update #f))
                         ;; guard against filesystem changes
@@ -262,13 +263,17 @@
                              (let ((name (unicode->ascii (filename-name location))))
                                (let ((stream (stream-audio location name music?: streams-music?)))
                                  (update stream)
-                                 (delay-stream stream))))
+                                 (delay-stream stream)
+                                 (when streams-music?
+                                   (replace-live-music)))))
                             ((video)
                              (let ((name (unicode->ascii (filename-name location)))
                                    (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
                                (let ((stream (stream-video location name audio?: audio-file? music?: streams-music?)))
                                  (update stream)
-                                 (delay-stream stream))))
+                                 (delay-stream stream)
+                                 (when streams-music?
+                                   (replace-live-music)))))
                             ((preprocess)
                              (let ((file (new-file {Directory Documents} (tokenise-filename location))))
                                (let ((preprocess-thread (preprocess-stream self file)))
