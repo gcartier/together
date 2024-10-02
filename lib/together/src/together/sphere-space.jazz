@@ -53,6 +53,8 @@
   
   
   (slot showing-music? initialize #f getter generate)
+  (slot music-stream   initialize #f getter generate)
+  (slot music-data     initialize #f getter generate)
   
   
   (method override (space-activate self)
@@ -227,22 +229,60 @@
                           kind)))
                     
                     (define (update streaming)
-                      (let ((title (streaming-title streaming kind base profiles))
-                            (color (streaming-color streaming kind))
-                            (line (row->line tree row))
-                            (col 0))
-                        (let ((cell (new Cell line col)))
-                          (let ((data (get-cell-data tree cell)))
-                            (set-title data title)
-                            (set-color data color))
-                          (invalidate-cell tree cell))))
+                      (update-data streaming data row))
+                    
+                    (define (update-data streaming data row)
+                      (bind (kind base location files profiles) data
+                        (let ((title (streaming-title streaming kind base profiles))
+                              (color (streaming-color streaming kind))
+                              (line (row->line tree row))
+                              (col 0))
+                          (let ((cell (new Cell line col)))
+                            (let ((data (get-cell-data tree cell)))
+                              (set-title data title)
+                              (set-color data color))
+                            (invalidate-cell tree cell)))))
+                    
+                    (define (update-row streaming data)
+                      (bind (kind base location files profiles) data
+                        (let ((row (user-data-row tree data test: (lambda (x y)
+                                                                    (and y
+                                                                         (equal? (third x) (third y)))))))
+                          (when row
+                            (update-data streaming data row)))))
+                    
+                    (define (close stream)
+                      (when showing-music?
+                        (stop-live-music stream))
+                      (close-send-stream udp-client stream)
+                      (update #f))
+                    
+                    (define (reset-music)
+                      (when showing-music?
+                        (set! music-stream #f)
+                        (set! music-data #f)))
+                    
+                    (define (prepare-music)
+                      (when showing-music?
+                        (when music-stream
+                          (update-row #f music-data)
+                          (close music-stream)
+                          (reset-music))))
+                    
+                    (define (remember-music stream)
+                      (when showing-music?
+                        (set! music-stream stream)
+                        (set! music-data data)))
+                    
+                    (define (replace-live)
+                      (when showing-music?
+                        (replace-live-music)))
                     
                     (let ((streaming (find-streaming udp-client location)))
                       (if streaming
                           (begin
-                            (stop-live-music streaming)
-                            (close-send-stream udp-client streaming)
-                            (update #f))
+                            (close streaming)
+                            (reset-music))
                         ;; guard against filesystem changes
                         (if (not (every? exists? files))
                             (let ((file (car files)))
@@ -260,20 +300,22 @@
                                  (update stream)
                                  (delay-stream stream))))
                             ((audio)
+                             (prepare-music)
                              (let ((name (unicode->ascii (filename-name location))))
                                (let ((stream (stream-audio location name music?: showing-music?)))
                                  (update stream)
                                  (delay-stream stream)
-                                 (when showing-music?
-                                   (replace-live-music)))))
+                                 (remember-music stream)
+                                 (replace-live))))
                             ((video)
+                             (prepare-music)
                              (let ((name (unicode->ascii (filename-name location)))
                                    (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
                                (let ((stream (stream-video location name audio?: audio-file? music?: showing-music?)))
                                  (update stream)
                                  (delay-stream stream)
-                                 (when showing-music?
-                                   (replace-live-music)))))
+                                 (remember-music stream)
+                                 (replace-live))))
                             ((preprocess)
                              (let ((file (new-file {Directory Documents} (tokenise-filename location))))
                                (let ((preprocess-thread (preprocess-stream self file)))
