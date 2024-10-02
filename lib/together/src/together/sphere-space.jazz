@@ -52,7 +52,7 @@
 (class Sphere-Space extends Space
   
   
-  (slot streams-music? initialize #f getter generate)
+  (slot showing-music? initialize #f getter generate)
   
   
   (method override (space-activate self)
@@ -92,16 +92,16 @@
   
   (method (on-toggle-streams self evt)
     (let ((interface (current-interface)))
-      (let ((force-visible? streams-music?))
-        (set! streams-music? #f)
+      (let ((force-visible? showing-music?))
+        (set! showing-music? #f)
         (set-title (child interface 'streams-label) "Streams")
         (toggle-streams self force-visible?))))
   
   
   (method (on-toggle-music self evt)
     (let ((interface (current-interface)))
-      (let ((force-visible? (not streams-music?)))
-        (set! streams-music? #t)
+      (let ((force-visible? (not showing-music?)))
+        (set! showing-music? #t)
         (set-title (child interface 'streams-label) "Music")
         (toggle-streams self force-visible?))))
   
@@ -167,7 +167,7 @@
                               (bind (base . files) partition
                                 (receive (kind location files profiles title color) (streaming-information udp-client base files audio-extensions video-profiles preprocess-extensions)
                                   (when kind
-                                    (unless (and streams-music? (eq? kind 'image))
+                                    (unless (and showing-music? (eq? kind 'image))
                                       (add-row tree
                                                father: father
                                                children: (list (new Tree-Node title: title font: {Font Label-User} color: color))
@@ -187,7 +187,7 @@
                                            children: (list (new Tree-Node title: name font: {Font Label-User} color: {Color red: 220 green: 0 blue: 0})))))
                       (iterate dir father)))))
               
-              (if streams-music?
+              (if showing-music?
                   (iterate {Directory Documents "music"})
                 (iterate-stream-directories iterate)
                 (add {Directory Documents "screenshots"}))))))))
@@ -261,18 +261,18 @@
                                  (delay-stream stream))))
                             ((audio)
                              (let ((name (unicode->ascii (filename-name location))))
-                               (let ((stream (stream-audio location name music?: streams-music?)))
+                               (let ((stream (stream-audio location name music?: showing-music?)))
                                  (update stream)
                                  (delay-stream stream)
-                                 (when streams-music?
+                                 (when showing-music?
                                    (replace-live-music)))))
                             ((video)
                              (let ((name (unicode->ascii (filename-name location)))
                                    (audio-file? (exists? (new-file {Directory Documents} (add-extension location (audio-profile-extension))))))
-                               (let ((stream (stream-video location name audio?: audio-file? music?: streams-music?)))
+                               (let ((stream (stream-video location name audio?: audio-file? music?: showing-music?)))
                                  (update stream)
                                  (delay-stream stream)
-                                 (when streams-music?
+                                 (when showing-music?
                                    (replace-live-music)))))
                             ((preprocess)
                              (let ((file (new-file {Directory Documents} (tokenise-filename location))))
