@@ -5731,7 +5731,7 @@
             (display-error world "You are already sharing your screen")
           (let ((stream (locate-window-stream)))
             (cond ((not stream)
-                   (let ((stream (stream-window "Window")))
+                   (let ((stream (stream-window-share "Window")))
                      (play stream)
                      (display-on/off world "Window sharing" #t)))
                   (else
@@ -5755,7 +5755,7 @@
             (display-error world "You are already sharing your window")
           (let ((stream (locate-screen-stream)))
             (cond ((not stream)
-                   (let ((stream (stream-screen "Screen")))
+                   (let ((stream (stream-screen-share "Screen")))
                      (play stream)
                      (display-on/off world "Screen sharing" #t)))
                   (else
