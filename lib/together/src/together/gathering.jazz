@@ -2458,7 +2458,7 @@
                                   (set-visible? verify #t)
                                 (set-visible? verify #f))
                               ;; teleport
-                              (if (and user-verified? (not player-me?) (participant?) (can-explore?) (or (not current-circle-name) (avatar-mode?)) (not player-mobile?))
+                              (if (and user-verified? (not player-me?) (participant?) (can-explore?) (or (not current-circle-name) (avatar-mode?) (streaming-mode?)) (not player-mobile?))
                                   (set-visible? teleport #t)
                                 (set-visible? teleport #f))))))
                        (else
