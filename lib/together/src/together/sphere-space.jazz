@@ -253,7 +253,7 @@
                     
                     (define (close stream)
                       (when showing-music?
-                        (stop-live-music stream))
+                        (close-live-music stream))
                       (close-send-stream udp-client stream)
                       (update #f))
                     
@@ -276,7 +276,7 @@
                     
                     (define (replace-live)
                       (when showing-music?
-                        (replace-live-music)))
+                        (update-live-music)))
                     
                     (let ((streaming (find-streaming udp-client location)))
                       (if streaming
