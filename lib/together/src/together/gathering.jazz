@@ -3498,6 +3498,7 @@
         (goto-space self 'zone)
         (setup-visibility mainbar)
         (refresh-central-menu world)
+        (update-message-recipient self #f)
         (hide-streams self)
         (let ((frame (find-type interface Circle-Options)))
           (when frame
