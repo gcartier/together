@@ -2156,7 +2156,7 @@
   (slot selected-group      initialize #f getter generate)
   (slot selected-owner      initialize #f getter generate)
   (slot selected-zoom?      initialize #f getter generate)
-  (slot created-zoom-circle initialize #f getter generate)
+  (slot created-circle      initialize #f getter generate)
   (slot preserved-eye?      initialize #f getter generate)
   (slot preserved-eye       initialize #f getter generate)
   (slot preserved-distance  initialize #f getter generate)
@@ -2929,6 +2929,7 @@
                 (bake-entity-lighting zone entity))
               (let ((fire-position (vertex (vertex-x position) (+ (round (vertex-y position)) .5) (vertex-z position))))
                 (add-block-at-position universe fire-position 51 0))
+              (set! created-circle name)
               group-info/exception))))))
   
   
@@ -3248,7 +3249,7 @@
                   (set-string-content text "")
                   (set-string-content link-text "")
                   (content-changed view)
-                  (set! created-zoom-circle name)))))))))
+                  (set! created-circle name)))))))))
   
   
   (method package (acquire/join-circle self name (from-create-random? #f))
@@ -3697,24 +3698,25 @@
           use: 'data
           test: same-entity?
           selection-position?: #f)
-        (select-zoom-circle self)
+        (select-created-circle self)
         (people-selection-change self)
         (update-recipient-interface self)
         (refresh-compass world))))
   
   
-  (method (select-zoom-circle self)
-    (when created-zoom-circle
+  (method (select-created-circle self)
+    (when created-circle
       (let ((tree (people-tree self)))
-        (let ((row (user-data-row tree created-zoom-circle test: (lambda (name data)
-                                                                   (and (pair? data)
-                                                                        (eq? (car data) 'group)
-                                                                        (equal? (cadr data) name))))))
+        (let ((row (user-data-row tree created-circle test: (lambda (name data)
+                                                              (and (pair? data)
+                                                                   (eq? (car data) 'group)
+                                                                   (equal? (cadr data) name))))))
           (when row
             (let ((line (row->line tree row)))
               (when line
-                (set-selection tree (list line)))))))
-      (set! created-zoom-circle #f)))
+                (set-selection tree (list line))
+                (update-message-recipient self (list 'group created-circle)))))))
+      (set! created-circle #f)))
   
   
   ;; this rare case can happen if the server had just sent
