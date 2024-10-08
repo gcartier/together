@@ -2841,7 +2841,7 @@
   
   
   (method (live-chat self)
-    (if (not live-streaming?)
+    (if (not live-scene)
         (display-error (current-world) "You are not live streaming")
       (chat-recipient self (list 'live "Live"))))
   
@@ -3347,7 +3347,7 @@
   
   
   (method (circle-join self name group-info/exception from-create-random? from-invite?)
-    (bind (no profiling? require-microphone? require-camera? duration zone stone shape) group-info/exception
+    (bind (no profiling? require-microphone? require-camera? duration zone stone) group-info/exception
       (let ((effective-zone (if (user?) 'start zone)))
         (cond (from-create-random?
                (setup-circle self name #t #t group-info/exception)
@@ -3394,7 +3394,7 @@
           (udp (current-udp))
           (world (current-world))
           (video (current-video)))
-      (bind (no profiling? require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+      (bind (no profiling? require-microphone? require-camera? duration zone stone shape scene . streams) group-info/exception
         (change-profiling world profiling?)
         (let ((circle-mode (cond ((participant?)
                                   'avatar)
@@ -3422,6 +3422,7 @@
           (set-current-circle-started (- (current-seconds) duration))
           (set-current-circle-joined (current-seconds))
           (set-current-circle-from-gathering? from-gathering?)
+          (set-current-circle-scene name scene)
           (set-visible? (child mainbar 'circle-name) #t)
           (set-title (child mainbar 'circle-name) current-circle-name)
           (add-snapshot-property 'live.circle-name current-circle-name)
@@ -3478,6 +3479,7 @@
           (let ((stone (find-circle-stone tier current-circle-name)))
             (when stone
               (show-circle-stone self stone)))))
+      (set-current-circle-scene current-circle-name #f)
       (let ((from-gathering? current-circle-from-gathering?)
             (circle-mode current-circle-mode))
         @wait-buggy
@@ -3515,7 +3517,7 @@
       (let ((group-info/exception (rejoin-group tier group-no)))
         (if (string? group-info/exception)
             group-info/exception
-          (bind (no profiling? require-microphone? require-camera? duration zone stone shape . streams) group-info/exception
+          (bind (no profiling? require-microphone? require-camera? duration zone stone shape scene . streams) group-info/exception
             (change-profiling world profiling?)
             (let ((udp-client (get-udp-client tier)))
               (start udp-client)
