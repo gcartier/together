@@ -546,101 +546,104 @@
             (dummy-payload (make-u8vector (- (if (unspecified? size) udp-datagram-max size) (recordsize profile-dummy))))
             (dummy? (if (unspecified? dummy?) #f dummy?)))
         (define (send-packet)
-          (let ((data (send-profile-media udp payload)))
-            (update local-rate (u8vector-length data))
-            (update moving-rate (u8vector-length data))
-            (parameterize ((simulation-evolution (get-profile-evolution udp)))
-              (with-record profile-media
-                (let ((sent (current-monotonic))
-                      (order (read-profile-media-order data)))
-                  (bind-values (skb segs) (packet-sent state sent order data)
-                    (let ((empty? #f)
-                          (timer (current-monotonic-jiffies)))
-                      (tcp_skb_sent socket skb empty? order timer)
-                      (when record-events?
-                        (record-event udp-id-bbr-sent
+          (let ((parcel (send-profile-media udp payload)))
+            (let ((size (parcel-length parcel)))
+              (update local-rate size)
+              (update moving-rate size)
+              (parameterize ((simulation-evolution (get-profile-evolution udp)))
+                (with-record profile-media
+                  (let ((sent (current-monotonic))
+                        (order (read-profile-media-order parcel)))
+                    (bind-values (skb segs) (packet-sent state sent order parcel)
+                      (let ((empty? #f)
+                            (timer (current-monotonic-jiffies)))
+                        (tcp_skb_sent socket skb empty? order timer)
+                        (when record-events?
+                          (record-event udp-id-bbr-sent
+                                        -1.
+                                        -1.
+                                        -1.
+                                        (fixnum->flonum segs)
+                                        (fixnum->flonum order)
+                                        (if empty? 1. 0.)
+                                        (timestamp->flonum timer)))))
+                    (when record-events?
+                      (with-record media
+                        (record-event udp-id-bbr-media
                                       -1.
                                       -1.
                                       -1.
-                                      (fixnum->flonum segs)
+                                      -1.
                                       (fixnum->flonum order)
-                                      (if empty? 1. 0.)
-                                      (timestamp->flonum timer)))))
-                  (when record-events?
-                    (with-record media
-                      (record-event udp-id-bbr-media
+                                      -1.
+                                      -1.))
+                      (record-event udp-id-send-rate
+                                    -1.
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum order)
+                                    (average-mbps moving-rate)
+                                    -1.)))))
+              (bbr-updated))))
+        
+        (define (send-pulse sent)
+          (let ((parcel (send-profile-media-pulse udp)))
+            (let ((size (parcel-length parcel)))
+              (update local-rate size)
+              (update moving-rate size)
+              (parameterize ((simulation-evolution (get-profile-evolution udp)))
+                (with-record profile-media-pulse
+                  (let ((order (read-profile-media-pulse-order parcel)))
+                    (bind-values (skb segs) (packet-sent state sent order parcel)
+                      (let ((empty? #f)
+                            (timer (current-monotonic-jiffies)))
+                        (tcp_skb_sent socket skb empty? order timer)
+                        (when record-events?
+                          (record-event udp-id-bbr-pulsed
+                                        -1.
+                                        -1.
+                                        -1.
+                                        (fixnum->flonum segs)
+                                        (fixnum->flonum order)
+                                        (if empty? 1. 0.)
+                                        (timestamp->flonum timer)))))
+                    (when record-events?
+                      (record-event udp-id-bbr-pulse
                                     -1.
                                     -1.
                                     -1.
                                     -1.
                                     (fixnum->flonum order)
                                     -1.
-                                    -1.))
-                    (record-event udp-id-send-rate
-                                  -1.
-                                  -1.
-                                  -1.
-                                  -1.
-                                  (fixnum->flonum order)
-                                  (average-mbps moving-rate)
-                                  -1.)))))
-            (bbr-updated)))
-        
-        (define (send-pulse sent)
-          (let ((data (send-profile-media-pulse udp)))
-            (update local-rate (u8vector-length data))
-            (update moving-rate (u8vector-length data))
-            (parameterize ((simulation-evolution (get-profile-evolution udp)))
-              (with-record profile-media-pulse
-                (let ((order (read-profile-media-pulse-order data)))
-                  (bind-values (skb segs) (packet-sent state sent order data)
-                    (let ((empty? #f)
-                          (timer (current-monotonic-jiffies)))
-                      (tcp_skb_sent socket skb empty? order timer)
-                      (when record-events?
-                        (record-event udp-id-bbr-pulsed
-                                      -1.
-                                      -1.
-                                      -1.
-                                      (fixnum->flonum segs)
-                                      (fixnum->flonum order)
-                                      (if empty? 1. 0.)
-                                      (timestamp->flonum timer)))))
-                  (when record-events?
-                    (record-event udp-id-bbr-pulse
-                                  -1.
-                                  -1.
-                                  -1.
-                                  -1.
-                                  (fixnum->flonum order)
-                                  -1.
-                                  -1.)))))
-            (bbr-updated)))
+                                    -1.)))))
+              (bbr-updated))))
         
         (define (send-dummy)
-          (let ((data (send-profile-dummy udp dummy-payload)))
-            (update local-rate (u8vector-length data))
-            (update moving-rate (u8vector-length data))
-            (when record-events?
-              (parameterize ((simulation-evolution (get-profile-evolution udp)))
-                (with-record profile-dummy
-                  (let ((order (read-profile-dummy-order data)))
-                    (record-event udp-id-dummy-send
-                                  -1.
-                                  -1.
-                                  -1.
-                                  -1.
-                                  (fixnum->flonum order)
-                                  -1.
-                                  -1.)
-                    (record-event udp-id-send-rate
-                                  -1.
-                                  -1.
-                                  -1.
-                                  -1.
-                                  (fixnum->flonum order)
-                                  (average-mbps moving-rate)
-                                  -1.)))))))
+          (let ((parcel (send-profile-dummy udp dummy-payload)))
+            (let ((size (parcel-length parcel)))
+              (update local-rate size)
+              (update moving-rate size)
+              (when record-events?
+                (parameterize ((simulation-evolution (get-profile-evolution udp)))
+                  (with-record profile-dummy
+                    (let ((order (read-profile-dummy-order parcel)))
+                      (record-event udp-id-dummy-send
+                                    -1.
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum order)
+                                    -1.
+                                    -1.)
+                      (record-event udp-id-send-rate
+                                    -1.
+                                    -1.
+                                    -1.
+                                    -1.
+                                    (fixnum->flonum order)
+                                    (average-mbps moving-rate)
+                                    -1.))))))))
         
         (define (wait local-delivery-time)
           (sleep (- local-delivery-time (current-monotonic))))
