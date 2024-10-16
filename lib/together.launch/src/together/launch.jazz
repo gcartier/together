@@ -36,7 +36,7 @@
         (mac (directory-writable? kernel-bundle-install))
         (else #t))
       #t
-    (system-message (format "Please drag & drop Together on the Applications icon")
+    (system-message (format "Please drag & drop Together on{%}the Applications icon")
                     type: 'problem
                     title: "Together")
     #f))

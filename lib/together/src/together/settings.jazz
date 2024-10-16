@@ -285,7 +285,7 @@
                            title: "Together")
            (exit 1))
           ((not (exists? world))
-           (system-message (format "Unable to find Together's world: {a}" (parse world))
+           (system-message (format "Unable to find Together's world:{%}{a}" (parse world))
                            type: 'problem
                            title: "Together")
            (exit 1))
